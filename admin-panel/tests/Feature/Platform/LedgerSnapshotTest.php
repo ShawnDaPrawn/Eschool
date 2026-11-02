@@ -38,8 +38,14 @@ class LedgerSnapshotTest extends TestCase
         Artisan::call('migrate:fresh', ['--force' => true]);
         DB::table('schools')->updateOrInsert(['id' => 1], ['name' => 'Snapshot School', 'slug' => 'snapshot-school',
             'status' => 'active', 'timezone' => 'UTC', 'package_key' => 'snapshot-ledger']);
-        config(['modules.fees' => ['name' => 'Fees', 'money' => true, 'default' => true, 'dependencies' => []],
-            'school_packages.snapshot-ledger' => ['fees'], 'school_packages.snapshot-without-fees' => []]);
+        config(['modules.fees' => ['name' => 'Fees', 'money' => true, 'default' => true, 'dependencies' => []]]);
+        // Packages live in the database (SA.7): one with Finance (fees), one without.
+        foreach (['snapshot-ledger' => ['core', 'finance'], 'snapshot-without-fees' => ['core']] as $key => $products) {
+            $package = DB::table('platform_packages')->insertGetId(['package_key' => $key, 'name' => $key, 'status' => 'active', 'modules_version' => 1]);
+            foreach ($products as $product) {
+                DB::table('platform_package_modules')->insert(['package_id' => $package, 'version' => 1, 'product_module' => $product]);
+            }
+        }
         DB::table('school_modules')->updateOrInsert(['school_id' => 1, 'module' => 'fees'], ['enabled' => true, 'read_only' => false, 'in_package' => true]);
         app(CurrentSchool::class)->set(1);
         app(ModuleGate::class)->forget();
