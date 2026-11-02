@@ -24,7 +24,7 @@
     <h1>{{ $invitation['first_administrator'] ? __('Be the first administrator of :school', ['school' => $invitation['school']]) : __('Join :school', ['school' => $invitation['school']]) }}</h1>
     <p class="saas-lead">{{ __(':school has invited you to join it on NavigateEd as :role.', ['school' => $invitation['school'], 'role' => $invitation['role']]) }}</p>
     <div class="saas-card">
-        <p>{{ __('If you accept, :school can see your name, email address and the other details on your NavigateEd profile, and you can work there with this role. Your password and your other schools stay as they are, and each school sees only its own records.', ['school' => $invitation['school']]) }}</p>
+        <p>{{ __('If you accept, :school can see your name, email address and the other details on your NavigateEd account, and you can work there with this role. Accepting does not change your password. :school cannot change your account details or your place at your other schools; it can only end your role at :school.', ['school' => $invitation['school']]) }}</p>
         <div class="saas-actions">
             <form method="POST" action="{{ route('join-invitation.accept', ['token' => $token]) }}">
                 @csrf

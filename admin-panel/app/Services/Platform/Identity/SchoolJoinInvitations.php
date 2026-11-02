@@ -56,6 +56,9 @@ class SchoolJoinInvitations
     /** Roles that are not staff. */
     private const NOT_STAFF = [SchoolRoles::STUDENT, SchoolRoles::PARENT];
 
+    /** After someone declines, adding them again is refused as a duplicate for this long: they said no. */
+    public const DECLINE_QUIET_DAYS = 180;
+
     public function __construct(private readonly CurrentSchool $currentSchool) {}
 
     /**
@@ -70,10 +73,18 @@ class SchoolJoinInvitations
             return [self::NEW, null];
         }
         $school = $this->currentSchool->id();
-        $known = SchoolMembership::query()->where('school_id', $school)->where('user_id', $user->id)->exists()
-            || SchoolJoinInvitation::query()->waiting()->where('user_id', $user->id)->exists();
+        // The school added this address before: it is on the staff, an invitation waits, or its owner said no.
+        $known = SchoolMembership::query()->where('school_id', $school)->where('user_id', $user->id)->exists() || $this->alreadyInvited((int) $user->id);
 
         return [$known ? self::KNOWN : self::ELSEWHERE, $user];
+    }
+
+    /** Whether an invitation for the person waits at the current school, or they declined one lately. */
+    public function alreadyInvited(int $userId): bool
+    {
+        return SchoolJoinInvitation::query()->where('user_id', $userId)->where(fn ($query) => $query
+            ->where(fn ($waiting) => $waiting->whereNull('used_at')->where('expires_at', '>', now()))
+            ->orWhere('declined_at', '>', now()->subDays(self::DECLINE_QUIET_DAYS)))->exists();
     }
 
     /** A validation rule for the legacy staff forms: refuses only an address this school already knows. */
@@ -106,7 +117,7 @@ class SchoolJoinInvitations
      * The school adds staff with an address that already has an account
      * elsewhere (classify() said ELSEWHERE). Answers nothing about the account.
      *
-     * @param  array{name?: string, qualification?: ?string}  $details  what the school typed
+     * @param  array{name?: string, email?: string, qualification?: ?string}  $details  what the school typed
      */
     public function inviteFromSchool(User $actor, User $person, Role $role, array $details = []): void
     {
@@ -117,8 +128,10 @@ class SchoolJoinInvitations
 
         DB::transaction(function () use ($actor, $person, $role, $details, $school) {
             $person = User::acrossSchools()->withTrashed()->lockForUpdate()->findOrFail($person->id);
-            abort_if(SchoolMembership::query()->where('school_id', $school)->where('user_id', $person->id)->exists(), 409);
-            $reason = $this->ineligible($person);
+            // Staff here already, or a learner here: never invited (a parent here, or someone who left, may be).
+            abort_if(SchoolMembership::query()->where('school_id', $school)->where('user_id', $person->id)
+                ->where(fn ($query) => $query->where('role', SchoolRoles::STUDENT)->orWhere(fn ($staff) => $staff->where('role', '!=', SchoolRoles::PARENT)->where('status', '!=', SchoolMembership::ENDED)))->exists(), 409);
+            $reason = $this->ineligible($person) ?? $this->mismatch($person, $details['email'] ?? null);
             $invitation = $this->create($person, $role, $actor, SchoolJoinInvitation::STAFF, $details, $reason !== null);
             $this->auditIssue($invitation, $actor, $reason);
             $this->recordAdded($actor, $role);
@@ -167,13 +180,13 @@ class SchoolJoinInvitations
      *
      * @return array{invitation: SchoolJoinInvitation, url: string}
      */
-    public function inviteFirstAdministrator(User $person, User $actor, string $typedName): array
+    public function inviteFirstAdministrator(User $person, User $actor, string $typedName, ?string $typedEmail = null): array
     {
-        $this->assertMayBeFirstAdministrator($person);
+        $this->assertMayBeFirstAdministrator($person, $typedEmail);
         $role = Role::query()->where('name', SchoolRoles::SUPER_ADMIN)->firstOrFail();
 
-        return DB::transaction(function () use ($person, $actor, $typedName, $role) {
-            $invitation = $this->create($person, $role, $actor, SchoolJoinInvitation::SCHOOL_ADMIN, ['name' => $typedName], false);
+        return DB::transaction(function () use ($person, $actor, $typedName, $typedEmail, $role) {
+            $invitation = $this->create($person, $role, $actor, SchoolJoinInvitation::SCHOOL_ADMIN, ['name' => $typedName, 'email' => $typedEmail], false);
             $this->auditIssue($invitation, $actor, null);
 
             return ['invitation' => $invitation, 'url' => $this->url((string) $invitation->encrypted_token)];
@@ -181,9 +194,9 @@ class SchoolJoinInvitations
     }
 
     /** HQ is told (one message per kind) when an existing account may not be invited as a first administrator. */
-    public function assertMayBeFirstAdministrator(User $person): void
+    public function assertMayBeFirstAdministrator(User $person, ?string $typedEmail = null): void
     {
-        $reason = $this->ineligible($person);
+        $reason = $this->ineligible($person) ?? $this->mismatch($person, $typedEmail);
         if ($reason !== null) {
             throw ValidationException::withMessages(['admin_email' => $reason === 'cannot_sign_in'
                 ? 'This address has a NavigateEd account that cannot sign in to a school panel at the moment, so its owner could not accept. Use another address, or ask support.'
@@ -195,8 +208,9 @@ class SchoolJoinInvitations
     public function pendingAdministrator(int $schoolId): ?SchoolJoinInvitation
     {
         return $this->currentSchool->run($schoolId, function () {
+            // Only one nobody has answered: not accepted, declined or withdrawn. An expired one may be sent again.
             $latest = SchoolJoinInvitation::query()->where('purpose', SchoolJoinInvitation::SCHOOL_ADMIN)->latest('id')->first();
-            if ($latest === null || SchoolJoinInvitation::query()->where('purpose', SchoolJoinInvitation::SCHOOL_ADMIN)->whereNotNull('accepted_at')->exists()) {
+            if ($latest === null || $latest->used_at !== null || SchoolJoinInvitation::query()->where('purpose', SchoolJoinInvitation::SCHOOL_ADMIN)->whereNotNull('accepted_at')->exists()) {
                 return null;
             }
 
@@ -213,7 +227,7 @@ class SchoolJoinInvitations
                 return false;
             }
             $person = User::acrossSchools()->withTrashed()->findOrFail($pending->user_id);
-            $this->inviteFirstAdministrator($person, $actor, (string) $pending->encrypted_name);
+            $this->inviteFirstAdministrator($person, $actor, (string) $pending->encrypted_name, (string) $pending->encrypted_email);
 
             return true;
         });
@@ -348,7 +362,9 @@ class SchoolJoinInvitations
         $token = Str::random(64);
         $invitation = SchoolJoinInvitation::query()->create([
             'user_id' => $person->id, 'role_id' => $role->id, 'purpose' => $purpose, 'created_by' => $actor?->id,
-            'encrypted_name' => Str::limit(trim((string) ($details['name'] ?? '')), 191, ''), 'encrypted_email' => strtolower(trim((string) $person->email)),
+            'encrypted_name' => Str::limit(trim((string) ($details['name'] ?? '')), 191, ''),
+            // What the school typed, never the account's own address.
+            'encrypted_email' => Str::limit(trim((string) ($details['email'] ?? $person->email)), 191, ''),
             'qualification' => isset($details['qualification']) && $details['qualification'] !== '' ? Str::limit((string) $details['qualification'], 191, '') : null,
             'token_hash' => hash('sha256', $token), 'encrypted_token' => $token, 'email_hash' => $this->emailHash((string) $person->email),
             'expires_at' => now()->addDays((int) config('identity.invitation_days', 7)),
@@ -417,6 +433,20 @@ class SchoolJoinInvitations
         return SchoolJoinInvitation::acrossSchools()->where('token_hash', hash('sha256', $token))
             ->whereNull('used_at')->whereNull('withheld_at')->where('expires_at', '>', now())
             ->when($lock, fn ($query) => $query->lockForUpdate())->firstOrFail();
+    }
+
+    /**
+     * The database matches addresses without regard to case or accents, so
+     * "josé@" finds "jose@". Only the exact address (ignoring case) is the
+     * account's: anything else is never emailed.
+     */
+    private function mismatch(User $person, ?string $typed): ?string
+    {
+        if ($typed === null || $typed === '') {
+            return null;
+        }
+
+        return mb_strtolower(trim($typed)) === mb_strtolower(trim((string) $person->email)) ? null : 'address_mismatch';
     }
 
     private function account(string $email): ?User

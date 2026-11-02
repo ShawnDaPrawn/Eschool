@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Imports\SchoolOnboarding;
 
 use App\Models\Platform\Role;
-use App\Models\Platform\SchoolJoinInvitation;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Staff;
 use App\Models\Teacher;
@@ -25,9 +24,10 @@ use Illuminate\Support\Collection;
  * account with no password anyone knows, the role, and a teacher or staff
  * record. When the school chooses, each is emailed a staff invitation to set
  * their own password (StaffInvitations). A person already on the staff here
- * is left alone. An account that already exists elsewhere is invited to join
- * (SchoolJoinInvitations) and appears once its owner accepts; nothing about it
- * is shown. engineering/specs/people/school-imports.md.
+ * is left alone, and a learner's account is refused. Any other existing
+ * account is invited to join (SchoolJoinInvitations) and appears once its
+ * owner accepts; for an account that is not this school's nothing about it is
+ * shown. engineering/specs/people/school-imports.md.
  */
 final class StaffImport implements OnboardingImport
 {
@@ -100,14 +100,17 @@ final class StaffImport implements OnboardingImport
             if ($notes === []) {
                 $user = User::acrossSchools()->withTrashed()->where('email', $email)->first();
                 $here = $user === null ? collect() : SchoolMembership::query()->where('school_id', $school)->where('user_id', $user->id)->pluck('status', 'role');
-                // An account that is not this school's reads exactly like a new person: it is
-                // invited at import (SchoolJoinInvitations), and nothing about it is shown.
+                // Any existing account is invited at import (SchoolJoinInvitations), never given
+                // the role without its owner's consent. One that is not this school's reads
+                // exactly like a new person, and nothing about it is shown.
                 $known = $user !== null && $here->isNotEmpty();
-                // A waiting invitation reads as for a new person already added.
-                $waiting = $user !== null && SchoolJoinInvitation::query()->waiting()->where('user_id', $user->id)->exists();
-                if ($waiting || ($known && $here->except(['Student', 'Parent'])->contains(SchoolMembership::ACTIVE))) {
+                // An invitation waiting here, or declined lately, reads as for a new person already added.
+                $added = $user !== null && app(SchoolJoinInvitations::class)->alreadyInvited((int) $user->id);
+                if ($added || ($known && $here->except(['Student', 'Parent'])->contains(SchoolMembership::ACTIVE))) {
                     $row['status'] = 'exists';
                     $row['notes'][] = __('Already on the staff.');
+                } elseif ($known && $here->has('Student')) {
+                    $row['notes'][] = __('A learner\'s account cannot be added as staff.');
                 } elseif ($known && ($user->trashed() || (int) $user->status !== 1 || $here->contains(SchoolMembership::SUSPENDED))) {
                     $row['notes'][] = __('The account for :email cannot be added. Check it with the person first.', ['email' => $email]);
                 } else {
@@ -139,10 +142,11 @@ final class StaffImport implements OnboardingImport
             $role = Role::query()->findOrFail($data['role_id']);
             abort_if($role->name === SchoolRoles::TEACHER && ! $actor->can('teacher-create'), 403);
             $account = User::acrossSchools()->withTrashed()->where('email', $data['email'])->first();
-            if ($account !== null && ! SchoolMembership::query()->where('school_id', app(CurrentSchool::class)->id())->where('user_id', $account->id)->exists()) {
-                // Another school's (or no school's) account: invited to join, never given the role
-                // here without its owner's consent. Counted as for a new person.
-                $joins->inviteFromSchool($actor, $account, $role, ['name' => trim($data['first_name'].' '.$data['last_name']), 'qualification' => $data['qualification'] ?? null]);
+            if ($account !== null) {
+                // An existing account (another school's, no school's, or a parent or former member
+                // here): invited to join, never given the role without its owner's consent.
+                // Counted as for a new person.
+                $joins->inviteFromSchool($actor, $account, $role, ['name' => trim($data['first_name'].' '.$data['last_name']), 'email' => $data['email'], 'qualification' => $data['qualification'] ?? null]);
                 $counts['created']++;
                 $invitedElsewhere++;
 
