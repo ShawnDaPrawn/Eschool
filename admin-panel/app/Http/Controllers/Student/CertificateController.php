@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\SessionYear;
 use App\Models\Students;
+use App\Services\Platform\Identity\LuritsNumbers;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -103,12 +104,15 @@ class CertificateController extends Controller
 
         $settings = getSettings();
         $sessionYear = SessionYear::select('name')->where('id', $settings['session_year'])->pluck('name')->first();
-        $student = Students::select('roll_number', 'admission_no', 'admission_date', 'user_id', 'class_section_id', 'guardian_id', 'father_id', 'mother_id')->with('user:id,first_name,last_name,dob', 'class_section.class:id,name,medium_id,stream_id', 'class_section.class.medium:id,name', 'class_section.class.streams:id,name', 'father:id,first_name,last_name', 'guardian:id,first_name,last_name')->where('id', $id)->firstOrFail();
+        $student = Students::select('id', 'school_id', 'roll_number', 'admission_no', 'admission_date', 'user_id', 'class_section_id', 'guardian_id', 'father_id', 'mother_id')->with('user:id,first_name,last_name,dob', 'class_section.class:id,name,medium_id,stream_id', 'class_section.class.medium:id,name', 'class_section.class.streams:id,name', 'father:id,first_name,last_name', 'guardian:id,first_name,last_name')->where('id', $id)->firstOrFail();
 
         $student_name = $student->user->first_name.' '.$student->user->last_name;
 
         if ($student->father) {
             $father_name = $student->father->first_name.' '.$student->father->last_name;
+        }
+        // A learner recorded with a father and no mother still gets a certificate.
+        if ($student->mother) {
             $mother_name = $student->mother->first_name.' '.$student->mother->last_name;
         }
 
@@ -117,11 +121,13 @@ class CertificateController extends Controller
         }
         $admission_date = $student->admission_date?->format('d-m-Y');
         $gr_no = $student->admission_no;
+        // The headline number (ADR 0007): LURITS, or the temporary NavigateEd number.
+        $identifier = app(LuritsNumbers::class)->primary($student);
         $dob = date('d-m-Y', strtotime($student->user->dob));
         $roll_number = $student->roll_number;
         $class_section = $student->class_section->class->name.' '.$student->class_section->section->name.' '.$student->class_section->class->medium->name.' '.($student->class_section->class->streams->name ?? '');
 
-        $pdf = Pdf::loadView('students.leaving_template', compact('student_name', 'guardian_name', 'gr_no', 'dob', 'roll_number', 'class_section', 'sessionYear', 'settings', 'reason', 'promoted_to', 'date', 'general_conduct', 'remarks', 'admission_date', 'father_name', 'mother_name'));
+        $pdf = Pdf::loadView('students.leaving_template', compact('student_name', 'guardian_name', 'gr_no', 'identifier', 'dob', 'roll_number', 'class_section', 'sessionYear', 'settings', 'reason', 'promoted_to', 'date', 'general_conduct', 'remarks', 'admission_date', 'father_name', 'mother_name'));
 
         return $pdf->stream('leaving_certificate.pdf');
     }

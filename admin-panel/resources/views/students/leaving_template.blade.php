@@ -96,55 +96,59 @@
                                 <td>{{$student_name ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">2. Date of Birth:</th>
+                                <th scope="row" class="text-left">2. {{ ($identifier['type'] ?? 'lurits') === 'navigateed' ? __('NavigateEd number (temporary)') : __('LURITS number') }}:</th>
+                                <td>{{ $identifier['value'] ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-left">3. Date of Birth:</th>
                                 <td>{{$dob ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">3. Father Name:</th>
+                                <th scope="row" class="text-left">4. Father Name:</th>
                                 <td>{{ $father_name ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">4. Mother Name:</th>
+                                <th scope="row" class="text-left">5. Mother Name:</th>
                                 <td>{{ $mother_name ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">5. Guardian Name (if applicable):</th>
+                                <th scope="row" class="text-left">6. Guardian Name (if applicable):</th>
                                 <td >{{ $guardian_name ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">6. GR Number :</th>
+                                <th scope="row" class="text-left">7. GR Number (admission number):</th>
                                 <td> {{ $gr_no  ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">7. Date of Admission:</th>
+                                <th scope="row" class="text-left">8. Date of Admission:</th>
                                 <td> {{ $admission_date ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">8. Academic Year:</th>
+                                <th scope="row" class="text-left">9. Academic Year:</th>
                                 <td> {{ $sessionYear ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">9. Last Class:</th>
+                                <th scope="row" class="text-left">10. Last Class:</th>
                                 <td>{{ $class_section ?? '-' }}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">10. Promoted To:</th>
+                                <th scope="row" class="text-left">11. Promoted To:</th>
                                 <td>{{ $promoted_to ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">11. General Conduct:</th>
+                                <th scope="row" class="text-left">12. General Conduct:</th>
                                 <td>{{ $general_conduct ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">12. Date of Issue:</th>
+                                <th scope="row" class="text-left">13. Date of Issue:</th>
                                 <td>{{ $date ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">13. Reason for Leaving:</th>
+                                <th scope="row" class="text-left">14. Reason for Leaving:</th>
                                 <td> {{ $reason ?? '-'}}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="text-left">14. Any Other / Remark:</th>
+                                <th scope="row" class="text-left">15. Any Other / Remark:</th>
                                 <td>{{ $remarks ?? '-'}}</td>
                             </tr>
                         </table>

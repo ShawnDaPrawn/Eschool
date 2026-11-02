@@ -79,6 +79,15 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
+- Admin panel, Apps and API: the LURITS number is now the number a learner
+  is known by. Person profiles, the student report page, report cards, school
+  transfer packages, exit archives and the leaving certificate show it first,
+  then the school's admission number. A learner without a LURITS number shows
+  the NavigateEd number instead, labelled "NavigateEd number (temporary)". The
+  v2 API adds `primary_identifier` to learner profiles, a parent's children,
+  guardian approvals and the wellbeing learner picker; only the learner,
+  guardians who may approve and staff with profile permission receive it.
+  No migration.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and

@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Contracts;
 
+use App\Models\Platform\GuardianLink;
+use App\Models\Students;
 use App\Models\User;
+use App\Services\Platform\Identity\LuritsNumbers;
+use App\Services\Platform\Identity\StudentNumbers;
 use cebe\openapi\Reader;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -735,6 +740,33 @@ class OpenApiContractTest extends TestCase
 
         // ValidatesOpenApiResponses checks the response against openapi.yaml.
         $this->json($method, '/'.$path, $body)->assertStatus($status);
+    }
+
+    /**
+     * The learner's headline number (ADR 0007): a LURITS number, the temporary
+     * NavigateEd number, and null, on every v2 learner resource that carries it.
+     */
+    public function test_learner_headline_numbers_match_the_spec(): void
+    {
+        DB::table('users')->where('id', $this->school->ids['farid_user'])->update(['email_verified_at' => now()]);
+        GuardianLink::query()->create(['learner_id' => $this->school->ids['asha'], 'guardian_user_id' => $this->school->ids['farid_user'], 'relationship' => 'father', 'status' => 'active', 'can_approve' => true]);
+        app(LuritsNumbers::class)->record(Students::query()->findOrFail($this->school->ids['asha']), '8800000001', 'school_entry');
+        app(StudentNumbers::class)->assign(Students::query()->findOrFail($this->school->ids['cara']));
+        $lurits = ['type' => 'lurits', 'value' => '8800000001'];
+
+        $calls = [
+            ['asha', 'api/v2/me/profile', 'data.primary_identifier', $lurits],
+            ['superadmin', 'api/v2/people/'.$this->school->ids['asha_user'].'/profile', 'data.primary_identifier', $lurits],
+            ['superadmin', 'api/v2/people/'.$this->school->ids['cara_user'].'/profile', 'data.primary_identifier.type', 'navigateed'],
+            ['tara', 'api/v2/people/'.$this->school->ids['asha_user'].'/profile', 'data.primary_identifier', null],
+            ['farid', 'api/v2/guardian/approvals', 'data.0.learner.primary_identifier', $lurits],
+            ['farid', 'api/v2/me/context', 'data.children.0.primary_identifier', $lurits],
+        ];
+        foreach ($calls as [$who, $path, $field, $expected]) {
+            $this->app['auth']->forgetGuards();
+            // ValidatesOpenApiResponses checks each response against openapi.yaml.
+            $this->flushHeaders()->withToken($this->tokenFor($who))->getJson('/'.$path)->assertOk()->assertJsonPath($field, $expected);
+        }
     }
 
     public function test_a_rate_limited_answer_matches_the_spec(): void

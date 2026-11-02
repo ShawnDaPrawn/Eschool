@@ -144,6 +144,32 @@ class LuritsNumbers
     }
 
     /**
+     * primary() for many people at once, keyed by user id. It does not check
+     * the school: callers pass only learners the viewer is already authorised
+     * for (LearnerIdentifiers, or a guardian's own children in the app context).
+     *
+     * @param  list<int>  $userIds
+     * @return array<int, array{type: 'lurits'|'navigateed', value: string}>
+     */
+    public function primaryForUsers(array $userIds): array
+    {
+        if ($userIds === []) {
+            return [];
+        }
+        $rows = DB::table('learner_identifiers')->whereIn('user_id', array_values(array_unique($userIds)))->get(['user_id', 'lurits_number', 'student_number']);
+        $primary = [];
+        foreach ($rows as $row) {
+            if ($row->lurits_number !== null) {
+                $primary[(int) $row->user_id] = ['type' => 'lurits', 'value' => Crypt::decryptString((string) $row->lurits_number)];
+            } elseif ($row->student_number !== null) {
+                $primary[(int) $row->user_id] = ['type' => 'navigateed', 'value' => (string) $row->student_number];
+            }
+        }
+
+        return $primary;
+    }
+
+    /**
      * The human who holds a LURITS number, for matching at admission and
      * import. Internal only: callers must not reveal the holder's school or
      * records to the school asking; an existing holder means "start a transfer".

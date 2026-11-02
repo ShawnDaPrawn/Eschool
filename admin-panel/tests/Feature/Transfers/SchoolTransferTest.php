@@ -36,6 +36,7 @@ use App\Models\User;
 use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\People\Profiles\ProfileFiles;
 use App\Services\Platform\Files\UploadScanner;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
@@ -573,6 +574,30 @@ class SchoolTransferTest extends TestCase
         });
     }
 
+    /** Action Plan 1.0b: engineering/specs/platform/lurits.md, "Headline number". */
+    public function test_the_package_and_the_panel_name_the_learner_by_lurits_first(): void
+    {
+        $this->actingAs($this->sender);
+        $number = Students::findOrFail($this->learner)->student_number;
+        $p = app(TransferPackages::class)->prepare($this->sender, $this->input());
+        $this->assertSame(['type' => 'navigateed', 'value' => $number], $p->contents['primary_identifier']);
+        $this->get('/school-transfers?record='.$p->id)->assertOk()->assertSeeInOrder(['NavigateEd number (temporary)', $number]);
+        app(TransferPackages::class)->cancel($this->sender, (int) $p->id, ['operation_id' => (string) Str::uuid(), 'revision' => $p->revision]);
+
+        app(LuritsNumbers::class)->record(Students::findOrFail($this->learner), '8800000001', 'school_entry');
+        $p = app(TransferPackages::class)->prepare($this->sender, $this->input());
+        $this->assertSame(['type' => 'lurits', 'value' => '8800000001'], $p->contents['primary_identifier']);
+        $this->assertStringNotContainsString('8800000001', (string) DB::table('transfer_packages')->where('id', $p->id)->value('contents'));
+        $this->get('/school-transfers?record='.$p->id)->assertOk()->assertSeeInOrder(['LURITS number', '8800000001'])->assertDontSee('NavigateEd number (temporary)');
+        $p = $this->consent($p);
+        $p = app(TransferPackages::class)->release($this->sender, (int) $p->id, ['operation_id' => (string) Str::uuid(), 'revision' => $p->revision]);
+        // The receiving school sees the number the guardian consented to send.
+        app(CurrentSchool::class)->run(2, function () use ($p): void {
+            $this->withSession(['school_id' => 2])->actingAs($this->receiver);
+            $this->get('/school-transfers?lane=incoming&record='.$p->id)->assertOk()->assertSeeInOrder(['LURITS number', '8800000001']);
+        });
+    }
+
     public function test_private_panel_validation_and_historical_refusal_never_flash_names_or_bypass_identity(): void
     {
         $this->actingAs($this->sender);
@@ -610,7 +635,9 @@ class SchoolTransferTest extends TestCase
         $notice = Notification::where('type', TransferNotices::TYPE)->sole();
         $this->assertStringNotContainsString($p->contents['learner_name'], $notice->message);
         $this->assertStringNotContainsString($p->contents['to_school_name'], $notice->message);
-        $this->assertSame(['link', 'transfer_package_id', 'transfer_revision'], array_keys($notice->delivery_payload));
+        $deliveryKeys = array_keys($notice->delivery_payload);
+        sort($deliveryKeys);
+        $this->assertSame(['link', 'transfer_package_id', 'transfer_revision'], $deliveryKeys);
         $guard = app(TransferNotices::class);
         $payload = $notice->delivery_payload;
         $this->assertTrue($guard->allows($this->guardian, $notice->type, $payload));
