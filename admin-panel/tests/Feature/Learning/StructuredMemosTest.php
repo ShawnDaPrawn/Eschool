@@ -112,6 +112,71 @@ class StructuredMemosTest extends TestCase
         }
     }
 
+    /** Exercise PHP's actual parser: Laravel's post(array) skips max_input_vars. */
+    private function parsedPayload(array $questions, int $revision = 0): array
+    {
+        parse_str(http_build_query(['_token' => 'synthetic', 'expected_revision' => (string) $revision,
+            'memo_payload' => json_encode($questions, JSON_THROW_ON_ERROR)]), $parsed);
+
+        return $parsed;
+    }
+
+    public function test_a_full_paper_survives_php_input_parsing_and_saves_every_mark_point(): void
+    {
+        $this->assertSame('1000', ini_get('max_input_vars'), 'Run this regression at the default PHP input-variable limit.');
+        $version = PastPaperVersion::findOrFail($this->paper['version_id']);
+        $definition = $version->definition;
+        $template = $definition['questions'][0];
+        $definition['questions'] = [];
+        $input = [];
+        for ($i = 0; $i < 20; $i++) {
+            $definition['questions'][] = array_replace($template, ['number' => (string) ($i + 1), 'max_units' => 2000]);
+            $input[] = ['number' => (string) ($i + 1), 'points' => array_fill(0, 20, $this->point('Synthetic mark point', 'method', '1'))];
+        }
+        $version->update(['definition' => $definition]);
+        $this->actingAs($this->actor(), 'web')->withSession(['school_id' => 1]);
+        $this->get($this->path())->assertOk()->assertSee('data-exam-memo-form', false)->assertSee('assets/js/custom/exam-memo-form.js', false);
+        $parsed = $this->parsedPayload($input);
+        $this->assertCount(3, $parsed, 'CSRF, revision and one JSON field remain below the PHP limit.');
+        $this->post($this->path(), $parsed)->assertRedirect($this->path())->assertSessionHasNoErrors();
+        $memo = PastPaperMemo::sole();
+        $this->assertCount(20, $memo->mark_points);
+        $this->assertSame(array_fill(0, 20, 20), array_map(fn ($question) => count($question['points']), $memo->mark_points));
+        $this->assertSame('20', $memo->mark_points[19]['number']);
+        $this->assertSame('Synthetic mark point', $memo->mark_points[19]['points'][19]['earns']);
+        $this->post($this->path(), $parsed)->assertSessionHasErrors('memo');
+        $this->assertSame(1, (int) PastPaperMemo::sole()->revision, 'A packed stale form still changes nothing.');
+    }
+
+    public function test_packed_memos_keep_validation_and_never_fall_back_from_invalid_payloads(): void
+    {
+        $this->actingAs($this->actor(), 'web')->withSession(['school_id' => 1]);
+        foreach (['{invalid', 'null', json_encode([str_repeat('x', 1048576)], JSON_THROW_ON_ERROR)] as $payload) {
+            $this->post($this->path(), $this->input() + ['memo_payload' => $payload])->assertSessionHasErrors();
+        }
+        $invalid = $this->input()['questions'];
+        $invalid[0]['points'][0]['earns'] = '  ';
+        $this->post($this->path(), $this->parsedPayload($invalid))->assertSessionHasErrors('questions.0.points.0.earns');
+        $invalid = $this->input()['questions'];
+        $invalid[0]['points'][0]['marks'] = '2';
+        $this->post($this->path(), $this->parsedPayload($invalid))->assertSessionHasErrors('questions.0.points');
+        $invalid = $this->input()['questions'];
+        $invalid[0]['points'][0]['earns'] = ['unexpected' => 'nested'];
+        $this->post($this->path(), $this->parsedPayload($invalid))->assertSessionHasErrors('questions.0.points.0.earns');
+        $this->assertSame(0, PastPaperMemo::count());
+    }
+
+    public function test_packed_memos_keep_owner_and_learner_boundaries(): void
+    {
+        $reader = $this->reader();
+        $this->actingAs($reader, 'web')->withSession(['school_id' => 1]);
+        $this->post($this->path(), $this->parsedPayload($this->input()['questions']))->assertForbidden();
+        $this->actingAs($this->actor('asha'), 'web')->withSession(['school_id' => 1]);
+        // CheckRole signs an app-only learner out of the staff panel.
+        $this->post($this->path(), $this->parsedPayload($this->input()['questions']))->assertRedirect('/login');
+        $this->assertSame(0, PastPaperMemo::count());
+    }
+
     public function test_teacher_saves_mark_points_reviews_the_memo_and_only_then_it_is_usable(): void
     {
         $memos = app(PastPaperMemos::class);
@@ -228,6 +293,7 @@ class StructuredMemosTest extends TestCase
         $this->actingAs($this->actor(), 'web')->withSession(['school_id' => 1]);
         $this->get($this->path('', $other['version']))->assertNotFound();
         $this->post($this->path('', $other['version']), $this->input(1))->assertNotFound();
+        $this->post($this->path('', $other['version']), $this->parsedPayload($this->input()['questions'], 1))->assertNotFound();
         $this->post($this->path('/review', $other['version']), ['expected_revision' => 1, 'confirmed' => '1'])->assertNotFound();
         $this->assertEquals($before, $raw());
         $this->assertSame(0, PastPaperMemo::count(), 'nothing written in School A either');

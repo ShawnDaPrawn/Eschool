@@ -25,6 +25,24 @@ class ExamMemoRequest extends FormRequest
     /** The form shows blank rows for new mark points; a row left blank is not a mark point. */
     protected function prepareForValidation(): void
     {
+        // A whole paper can have 2,820 controls. Decode one bounded field before
+        // the normal per-question validation; never fall back to native rows if
+        // a supplied payload is malformed or oversized.
+        if ($this->exists('memo_payload')) {
+            $payload = $this->input('memo_payload');
+            $decoded = is_string($payload) && strlen($payload) <= 1048576
+                ? json_decode($payload, true, 8) : null;
+            if (is_array($decoded)) {
+                // Match TrimStrings / ConvertEmptyStringsToNull for native forms.
+                array_walk_recursive($decoded, function (&$value) {
+                    if (is_string($value)) {
+                        $value = trim($value);
+                        $value = $value === '' ? null : $value;
+                    }
+                });
+            }
+            $this->merge(['questions' => $decoded]);
+        }
         $questions = $this->input('questions');
         if (! is_array($questions)) {
             return;
@@ -32,7 +50,7 @@ class ExamMemoRequest extends FormRequest
         foreach ($questions as $i => $question) {
             if (is_array($question) && is_array($question['points'] ?? null)) {
                 $questions[$i]['points'] = array_filter($question['points'], fn ($point) => ! is_array($point)
-                    || array_filter(array_intersect_key($point, array_flip(['earns', 'marks', 'rule_value', 'rule_tolerance', 'rule_unit'])), fn ($v) => trim((string) $v) !== '') !== []);
+                    || array_filter(array_intersect_key($point, array_flip(['earns', 'marks', 'rule_value', 'rule_tolerance', 'rule_unit'])), fn ($v) => is_scalar($v) ? trim((string) $v) !== '' : $v !== null) !== []);
             } elseif (is_array($question) && ! array_key_exists('points', $question)) {
                 $questions[$i]['points'] = [];
             }
@@ -42,7 +60,7 @@ class ExamMemoRequest extends FormRequest
 
     public function rules(): array
     {
-        return PastPaperMemos::rules();
+        return ['memo_payload' => ['sometimes', 'string', 'json', 'max:1048576']] + PastPaperMemos::rules();
     }
 
     public function after(): array

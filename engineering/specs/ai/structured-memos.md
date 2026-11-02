@@ -38,7 +38,7 @@ An exam coach paper version already carries, per question, a prompt, free-text m
 | Save mark points | `POST` same path | `exam-memos.save` |
 | Mark as reviewed | `POST …/review` | `exam-memos.review` |
 
-Private, no-store, under `module:exam_coach` (writes need it writable). The menu item "Exam coach memos" shows to teachers who can use exam coach (`exam_coach_staff`, `ExamCoachAccess::availableStaff`). The form shows the saved points plus two empty rows per question; an empty row is ignored.
+Private, no-store, under `module:exam_coach` (writes need it writable). The menu item "Exam coach memos" shows to teachers who can use exam coach (`exam_coach_staff`, `ExamCoachAccess::availableStaff`). The form shows the saved points plus two empty rows per question; an empty row is ignored. Its script packs the question controls into one JSON field during native form submission, below PHP's default 1,000-input limit even for 20 questions with 20 points each. The request decodes at most 1 MiB with bounded depth, restores the normal trimming rules, and applies the same ownership, question, point, total and revision validation. Invalid packed input is refused without falling back to separate controls. Native small forms remain supported when the script is unavailable; large forms need the script loaded.
 
 ## Acceptance tests (`Learning/StructuredMemosTest`)
 
@@ -53,6 +53,8 @@ Private, no-store, under `module:exam_coach` (writes need it writable). The menu
 | `test_wrong_school_version_ids_are_not_found_and_school_b_memo_is_unchanged` | A School B version and memo | Tara reads, saves or reviews it (service and panel) | 404; School B's row identical; nothing written in School A |
 | `test_the_licence_attestation_and_a_withdrawn_paper_stop_memo_changes` | A saved memo | the licence expires; then the paper is withdrawn | save and `reviewed()` 409; after withdrawal save and review 409; unchanged |
 | `test_panel_lists_papers_saves_rows_and_reviews_the_memo` | The paper | Tara uses the panel | menu item for Tara, not the learner; list and page private; blank rows ignored; review needs the confirmation; reviewed shows in the list; a stale form changes nothing |
+
+The full-paper PHP regression uses `parse_str` at the default `max_input_vars=1000` before posting the parsed body; it checks all 400 points and a stale retry. Packed-input regressions cover malformed/oversized JSON, totals, whitespace and wrong-owner/learner access. `e2e/tests/exam-memo-form.spec.ts` exercises a real browser's native submission of all 2,820 question controls and a corrected retry without disabling the editor.
 
 ## Not in this step
 

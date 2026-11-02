@@ -34,7 +34,7 @@
     </section>
 
     @if ($can_edit)
-    <form method="POST" action="{{ route('exam-memos.save', ['group' => $group_id, 'version' => $paper['version_id']]) }}" aria-label="{{ __('Mark points') }}">
+    <form method="POST" action="{{ route('exam-memos.save', ['group' => $group_id, 'version' => $paper['version_id']]) }}" aria-label="{{ __('Mark points') }}" data-exam-memo-form>
         @csrf
         <input type="hidden" name="expected_revision" value="{{ $memo['revision'] }}">
         <p>{{ __('The mark points of each question must add up to its total. Leave a row empty to skip it. Saving changes a reviewed memo back to not reviewed.') }}</p>
@@ -82,3 +82,5 @@
     @endif
 </div>
 @endsection
+
+@section('script')<script src="{{ asset('assets/js/custom/exam-memo-form.js') }}" defer></script>@endsection
