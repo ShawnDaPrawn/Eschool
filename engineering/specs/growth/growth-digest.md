@@ -78,6 +78,10 @@ lists rankings, comparisons with other children, or topics a child "fell in".
   and email are off, so topic names never appear on a lock screen or in a
   mailbox. Title "Your week of growth"; text "This week you grew in …. Keep
   going!".
+- A school cannot switch push or email on for it. The type lists them in
+  `locked_off_channels`: `NotificationRules` refuses such a school rule, and
+  ignores any saved rule at delivery, so nothing is ever queued for those
+  channels.
 - Sent once per learner per week (`learner_growth_weeks`), only to the learner's
   own account, and only while the learner is current and guardian-approved.
 - The inbox shows it only to that learner, and only while the learner is still
@@ -133,6 +137,7 @@ written only inside the learner's own school.
 | `test_parent_digest_shows_growth_and_help_at_home_without_changing_the_api_shape` | Grew-in and help-at-home lines in the parent summary; other weeks' topics left out; API shape unchanged. |
 | `test_a_week_without_growth_leaves_the_growth_lines_out` | No empty growth line. |
 | `test_learner_gets_own_growth_once_in_app_only_and_parent_cannot_read_it` | Learner note once a week, in-app only; wrong owner (parent) cannot see it. |
+| `test_a_school_cannot_switch_push_or_email_on_for_the_learner_growth_note` | School rules cannot turn push or email on; a saved rule has no effect; only in-app is dispatched. |
 | `test_withdrawn_guardian_approval_stops_growth_digest_learner_note_and_badges` | No digest, note or badge without guardian approval; nothing written. |
 | `test_withdrawn_approval_hides_an_already_delivered_learner_note` | A delivered note disappears when approval is withdrawn or the mastery map is switched off. |
 | `test_persistence_badges_are_awarded_once_through_recognition_and_never_again_after_a_correction` | Badges start off; awarded once as permanent awards with family notices; re-runs and withdrawals never award again. |

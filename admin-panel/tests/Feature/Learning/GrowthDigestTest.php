@@ -17,6 +17,7 @@ use App\Models\Learning\PracticeSetEntry;
 use App\Models\Learning\WeeklyParentDigest;
 use App\Models\Notification;
 use App\Models\Platform\LearnerApproval;
+use App\Models\Platform\NotificationRule;
 use App\Models\Platform\SchoolModule;
 use App\Models\Recognition\AwardPresentation;
 use App\Models\Recognition\RecognitionBadge;
@@ -30,13 +31,17 @@ use App\Services\Learning\Digests\GrowthMovement;
 use App\Services\Learning\Digests\LearnerGrowthNotices;
 use App\Services\Learning\Digests\WeeklyDigests;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Notifications\NotificationRules;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Notifications\PrivateNoticeScopes;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Recognition\AwardPresentations;
 use App\Services\Recognition\PersistenceBadges;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 use Tests\Concerns\UsesPracticeScenario;
 use Tests\Concerns\ValidatesOpenApiResponses;
@@ -208,6 +213,40 @@ class GrowthDigestTest extends TestCase
         $parent = $this->actor('farid');
         $this->assertSame(0, app(PrivateNoticeScopes::class)->apply(Notification::query(), (int) $parent->id)->where('type', 'growth.weekly')->count());
         $this->assertFalse(app(LearnerGrowthNotices::class)->allows($parent, 'growth.weekly', $notice->delivery_payload));
+    }
+
+    public function test_a_school_cannot_switch_push_or_email_on_for_the_learner_growth_note(): void
+    {
+        $rules = app(NotificationRules::class);
+        foreach (['push', 'email'] as $channel) {
+            foreach (['mandatory', 'default_on', 'default_off'] as $mode) {
+                try {
+                    $rules->change($this->superAdmin(), 'learner', 'growth.weekly', $channel, $mode);
+                    $this->fail('A school must not switch '.$channel.' on for growth.weekly.');
+                } catch (ValidationException) {
+                }
+            }
+        }
+        $this->assertSame(0, NotificationRule::where('type', 'growth.weekly')->count());
+        $rules->change($this->superAdmin(), 'learner', 'growth.weekly', 'email', 'off');
+        // A rule saved some other way (or before the lock) still has no effect.
+        foreach (['push', 'email'] as $channel) {
+            NotificationRule::updateOrCreate(['portal' => 'learner', 'type' => 'growth.weekly', 'channel' => $channel], ['mode' => 'mandatory', 'changed_by' => $this->superAdmin()->id]);
+        }
+        $rules->forget();
+        $asha = $this->actor('asha');
+        $asha->forceFill(['email' => 'asha.synthetic@example.test', 'email_verified_at' => now()])->save();
+        foreach (['push', 'email'] as $channel) {
+            $this->assertSame('off', $rules->mode('learner', 'growth.weekly', $channel));
+            $this->assertFalse($rules->allows($asha, 'growth.weekly', $channel));
+        }
+        $this->week();
+        $this->monday();
+        app(WeeklyDigests::class)->monday();
+        $notice = Notification::where('type', 'growth.weekly')->sole();
+        $sent = app(Notifier::class)->send($asha, 'growth.weekly', $notice->title, $notice->message, LearnerGrowthNotices::LINK, $notice);
+        $this->assertSame(['in_app'], $sent);
+        $this->assertSame(['in_app'], DB::table('notification_dispatches')->where('notification_id', $notice->id)->pluck('channel')->all());
     }
 
     public function test_withdrawn_guardian_approval_stops_growth_digest_learner_note_and_badges(): void

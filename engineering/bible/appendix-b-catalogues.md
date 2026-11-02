@@ -474,7 +474,7 @@ No provider, notification, offline payment or Phase6 collection is activated.
 ## Growth-first digest and persistence badges (Action Plan 4.6)
 
 `growth.weekly` (digest module, learner portal, in-app only: push and email are
-off) tells a learner, once a week, which topics they grew in. The text names up
+locked off through `locked_off_channels`, so no school rule can switch them on) tells a learner, once a week, which topics they grew in. The text names up
 to three topics and no scores, levels or other learners. The payload carries an
 opaque `growth_week_id`; the inbox and delivery recheck the learner's own
 current, guardian-approved account and the digest and mastery modules. Parents
