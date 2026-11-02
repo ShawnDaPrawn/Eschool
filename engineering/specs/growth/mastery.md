@@ -251,3 +251,9 @@ calibrate them; a change of formula, rather than of tuning, is a new version.
   whose ratios don't drift with time) would keep the no-rise rule, but it is
   a formula change and so a new version.
 - **An API to switch the model.** The switch is panel-only.
+## Growth over a term
+
+`mastery_growth_snapshots` keeps each learner's mastery per topic, audience and
+model version at the start and end of every term, and the leadership impact
+report counts how many rose, held or have no evidence yet
+([mastery impact](../leadership/mastery-impact.md)).

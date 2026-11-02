@@ -418,3 +418,9 @@ the sending school, never from the shared `users` row
 exam coach paper version, unique per school and version. Another school's
 version id is not found, so its memo is never read or changed
 ([structured memos](../ai/structured-memos.md)).
+### Mastery growth snapshots
+
+`mastery_growth_snapshots` is required school-owned: each row is one learner's
+derived mastery at the start and end of one of the school's terms. The nightly
+capture runs inside one school's context and the impact report reads only the
+current school's rows ([mastery impact](../leadership/mastery-impact.md)).
