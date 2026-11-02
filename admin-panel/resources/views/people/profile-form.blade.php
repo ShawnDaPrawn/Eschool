@@ -3,6 +3,7 @@
 @section('content')
 <div class="content-wrapper">
     <x-page.header :title="__('Person profile')" :subtitle="$subject->full_name" />
+    <x-page.learner-identifiers :identifier="$identifier ?? null" :admission-no="$admissionNo ?? null" />
     <form method="GET" action="{{ route('people-profiles.index', $subject->id) }}">
         <x-page.field name="profile_type" type="select" :label="__('Profile type')" :value="$form['profile_type']" :options="array_combine($form['available_profiles'], array_map(fn ($value) => __(ucfirst($value)), $form['available_profiles']))" />
         <button class="m3-button m3-button--outlined" type="submit">{{ __('View profile') }}</button>

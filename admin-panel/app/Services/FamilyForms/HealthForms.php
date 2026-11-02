@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 
 /** Reuses encrypted profile categories; does not create a competing medical record. */
@@ -16,6 +17,8 @@ class HealthForms
 {
     public function person(User $actor, int $learner, bool $write = false): User
     {
+        // Health records are never opened in a Navigate Ed support session (SA.9).
+        abort_if(app(CurrentSchool::class)->isSupportSession(), 403);
         $access = app(FamilyFormAccess::class);
         $fresh = $access->actor($actor, $write);
         $person = $access->learner($learner)->user;
