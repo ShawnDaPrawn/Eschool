@@ -25,6 +25,7 @@ use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Learning\ExamCoachAccess;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
+use App\Services\Pathways\CareerGuidance;
 use App\Services\Pathways\PathwayPanelScope;
 use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
@@ -183,6 +184,9 @@ class Navigation
             return false;
         }
         if (($item['pathway_manager'] ?? false) && ! app(PathwayPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['pathway_guide'] ?? false) && ! app(CareerGuidance::class)->available($user)) {
             return false;
         }
         if (($item['assistance_office'] ?? false) && ! app(AssistanceQueries::class)->available($user)) {

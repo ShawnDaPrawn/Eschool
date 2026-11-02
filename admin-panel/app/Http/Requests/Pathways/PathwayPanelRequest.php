@@ -21,7 +21,7 @@ class PathwayPanelRequest extends FormRequest
     public function rules(): array
     {
         if ($this->isMethodSafe()) {
-            return ['page' => ['sometimes', 'integer', 'between:1,100000']];
+            return ['page' => ['sometimes', 'integer', 'between:1,100000'], 'career_page' => ['sometimes', 'integer', 'between:1,100000']];
         }
 
         return [

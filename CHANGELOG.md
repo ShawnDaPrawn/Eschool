@@ -29,6 +29,18 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: Pathways now has career profiles and a "What would it take"
+  view (Action Plan 4.9). Pathway managers publish a career profile from a dated
+  public source: the school subjects it needs (with any sourced minimum), the
+  curriculum topics that matter, and university, TVET college and learnership
+  routes, each with its own source. Profiles past their review date are flagged.
+  Counsellors with pathway management, and teachers for their own learners,
+  choose a learner and a career to see the subjects it asks for next to the
+  learner's current subjects, and the learner's mastery on the linked topics
+  with good places to start. Evidence the reader may not see, or that does not
+  exist yet, shows as unknown, never as zero. The view never rates a learner.
+  **Deploy:** run the migrations.
+
 - Admin panel: teachers share their own practice questions. A practice
   question now belongs to its subject and grade in the school instead of one
   class, so it stays when the year changes. On the new **Question banks** page

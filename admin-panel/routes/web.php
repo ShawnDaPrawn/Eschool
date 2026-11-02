@@ -102,6 +102,8 @@ use App\Http\Controllers\Panel\Money\WalletPaymentPortalController;
 use App\Http\Controllers\Panel\Money\WalletWithdrawalPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
+use App\Http\Controllers\Panel\Pathways\CareerGuidancePanelController;
+use App\Http\Controllers\Panel\Pathways\CareerProfilePanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\GradePromotionController;
@@ -1637,6 +1639,12 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::get('references/{reference}/edit', [$controller, 'form'])->whereUuid('reference')->name('edit');
     Route::post('references', [$controller, 'save'])->middleware('module:pathway,write')->name('store');
     Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
+    $careers = CareerProfilePanelController::class;
+    Route::get('careers/new', [$careers, 'form'])->name('careers.new');
+    Route::get('careers/{profile}/edit', [$careers, 'form'])->whereUuid('profile')->name('careers.edit');
+    Route::post('careers', [$careers, 'save'])->middleware('module:pathway,write')->name('careers.store');
+    Route::post('careers/{profile}', [$careers, 'save'])->whereUuid('profile')->middleware('module:pathway,write')->name('careers.update');
+    Route::get('guidance', [CareerGuidancePanelController::class, 'show'])->name('guidance');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:ask_school,read', EnforceReadOnlyYears::class])->prefix('ask-school')->name('assistance-panel.')->group(function () {
