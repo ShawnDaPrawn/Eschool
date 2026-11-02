@@ -56,7 +56,16 @@ Earlier history is kept where it was written and is not repeated here:
   applied. The dated cost report at `/platform/ai-costs` is unchanged and
   linked for staff who hold its grant.
   `engineering/specs/platform/hq-ai.md`.
-
+- Platform: packages and prices are edited at `/saas/packages` instead of being
+  fixed in the code. Owner and Finance create draft packages from the product
+  modules, set trial days, activate and retire them, and add prices per learner
+  per month (excluding VAT) from a date: a base price, add-on prices for product
+  modules and discounts. Past prices are kept and never changed, overlapping
+  dates are refused, and the page shows the price on any date. Changing an
+  active package's modules does not change what schools already on it can use
+  until HQ re-applies the package to them, with a reason. Other HQ roles can
+  only look. The four existing packages are copied over unchanged, so no school
+  notices anything. **Deploy:** run the migrations.
 - Caseload renewals for a new school year: in Early warning and interventions,
   **Renew caseloads for a new year** lists last year's open risk caseload grants
   for learners placed in the new year. A principal (or the learner's grade head)
@@ -93,6 +102,11 @@ Earlier history is kept where it was written and is not repeated here:
   records the LURITS numbers of learners already at the school. A number that
   another learner already holds is not recorded: it waits for Navigate Ed
   support, and the school is not told who holds it.
+- Communication: the sender of a school message, and its reviewers, see a
+  delivery report: how many people it reached and read it, who had no
+  notification channel, and for email and push how many were delivered, sent,
+  bounced or failed, with each recipient by name. Addresses are never shown.
+  **Deploy:** run the migrations.
 - Admin panel and apps: learners who leave at the end of the year are no longer
   locked out on the day the new year starts. Until 31 March they, and their
   guardians, can still sign in and read their final reports, marks and

@@ -22,7 +22,9 @@
             <a class="m3-button m3-button--outlined" href="{{ route('communication-centre.index',['message_id'=>$message['id']]) }}" data-message-saved-action>{{ __('Refresh message status') }}</a>
             @if($message['blocked_code'])<p role="alert">{{ __('Delivery needs review because the audience or author authority changed, or no current recipients remain. Edit and preview the draft before submitting it again.') }}</p>@endif
             @if($message['decision_reason'])<p>{{ __('Review reason') }}: {{ $message['decision_reason'] }}</p>@endif
-            @if($message['published_at'])<p>{{ __('Recipients at publication') }}: {{ $message['recipient_count'] }} · {{ __('Read acknowledgements') }}: {{ $message['read_count'] }}</p>@endif
+            @if($message['published_at'])<p>{{ __('Recipients at publication') }}: {{ $message['recipient_count'] }} · {{ __('Read acknowledgements') }}: {{ $message['read_count'] }}</p>
+            {{-- Its own paragraph: a link set in running text must not rely on colour alone (axe link-in-text-block). --}}
+            <p><a href="{{ route('communication-centre.report',['message'=>$message['id']]) }}">{{ __('Delivery report') }}</a></p>@endif
         @endif
         @if(!$message || ($message['is_author'] && !$message['published_at'] && $message['state']!=='withdrawn'))
             @php($scopeOptions=collect($configuration['scopes'])->mapWithKeys(fn ($s)=>[$s['kind'].':'.($s['target_id'] ?? 0)=>__($s['kind']).' · '.$s['name']])->all())

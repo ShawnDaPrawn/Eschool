@@ -281,3 +281,10 @@ The apps' parent home and child screens are app work and not part of this step; 
 timetable it serves. The public `.ics` endpoint has no school header; it finds
 the link by its token hash, then runs inside the link's school and rechecks the
 owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### Packages and prices
+
+`platform_packages`, `platform_package_modules` and `platform_prices` are global:
+Navigate Ed's own package list and price list, written only from `/saas`. They
+name no school; a school names its package by key and the module set version
+applied to it on its own `schools` row (`package_key`, `package_version`)
+([package editor](package-editor.md)).
