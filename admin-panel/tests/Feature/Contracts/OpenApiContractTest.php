@@ -664,6 +664,8 @@ class OpenApiContractTest extends TestCase
             'profile field removal protected' => ['superadmin', 'DELETE', 'api/v2/profile-fields/definitions/1', [], 422],
             'read own notification preferences' => ['farid', 'GET', 'api/v2/me/notification-preferences', [], 200],
             'locked notice preference' => ['farid', 'PUT', 'api/v2/me/notification-preferences', ['type' => 'attendance.absence', 'channel' => 'email', 'enabled' => false], 422],
+            'read own quiet hours' => ['farid', 'GET', 'api/v2/me/notification-quiet-hours', [], 200],
+            'quiet hours need valid times' => ['farid', 'PUT', 'api/v2/me/notification-quiet-hours', ['enabled' => true, 'starts_at' => '25:00', 'ends_at' => '06:00'], 422],
             'read own handle' => ['asha', 'GET', 'api/v2/me/handle', [], 200],
             'handle write requires auth' => [null, 'PUT', 'api/v2/me/handle', ['handle' => 'orbit'], 401],
             'unverified guardian handle list' => ['farid', 'GET', 'api/v2/guardian/handle-proposals', [], 403],

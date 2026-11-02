@@ -79,7 +79,10 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
-
+- Notifications: quiet hours. Each person can set hours when push
+  notifications wait and arrive afterwards; safeguarding alerts, urgent
+  notices, absence alerts and new sign-in alerts always come through. Pushes
+  now tell the apps their channel and urgency. **Deploy:** run the migrations.
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
