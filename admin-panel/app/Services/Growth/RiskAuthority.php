@@ -28,6 +28,8 @@ class RiskAuthority
     {
         $school = app(CurrentSchool::class);
         abort_unless($school->isSet() && ! $school->isAcrossSchools() && ! $school->isImpersonating(), 403);
+        // Never in a Navigate Ed support session (SA.9), whatever its scope.
+        abort_if($school->isSupportSession(), 403);
         abort_unless(School::active()->whereKey($school->id())->exists(), 403);
         $gate = app(ModuleGate::class);
         $gate->forget();
@@ -38,6 +40,7 @@ class RiskAuthority
     {
         $school = app(CurrentSchool::class);
         abort_unless($school->isSet() && ! $school->isAcrossSchools() && ! $school->isImpersonating(), 403);
+        abort_if($school->isSupportSession(), 403);
         abort_unless(School::active()->whereKey($school->id())->exists(), 403);
         abort_if(PlatformStaffIdentity::where('user_id', $actor->id)->where('active', true)->exists(), 403);
         $fresh = app(AcademicAuthority::class)->staff($actor);
