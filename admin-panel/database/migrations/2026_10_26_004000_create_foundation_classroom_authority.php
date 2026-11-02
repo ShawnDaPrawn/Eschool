@@ -41,8 +41,8 @@ return new class extends Migration
             $t->foreign(['school_id', 'device_id'], 'foundation_lease_device')->references(['school_id', 'id'])->on('card_reader_devices');
             $t->foreign(['school_id', 'teaching_group_id'], 'foundation_lease_group')->references(['school_id', 'id'])->on('teaching_groups');
         });
+        $this->scanNullability(true);
         Schema::table('card_classroom_sessions', function (Blueprint $t) {
-            $t->uuid('scan_id')->nullable()->change();
             $t->uuid('classroom_lease_id')->nullable();
             $t->unsignedInteger('card_revision')->nullable();
             $t->char('approval_revision', 64)->nullable();
@@ -63,12 +63,34 @@ return new class extends Migration
         Schema::table('card_classroom_sessions', function (Blueprint $t) {
             $t->dropForeign('foundation_session_lease');
             $t->dropColumn(['classroom_lease_id', 'card_revision', 'approval_revision']);
-            $t->uuid('scan_id')->nullable(false)->change();
         });
+        $this->scanNullability(false);
         Schema::dropIfExists('foundation_classroom_leases');
         Schema::dropIfExists('foundation_classroom_groups');
         Schema::table('teaching_groups', function (Blueprint $t) {
             $t->dropUnique('foundation_teaching_group_school_key');
         });
+    }
+
+    /** Change the scan requirement atomically while retaining its school/source FK. */
+    private function scanNullability(bool $nullable): void
+    {
+        $foreign = collect(Schema::getForeignKeys('card_classroom_sessions'))->first(fn (array $key): bool => $key['columns'] === ['school_id', 'scan_id'] && $key['foreign_table'] === 'card_scan_logs'
+                && $key['foreign_columns'] === ['school_id', 'id']);
+        if ($foreign === null) {
+            throw new RuntimeException('The composite scan reference must exist before changing session nullability.');
+        }
+        $oldName = str_replace('`', '``', $foreign['name']);
+        $newName = 'card_classroom_scan_'.($nullable ? 'optional' : 'required');
+        if ($newName === $foreign['name']) {
+            $newName .= '_restored';
+        }
+        $null = $nullable ? 'NULL' : 'NOT NULL';
+        // A different FK name permits one atomic MySQL ALTER, with all foreign
+        // key checks enabled and the same tenant/source and delete rules.
+        DB::statement("ALTER TABLE card_classroom_sessions DROP FOREIGN KEY `$oldName`,
+            MODIFY scan_id CHAR(36) $null,
+            ADD CONSTRAINT `$newName` FOREIGN KEY (school_id, scan_id)
+                REFERENCES card_scan_logs (school_id, id) ON DELETE NO ACTION");
     }
 };

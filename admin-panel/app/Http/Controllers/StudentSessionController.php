@@ -10,6 +10,7 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -114,16 +115,18 @@ class StudentSessionController extends Controller
                 }
                 $student->save();
 
-                // handle leave → deactivate user; changing a leave back to continue reactivates them
+                // Leaving the current year: a leaver, read-only until 31 March (Action Plan 1.21).
+                // Changing a leave back to continue makes them a current learner again.
                 if ($status == 0) {
-                    if ($takesEffectNow) {
-                        User::whereKey($student->user_id)->update(['status' => 0]);
-                    }
                     $session->class_section_id = null;
                 } elseif ($wasLeaving) {
                     User::whereKey($student->user_id)->update(['status' => 1]);
+                    app(LeaverState::class)->cancel($student);
                 }
                 $session->save();
+                if ($status == 0 && $takesEffectNow) {
+                    app(LeaverState::class)->begin([$student->id], SessionYear::query()->findOrFail($newSessionYear), midYear: true);
+                }
             }
 
             return response()->json([

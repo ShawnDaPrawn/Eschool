@@ -8,6 +8,7 @@ use App\Http\Resources\Platform\ChildResource;
 use App\Models\Parents;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Context\ContextContributor;
 use App\Services\Platform\Context\ContextScope;
 use App\Services\Platform\Identity\ApprovalService;
@@ -58,6 +59,8 @@ class IdentityDefaultsContributor implements ContextContributor
         $approves = DB::table('guardian_links as ag')->whereColumn('ag.learner_id', 'students.id')->whereColumn('ag.school_id', 'students.school_id')
             ->where('ag.guardian_user_id', $guardianId)->where('ag.status', 'active')->where('ag.can_approve', true)->selectRaw('COUNT(*)');
         $children = Students::acrossSchools()->whereIn('students.school_id', $schools->keys())
+            // A leaver is listed until their access ends (Action Plan 1.21).
+            ->whereNotExists(fn ($ended) => app(LeaverState::class)->whereAccessEnded($ended))
             ->where(function ($query) use ($guardianId, $parentIds) {
                 $query->whereExists(fn ($links) => $links->selectRaw('1')->from('guardian_links')
                     ->whereColumn('guardian_links.learner_id', 'students.id')->whereColumn('guardian_links.school_id', 'students.school_id')

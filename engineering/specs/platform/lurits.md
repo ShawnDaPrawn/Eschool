@@ -41,7 +41,7 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
 1. ~~Panel and app display~~: panel and documents done, see "Headline number" below; the Flutter profile screens (`packages/eschool_people`) remain.
 2. ~~API~~: `primary_identifier` added to the v2 learner resources, see "Headline number" below (no separate `lurits_number` field: `primary_identifier` carries it). The generated Dart SDK (`packages/eschool_api`) still needs regenerating.
 3. ~~Entry and edit in the panel~~: done, see "School office and HQ claims" below (a page by admission number; the learner profile screen remains).
-4. Admissions, mid-year Join and onboarding imports match on LURITS before creating a learner. (Onboarding imports: done in 0.11; since 1.0d they also record a LURITS number for a learner already at the school, see [school imports](../people/school-imports.md).)
+4. Admissions, mid-year Join and onboarding imports match on LURITS before creating a learner. The panel's Add learner form is done; see "Matching at admission" below. (Onboarding imports: done in 0.11; since 1.0d they also record a LURITS number for a learner already at the school, see [school imports](../people/school-imports.md).)
 5. ~~SA-SAMS exports keyed on LURITS~~: done in 1.0d, see [SA-SAMS layouts](../academics/sasams-layouts.md). The manual `learner_refs` map stays as the fallback for learners without a LURITS number.
 6. ~~A "learners missing LURITS" list for the school office, and the conflict resolution screen in Navigate Ed HQ~~: done, see below.
 7. Confirm the official LURITS format and tighten `identity.lurits.pattern`.
@@ -155,3 +155,31 @@ Also:
 - Panel screens left as they are: the student list and its edit dialog (`students/details`, `students/stu-detail`), the academic transitions workbench (it reads the v2 transitions resource), ID cards, the bonafide certificate, and exam result sheets.
 - Re-making existing documents: a report card PDF generated before this change has no number line, and a card keeps the number it was made with, until the PDF is regenerated; transfer packages prepared before this change have no `primary_identifier` (the workbench shows their student number).
 
+
+## Matching at admission (Action Plan 1.0c)
+
+The panel's **Add learner** form has an optional LURITS number field. Before the learner is created, the number is checked against every NavigateEd learner (`LuritsAdmission`, using `LuritsNumbers::holderUserId`):
+
+- **Nobody holds it.** The learner is added, and the number is recorded on them (`school_entry`). The recording rechecks the holder under the platform-wide claims lock. If another school took the number in the meantime, the learner is still added and a claim opens, as on the office page.
+- **A learner of this school holds it.** The learner is not added, and the office is told that learner's admission number, so it opens the existing record. If the holder is a former learner (archived), the office is told to restore their record instead.
+- **Someone at another school holds it.** The learner is not added, and the office is told: "This learner already has a NavigateEd record. Start a transfer request…". The office learns only that a record exists, never where it is or whose it is. The consented transfer flow (`school-transfers.md`) then moves the records. Nothing is linked or merged automatically.
+- **No number, or a malformed one.** No number: the learner is added as before. A malformed or over-long number is refused on the field.
+
+Each match is audited as `identity.lurits_admission_matched`, against the admitting school, with the kind of match (`learner`, `former_learner` or `elsewhere`). It never holds the number; the `elsewhere` match holds the number's keyed hash only. Staff without `student-create` are refused before any check, so the form cannot be used to probe numbers.
+
+### Acceptance tests (`People/LuritsAdmissionTest`)
+
+| Given | When | Then |
+| --- | --- | --- |
+| Asha (School A) holds 8800000001 and Ben (School B) holds 8800000002 | the office adds Nia with 8800 000 009 | added, with 8800000009 recorded |
+| the same | the office adds Nia with no number | added as before |
+| the same | the office adds Nia with Ben's number | refused with "start a transfer request". Neither School B nor Ben's admission number appears, nobody is added, no claim opens, and the audit entry is School A's and holds no number. |
+| the same | the office adds Nia with Asha's number, then again once Asha is archived | refused naming GR-ASHA, then refused as a former learner; nobody is added |
+| the same | a 2-digit or 40-digit number | refused on the field |
+| a teacher | posts the form with Ben's number | no word of a transfer, nobody added, nothing audited |
+
+### Not in this step
+
+- Online registration (intake), the mid-year Join flow and onboarding imports. The imports are covered by 1.0d.
+- A "check this number" step before the form is filled in.
+- Showing LURITS on the learner profile and edit screens.
