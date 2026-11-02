@@ -134,6 +134,8 @@ return [
                         ['key' => 'promote-by-grade', 'label' => 'nav_promote_by_grade', 'route' => 'promotions.by-grade', 'permissions' => ['promote-student-list'], 'module' => null,
                             'active' => ['promotions.by-grade', 'promotions.by-grade.preview', 'promotions.by-grade.store'],
                             'keywords' => ['bulk promotion', 'whole school', 'next grade', 'year end', 'repeat', 'leavers']],
+                        ['key' => 'leavers', 'label' => 'nav_leavers', 'route' => 'leavers.index', 'permissions' => ['promote-student-list'], 'module' => null,
+                            'active' => ['leavers.*'], 'keywords' => ['leavers', 'left the school', 'returning learner', 'matric', 'read-only', 'alumni']],
                         ['key' => 'holidays', 'label' => 'nav_holidays', 'route' => 'holiday.index', 'permissions' => ['holiday-list'], 'module' => null,
                             'keywords' => ['public holidays', 'school calendar', 'closed days']],
                     ],
