@@ -118,15 +118,19 @@ class CareerGuidance
         $current = $groups->pluck('subject_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
         $wanted = array_merge(...array_column($profile['details']['subjects'], 'subject_ids'));
         $names = Subject::withTrashed()->whereIn('id', array_merge($current, $wanted))->pluck('name', 'id');
+        // A subject retired after publication stays readable as retired; it has no live topic graph.
+        $live = Subject::query()->whereIn('id', $wanted)->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $label = fn ($id) => (string) $names->get($id).(in_array((int) $id, $live, true) ? '' : ' ('.__('retired').')');
         $subjects = [];
         foreach ($profile['details']['subjects'] as $row) {
             $taking = array_values(array_intersect($row['subject_ids'], $current));
-            $subjects[] = $row + ['names' => array_map(fn ($id) => (string) $names->get($id), $row['subject_ids']), 'taking' => $taking !== [],
-                'taking_names' => array_map(fn ($id) => (string) $names->get($id), $taking)];
+            $subjects[] = $row + ['names' => array_map($label, $row['subject_ids']), 'taking' => $taking !== [],
+                'taking_names' => array_map(fn ($id) => (string) $names->get($id), $taking),
+                'retired' => array_intersect($row['subject_ids'], $live) === []];
         }
         $topics = [];
         $linked = $profile['details']['topic_ids'];
-        foreach ($linked === [] ? [] : array_unique($wanted) as $subjectId) {
+        foreach ($linked === [] ? [] : array_unique(array_intersect($wanted, $live)) as $subjectId) {
             $section = $this->topics($actor, (int) $learner->id, (int) $subjectId, $linked, $groups->where('subject_id', $subjectId)->pluck('id')->all());
             if ($section['topics'] !== []) {
                 $topics[] = $section + ['subject_id' => (int) $subjectId, 'subject_name' => (string) $names->get($subjectId)];

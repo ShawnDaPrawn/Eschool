@@ -98,6 +98,9 @@ that schools copy into their own catalogue is listed under "Not in this step".
   manager listing ("This career profile needs review.") and in the guidance
   view, and are marked "needs review" in the picker. A withdrawn profile leaves
   the guidance view (409).
+- A subject retired after a profile was published stays readable as retired
+  ("No longer offered at this school."). Its topics are skipped, and the other
+  requirements, topics and routes still show.
 - The guidance view is read-only. It shows the profile's subject requirements
   next to the learner's current subjects (subjects of the active teaching
   groups the learner is a current member of) and the linked topics with the
@@ -136,6 +139,7 @@ that schools copy into their own catalogue is listed under "Not in this step".
 | `test_university_route_links_a_programme_and_every_route_needs_a_public_source` | Programme link shown in the view; HTTP or IP route sources and a programme on a TVET route refused with nothing written |
 | `test_what_would_it_take_compares_subjects_and_shows_mastery_gaps_with_unknown_never_zero` | Happy path: subjects against current subjects, mastery levels, an unassessed starting point stays unknown, panel page wording, learner search, no writes |
 | `test_panel_publishes_a_profile_and_flags_it_once_its_review_date_passes` | Panel form publishes; stale profile flagged in the listing and the view; withdrawn profile leaves the view |
+| `test_a_retired_subject_shows_as_retired_and_the_rest_of_the_profile_stays_readable` | A soft-deleted subject requirement, with or without linked topics, never turns the view into a 404 |
 | `test_wrong_role_cannot_publish_profiles_or_open_the_guidance_view` | Teacher, parent and learner cannot publish; parent and learner cannot open the view; a teacher with no groups is refused; counts unchanged |
 | `test_wrong_school_ids_are_refused_and_school_b_rows_are_unchanged` | School B subject, profile and learner ids refused from School A; School B learners never listed; School B rows unchanged |
 | `test_wrong_owner_teacher_cannot_open_a_learner_they_do_not_teach_and_unshared_evidence_stays_unknown` | A teacher of another group gets 404; a manager who does not teach the learner sees the profile but the maths evidence stays unknown |

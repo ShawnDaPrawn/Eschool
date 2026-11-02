@@ -10,6 +10,7 @@ use App\Models\Pathways\CareerProfile;
 use App\Models\Pathways\CareerProfileVersion;
 use App\Models\Pathways\PathwayOperation;
 use App\Models\Platform\SchoolModule;
+use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Services\Academics\TeachingGroups;
@@ -233,6 +234,25 @@ class CareerProfilesTest extends TestCase
         $this->get('/pathways/guidance?q=Baobab')->assertOk()->assertDontSee('learner_id='.$this->schoolB->ids['asha'], false);
         $this->assertSame($before, $this->counts());
         $this->assertSame($foreignRows, app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => [CareerProfile::count(), CareerProfileVersion::count(), CareerProfile::findOrFail($foreign)->revision]));
+    }
+
+    public function test_a_retired_subject_shows_as_retired_and_the_rest_of_the_profile_stays_readable(): void
+    {
+        $profile = $this->publish();
+        $this->evidence();
+        Subject::findOrFail($this->schoolA->ids['science'])->delete();
+        $view = app(CareerGuidance::class)->view($this->actor('tara'), $this->schoolA->ids['asha'], $profile['id']);
+        $this->assertSame([false, true], array_column($view['subjects'], 'retired'));
+        $this->assertSame('shared', $view['topics'][0]['evidence']);
+        $this->assertCount(2, $view['routes']);
+        $this->actingAs($this->actor('tara'))->get('/pathways/guidance?learner_id='.$this->schoolA->ids['asha'].'&profile_id='.$profile['id'])->assertOk()
+            ->assertSee('No longer offered at this school.')->assertSee('Synthetic TVET college');
+        // A retired subject that carries the linked topics is skipped too, never a 404.
+        Subject::withTrashed()->findOrFail($this->schoolA->ids['science'])->restore();
+        Subject::findOrFail($this->subject)->delete();
+        $retired = app(CareerGuidance::class)->view($this->superAdmin(), $this->schoolA->ids['asha'], $profile['id']);
+        $this->assertSame([true, false], array_column($retired['subjects'], 'retired'));
+        $this->assertSame([], $retired['topics']);
     }
 
     public function test_wrong_owner_teacher_cannot_open_a_learner_they_do_not_teach_and_unshared_evidence_stays_unknown(): void
