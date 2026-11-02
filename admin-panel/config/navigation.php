@@ -451,6 +451,8 @@ return [
                             'keywords' => ['id card settings', 'card colours']],
                         ['key' => 'roles', 'label' => 'nav_roles', 'route' => 'roles.index', 'permissions' => ['role-create'], 'module' => null,
                             'active' => ['roles.*'], 'keywords' => ['role permission', 'staff roles', 'access', 'who can do what']],
+                        ['key' => 'support-access', 'label' => 'nav_support_access', 'route' => 'support-access.index', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
+                            'active' => ['support-access.*'], 'keywords' => ['Navigate Ed support', 'support session', 'who viewed', 'helpdesk access']],
                         ['key' => 'access-review', 'label' => 'nav_access_review', 'route' => 'access-review.index', 'permissions' => ['role-list'], 'module' => null,
                             'keywords' => ['who can see what', 'view as role', 'access check', 'permissions review']],
                     ],

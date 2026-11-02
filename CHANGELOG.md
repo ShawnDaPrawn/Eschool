@@ -79,6 +79,20 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
+- Platform and Admin panel: audited support access. Navigate Ed Support,
+  Operations and Owner staff ask a school for access at `/saas/support`, with a
+  reason and a length of up to four hours. The school's Super Admins are told
+  at once and approve or decline under Settings, "Navigate Ed support access";
+  when the school cannot be reached, another Owner can open a request that has
+  waited at least 15 minutes, with a recorded reason, and the school is told
+  immediately. A school's decline stands: nobody can ask again or override for
+  a day. While it is open, the staff member sees a read-only view of the
+  school's set-up and accounts (learners and parents only by exact email),
+  never wellbeing, counselling, health, safeguarding, discipline,
+  early-warning or support-plan records. Every page they open, and every
+  account a list or search showed, is listed for the school and in the HQ
+  audit log. It ends by itself, or earlier when the school or the staff member
+  ends it. **Deploy:** run the migrations.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and

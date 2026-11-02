@@ -56,5 +56,7 @@ return [
     'school_assistance.parent_update' => ['label' => 'School support replies', 'module' => 'ask_school', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'group_chat.staff_update' => ['label' => 'Staff group conversations', 'module' => 'groups', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
+    'support_access.requested' => ['label' => 'Navigate Ed support access request', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
+    'support_access.emergency' => ['label' => 'Navigate Ed emergency support access', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
     'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
 ];

@@ -281,3 +281,12 @@ The apps' parent home and child screens are app work and not part of this step; 
 timetable it serves. The public `.ics` endpoint has no school header; it finds
 the link by its token hash, then runs inside the link's school and rechecks the
 owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### Support access
+
+`support_access_grants` and `support_access_views` are required school-owned
+(foreign keys to the school; the models use BelongsToSchool). The school reads its
+own rows in its panel through the ordinary school scope; HQ reads them across
+schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: the
+granted school with the impersonation flag, which cannot be switched to another
+school or widened to every school for the rest of the request
+([support access](support-access.md)).
