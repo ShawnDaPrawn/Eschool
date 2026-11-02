@@ -94,3 +94,11 @@ The hourly refresh is registered in the active routes/console.php schedule.
 ## Renewals into a new year
 
 Open risk caseload grants are offered for renewal into the next school year by caseload administrators only: see [caseload renewals](caseload-renewals.md) (Action Plan 1.20).
+
+## Referrals from early years concerns
+
+An early concern raised from an early years observation (Action Plan 4.3) is
+referred as an intervention owned from the start by a current grade head of the
+learner's grade, with "leadership" authority and the referring teacher as its
+creator. The referrer's own authority is rechecked under the lock; only the
+grade head opens the body. See [early years](../learning/early-years.md).

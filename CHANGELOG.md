@@ -23,6 +23,18 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: Early years tools for young classes (first part). With the new
+  Early years module switched on, a class teacher fills in the daily diary for
+  the whole class in one go (meals, rest, mood, toileting and a short note per
+  child), and records observations, a note or a photograph tagged to a
+  development area, which build each child's portfolio. Schools start with
+  South Africa's six early learning and development areas and can change them.
+  A photograph is kept only if someone can give consent for the child, and
+  staff see it only after the family approves it in the private photo gallery.
+  From an observation, the teacher can refer an early concern to the grade
+  head as an intervention, in plain words and never as a diagnosis. Grade heads
+  and the principal can read the diary and portfolios. Family views and the
+  developmental report come later. **Deploy:** run the migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.
