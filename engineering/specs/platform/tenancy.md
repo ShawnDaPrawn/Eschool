@@ -263,6 +263,20 @@ required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
 
+### Platform content library (Action Plan 3.3)
+
+The library tables (`library_frameworks`, `library_sources`, `library_topics`,
+`library_topic_prerequisites`, `library_items`, `library_item_versions`,
+`library_reviews`, `library_reviewers`) are global: Navigate Ed's own content,
+written only from `/saas/library`. Their models refuse any write while a school
+is the current school, so school data never flows into them.
+`library_school_settings` (each school's switch) is required school-owned. School
+rows may point into the library (`mastery_topics.library_topic_id`,
+`mastery_evidence.library_item_version_id`,
+`practice_set_entries.library_item_version_id`,
+`practice_memories.library_item_id`), never the other way
+([content library](../learning/content-library.md)).
+
 ### A guardian at two schools (Action Plan 1.1, server side)
 
 A parent with children at two schools signs in once. `/api/v2/me/context` lists both schools and each child with their own school. The app reads each child with `X-School-Id` set to that child's school: the header picks one of the user's active memberships, and a school they don't belong to is refused (403).

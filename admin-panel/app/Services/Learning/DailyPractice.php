@@ -12,11 +12,13 @@ use App\Models\Learning\PracticeItemVersion;
 use App\Models\Learning\PracticeMemory;
 use App\Models\Learning\PracticeReview;
 use App\Models\Learning\PracticeSetEntry;
+use App\Models\Library\LibraryItemVersion;
 use App\Models\User;
 use App\Policies\Academics\ContentPolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Growth\MasteryRecompute;
 use App\Services\Growth\TopicGraph;
+use App\Services\Learning\Library\LibraryPractice;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -48,7 +50,8 @@ class DailyPractice
                     if ($seconds + $version->estimated_seconds > 600) {
                         continue;
                     }
-                    PracticeSetEntry::create(['practice_daily_set_id' => $set->id, 'practice_item_version_id' => $version->id, 'position' => ++$position]);
+                    $source = $version instanceof LibraryItemVersion ? ['library_item_version_id' => $version->id] : ['practice_item_version_id' => $version->id];
+                    PracticeSetEntry::create(['practice_daily_set_id' => $set->id, 'position' => ++$position] + $source);
                     $seconds += $version->estimated_seconds;
                     if ($position === 10) {
                         break;
@@ -63,6 +66,13 @@ class DailyPractice
         return $this->read($actor, $learner, $receipt['set_id']);
     }
 
+    /**
+     * The school's own approved questions first; when it has fewer than
+     * LibraryPractice::MINIMUM_OWN and has switched the library on, published
+     * library questions for the group's framework topics follow (3.3).
+     *
+     * @return list<PracticeItemVersion|LibraryItemVersion>
+     */
     private function candidates(User $actor, int $learner, TeachingGroup $group): array
     {
         $items = PracticeItem::where('teaching_group_id', $group->id)->where('active', true)->orderBy('id')->limit(1001)->get();
@@ -91,8 +101,12 @@ class DailyPractice
                 'weakness' => $weakness->get($item->topic_id) ?? -1, 'id' => (int) $item->id];
         }
         usort($available, fn ($a, $b) => [$a['due'], $a['weakness'], $a['id']] <=> [$b['due'], $b['weakness'], $b['id']]);
+        $own = array_column($available, 'version');
+        if (count($own) >= LibraryPractice::MINIMUM_OWN) {
+            return $own;
+        }
 
-        return array_column($available, 'version');
+        return [...$own, ...app(LibraryPractice::class)->candidates($learner, $group, $weakness, $today)];
     }
 
     private function authorized(User $actor, int $learner, int $setId, bool $write = false): array
@@ -103,6 +117,15 @@ class DailyPractice
         $entries = PracticeSetEntry::where('practice_daily_set_id', $setId)->orderBy('position')->get();
         abort_if($entries->count() > 10, 409);
         foreach ($entries as $entry) {
+            if ($entry->library_item_version_id !== null) {
+                // A library question: the school's switch, the group's frameworks and the published version, afresh.
+                [$version, $item, $topic] = app(LibraryPractice::class)->entry($group, (int) $entry->library_item_version_id);
+                $entry->setRelation('approvedVersion', $version);
+                $entry->setRelation('approvedItem', $item);
+                $entry->setRelation('practiceTopic', $topic);
+
+                continue;
+            }
             $version = PracticeItemVersion::findOrFail($entry->practice_item_version_id);
             $item = PracticeItem::where('teaching_group_id', $group->id)->where('active', true)->findOrFail($version->practice_item_id);
             app(PracticeAccess::class)->topic($group, (int) $item->topic_id);
@@ -125,9 +148,10 @@ class DailyPractice
             $seconds += $version->estimated_seconds;
 
             // Approved answers are intentionally included for offline self-study, never official assessment grading.
-            return ['id' => (int) $entry->id, 'item_id' => (int) $entry->approvedItem->id, 'topic_id' => (int) $entry->approvedItem->topic_id,
-                'source_version_id' => (int) $version->content_version_id, 'estimated_seconds' => (int) $version->estimated_seconds,
-                'definition' => $version->definition, 'review' => $reviews->has($entry->id) ? $this->reviewData($reviews[$entry->id]) : null];
+            // A library entry keeps the same shape: its item, mirror topic and library version ids.
+            return ['id' => (int) $entry->id, 'item_id' => (int) $entry->approvedItem->id, 'topic_id' => $this->topicOf($entry),
+                'source_version_id' => $this->library($entry) ? (int) $version->id : (int) $version->content_version_id, 'estimated_seconds' => (int) $version->estimated_seconds,
+                'definition' => $this->definitionOf($entry), 'review' => $reviews->has($entry->id) ? $this->reviewData($reviews[$entry->id]) : null];
         })->all();
         $this->authorized($actor, $learner, $setId);
         abort_unless(app(CurrentSchool::class)->id() === $school, 403);
@@ -149,20 +173,37 @@ class DailyPractice
             abort_if(PracticeReview::where('practice_set_entry_id', $entryId)->exists(), 409, 'This question was already reviewed. Reload the saved result.');
             $today = app(AcademicAuthority::class)->today();
             abort_if($set->practice_on->toDateString() > $today || CarbonImmutable::parse($set->practice_on->toDateString(), 'UTC')->diffInDays(CarbonImmutable::parse($today, 'UTC')) > 7, 409, 'This offline set is too old to synchronize. Start today’s practice.');
-            $correct = app(PracticeAnswers::class)->correct($entry->approvedVersion->definition, $data['answer']);
-            $memory = PracticeMemory::where('learner_id', $learner)->where('practice_item_id', $entry->approvedItem->id)->lockForUpdate()->first();
+            $correct = app(PracticeAnswers::class)->correct($this->definitionOf($entry), $data['answer']);
+            $key = $this->library($entry) ? ['library_item_id' => (int) $entry->approvedItem->id] : ['practice_item_id' => (int) $entry->approvedItem->id];
+            $memory = PracticeMemory::where('learner_id', $learner)->where($key)->lockForUpdate()->first();
             $elapsed = $memory === null ? 0 : (int) CarbonImmutable::parse($memory->reviewed_on->toDateString(), 'UTC')->diffInDays(CarbonImmutable::parse($today, 'UTC'));
             $schedule = app(FsrsScheduler::class)->review($memory?->state, $correct ? $data['rating'] : 1, $elapsed);
-            PracticeMemory::updateOrCreate(['learner_id' => $learner, 'practice_item_id' => $entry->approvedItem->id],
+            PracticeMemory::updateOrCreate(['learner_id' => $learner] + $key,
                 ['state' => $schedule, 'reviewed_on' => $today, 'due_on' => CarbonImmutable::parse($today)->addDays($schedule['interval_days'])->toDateString()]);
             $review = PracticeReview::create(['learner_id' => $learner, 'practice_set_entry_id' => $entryId, 'answer' => $data['answer'], 'correct' => $correct, 'schedule' => $schedule, 'reviewed_on' => $today]);
-            app(MasteryRecompute::class)->practice($review, $group, (int) $entry->approvedItem->topic_id);
+            app(MasteryRecompute::class)->practice($review, $group, $this->topicOf($entry));
             if (PracticeReview::whereIn('practice_set_entry_id', $entries->pluck('id'))->count() === $entries->count()) {
                 $set->update(['completed_at' => now()->utc(), 'completed_on' => $today]);
             }
 
             return $this->reviewData($review) + ['streak_days' => $this->streak($learner)];
         });
+    }
+
+    private function library(PracticeSetEntry $entry): bool
+    {
+        return $entry->library_item_version_id !== null;
+    }
+
+    /** The school's own topic node, or the school's mirror node of the library topic. */
+    private function topicOf(PracticeSetEntry $entry): int
+    {
+        return $this->library($entry) ? (int) $entry->practiceTopic->id : (int) $entry->approvedItem->topic_id;
+    }
+
+    private function definitionOf(PracticeSetEntry $entry): array
+    {
+        return $this->library($entry) ? (array) $entry->approvedVersion->practiceDefinition() : $entry->approvedVersion->definition;
     }
 
     private function reviewData(PracticeReview $review): array

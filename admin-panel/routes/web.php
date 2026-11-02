@@ -124,6 +124,7 @@ use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
+use App\Http\Controllers\Platform\PlatformLibraryController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformStaffController;
@@ -328,6 +329,29 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // The platform content library (3.3) and its review (SA.16): library rows only, never a school's material or people.
+    Route::prefix('/library')->name('library.')->group(function () {
+        Route::middleware('platform.can:library.manage')->group(function () {
+            Route::get('/', [PlatformLibraryController::class, 'index'])->name('index');
+            Route::post('/frameworks', [PlatformLibraryController::class, 'storeFramework'])->middleware('throttle:30,1')->name('frameworks.store');
+            Route::get('/frameworks/{framework}', [PlatformLibraryController::class, 'framework'])->whereNumber('framework')->name('frameworks.show');
+            Route::post('/frameworks/{framework}/topics', [PlatformLibraryController::class, 'storeTopic'])->middleware('throttle:60,1')->whereNumber('framework')->name('topics.store');
+            Route::put('/topics/{topic}/prerequisites', [PlatformLibraryController::class, 'prerequisites'])->middleware('throttle:60,1')->whereNumber('topic')->name('topics.prerequisites');
+            Route::post('/items', [PlatformLibraryController::class, 'storeItem'])->middleware('throttle:60,1')->name('items.store');
+            Route::post('/sources', [PlatformLibraryController::class, 'storeSource'])->middleware('throttle:30,1')->name('sources.store');
+            Route::get('/items/{item}', [PlatformLibraryController::class, 'item'])->whereNumber('item')->name('items.show');
+            Route::put('/items/{item}/draft', [PlatformLibraryController::class, 'draft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.draft');
+            Route::post('/items/{item}/submit', [PlatformLibraryController::class, 'submit'])->middleware('throttle:60,1')->whereNumber('item')->name('items.submit');
+            Route::post('/items/{item}/publish', [PlatformLibraryController::class, 'publish'])->middleware('throttle:60,1')->whereNumber('item')->name('items.publish');
+            Route::post('/reviewers', [PlatformLibraryController::class, 'storeReviewer'])->middleware('throttle:30,1')->name('reviewers.store');
+            Route::delete('/reviewers/{assignment}', [PlatformLibraryController::class, 'removeReviewer'])->whereNumber('assignment')->name('reviewers.destroy');
+            Route::put('/schools/{school}', [PlatformLibraryController::class, 'switch'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.switch');
+        });
+        Route::middleware('platform.can:library.review')->group(function () {
+            Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
+            Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
+        });
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
