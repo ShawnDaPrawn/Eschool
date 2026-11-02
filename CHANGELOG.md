@@ -96,6 +96,11 @@ Earlier history is kept where it was written and is not repeated here:
   records the LURITS numbers of learners already at the school. A number that
   another learner already holds is not recorded: it waits for Navigate Ed
   support, and the school is not told who holds it.
+- Communication: the sender of a school message, and its reviewers, see a
+  delivery report: how many people it reached and read it, who had no
+  notification channel, and for email and push how many were delivered, sent,
+  bounced or failed, with each recipient by name. Addresses are never shown.
+  **Deploy:** run the migrations.
 - Notifications: richer pushes. Consent requests show Yes and No, messages
   show Reply and their sender, urgent notices and safeguarding alerts show
   Acknowledge; every button only opens the app to confirm. Private notices
