@@ -29,6 +29,7 @@ use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
+use App\Services\Wellbeing\CheckIns;
 use App\Services\Wellbeing\WellbeingAccess;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Route;
@@ -166,6 +167,9 @@ class Navigation
             return false;
         }
         if (($item['wellbeing_actor'] ?? false) && ! app(WellbeingAccess::class)->panelAvailable($user)) {
+            return false;
+        }
+        if (($item['check_in_actor'] ?? false) && ! app(CheckIns::class)->available($user)) {
             return false;
         }
         if (($item['principal_dashboard'] ?? false) && ! app(LeadershipAuthority::class)->available($user)) {

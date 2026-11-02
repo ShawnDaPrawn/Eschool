@@ -94,3 +94,7 @@ The hourly refresh is registered in the active routes/console.php schedule.
 ## Renewals into a new year
 
 Open risk caseload grants are offered for renewal into the next school year by caseload administrators only: see [caseload renewals](caseload-renewals.md) (Action Plan 1.20).
+
+## Library, progress and check-in context
+
+Interventions can start from the school's intervention library and record dated progress against the plan's steps; the early warning list shows wellbeing check-ins as context to the learner's own pastoral professional only, never as a risk: see [check-ins and the intervention library](check-ins-and-intervention-library.md) (Action Plan 4.11).

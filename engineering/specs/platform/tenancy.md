@@ -288,3 +288,10 @@ Navigate Ed's own package list and price list, written only from `/saas`. They
 name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
+
+### Intervention library and wellbeing check-ins
+
+`intervention_library_actions`, `intervention_progress_entries` and
+`wellbeing_check_ins` are required school-owned: a school's library, the
+progress against its own interventions and its learners' check-ins. Another
+school's ids are not found ([check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)).
