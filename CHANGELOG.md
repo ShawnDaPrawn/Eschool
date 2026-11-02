@@ -79,7 +79,11 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
-
+- **LURITS when adding a learner.** The Add learner form takes the learner's
+  LURITS number. If another NavigateEd school already has the learner, the
+  office is asked to start a transfer request instead of creating a duplicate;
+  it is never told which school. If the learner is already, or was before, at
+  the school, the office is pointed to their existing record.
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
