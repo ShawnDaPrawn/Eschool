@@ -24,6 +24,7 @@ final class SchoolOwnedTables
         'lurits_conflicts',
         'platform_incident_schools',
         'platform_announcement_schools', 'platform_announcement_reads',
+        'school_health_snapshots',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',

@@ -300,3 +300,11 @@ Super Admin who dismissed it) are required school-owned, with models that use
 row and sees only its own people's reads; it never sees which other schools an
 announcement reached or their reads. HQ reads both across schools and shows
 counts ([HQ announcements](hq-announcements.md)).
+
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
