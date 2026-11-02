@@ -675,6 +675,8 @@ class OpenApiContractTest extends TestCase
             'notification detail requires auth' => [null, 'GET', 'api/v2/me/notifications/1', [], 401],
             'notification detail of a notice that is not yours' => ['farid', 'GET', 'api/v2/me/notifications/999999', [], 404],
             'locked notice preference' => ['farid', 'PUT', 'api/v2/me/notification-preferences', ['type' => 'attendance.absence', 'channel' => 'email', 'enabled' => false], 422],
+            'read own quiet hours' => ['farid', 'GET', 'api/v2/me/notification-quiet-hours', [], 200],
+            'quiet hours need valid times' => ['farid', 'PUT', 'api/v2/me/notification-quiet-hours', ['enabled' => true, 'starts_at' => '25:00', 'ends_at' => '06:00'], 422],
             'read own handle' => ['asha', 'GET', 'api/v2/me/handle', [], 200],
             'handle write requires auth' => [null, 'PUT', 'api/v2/me/handle', ['handle' => 'orbit'], 401],
             'unverified guardian handle list' => ['farid', 'GET', 'api/v2/guardian/handle-proposals', [], 403],

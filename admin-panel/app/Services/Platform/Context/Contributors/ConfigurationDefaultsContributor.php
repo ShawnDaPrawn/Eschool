@@ -8,6 +8,7 @@ use App\Services\Growth\MyGrade;
 use App\Services\Learning\TeachingDraftQueries;
 use App\Services\Platform\Context\ContextContributor;
 use App\Services\Platform\Context\ContextScope;
+use App\Services\Platform\FeatureFlags;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\NotificationRules;
 
@@ -22,8 +23,9 @@ class ConfigurationDefaultsContributor implements ContextContributor
         return [
             'modules' => app(ModuleGate::class)->context(),
             'notification_rules' => app(NotificationRules::class)->context($scope->user),
-            'feature_flags' => (object) ['module_switches' => true, 'academic_marks' => true, 'academic_timetable' => true, 'academic_registers' => true, 'academic_reports' => true, 'academic_content' => true, 'communication_messages' => true, 'mastery' => true, 'relief_cover' => true, 'my_grade' => app(MyGrade::class)->available($scope->user),
-                'teaching_assistant' => app(TeachingDraftQueries::class)->available($scope->user), 'test_insights' => app(TeachingDraftQueries::class)->available($scope->user, 'test_insights')],
+            // Built-in switches, each narrowed by a platform flag of the same key, then the platform's own flags (SA.14).
+            'feature_flags' => (object) app(FeatureFlags::class)->merge(['module_switches' => true, 'academic_marks' => true, 'academic_timetable' => true, 'academic_registers' => true, 'academic_reports' => true, 'academic_content' => true, 'communication_messages' => true, 'mastery' => true, 'relief_cover' => true, 'my_grade' => app(MyGrade::class)->available($scope->user),
+                'teaching_assistant' => app(TeachingDraftQueries::class)->available($scope->user), 'test_insights' => app(TeachingDraftQueries::class)->available($scope->user, 'test_insights')], (int) $scope->school->id),
         ];
     }
 }
