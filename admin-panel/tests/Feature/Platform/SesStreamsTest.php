@@ -360,7 +360,7 @@ class SesStreamsTest extends TestCase
         $this->post('/saas/mail-streams/check', ['school_id' => 1])->assertForbidden();
 
         // A school's Super Admin is not platform staff.
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         $this->assertNotSame(200, $this->get('/saas/mail-streams')->getStatusCode());
         $response = $this->post('/saas/mail-streams/check', ['school_id' => 1]);
         $this->assertNotSame(url('/saas/mail-streams'), $response->headers->get('Location'));

@@ -123,9 +123,11 @@ class HqHomeTest extends TestCase
 
     public function test_sign_in_lands_on_the_home_page_and_the_old_links_still_work(): void
     {
-        $this->staff('sales');
+        $sales = $this->staff('sales');
 
-        $this->post('/login', ['email' => 'sales@platform.example', 'password' => 'Synthetic-hq-home-password-264!'])->assertRedirect('/saas/home');
+        $this->keepSession($this->post('/login', ['email' => 'sales@platform.example', 'password' => 'Synthetic-hq-home-password-264!'])->assertRedirect('/saas/home'));
+        $this->get('/saas/home')->assertRedirect(route('saas.two-factor.enrol'));
+        $this->actingAsHq($sales);
         $this->get('/saas/home')->assertOk()->assertSee('Schools by stage')
             ->assertSee('href="'.route('saas.index').'"', false);
         // The school list keeps its address, and the platform name in the bar leads home.
@@ -177,7 +179,7 @@ class HqHomeTest extends TestCase
             'owner' => self::ALL,
             'operations' => self::ALL,
             'support' => self::ALL,
-            'finance' => self::SCHOOL_TILES,
+            'finance' => [...self::SCHOOL_TILES, 'health'],
             'content' => self::SCHOOL_TILES,
             'reviewer' => self::SCHOOL_TILES,
             'sales' => self::SCHOOL_TILES,
@@ -219,9 +221,9 @@ class HqHomeTest extends TestCase
     public function test_a_school_account_and_a_retired_role_are_refused(): void
     {
         foreach (['superadmin' => $this->superAdmin(), 'teacher' => User::query()->findOrFail($this->schoolA->ids['tara_user'])] as $who => $user) {
-            $this->actingAs($user)->get('/saas/home')->assertForbidden();
+            $this->newBrowserSession()->actingAs($user)->get('/saas/home')->assertForbidden();
         }
-        $this->actingAs(app(CurrentSchool::class)->run(2, fn () => User::query()->findOrFail($this->schoolB->ids['tara_user'])))->get('/saas/home')->assertForbidden();
+        $this->newBrowserSession()->actingAs(app(CurrentSchool::class)->run(2, fn () => User::query()->findOrFail($this->schoolB->ids['tara_user'])))->get('/saas/home')->assertForbidden();
 
         $retired = $this->staff('sales');
         PlatformAdminGrant::query()->where('user_id', $retired->id)->update(['role' => 'retired']);

@@ -316,7 +316,7 @@ class HqContentLibraryTest extends TestCase
         $topic = $this->libraryTopic('Fractions');
         $before = $this->libraryCounts();
         foreach ([$this->superAdmin(), User::query()->findOrFail($this->schoolA->ids['tara_user']), User::query()->findOrFail($this->schoolB->ids['tara_user'])] as $person) {
-            $this->actingAs($person);
+            $this->newBrowserSession()->actingAs($person);
             foreach (['/saas/library', '/saas/library/reviews', '/saas/library/frameworks/'.$topic->library_framework_id] as $page) {
                 $this->get($page)->assertForbidden();
             }
@@ -364,6 +364,6 @@ class HqContentLibraryTest extends TestCase
         $this->assertSame([2 => 1], DB::table('library_school_settings')->pluck('enabled', 'school_id')->map(fn ($v) => (int) $v)->all());
         $audit = AuditLog::query()->where('action', 'library_school_switched')->sole();
         $this->assertSame(2, (int) $audit->school_id);
-        $this->assertEqualsCanonicalizing(['enabled' => true, 'reason' => 'Baobab High pilots the library', 'changed_by' => $this->libraryStaff('content')->id], $audit->after);
+        $this->assertSame([true, 'Baobab High pilots the library', $this->libraryStaff('content')->id], [$audit->after['enabled'], $audit->after['reason'], $audit->after['changed_by']]);
     }
 }

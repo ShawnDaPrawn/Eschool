@@ -82,7 +82,7 @@ class HqSchoolImportsTest extends TestCase
 
     private function approve(User $leader, int $id): void
     {
-        $this->actingAs($leader)->post('/hq-imports/'.$id.'/approve', ['reason' => 'Checked against the SA-SAMS class list.'])
+        $this->newBrowserSession()->actingAs($leader)->post('/hq-imports/'.$id.'/approve', ['reason' => 'Checked against the SA-SAMS class list.'])
             ->assertRedirect('/hq-imports/'.$id)->assertSessionHasNoErrors();
     }
 
@@ -103,7 +103,7 @@ class HqSchoolImportsTest extends TestCase
         $this->post('/saas/schools/1/imports', $input + ['mapped' => 1, 'mapping' => $check['mapping'], 'fingerprint' => $check['fingerprint']])
             ->assertRedirect()->assertSessionHasNoErrors();
         $id = (int) PlatformSchoolImport::acrossSchools()->max('id');
-        $this->actingAs($leader)->get('/hq-imports/'.$id)->assertOk()->assertSee('Lindiwe')->assertSee('lindiwe@example.com')
+        $this->newBrowserSession()->actingAs($leader)->get('/hq-imports/'.$id)->assertOk()->assertSee('Lindiwe')->assertSee('lindiwe@example.com')
             ->assertSee('mother')->assertSee('Grade 5 A')->assertSee('Send invitations')->assertSee($check['options']['starts_on']);
         $raw = (string) DB::table('platform_school_imports')->where('id', $id)->value('preview');
         $this->assertStringNotContainsString('lindiwe@example.com', $raw);
@@ -139,7 +139,7 @@ class HqSchoolImportsTest extends TestCase
         $this->assertSame(0, $this->grade8(1));
 
         // The leader sees the rows and every step, and approves with a reason.
-        $this->actingAs($leader)->get('/hq-imports')->assertOk()->assertSee('Homerooms')->assertSee('Waiting for the school&#039;s approval', false);
+        $this->newBrowserSession()->actingAs($leader)->get('/hq-imports')->assertOk()->assertSee('Homerooms')->assertSee('Waiting for the school&#039;s approval', false);
         $this->get('/hq-imports/'.$id)->assertOk()->assertSee('Grade 8 A')->assertSee('Your decision')->assertSee('Navigate Ed checked the file (nothing written)');
         $this->approve($leader, $id);
         $this->assertSame([PlatformSchoolImport::APPROVED, hash('sha256', self::CSV)], [$this->import($id)->status, $this->import($id)->approved_sha256]);
@@ -157,7 +157,7 @@ class HqSchoolImportsTest extends TestCase
 
         $this->get('/saas/audit?school=1')->assertOk()->assertSee('Import applied for the school')->assertSee('Import approved by the school')->assertSee('Checked against the SA-SAMS class list.');
         $this->get('/saas/imports/'.$id)->assertOk()->assertSee('Imported')->assertDontSee('Apply the import');
-        $this->actingAs($leader)->get('/hq-imports/'.$id)->assertOk()->assertSee('Imported by Navigate Ed')->assertSee('Checked against the SA-SAMS class list.')->assertDontSee('Your decision');
+        $this->newBrowserSession()->actingAs($leader)->get('/hq-imports/'.$id)->assertOk()->assertSee('Imported by Navigate Ed')->assertSee('Checked against the SA-SAMS class list.')->assertDontSee('Your decision');
     }
 
     public function test_other_platform_roles_cannot_preview_send_apply_or_cancel(): void
@@ -188,7 +188,7 @@ class HqSchoolImportsTest extends TestCase
         $this->approve($this->superAdmin(), $id);
 
         foreach ([$this->superAdmin(), $this->leader(self::SCHOOL_B_ID, 'Baobab'), User::query()->findOrFail($this->schoolA->ids['tara_user'])] as $user) {
-            $this->actingAs($user);
+            $this->newBrowserSession()->actingAs($user);
             $this->get('/saas/schools/1/imports')->assertForbidden();
             $this->post('/saas/schools/1/imports/preview', ['kind' => 'homerooms', 'approver_id' => $user->id, 'csv' => self::CSV])->assertForbidden();
             $this->get('/saas/imports/'.$id)->assertForbidden();
@@ -213,17 +213,17 @@ class HqSchoolImportsTest extends TestCase
         $audit = DB::table('audit_log')->where('action', 'like', 'platform\_import\_%')->count();
 
         // School B's leader: School A's import is not found, and their own list is empty.
-        $this->actingAs($baobab)->get('/hq-imports')->assertOk()->assertSee('Navigate Ed has not prepared any imports for the school.');
+        $this->newBrowserSession()->actingAs($baobab)->get('/hq-imports')->assertOk()->assertSee('Navigate Ed has not prepared any imports for the school.');
         $this->get('/hq-imports/'.$id)->assertNotFound();
         $this->post('/hq-imports/'.$id.'/approve', ['reason' => 'Approving another school\'s import'])->assertNotFound();
         $this->post('/hq-imports/'.$id.'/decline', ['reason' => 'Declining another school\'s import'])->assertNotFound();
 
         // Another leader at School A sees it but is not the one asked.
         $other = $this->leader(1, 'Other');
-        $this->actingAs($other)->get('/hq-imports/'.$id)->assertOk()->assertDontSee('Your decision');
+        $this->newBrowserSession()->actingAs($other)->get('/hq-imports/'.$id)->assertOk()->assertDontSee('Your decision');
         $this->post('/hq-imports/'.$id.'/approve', ['reason' => 'Approving in someone else\'s place'])->assertForbidden();
         // A teacher may not import, so cannot open it at all.
-        $this->actingAs(User::query()->findOrFail($this->schoolA->ids['tara_user']))->get('/hq-imports/'.$id)->assertForbidden();
+        $this->newBrowserSession()->actingAs(User::query()->findOrFail($this->schoolA->ids['tara_user']))->get('/hq-imports/'.$id)->assertForbidden();
         $this->post('/hq-imports/'.$id.'/approve', ['reason' => 'A teacher approving it'])->assertForbidden();
 
         $this->assertSame(PlatformSchoolImport::AWAITING, $this->import($id)->status);
@@ -231,7 +231,7 @@ class HqSchoolImportsTest extends TestCase
         $this->assertSame($audit, DB::table('audit_log')->where('action', 'like', 'platform\_import\_%')->count());
 
         // The leader asked declines it: the file is deleted and it can never be applied.
-        $this->actingAs($this->superAdmin())->post('/hq-imports/'.$id.'/decline', ['reason' => 'We will import homerooms ourselves.'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->newBrowserSession()->actingAs($this->superAdmin())->post('/hq-imports/'.$id.'/decline', ['reason' => 'We will import homerooms ourselves.'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame([PlatformSchoolImport::DECLINED, null], [$this->import($id)->status, $this->import($id)->contents]);
         $this->actingAsHq($operator)->post('/saas/imports/'.$id.'/apply')->assertSessionHasErrors('status');
         $this->assertSame(0, $this->grade8(1));
@@ -283,7 +283,7 @@ class HqSchoolImportsTest extends TestCase
         $this->travel(PlatformSchoolImports::EXPIRY_DAYS)->days();
         $this->travel(1)->hours();
         // Approving after the date is refused, and expires it at once.
-        $this->actingAs($this->superAdmin())->post('/hq-imports/'.$waiting.'/approve', ['reason' => 'Approving too late'])->assertSessionHasErrors('status');
+        $this->newBrowserSession()->actingAs($this->superAdmin())->post('/hq-imports/'.$waiting.'/approve', ['reason' => 'Approving too late'])->assertSessionHasErrors('status');
         $this->assertSame([PlatformSchoolImport::EXPIRED, null, null], [$this->import($waiting)->status, $this->import($waiting)->contents, $this->import($waiting)->preview]);
 
         // The hourly clean-up (no one signed in) expires the approved one that was never applied.
@@ -305,7 +305,7 @@ class HqSchoolImportsTest extends TestCase
         $this->actingAsHq($operator)->post('/saas/imports/'.$id.'/cancel', ['reason' => 'x'])->assertSessionHasErrors('reason');
         $this->post('/saas/imports/'.$id.'/cancel', ['reason' => 'The school sent a corrected list.'])->assertRedirect('/saas/imports/'.$id)->assertSessionHasNoErrors();
         $this->assertSame([PlatformSchoolImport::CANCELLED, null, 'The school sent a corrected list.'], [$this->import($id)->status, $this->import($id)->contents, $this->import($id)->close_reason]);
-        $this->actingAs($this->superAdmin())->get('/hq-imports/'.$id)->assertOk()->assertSee('Cancelled by Navigate Ed')->assertSee('The school sent a corrected list.');
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/hq-imports/'.$id)->assertOk()->assertSee('Cancelled by Navigate Ed')->assertSee('The school sent a corrected list.');
         $this->post('/hq-imports/'.$id.'/approve', ['reason' => 'Approving a cancelled import'])->assertSessionHasErrors('status');
     }
 }

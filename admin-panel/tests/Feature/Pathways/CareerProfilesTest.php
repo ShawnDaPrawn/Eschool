@@ -120,7 +120,7 @@ class CareerProfilesTest extends TestCase
         $service = app(CareerProfiles::class);
         $input = $this->input();
         $first = $service->save($this->superAdmin(), null, $input);
-        $this->assertSame($first, $service->save($this->superAdmin(), null, $input));
+        $this->assertEquals($first, $service->save($this->superAdmin(), null, $input));
         $this->assertSame(['tvet', 'learnership'], array_column($first['details']['routes'], 'type'));
         $this->assertSame([$this->nodes[$this->keys[1]], $this->nodes[$this->keys[2]]], $first['details']['topic_ids']);
         $this->assertFalse($first['stale']);

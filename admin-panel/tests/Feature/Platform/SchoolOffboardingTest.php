@@ -101,7 +101,7 @@ class SchoolOffboardingTest extends TestCase
 
     private function link(User $admin): string
     {
-        $url = $this->actingAs($admin)->get('/school-exit')->assertOk()->viewData('offboarding')['download_url'];
+        $url = $this->newBrowserSession()->actingAs($admin)->get('/school-exit')->assertOk()->viewData('offboarding')['download_url'];
         $this->assertIsString($url);
 
         return $url;
@@ -239,7 +239,7 @@ class SchoolOffboardingTest extends TestCase
             $refused();
         }
         // A school's own Super Admin never reaches HQ.
-        $this->actingAs($admin);
+        $this->newBrowserSession()->actingAs($admin);
         $refused();
         $this->assertSame(0, SchoolOffboarding::acrossSchools()->count());
         $this->assertSame(0, DB::table('audit_log')->where('action', 'like', 'platform_school_offboarding_%')->count());
@@ -255,7 +255,7 @@ class SchoolOffboardingTest extends TestCase
         $this->assertNull($row->fresh()->deletion_approved_at);
 
         // In the school: only its Super Admin sees the page, downloads or confirms; a teacher is refused.
-        $this->actingAs($teacherB)->withHeader('X-School-Id', (string) self::LEAVING);
+        $this->newBrowserSession()->actingAs($teacherB)->withHeader('X-School-Id', (string) self::LEAVING);
         $this->get('/school-exit')->assertForbidden();
         $this->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertForbidden();
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $teacherB->id]))->assertForbidden();
@@ -278,7 +278,7 @@ class SchoolOffboardingTest extends TestCase
         $this->assertSame(DB::table('session_years')->where('school_id', self::LEAVING)->count(), $report['delete']['session_years']);
         // The other school has no offboarding, and its Super Admin sees none.
         $this->get('/saas/schools/'.self::OTHER.'/offboarding')->assertOk()->assertSee('Start an offboarding');
-        $this->actingAs($this->superAdmin())->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
         // The leaving school's offboarding id is not found from the other school.
         $this->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertNotFound();
     }
@@ -296,19 +296,19 @@ class SchoolOffboardingTest extends TestCase
         // Platform staff who also hold a Super Admin role at the school: refused all the same.
         $insider = $this->headOfB('insider@baobab.example');
         PlatformStaffIdentity::query()->create(['user_id' => $insider->id]);
-        $this->actingAs($insider)->get('/school-exit')->assertForbidden();
+        $this->newBrowserSession()->actingAs($insider)->get('/school-exit')->assertForbidden();
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $insider->id]))->assertForbidden();
         // Another school's Super Admin with the forwarded link, or with the reader changed to themselves.
-        $this->actingAs($this->superAdmin())->get($url)->assertForbidden();
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get($url)->assertForbidden();
         $this->get(str_replace('reader='.$admin->id, 'reader='.$this->superAdmin()->id, $url))->assertForbidden();
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $this->superAdmin()->id]))->assertNotFound();
         // A second Super Admin of the school cannot use the first one's link.
-        $this->actingAs($this->headOfB('deputy@baobab.example'))->get($url)->assertForbidden();
+        $this->newBrowserSession()->actingAs($this->headOfB('deputy@baobab.example'))->get($url)->assertForbidden();
         $this->assertSame(0, $row->fresh()->download_count);
 
         // The link lasts minutes; the export itself lasts until the receipt deadline.
         $this->travel(16)->minutes();
-        $this->actingAs($admin)->get($url)->assertForbidden();
+        $this->newBrowserSession()->actingAs($admin)->get($url)->assertForbidden();
         $this->get($this->link($admin))->assertOk();
         $this->travelTo(CarbonImmutable::parse('2026-11-21 08:00', PlatformOffboarding::TIMEZONE));
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $admin->id]))->assertStatus(410);
@@ -424,14 +424,14 @@ class SchoolOffboardingTest extends TestCase
         $this->assertSame(SchoolOffboarding::READY, $row->state);
 
         // Receipt needs a download first.
-        $this->actingAs($admin)->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertSessionHasErrors('confirm');
+        $this->newBrowserSession()->actingAs($admin)->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertSessionHasErrors('confirm');
         $this->assertSame(SchoolOffboarding::READY, $row->fresh()->state);
 
         // Cancelling discards the export copy; the school stays active and may start again.
         $this->actingAsHq($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/cancel', ['reason' => 'The school renewed its contract.'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame(SchoolOffboarding::CANCELLED, $row->fresh()->state);
         $this->assertSame([], Storage::disk(OffboardingExport::DISK)->allFiles('schools/2/offboarding'));
-        $this->actingAs($admin)->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
+        $this->newBrowserSession()->actingAs($admin)->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
     }
 
     public function test_card_keys_and_other_credentials_never_leave_in_the_export_encrypted_or_decrypted(): void

@@ -765,7 +765,7 @@ class HqBillingTest extends TestCase
         $payment = PlatformPayment::acrossSchools()->sole();
         $before = $this->counts();
         foreach ([$this->superAdmin(), User::findOrFail($this->schoolA->ids['tara_user'])] as $user) {
-            $this->actingAs($user)->get('/saas/billing')->assertForbidden();
+            $this->newBrowserSession()->actingAs($user)->get('/saas/billing')->assertForbidden();
             $this->get('/saas/billing/schools/1')->assertForbidden();
             $this->get('/saas/billing/schools/1/invoices/'.$a->id)->assertForbidden();
             foreach ($this->writes($a->id, $payment->id) as [$uri, $input]) {

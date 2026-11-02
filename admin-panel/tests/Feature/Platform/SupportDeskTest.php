@@ -74,7 +74,7 @@ class SupportDeskTest extends TestCase
     {
         $this->flushSession();
         app(CurrentSchool::class)->forget();
-        $this->actingAs($user);
+        $this->newBrowserSession()->actingAs($user);
         if (PlatformStaffIdentity::where('user_id', $user->id)->where('active', true)->exists()) {
             $this->passPlatformTwoFactor($user);
         }

@@ -8,6 +8,7 @@ use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Who may use the platform admin area (/saas): an active platform staff
@@ -28,9 +29,9 @@ class PlatformStaffAccess
         }
 
         return app(CurrentSchool::class)->acrossSchools(function () use ($user): bool {
-            $fresh = User::query()->where('status', 1)->find($user->getKey());
+            $fresh = User::query()->where('status', 1)->whereIn('id', $this->keys($user)->select('user_id'))->find($user->getKey());
 
-            return $fresh !== null && ! $fresh->password_change_required && $this->holdsBothKeys($fresh);
+            return $fresh !== null && ! $fresh->password_change_required;
         });
     }
 
@@ -53,8 +54,15 @@ class PlatformStaffAccess
 
     private function holdsBothKeys(User $user): bool
     {
-        return PlatformStaffIdentity::query()->where('user_id', $user->id)->where('active', true)->exists()
-            && PlatformAdminGrant::query()->where('user_id', $user->id)->where('active', true)->where('expires_at', '>', now()->utc())->exists();
+        return $this->keys($user)->exists();
+    }
+
+    private function keys(User $user): Builder
+    {
+        return PlatformStaffIdentity::query()->where('user_id', $user->id)->where('active', true)
+            ->whereExists(fn ($query) => $query->selectRaw('1')->from('platform_admin_grants')
+                ->whereColumn('platform_admin_grants.user_id', 'platform_staff_identities.user_id')
+                ->where('platform_admin_grants.active', true)->where('platform_admin_grants.expires_at', '>', now()->utc()));
     }
 
     /**

@@ -268,7 +268,7 @@ class UrgentMessagingTest extends TestCase
     {
         $payload = ['revision' => 0, 'sms_enabled' => '1', 'whatsapp_enabled' => '0', 'sms_types' => ['comms.urgent']];
         foreach (['tara_user', 'farid_user', 'asha_user'] as $person) {
-            $this->actingAs(User::findOrFail($this->schoolA->ids[$person]))->get('/urgent-messaging')->assertForbidden();
+            $this->newBrowserSession()->actingAs(User::findOrFail($this->schoolA->ids[$person]))->get('/urgent-messaging')->assertForbidden();
             $this->put('/urgent-messaging', $payload)->assertForbidden();
             $this->app['auth']->forgetGuards();
         }
@@ -284,7 +284,7 @@ class UrgentMessagingTest extends TestCase
 
     public function test_the_school_office_switches_sms_and_whatsapp_on_from_settings(): void
     {
-        $this->actingAs($this->superAdmin())->get('/urgent-messaging')->assertOk()
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/urgent-messaging')->assertOk()
             ->assertSee('Urgent school notice')->assertSee('Absence alert')->assertSee('Guardians have agreed to receive WhatsApp messages');
 
         $this->put('/urgent-messaging', ['revision' => 0, 'sms_enabled' => '1', 'whatsapp_enabled' => '1', 'sms_types' => ['comms.urgent'], 'whatsapp_types' => ['comms.urgent']])
@@ -510,7 +510,7 @@ class UrgentMessagingTest extends TestCase
         $this->app['auth']->forgetGuards();
         $this->actingAsHq($this->staff('content'))->get('/saas/messaging')->assertForbidden();
         $this->app['auth']->forgetGuards();
-        $this->actingAs($this->superAdmin())->get('/saas/messaging')->assertForbidden();
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/saas/messaging')->assertForbidden();
     }
 
     public function test_a_message_twilio_cannot_price_yet_does_not_hold_back_the_next_batch(): void

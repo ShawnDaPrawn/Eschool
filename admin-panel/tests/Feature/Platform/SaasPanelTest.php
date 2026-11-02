@@ -241,7 +241,7 @@ class SaasPanelTest extends TestCase
         PlatformStaffIdentity::query()->create(['user_id' => $operator->id]);
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
 
-        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!']))->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!']))->assertRedirect('/saas/home');
         $this->assertAuthenticatedAs($operator);
         $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
         $this->passPlatformTwoFactor($operator);
@@ -646,7 +646,7 @@ class SaasPanelTest extends TestCase
     {
         $operator = $this->operatorWithoutRoles();
 
-        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1']))->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1']))->assertRedirect('/saas/home');
         $this->assertAuthenticatedAs($operator);
         // Two-factor sign-in first (SA.2), then the school list.
         $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));

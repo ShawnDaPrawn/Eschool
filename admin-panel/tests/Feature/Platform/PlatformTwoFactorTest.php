@@ -77,7 +77,7 @@ class PlatformTwoFactorTest extends TestCase
     private function signIn(User $user): void
     {
         auth()->forgetGuards();
-        $this->keepSession($this->post('/login', ['email' => $user->email, 'password' => self::PASSWORD]))->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $user->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
     }
 
     private function signOut(): void
@@ -235,7 +235,7 @@ class PlatformTwoFactorTest extends TestCase
         [$operator, $secret] = $this->enrolled('operations');
         $operator->forceFill(['password_change_required' => true])->save();
         auth()->forgetGuards();
-        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => self::PASSWORD]))->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
 
         $this->get('/saas')->assertRedirect(route('saas.password'));
         $this->get('/saas/password')->assertRedirect(route('saas.two-factor.challenge'));
@@ -320,7 +320,7 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $support->id)->exists());
         $this->assertSame(0, DB::table('sessions')->where('user_id', $support->id)->count());
         $audit = AuditLog::query()->where('action', 'platform_two_factor_reset')->latest('id')->firstOrFail();
-        $this->assertSame(['user_id' => $support->id, 'via' => 'hq', 'reason' => 'Lost their phone on the school visit', 'changed_by' => $owner->id], $audit->after);
+        $this->assertSame(['user_id' => $support->id, 'via' => 'hq', 'reason' => 'Lost their phone on the school visit', 'changed_by' => $owner->id], array_replace(['user_id' => null, 'via' => null, 'reason' => null, 'changed_by' => null], $audit->after));
         $this->assertSame($owner->id, (int) $audit->actor_id);
         $this->assertNull($audit->school_id);
         $this->get('/saas/audit?action=platform_two_factor_reset')->assertOk()->assertSee('Two-factor sign-in reset')->assertSee('Lost their phone on the school visit');
@@ -369,7 +369,7 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $owner->id)->exists());
         $audit = AuditLog::query()->where('action', 'platform_two_factor_reset')->firstOrFail();
         $this->assertSame('system', $audit->actor_type);
-        $this->assertSame(['user_id' => $owner->id, 'via' => 'console', 'reason' => 'The only Owner lost their phone'], $audit->after);
+        $this->assertSame(['user_id' => $owner->id, 'via' => 'console', 'reason' => 'The only Owner lost their phone'], array_replace(['user_id' => null, 'via' => null, 'reason' => null], $audit->after));
     }
 
     public function test_a_session_from_before_a_reset_signs_in_again_whatever_the_session_driver(): void

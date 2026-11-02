@@ -209,7 +209,7 @@ class HqAnnouncementsTest extends TestCase
         $forA = $this->published(['title' => 'Only for Jacaranda', 'audience' => 'schools', 'schools' => [1]]);
         $both = $this->published(['title' => 'For both schools', 'audience' => 'schools', 'schools' => [1, 2]]);
 
-        $this->actingAs($this->schoolBAdmin);
+        $this->newBrowserSession()->actingAs($this->schoolBAdmin);
         $this->get('/navigate-ed-announcements')->assertOk()->assertDontSee('Only for Jacaranda')->assertSee('For both schools')
             ->assertDontSee('data-platform-announcement="'.$forA.'"', false)->assertDontSee('Jacaranda');
         $this->post('/navigate-ed-announcements/'.$forA.'/read')->assertNotFound();
@@ -217,13 +217,13 @@ class HqAnnouncementsTest extends TestCase
 
         // School A sees its own, never the list of schools it went to nor School B's reads.
         $this->post('/navigate-ed-announcements/'.$both.'/read')->assertRedirect();
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         $this->get('/home')->assertOk()->assertSee('data-platform-announcement="'.$forA.'"', false)->assertSee('data-platform-announcement="'.$both.'"', false);
         $this->get('/navigate-ed-announcements')->assertOk()->assertSee('Only for Jacaranda')->assertDontSee(self::SCHOOL_B_MARKER)
             ->assertDontSee('You dismissed it');
         $this->assertSame([2], DB::table('platform_announcement_reads')->pluck('school_id')->map(fn ($v) => (int) $v)->all());
         // Only Super Admins: a teacher sees no banner and cannot dismiss or open the page.
-        $this->actingAs($this->teacher());
+        $this->newBrowserSession()->actingAs($this->teacher());
         $this->get('/home')->assertOk()->assertDontSee('data-platform-announcement', false);
         $this->get('/navigate-ed-announcements')->assertForbidden();
         $this->post('/navigate-ed-announcements/'.$forA.'/read')->assertForbidden();
@@ -239,7 +239,7 @@ class HqAnnouncementsTest extends TestCase
             (string) DB::table('platform_announcements')->where('id', $id)->value('shows_until'));
         $this->assertStringContainsString('Maintenance from 2026-11-07 22:00 to 2026-11-07 23:30', Notification::acrossSchools()->where('type', PlatformAnnouncements::TYPE)->where('school_id', 1)->sole()->message);
         $banner = 'data-platform-announcement="'.$id.'"';
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
 
         $this->get('/home')->assertOk()->assertDontSee($banner, false);
         $this->travelTo(CarbonImmutable::parse('2026-11-03 08:01', PlatformAnnouncements::TIMEZONE));
@@ -253,7 +253,7 @@ class HqAnnouncementsTest extends TestCase
         $this->post('/saas/announcements/'.$id.'/withdraw', ['reason' => 'Maintenance moved to next week'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame('withdrawn', DB::table('platform_announcements')->where('id', $id)->value('status'));
         $this->assertSame(1, AuditLog::query()->where('action', 'platform_announcement_withdrawn')->count());
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         $this->get('/home')->assertOk()->assertDontSee($banner, false);
         $this->get('/navigate-ed-announcements')->assertOk()->assertDontSee('Planned maintenance on Saturday');
         $this->post('/navigate-ed-announcements/'.$id.'/read')->assertNotFound();
@@ -269,7 +269,7 @@ class HqAnnouncementsTest extends TestCase
         $this->assertSame('2026-11-02 05:59:00', (string) DB::table('platform_announcements')->where('id', $id)->value('shows_from'), 'stored in UTC');
         $banner = 'data-platform-announcement="'.$id.'"';
 
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         $this->get('/home')->assertOk()->assertSee($banner, false);
         $this->travelTo(CarbonImmutable::parse('2026-11-02 09:01', PlatformAnnouncements::TIMEZONE));
         $this->get('/home')->assertOk()->assertDontSee($banner, false);
@@ -286,7 +286,7 @@ class HqAnnouncementsTest extends TestCase
         foreach (range(1, 26) as $n) {
             $ids[] = $this->published(['title' => sprintf('Release note number %02d', $n), 'shows_from' => sprintf('2026-11-01T%02d:00', $n % 24), 'shows_until' => '2026-12-31T07:00']);
         }
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         $this->get('/navigate-ed-announcements')->assertOk()->assertSee('Older')->assertDontSee('Release note number 24');
         $this->get('/navigate-ed-announcements?page=2')->assertOk()->assertSee('Newer')->assertSee('Release note number 24');
         // A banner's "Read in full" opens the announcement itself, wherever it falls in the list.
@@ -298,10 +298,10 @@ class HqAnnouncementsTest extends TestCase
         $onlyB = $this->draft(['title' => 'Only for Baobab', 'audience' => 'schools', 'schools' => [2]]);
         $this->publish($onlyB);
         $draft = $this->draft(['title' => 'Still a draft']);
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         $this->get('/navigate-ed-announcements/'.$onlyB)->assertNotFound();
         $this->get('/navigate-ed-announcements/'.$draft)->assertNotFound();
-        $this->actingAs($this->teacher());
+        $this->newBrowserSession()->actingAs($this->teacher());
         $this->get('/navigate-ed-announcements/'.$ids[0])->assertForbidden();
     }
 
@@ -309,7 +309,7 @@ class HqAnnouncementsTest extends TestCase
     {
         $id = $this->published();
         $banner = 'data-platform-announcement="'.$id.'"';
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         $this->get('/home')->assertOk()->assertSee($banner, false)->assertSee('New report cards are here');
         $this->from('/home')->post('/navigate-ed-announcements/'.$id.'/read')->assertRedirect('/home');
         $this->post('/navigate-ed-announcements/'.$id.'/read')->assertRedirect();
@@ -321,7 +321,7 @@ class HqAnnouncementsTest extends TestCase
         $this->get('/saas/announcements/'.$id)->assertOk()->assertSee('Reached 2 school(s); 1 of them have read it.')->assertSee('1 of 2 Super Admins read');
         $this->get('/saas/announcements')->assertOk()->assertSee('1 of 2');
 
-        $this->actingAs($this->schoolBAdmin);
+        $this->newBrowserSession()->actingAs($this->schoolBAdmin);
         $this->get('/navigate-ed-announcements')->assertOk()->assertSee('Mark as read')->assertDontSee('You dismissed it');
         $this->post('/navigate-ed-announcements/'.$id.'/read')->assertRedirect();
         $this->actingAsHq($this->staff('owner'));
@@ -402,7 +402,7 @@ class HqAnnouncementsTest extends TestCase
         }
         // A school's Super Admin and its teachers never reach HQ's announcements, on any endpoint.
         foreach ([$this->superAdmin(), $this->schoolBAdmin, $this->teacher()] as $schoolUser) {
-            $this->actingAs($schoolUser);
+            $this->newBrowserSession()->actingAs($schoolUser);
             $this->refusedEverywhere($draft, $live);
         }
 
@@ -422,7 +422,7 @@ class HqAnnouncementsTest extends TestCase
             .'<ul><li>&lt;b&gt;item&lt;/b&gt;</li></ul>', (string) AnnouncementText::html((string) DB::table('platform_announcements')->where('id', $id)->value('body')));
         $this->assertSame('a "quote"', AnnouncementText::plain('a **"quote"**'));
 
-        $this->actingAs($this->superAdmin());
+        $this->newBrowserSession()->actingAs($this->superAdmin());
         foreach (['/home', '/navigate-ed-announcements'] as $page) {
             $this->get($page)->assertOk()->assertDontSee('<script>alert', false)->assertDontSee('<img src=x', false)->assertDontSee('href="javascript', false)
                 ->assertSee('Update &lt;img src=x onerror=alert(1)&gt;', false);
