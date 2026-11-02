@@ -145,6 +145,9 @@ Earlier history is kept where it was written and is not repeated here:
   notification channel, and for email and push how many were delivered, sent,
   bounced or failed, with each recipient by name. Addresses are never shown.
   **Deploy:** run the migrations.
+- Academics: the learner and family week view shows named breaks and the
+  learner's activity sessions next to lessons. Activity sessions can now have
+  a start and end time. **Deploy:** run the migrations.
 - Notifications: quiet hours. Each person can set hours when push
   notifications wait and arrive afterwards; safeguarding alerts, urgent
   notices, absence alerts and new sign-in alerts always come through. Pushes

@@ -6024,6 +6024,8 @@
     "Not yet": "Akukakabi",
     "No recipients": "Abekho abamukeli",
     "Former member": "Owayeyilungu",
+    "Starts at (optional)": "Iqala ngo (akuphoqelekile)",
+    "Ends at (optional)": "Iphela ngo (akuphoqelekile)",
     "Choose a real time zone.": "Khetha indawo yesikhathi yangempela.",
     "Use a time such as 21:00.": "Sebenzisa isikhathi esifana no-21:00.",
     "Quiet hours must end at a different time from when they start.": "Amahora athule kufanele aphele ngesikhathi esihlukile kunalapho eqala khona.",

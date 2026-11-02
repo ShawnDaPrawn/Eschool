@@ -6024,6 +6024,8 @@
     "Not yet": "Not yet",
     "No recipients": "No recipients",
     "Former member": "Former member",
+    "Starts at (optional)": "Starts at (optional)",
+    "Ends at (optional)": "Ends at (optional)",
     "Choose a real time zone.": "Choose a real time zone.",
     "Use a time such as 21:00.": "Use a time such as 21:00.",
     "Quiet hours must end at a different time from when they start.": "Quiet hours must end at a different time from when they start.",
