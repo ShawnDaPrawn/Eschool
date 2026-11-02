@@ -146,6 +146,7 @@ Earlier history is kept where it was written and is not repeated here:
   support, and the school is not told who holds it.
 
 
+
 - Academics: a learner or guardian can subscribe their calendar app to the
   learner's exams, and optionally the next four weeks of lessons, through a
   secret link they can revoke at any time. **Deploy:** run the migrations.
