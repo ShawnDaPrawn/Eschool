@@ -57,4 +57,6 @@ return [
     'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'group_chat.staff_update' => ['label' => 'Staff group conversations', 'module' => 'groups', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
+    // "No child unseen" (Action Plan 4.5): only the named adult; the notice names no learner.
+    'growth.unseen_adult_assigned' => ['label' => 'Learner to check in with', 'module' => 'early_warning', 'portals' => ['teacher', 'admin'], 'channels' => $on],
 ];

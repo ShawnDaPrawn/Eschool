@@ -46,7 +46,9 @@ class RiskViews
     {
         [$grades, $learners] = $this->scopes($actor, $year);
         $scope = fn (Builder $q) => $q->whereIn('grade_level_id', $grades)->orWhereIn('learner_id', $learners);
-        $query = RiskObservation::where('session_year_id', $year)->where($scope);
+        // The "unseen" positive-contact rule has its own list (UnseenLearners); the
+        // signals contract keeps its four sources.
+        $query = RiskObservation::where('session_year_id', $year)->whereIn('source', ['academic', 'attendance', 'discipline', 'wellbeing'])->where($scope);
         $people = Students::whereIn('id', (clone $query)->select('learner_id'))->with('user')->orderBy('id')->paginate(50, ['id', 'user_id'], 'page', max(1, $page));
         $rows = (clone $query)->whereIn('learner_id', $people->pluck('id'))->select('id', 'learner_id', 'grade_level_id', 'as_of', 'source', 'score', 'signal_count', 'reason_code')
             ->orderByDesc('id')->get()->unique(fn ($r) => $r->learner_id.':'.$r->source);

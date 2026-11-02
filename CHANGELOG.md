@@ -23,6 +23,21 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: "No child unseen" (Action Plan 4.5). Early warning now finds
+  the quiet learners: anyone with no recorded positive contact from an adult in
+  the last 15 school days (the principal can change the number). Progress
+  notes, award nominations and presentations, awarded house points and
+  completed peer tutoring count; counselling notes, wellbeing, health,
+  safeguarding and discipline records never do. If a source is switched off or
+  not used, it is not taken as "no contact": with nothing to go on the answer is
+  "unknown" and nobody is flagged. Grade heads see the list for their grades
+  and the principal for the whole school, under Early warning → No child unseen,
+  with the days since the last contact and the kinds of contact this year,
+  never what a note says. They can name a staff member to reach out; that
+  person gets a notification, the choice is audited, and the request closes by
+  itself once a positive contact is recorded. Families never see it.
+  **Deploy:** run the migrations.
+
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.

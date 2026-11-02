@@ -83,10 +83,12 @@ class RiskRecompute
             }
         }
         $rules = app(RiskSettingsService::class)->values();
+        // One instance per run, so the calendar and sources in use are read once.
+        $contacts = app(PositiveContacts::class);
         $verify();
         $count = 0;
         Students::whereIn('id', Enrolment::where('session_year_id', $yearId)->onDate($today)->select('learner_id'))->whereHas('user')->select('id', 'user_id')
-            ->chunkById(100, function ($learners) use ($yearId, $gradeId, $today, $start, $term, $rules, $verify, &$count) {
+            ->chunkById(100, function ($learners) use ($yearId, $gradeId, $today, $start, $term, $rules, $verify, $contacts, &$count) {
                 foreach ($learners as $learner) {
                     try {
                         $currentGrade = app(RiskAuthority::class)->currentGrade((int) $learner->id, $yearId);
@@ -105,9 +107,16 @@ class RiskRecompute
                     $academic = $this->academic((int) $learner->id, $yearId, $gradeId, $term?->id, $rules);
                     $attendance = $this->attendance($learner, $yearId, $start, $today, $rules);
                     $unknown = ['score' => null, 'signal_count' => null, 'reason_code' => 'source_unavailable', 'evidence' => []];
-                    foreach (['academic' => $academic, 'attendance' => $attendance, 'discipline' => app(DisciplineMetrics::class)->observed((int) $learner->id, $yearId, $gradeId, $start, $today), 'wellbeing' => $unknown] as $source => $facts) {
+                    // "No child unseen" (Action Plan 4.5): positive contact from non-clinical sources only.
+                    $unseen = $contacts->observed((int) $learner->id, $yearId, $today);
+                    foreach (['academic' => $academic, 'attendance' => $attendance, 'discipline' => app(DisciplineMetrics::class)->observed((int) $learner->id, $yearId, $gradeId, $start, $today), 'wellbeing' => $unknown, 'unseen' => $unseen] as $source => $facts) {
                         $this->record((int) $learner->id, $yearId, $gradeId, $today, $start, $source, $facts, $rules, $verify);
                     }
+                    // A recorded positive contact closes the named-adult request.
+                    DB::transaction(function () use ($learner, $yearId, $unseen, $verify) {
+                        $verify();
+                        app(UnseenLearners::class)->clearSeen((int) $learner->id, $yearId, $unseen['status']);
+                    });
                     $count++;
                 }
             });
