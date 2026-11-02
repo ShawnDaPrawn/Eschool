@@ -23,6 +23,12 @@ final class SchoolOwnedTables
     public const REQUIRED = [
         'lurits_conflicts',
         'platform_incident_schools',
+        // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
+        // notes, their lines, its EFT payments and what each payment or credit
+        // note settles. Each row is about one school, so it carries the school
+        // (written inside it from /saas); only HQ reads them, never the school.
+        // platform_billing_reminders logs each overdue reminder sent to it.
+        'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
         'support_access_grants', 'support_access_views',
         'platform_announcement_schools', 'platform_announcement_reads',
         'school_health_snapshots',
