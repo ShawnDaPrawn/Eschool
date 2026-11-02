@@ -96,6 +96,11 @@ Earlier history is kept where it was written and is not repeated here:
   records the LURITS numbers of learners already at the school. A number that
   another learner already holds is not recorded: it waits for Navigate Ed
   support, and the school is not told who holds it.
+- Communication: the sender of a school message, and its reviewers, see a
+  delivery report: how many people it reached and read it, who had no
+  notification channel, and for email and push how many were delivered, sent,
+  bounced or failed, with each recipient by name. Addresses are never shown.
+  **Deploy:** run the migrations.
 - Platform and Admin panel: audited support access. Navigate Ed Support,
   Operations and Owner staff ask a school for access at `/saas/support`, with a
   reason and a length of up to four hours. The school's Super Admins are told
