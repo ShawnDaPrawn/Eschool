@@ -14,16 +14,14 @@ and Owners invite staff by email from HQ.
 | Owner | everything, including managing platform staff |
 | Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; AI control centre (view) |
 | Support | see schools; audit log; LURITS claims; incident register; AI control centre (view) |
-| Finance | see schools; change package; customer records; packages; audit log and its export |
+| Finance | see schools; change package; customer records; packages; audit log and its export; packages, and edit packages and prices |
 | Content | see schools; packages; the content library (`library.manage`) |
 | Content reviewer | see schools; approve or reject library items for their assigned subjects (`library.review`) |
 | Sales (read-only) | see schools; packages |
 
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
-`audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
-`ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`),
-`library.manage` and `library.review` (see `../learning/content-library.md`), `staff.manage`. A role that is no longer in the
+`audit.view`, `audit.export`, `identity.review`, `incidents.manage`, `ai.view`, `ai.manage`, `ai.caps`, `hq-ai.md`, `library.manage`, `library.review`, `../learning/content-library.md`, `staff.manage`, `packages.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password names its ability with
