@@ -29,6 +29,18 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: Every child teaches something (Action Plan 4.7). When a teacher
+  looks for peer tutors, learners who have not tutored yet this term (or have
+  tutored least) are offered first, and each match says why, for example "Has
+  not tutored yet this term". The existing rules still apply: proven topic
+  mastery, guardian consent, a current place in the teaching group and a
+  supervising teacher. A learner who captains an activity group this school
+  year can now also be matched to teach that activity as a non-academic skill,
+  under the same supervision; these sessions count as service like any other
+  but are not shown in the apps yet. Staff who manage the academic structure,
+  the principal and grade heads get a new page, "Who has tutored this term, per grade", showing how
+  many learners in each grade have tutored at least once this term: counts
+  only, never names or a ranking. **Deploy:** run the migrations.
 - Admin panel: schools can choose a second mastery model. On the Mastery map, a
   curriculum manager can switch from model v1 (the last 20 answers, marks added
   up) to model v2. Model v2 weighs recent and harder questions more, lets old
