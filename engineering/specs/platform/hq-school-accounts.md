@@ -15,7 +15,7 @@ row and audit entry carries the school:
 | --- | --- |
 | `school_accounts` | one row per school: stage, school type, phase, curriculum, province, district, EMIS number, address, expected learners, revision |
 | `school_contacts` | the people Navigate Ed works with there: role (principal, deputy principal, bursar, IT, Information Officer, other), name, email and/or phone |
-| `school_contracts` | start, end and renewal dates, contracted learners, monthly price per learner before VAT in integer cents, signatory, operator agreement version and signed date, data processing addendum date, notes |
+| `school_contracts` | start, end and renewal dates, contracted learners, monthly price per learner before VAT in integer cents, signatory, operator agreement version and signed date, data processing addendum date, the optional deletion term (days after the end before the school's data is deleted; it needs an end date and is what [offboarding](offboarding.md) uses), notes |
 | `school_account_events` | the timeline: notes, stage changes, contacts added or removed, contracts recorded, with who and when |
 
 ## Rules

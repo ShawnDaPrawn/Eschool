@@ -108,6 +108,7 @@
 <p class="saas-actions">
     @if ($platformCan('accounts.manage'))<a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.onboarding', $school['id']) }}">{{ __('Onboarding checklist') }}</a>
+    @if ($platformCan('offboarding.view') && ! $school['is_default'])<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.offboarding', $school['id']) }}">{{ __('Offboarding') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
     @if ($platformCan('audit.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>@endif
 </p>
