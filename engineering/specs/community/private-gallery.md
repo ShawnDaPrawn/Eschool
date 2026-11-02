@@ -76,3 +76,12 @@ photo fingerprint without changing the signed academic-package consent.
 fixture used by CI's gallery browser workflow. It always declares synthetic
 bytes clean and does not qualify malware detection. Production retains the
 normal ClamAV scanner binding and fail-closed handling.
+
+## Early years observation photographs
+
+A class teacher's observation photograph (Action Plan 4.3) goes through the
+same scan, clean and private storage steps and becomes the learner's family
+photo with a proposed tag and no caption. The family decides it in their
+pending photos under the same consent rule. A photograph is refused when nobody
+could approve its tag, and staff see it in the portfolio only once the tag is
+approved. See [early years](../learning/early-years.md).

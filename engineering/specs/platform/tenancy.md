@@ -369,6 +369,16 @@ name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
 
+### Early years tools
+
+`early_years_development_areas`, `early_years_diary_entries`,
+`early_years_observations` and `early_years_concerns` are required school-owned:
+each school keeps its own development areas, and every diary entry, observation
+and concern belongs to the learner's school. Observation photographs stay in the
+school's private gallery tables and storage prefix; a concern's words stay in
+the school's encrypted intervention ([early years](../learning/early-years.md)).
+
+
 ### Structured memos
 
 `past_paper_memos` is required school-owned: the mark points of a school's own

@@ -54,6 +54,7 @@ use App\Http\Controllers\Panel\Communication\FamilyReachController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
+use App\Http\Controllers\Panel\EarlyYears\EarlyYearsPanelController;
 use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
 use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
@@ -960,6 +961,22 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('photos/{photo}/tags', [$controller, 'write'])->whereNumber('photo')->defaults('operation', 'propose')->name('propose');
             Route::post('photos/{photo}/withdraw', [$controller, 'write'])->whereNumber('photo')->defaults('operation', 'withdraw')->name('withdraw');
+        });
+
+        // Early years tools, first slice (Action Plan 4.3): engineering/specs/learning/early-years.md.
+        Route::prefix('early-years')->name('early-years.')->middleware([PrivateDomainResponse::class, 'module:early_years,read'])->group(function () {
+            $c = EarlyYearsPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('areas', [$c, 'saveArea'])->middleware('throttle:30,1')->name('areas.store');
+            Route::post('areas/{area}', [$c, 'saveArea'])->whereNumber('area')->middleware('throttle:30,1')->name('areas.update');
+            Route::get('classes/{section}', [$c, 'classroom'])->whereNumber('section')->name('class');
+            Route::get('classes/{section}/diary', [$c, 'diary'])->whereNumber('section')->name('diary');
+            Route::post('classes/{section}/diary', [$c, 'saveDiary'])->whereNumber('section')->middleware('throttle:60,1')->name('diary.save');
+            Route::get('learners/{learner}', [$c, 'portfolio'])->whereNumber('learner')->name('portfolio');
+            Route::post('learners/{learner}/observations', [$c, 'record'])->whereNumber('learner')->middleware('throttle:60,1')->name('observations.store');
+            Route::get('observations/{observation}/photo', [$c, 'photo'])->whereNumber('observation')->name('observations.photo');
+            Route::post('observations/{observation}/withdraw', [$c, 'withdraw'])->whereNumber('observation')->middleware('throttle:30,1')->name('observations.withdraw');
+            Route::post('observations/{observation}/concern', [$c, 'concern'])->whereNumber('observation')->middleware('throttle:30,1')->name('observations.concern');
         });
 
         Route::prefix('school-consultations')->name('consultations-panel.')->middleware([PrivateDomainResponse::class, 'module:consultations,read', AuthorizeConsultationPanel::class])->group(function () {
