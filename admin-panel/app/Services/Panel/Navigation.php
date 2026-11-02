@@ -22,11 +22,13 @@ use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Learning\Digests\DigestPanelScope;
+use App\Services\Learning\ExamCoachAccess;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Pathways\PathwayPanelScope;
 use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Offboarding\SchoolExit;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
 use App\Services\Wellbeing\WellbeingAccess;
@@ -198,6 +200,10 @@ class Navigation
         if (($item['gallery_actor'] ?? false) && ! app(GalleryPanelScope::class)->available($user)) {
             return false;
         }
+        // Only while the school is leaving and has an export to collect (SA.11).
+        if (($item['school_exit'] ?? false) && (! app(SchoolExit::class)->allowed($user) || app(SchoolExit::class)->current() === null)) {
+            return false;
+        }
         if (($item['ai_manager'] ?? false) && ! app(AiSchoolControls::class)->available($user)) {
             return false;
         }
@@ -205,6 +211,9 @@ class Navigation
             return false;
         }
         if (($item['digest_manager'] ?? false) && ! app(DigestPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['exam_coach_staff'] ?? false) && ! app(ExamCoachAccess::class)->availableStaff($user)) {
             return false;
         }
         if ($item['consultation_actor'] ?? false) {

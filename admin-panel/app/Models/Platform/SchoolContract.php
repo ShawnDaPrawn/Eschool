@@ -18,6 +18,6 @@ class SchoolContract extends Model
 
     protected function casts(): array
     {
-        return ['starts_on' => 'date', 'ends_on' => 'date', 'renewal_on' => 'date', 'operator_agreement_signed_on' => 'date', 'data_processing_signed_on' => 'date', 'contracted_learners' => 'integer', 'price_per_learner_cents' => 'integer'];
+        return ['starts_on' => 'date', 'ends_on' => 'date', 'renewal_on' => 'date', 'operator_agreement_signed_on' => 'date', 'data_processing_signed_on' => 'date', 'contracted_learners' => 'integer', 'price_per_learner_cents' => 'integer', 'deletion_days_after_end' => 'integer'];
     }
 }

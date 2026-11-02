@@ -28,6 +28,7 @@ class TransferPanelController extends Controller
         $lane = $r->isMethodSafe() ? (string) $r->input('lane', 'outgoing') : ($op === 'accept' ? 'incoming' : 'outgoing');
         $id = $r->route('package') ?? $r->input('record');
         $record = $id === null ? null : $q->show($r->user(), $lane, (int) $id);
+        $identifier = $record === null ? null : $q->primaryIdentifier($r->user(), $lane, (int) $id);
         $page = max(1, (int) $r->input('page', 1));
         $listing = $q->listing($r->user(), $lane, $page);
         $learner = $r->filled('learner_id') ? (int) $r->input('learner_id') : null;
@@ -66,7 +67,7 @@ class TransferPanelController extends Controller
         $account = (int) $r->user()->id;
         $school = app(CurrentSchool::class)->id();
 
-        return compact('access', 'lane', 'record', 'listing', 'page', 'learner', 'guardian', 'choiceKind', 'search', 'choicePage', 'choices', 'draft', 'operationId', 'canWrite', 'messages', 'account', 'school');
+        return compact('access', 'lane', 'record', 'identifier', 'listing', 'page', 'learner', 'guardian', 'choiceKind', 'search', 'choicePage', 'choices', 'draft', 'operationId', 'canWrite', 'messages', 'account', 'school');
     }
 
     public function index(TransferPanelRequest $r): Response
