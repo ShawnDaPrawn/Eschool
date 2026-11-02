@@ -11,7 +11,9 @@
 </head>
 <body class="saas">
 @php
-    $platformCan = fn (string $ability): bool => auth()->check() && app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), $ability);
+    // No HQ links until two-factor sign-in is passed in this session (SA.2).
+    $hqOpen = auth()->check() && app(\App\Services\Platform\Saas\PlatformTwoFactor::class)->passed(request()->hasSession() ? request()->session() : null, auth()->user());
+    $platformCan = fn (string $ability): bool => $hqOpen && app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), $ability);
 @endphp
 <header class="saas-bar">
     <a href="{{ auth()->check() ? route('saas.index') : route('login') }}">{{ __('NavigateEd platform') }}</a>

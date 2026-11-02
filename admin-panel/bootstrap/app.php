@@ -232,6 +232,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // The apps don't send Accept: application/json. Without this an expired token
         // got a redirect to the login page instead of the 401 that signs the app out.
         $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*') || $request->expectsJson());
+        // A refused two-factor or recovery code is never flashed back into the session (SA.2).
+        $exceptions->dontFlash(['two_factor_code']);
         // API v2 answers every error in the {error, message, data, code} envelope
         // with its real HTTP status (v1 keeps Laravel's own error bodies).
         $exceptions->render(fn (Throwable $e, Request $request) => CashupExceptionRenderer::render($e, $request));

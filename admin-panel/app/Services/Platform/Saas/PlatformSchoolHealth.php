@@ -9,6 +9,8 @@ use App\Models\Platform\School;
 use App\Models\Platform\SchoolHealthSnapshot;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Services\Ai\Operations\PlatformAiCaps;
+use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\PushDevices;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
@@ -433,6 +435,22 @@ class PlatformSchoolHealth
     }
 
     /**
+     * The notification type a delivery row was sent for. The transports log
+     * their channel in front of it (MailService: mail.comms.notice, PushQueue:
+     * push.comms.message), while config/notification_types.php has the bare type.
+     */
+    private static function notificationType(string $type): string
+    {
+        foreach ([DeliveryLog::MAIL, DeliveryLog::PUSH] as $channel) {
+            if (str_starts_with($type, $channel.'.')) {
+                return substr($type, strlen($channel) + 1);
+            }
+        }
+
+        return $type;
+    }
+
+    /**
      * Modules on, each with the messages it sent and the AI requests it made
      * in the last 30 days (none counted for sensitive modules).
      *
@@ -444,7 +462,7 @@ class PlatformSchoolHealth
         $messages = [];
         foreach (DB::table('notification_deliveries')->where('school_id', $schoolId)->where('created_at', '>=', $since)
             ->groupBy('type')->selectRaw('type, COUNT(DISTINCT delivery_key) AS messages')->get() as $row) {
-            $module = $types[$row->type]['module'] ?? null;
+            $module = $types[self::notificationType((string) $row->type)]['module'] ?? null;
             if (is_string($module)) {
                 $messages[$module] = ($messages[$module] ?? 0) + (int) $row->messages;
             }
@@ -509,14 +527,15 @@ class PlatformSchoolHealth
         // billing currency (or with none recorded) are never added to it, only noted.
         $currency = (string) config('ai.billing_currency', 'USD');
         $month = DB::table('ai_usage')->where('school_id', $schoolId)
+            ->whereNotIn('feature', PlatformAiCaps::personalFeatures())
             ->whereBetween('usage_date', [$local->startOfMonth()->toDateString(), $local->toDateString()]);
         $spent = (int) (clone $month)->where('billing_currency', $currency)->sum(DB::raw('cost_cents + reserved_cost_cents'));
         $otherCurrency = (clone $month)->where(fn ($q) => $q->whereNull('billing_currency')->orWhere('billing_currency', '!=', $currency))
             ->where(fn ($q) => $q->where('cost_cents', '>', 0)->orWhere('reserved_cost_cents', '>', 0))->exists();
         $configured = null;
-        foreach ((array) config('ai.inference.features', []) as $feature) {
-            $value = is_array($feature) ? ($feature['school_daily_cents'] ?? null) : null;
-            if (is_int($value) && $value > 0) {
+        foreach (app(PlatformAiCaps::class)->caps() as $feature => $caps) {
+            $value = $caps['school_daily_cents']['effective'] ?? null;
+            if (! PlatformAiCaps::personal($feature) && is_int($value) && $value >= 0) {
                 $configured = max($configured ?? 0, $value);
             }
         }

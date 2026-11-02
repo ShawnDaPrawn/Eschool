@@ -34,16 +34,16 @@ use Symfony\Component\HttpFoundation\Response;
  * 4. a page that answers successfully is logged: when, the route name and the
  *    record id from its route, never content or the query string.
  *
- * There is deliberately no school.context or platform.staff here: both would
- * read memberships or refuse impersonation; SupportAccess::session makes the
- * same platform checks before the school is set.
+ * There is no school.context here. SupportAccess checks the grant first, and
+ * the platform staff guard checks sign-in before the school is bound. No
+ * platform check runs after the request becomes an impersonated school read.
  */
 class EnsureSupportSession
 {
     /** Reads sent as a POST so their input stays out of URLs: the people search. Nothing else but GET and HEAD passes. */
     private const READ_POSTS = ['support-session.people.search'];
 
-    public function __construct(private readonly SupportAccess $access, private readonly CurrentSchool $currentSchool) {}
+    public function __construct(private readonly SupportAccess $access, private readonly CurrentSchool $currentSchool, private readonly EnsurePlatformStaff $staff) {}
 
     /**
      * @param  Closure(Request): Response  $next
@@ -67,20 +67,26 @@ class EnsureSupportSession
         abort_unless($user instanceof User, 403);
         $grant = $this->access->session($user, (int) $grantId);
 
-        $this->currentSchool->supportSession(School::query()->findOrFail($grant->school_id), (int) $grant->id);
-        // Nothing loaded before the school was known may carry another team's roles.
-        $user->unsetRelation('roles')->unsetRelation('permissions');
-        Auth::guard('web')->setUser($user);
+        // Reuse the platform sign-in guard before binding the school. This also
+        // requires the current two-factor proof once SA.2 is installed.
+        return $this->staff->handle($request, function (Request $request) use ($next, $grant): Response {
+            $user = $request->user();
+            abort_unless($user instanceof User, 403);
+            $this->currentSchool->supportSession(School::query()->findOrFail($grant->school_id), (int) $grant->id);
+            // Nothing loaded before the school was known may carry another team's roles.
+            $user->unsetRelation('roles')->unsetRelation('permissions');
+            Auth::guard('web')->setUser($user);
 
-        $response = $next($request);
-        if ($response->getStatusCode() < 400) {
-            [$type, $id] = $this->record($request);
-            $listed = $request->attributes->get(SupportSessionPages::LISTED);
-            $this->access->recordView($grant, $user, (string) $request->route()?->getName(), $type, $id, is_array($listed) ? $listed : null);
-        }
-        $response->headers->set('Cache-Control', 'no-store, private');
+            $response = $next($request);
+            if ($response->getStatusCode() < 400) {
+                [$type, $id] = $this->record($request);
+                $listed = $request->attributes->get(SupportSessionPages::LISTED);
+                $this->access->recordView($grant, $user, (string) $request->route()?->getName(), $type, $id, is_array($listed) ? $listed : null);
+            }
+            $response->headers->set('Cache-Control', 'no-store, private');
 
-        return $response;
+            return $response;
+        });
     }
 
     /**

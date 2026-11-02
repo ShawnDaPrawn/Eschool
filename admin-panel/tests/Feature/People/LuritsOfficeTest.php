@@ -12,6 +12,7 @@ use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -21,6 +22,7 @@ use Tests\TestCase;
  */
 class LuritsOfficeTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     protected function setUp(): void
@@ -89,7 +91,7 @@ class LuritsOfficeTest extends TestCase
         app(CurrentSchool::class)->forget();
         $claim = (int) DB::table('lurits_conflicts')->value('id');
 
-        $page = $this->actingAs($this->hq('support'))->get('/saas/lurits')->assertOk()->assertSee('Jacaranda')->assertSee('Baobab High')->assertSee('school_entry');
+        $page = $this->actingAsHq($this->hq('support'))->get('/saas/lurits')->assertOk()->assertSee('Jacaranda')->assertSee('Baobab High')->assertSee('school_entry');
         foreach (['Cara', 'Ben', '8800000002', 'GR-CARA'] as $private) {
             $page->assertDontSee($private);
         }
@@ -99,6 +101,6 @@ class LuritsOfficeTest extends TestCase
         $this->assertTrue(DB::table('audit_log')->where('action', 'platform_lurits_claim_closed')->exists());
         $this->assertSame(0, app(CurrentSchool::class)->run(1, fn () => SchoolTable::query('lurits_conflicts')->where('status', 'open')->count()));
 
-        $this->actingAs($this->hq('sales'))->get('/saas/lurits')->assertForbidden();
+        $this->actingAsHq($this->hq('sales'))->get('/saas/lurits')->assertForbidden();
     }
 }

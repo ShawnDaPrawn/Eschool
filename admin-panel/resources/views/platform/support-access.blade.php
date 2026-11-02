@@ -25,6 +25,7 @@
                         @csrf
                         <button class="m3-button m3-button--outlined" type="submit">{{ __('support_access_decline') }}</button>
                     </form>
+                    </div>
                 </div></div>
             @endforeach
         @endif

@@ -149,9 +149,8 @@ class ContextTest extends TestCase
     /**
      * Budget: 150 ms at p95. The work is a fixed handful of queries (the
      * token, its user and its last-used time, the user's memberships with
-     * their schools (Phase 1, one query), roles, settings, year, terms, the
-     * school's package modules (SA.7, one query), and for a parent their
-     * record, children and the children's users),
+     * their schools (Phase 1, one query), roles, settings, year, terms, and
+     * for a parent their record, children and the children's users),
      * whatever the number of children.
      */
     public function test_it_takes_a_fixed_handful_of_queries(): void
