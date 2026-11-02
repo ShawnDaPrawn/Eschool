@@ -70,7 +70,7 @@ One row per school, term, learner, topic, audience (`staff`, `family`,
    still processed so their end settles on the term's last day. Two terms for the
    same grade that overlap (the term calendar refuses this; only imported data
    can have it) are skipped as ambiguous.
-7. **Idempotent and scheduled.** `mastery:growth-snapshots` runs nightly at 04:20
+7. **Idempotent and scheduled.** `mastery:growth-snapshots` runs nightly at 04:25
    (UTC scheduler) and queues `CaptureMasteryGrowth` for every active school with
    the mastery module on. Running it again writes the same rows. The command with
    a school and `--backfill` captures that school's current term in the same

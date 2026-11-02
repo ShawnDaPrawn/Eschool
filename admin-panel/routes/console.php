@@ -126,7 +126,7 @@ Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOv
 
 // Term growth snapshots (Action Plan 3.14): queued per school, idempotent;
 // the start of a term is written once, the latest is refreshed each night.
-Schedule::command('mastery:growth-snapshots')->dailyAt('04:20')->name('mastery-growth-snapshots')->withoutOverlapping();
+Schedule::command('mastery:growth-snapshots')->dailyAt('04:25')->name('mastery-growth-snapshots')->withoutOverlapping();
 
 Schedule::command('assistance:prune-private')->dailyAt('04:10')->name('school-support-private-retention')->withoutOverlapping();
 // Recovery also reaches a guardian verified after the original publication.

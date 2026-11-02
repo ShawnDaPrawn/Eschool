@@ -338,7 +338,7 @@ class MasteryImpactTest extends TestCase
         $event = collect(app(Schedule::class)->events())->first(fn ($event) => $event->description === 'mastery-growth-snapshots');
         $this->assertNotNull($event);
         $this->assertStringContainsString('mastery:growth-snapshots', $event->command);
-        $this->assertSame('20 4 * * *', $event->expression);
+        $this->assertSame('25 4 * * *', $event->expression);
         Queue::fake();
         $this->artisan('mastery:growth-snapshots')->assertSuccessful();
         Queue::assertPushed(CaptureMasteryGrowth::class, 1);
