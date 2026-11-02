@@ -224,7 +224,7 @@ class SaasPanelTest extends TestCase
                 $this->assertNotEmpty(array_filter($middleware, fn ($name) => is_string($name) && str_starts_with($name, 'platform.can:')), $route->uri().' names the ability its role must hold');
             }
         }
-        $this->assertSame(39, $count);
+        $this->assertSame(40, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void
@@ -233,7 +233,7 @@ class SaasPanelTest extends TestCase
         PlatformStaffIdentity::query()->create(['user_id' => $operator->id]);
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
 
-        $this->post('/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!'])->assertRedirect('/saas');
+        $this->post('/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!'])->assertRedirect('/saas/home');
         $this->assertAuthenticatedAs($operator);
         $this->get('/saas')->assertOk();
         $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
@@ -636,7 +636,7 @@ class SaasPanelTest extends TestCase
     {
         $operator = $this->operatorWithoutRoles();
 
-        $this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1'])->assertRedirect('/saas');
+        $this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1'])->assertRedirect('/saas/home');
         $this->assertAuthenticatedAs($operator);
         $this->get('/saas')->assertOk()->assertSee('Baobab High');
         // Their account holds no school role or membership.
@@ -678,7 +678,7 @@ class SaasPanelTest extends TestCase
         $operator = $this->operatorWithoutRoles();
         $operator->password = 'superadmin';
         $operator->save();
-        $this->post('/login', ['email' => $operator->email, 'password' => 'superadmin'])->assertRedirect('/saas');
+        $this->post('/login', ['email' => $operator->email, 'password' => 'superadmin'])->assertRedirect('/saas/home');
         $this->assertTrue($operator->fresh()->password_change_required);
         $this->assertFalse(app(PlatformStaffAccess::class)->allowed($operator));
         $this->get('/saas')->assertRedirect(route('saas.password'))->assertHeader('Cache-Control', 'no-store, private');

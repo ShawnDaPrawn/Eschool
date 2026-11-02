@@ -6,6 +6,8 @@ namespace App\Services\Platform\Notifications;
 
 use App\Models\Platform\NotificationDelivery;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use DateTimeInterface;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -160,6 +162,34 @@ class DeliveryLog
         }
 
         return $rows->count();
+    }
+
+    /**
+     * Failed, bounced and complained messages since a moment, by channel,
+     * across every school: counts only, never a recipient. For the HQ home
+     * page's platform health (Action Plan 4F).
+     *
+     * @return array<string, array<string, int>> channel => status => count
+     */
+    public static function failuresSince(DateTimeInterface $since): array
+    {
+        $statuses = [NotificationDelivery::FAILED, NotificationDelivery::BOUNCED, NotificationDelivery::COMPLAINED];
+        $rows = app(CurrentSchool::class)->acrossSchools(fn () => DB::table('notification_deliveries')
+            ->whereIn('status', $statuses)
+            ->where(fn ($recent) => $recent->where('failed_at', '>=', $since)->orWhere('feedback_at', '>=', $since))
+            ->groupBy('channel', 'status')
+            ->selectRaw('channel, status, COUNT(*) AS messages')
+            ->get());
+
+        $answer = [];
+        foreach ([self::MAIL, self::PUSH] as $channel) {
+            $answer[$channel] = array_fill_keys($statuses, 0);
+        }
+        foreach ($rows as $row) {
+            $answer[(string) $row->channel][(string) $row->status] = (int) $row->messages;
+        }
+
+        return $answer;
     }
 
     /** The stored form of an address, token or topic. */

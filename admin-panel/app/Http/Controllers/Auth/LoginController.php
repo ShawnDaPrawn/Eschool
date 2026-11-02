@@ -60,7 +60,7 @@ class LoginController extends Controller
         // passwords still cannot enter that area.
         if (app(PlatformStaffAccess::class)->allowed($user)
             && ! RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
-            return redirect()->route('saas.index');
+            return redirect()->route('saas.home');
         }
 
         if ($user->hasAnyRole(['Parent', 'Student'])) {
@@ -85,7 +85,7 @@ class LoginController extends Controller
             }
         }
 
-        return $operator ? redirect()->route('saas.index') : null;
+        return $operator ? redirect()->route('saas.home') : null;
     }
 
     private function refuseLogin(Request $request, string $message): RedirectResponse

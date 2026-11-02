@@ -44,3 +44,19 @@
 .saas-onboarding { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
 .saas-onboarding__step h2 { font-size: 1.05rem; margin: 0 0 6px; }
 .saas-onboarding__step p { margin: 4px 0; }
+
+/* The HQ home page (4F): one card per area the staff member may open. */
+.saas-home { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.saas-tile { display: flex; flex-direction: column; gap: 8px; }
+.saas-tile h2 { margin: 0; }
+.saas-tile p { margin: 0; }
+.saas-tile--wide { grid-column: 1 / -1; }
+.saas-tile__figure { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1.2; }
+.saas-tile__figure span { color: var(--md-sys-color-on-surface-variant); font-size: 1rem; font-weight: 400; }
+.saas-tile__counts { display: grid; gap: 4px 16px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); margin: 0; }
+.saas-tile__counts div { display: flex; justify-content: space-between; gap: 8px; }
+.saas-tile__counts dt { color: var(--md-sys-color-on-surface-variant); }
+.saas-tile__counts dd { font-variant-numeric: tabular-nums; font-weight: 600; margin: 0; }
+.saas-tile__list { display: grid; gap: 6px; margin: 0; padding-inline-start: 20px; }
+.saas-tile__list a, .saas-tile__link a { color: var(--md-sys-color-primary); font-weight: 600; }
+.saas-tile__link { margin-top: auto; padding-top: 4px; }
