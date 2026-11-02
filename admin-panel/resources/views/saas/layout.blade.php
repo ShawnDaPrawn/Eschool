@@ -13,12 +13,15 @@
 @php
     // No HQ links until two-factor sign-in is passed in this session (SA.2).
     $hqOpen = auth()->check() && app(\App\Services\Platform\Saas\PlatformTwoFactor::class)->passed(request()->hasSession() ? request()->session() : null, auth()->user());
-    $platformCan = fn (string $ability): bool => $hqOpen && app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), $ability);
+    // The role's abilities, read once for the whole menu.
+    $platformAbilities = $hqOpen ? app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->abilities(auth()->user()) : [];
+    $platformCan = fn (string $ability): bool => in_array('*', $platformAbilities, true) || in_array($ability, $platformAbilities, true);
 @endphp
 <header class="saas-bar">
-    <a href="{{ auth()->check() ? route('saas.index') : route('login') }}">{{ __('NavigateEd platform') }}</a>
+    <a href="{{ auth()->check() ? route('saas.home') : route('login') }}">{{ __('NavigateEd platform') }}</a>
     @auth
     <nav aria-label="{{ __('Platform') }}">
+        @if ($platformCan('schools.view'))<a href="{{ route('saas.index') }}">{{ __('Schools') }}</a>@endif
         @if ($platformCan('schools.create'))<a href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a>@endif
         @if ($platformCan('packages.view'))<a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>@endif
         @if ($platformCan('health.view'))<a href="{{ route('saas.health') }}">{{ __('School health') }}</a>@endif

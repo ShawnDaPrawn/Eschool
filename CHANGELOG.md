@@ -29,6 +29,16 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: an HQ home page at `/saas/home`, where signing in to HQ now lands.
+  It shows, across every school, the schools by stage, the schools marked at
+  risk, what blocks each school still being set up, and, for the roles that
+  handle them, open incidents, open LURITS claims, AI safeguarding flags and
+  caps, and platform health (jobs waiting, failed jobs and failed email and
+  push messages in the last day). Each part appears only to the roles that can
+  open its area, and links there. Only counts and school names are shown,
+  never a learner, parent, staff member or contact. The school list stays at
+  `/saas`, now also the "Schools" link in the HQ bar. Platform health is a new
+  ability for Owner, Operations and Support.
 - Platform: packages and prices are edited at `/saas/packages` instead of being
   fixed in the code. Owner and Finance create draft packages from the product
   modules, set trial days, activate and retire them, and add prices per learner

@@ -113,7 +113,7 @@ class PlatformRolesTest extends TestCase
         $this->assertNotNull($user->fresh()->email_verified_at);
         $this->get($invited['url'])->assertNotFound();
 
-        $this->keepSession($this->post('/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!']))->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!']))->assertRedirect('/saas/home');
         // Choosing the password leads into setting up two-factor sign-in (SA.2) before any HQ page.
         $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
         $this->get('/saas/staff')->assertRedirect(route('saas.two-factor.enrol'));

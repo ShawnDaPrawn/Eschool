@@ -29,6 +29,7 @@ declare(strict_types=1);
  *  ai.view          the AI control centre: qualification, caps, spend, queue counts
  *  ai.manage        switch a school's AI features on or off (Owner only)
  *  ai.caps          set the AI spending caps that replace config/ai.php's defaults (Owner only)
+ *  health.view      platform health on the HQ home page: queue backlog, failed jobs, delivery failures
  *  messaging.view   SMS and WhatsApp counts and pass-through cost per school
  *  billing.view     invoices, statements, and overdue school accounts
  *  billing.manage   issue, credit and settle school invoices
