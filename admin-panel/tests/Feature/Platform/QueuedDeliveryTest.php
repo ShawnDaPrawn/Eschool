@@ -219,12 +219,14 @@ class QueuedDeliveryTest extends TestCase
             'image' => '',
             'school_id' => '1', 'link' => '/chat', 'notice_type' => 'comms.message', 'channel' => 'comms',
             'sender_info' => json_encode(['id' => 7]),
+            // Rich push (2.9): a direct message offers Reply and names its sender when it has one.
+            'actions' => 'reply', 'category' => 'reply', 'sender_name' => '', 'sender_avatar' => '',
         ];
         $messages = Queue::pushed(SendPush::class)->map->message->sortBy(fn ($m) => $m['message']['token'])->values()->all();
         $this->assertEquals([
             ['message' => ['token' => 'token-android', 'data' => $data]],
             ['message' => ['token' => 'token-ios', 'notification' => ['title' => 'New message', 'body' => 'Hello'], 'data' => $data,
-                'apns' => ['payload' => ['aps' => ['interruption-level' => 'active', 'thread-id' => 'comms']]]]],
+                'apns' => ['payload' => ['aps' => ['interruption-level' => 'active', 'thread-id' => 'comms', 'category' => 'reply']]]]],
         ], $messages);
 
         $rows = NotificationDelivery::orderBy('recipient_user_id')->get();

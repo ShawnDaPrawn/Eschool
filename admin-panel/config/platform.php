@@ -8,6 +8,7 @@ use App\Listeners\Academics\QueueAssessmentRecompute;
 use App\Listeners\Academics\QueueContentConversion;
 use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Academics\QueueReportGeneration;
+use App\Listeners\Academics\RefreshTimetables;
 use App\Listeners\Consultations\NotifyConsultationOpened;
 use App\Listeners\Discipline\QueueDisciplineNotices;
 use App\Listeners\Growth\QueueMasteryRecompute;
@@ -44,6 +45,18 @@ return [
         'backoff' => [60, 300, 900],
     ],
 
+    // Rich push (Action Plan 2.9 and 1.9). Both are off until the apps that
+    // handle them are released: today's Android apps would show a blank
+    // notice for a silent timetable push, and could show a private notice
+    // twice (their own copy plus the system's). engineering/specs/platform/rich-push.md.
+    'rich_push' => [
+        // Silent timetable.refresh pushes when a timetable changes.
+        'timetable_refresh' => (bool) env('PUSH_TIMETABLE_REFRESH', false),
+
+        // android.notification.visibility PRIVATE on private notices.
+        'android_private_visibility' => (bool) env('PUSH_ANDROID_PRIVATE_VISIBILITY', false),
+    ],
+
     'outbox' => [
         // Event type => listener classes. Each listener implements
         // App\Services\Platform\Events\OutboxListener and receives the stored
@@ -59,6 +72,7 @@ return [
             'academics.report_approved' => [QueueReportGeneration::class],
             'academics.assessment_published' => [QueueAssessmentRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'academics.register_changed' => [QueueRiskEvaluate::class, NotifyRegisterAmended::class],
+            'academics.timetable_changed' => [RefreshTimetables::class],
             'growth.risk_rules_configured' => [QueueRiskEvaluate::class],
             'discipline.framework_published' => [QueueRiskEvaluate::class],
             'discipline.record_changed' => [QueueRiskEvaluate::class, QueueDisciplineNotices::class],

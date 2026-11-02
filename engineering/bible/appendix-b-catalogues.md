@@ -92,6 +92,13 @@ standard channel preferences) tells affected learners, their current guardians
 and the lessons' teachers when a short day is planned or cancelled. The notice
 names only the date; the outbox event carries lesson IDs, never a learner list.
 
+Rich push (2.9) adds no notification type. `push_actions` on consent.requested
+(consent_yes, consent_no), comms.message and communication.message (reply),
+comms.urgent and safeguarding.alert (acknowledge) name buttons that only open
+the app to confirm. Private types show generic push text. The silent push
+`timetable.refresh` (1.9, like `context.changed`, not a notice type) follows
+academics.timetable_changed with only its type and the school id.
+
 
 New school year: school.new_year (people module, learner and parent portals,
 standard channel preferences) welcomes the learners placed in the new year and

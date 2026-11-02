@@ -5056,5 +5056,7 @@
     "A learner's account cannot be added as staff.": "A learner's account cannot be added as staff.",
     "Choose a real time zone.": "Choose a real time zone.",
     "Use a time such as 21:00.": "Use a time such as 21:00.",
-    "Quiet hours must end at a different time from when they start.": "Quiet hours must end at a different time from when they start."
+    "Quiet hours must end at a different time from when they start.": "Quiet hours must end at a different time from when they start.",
+    "School notification": "School notification",
+    "Open NavigateEd to view this notice.": "Open NavigateEd to view this notice."
 }

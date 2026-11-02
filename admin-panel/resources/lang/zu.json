@@ -6129,5 +6129,7 @@
     "A learner's account cannot be added as staff.": "I-akhawunti yomfundi ayikwazi ukwengezwa njengomsebenzi.",
     "Choose a real time zone.": "Khetha indawo yesikhathi yangempela.",
     "Use a time such as 21:00.": "Sebenzisa isikhathi esifana no-21:00.",
-    "Quiet hours must end at a different time from when they start.": "Amahora athule kufanele aphele ngesikhathi esihlukile kunalapho eqala khona."
+    "Quiet hours must end at a different time from when they start.": "Amahora athule kufanele aphele ngesikhathi esihlukile kunalapho eqala khona.",
+    "School notification": "Isaziso sesikole",
+    "Open NavigateEd to view this notice.": "Vula i-NavigateEd ukuze ubone lesi saziso."
 }
