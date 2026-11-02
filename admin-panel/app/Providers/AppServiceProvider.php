@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Exceptions\TooManyLoginFailures;
 use App\Services\FormService;
+use App\Services\People\Leavers\AlumniInvitations;
+use App\Services\People\Leavers\NoAlumniInvitations;
 use App\Services\Platform\Files\ClamAv;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\PasswordPolicy;
@@ -28,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(UploadScanner::class, ClamAv::class);
+        // The alumni invitation hook (Action Plan 1.21); Phase 4 replaces it.
+        $this->app->bind(AlumniInvitations::class, NoAlumniInvitations::class);
         $this->app->singleton('form', function ($app) {
             return new FormService;
         });
