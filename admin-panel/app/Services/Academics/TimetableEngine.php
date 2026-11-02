@@ -139,6 +139,7 @@ class TimetableEngine
             abort_unless(hash_equals($preview['fingerprint'], $fingerprint), 409, __('The timetable changed. Preview it again before saving.'));
             abort_unless($preview['can_save'], 409, __('Resolve the timetable clashes before saving.'));
             $saved = [];
+            $previous = [];
             foreach ($preview['rows'] as $data) {
                 $lesson = $data['id'] === null ? new TimetableLesson : TimetableLesson::query()->lockForUpdate()->findOrFail($data['id']);
                 $before = $lesson->exists ? $lesson->getAttributes() : [];
@@ -149,12 +150,33 @@ class TimetableEngine
                 $lesson->save();
                 Audit::record('academics.lesson_saved', $lesson, $before, $lesson->getAttributes());
                 $saved[] = $lesson;
+                $placement = self::placement($before);
+                if ($placement !== null && $placement !== self::placement($lesson->getAttributes())) {
+                    $previous[implode(':', array_map('strval', $placement))] = $placement;
+                }
             }
             app(TimetableProjection::class)->refresh();
-            Outbox::record(new AcademicTimetableChanged(app(CurrentSchool::class)->id(), array_map(fn ($lesson) => (int) $lesson->id, $saved)));
+            Outbox::record(new AcademicTimetableChanged(app(CurrentSchool::class)->id(), array_map(fn ($lesson) => (int) $lesson->id, $saved), array_values($previous)));
 
             return ['lessons' => array_map(fn ($lesson) => app(TimetableQueries::class)->data($lesson), $saved)];
         }, 3);
+    }
+
+    /**
+     * Who a lesson is for: its teacher and its teaching group or homeroom, as ids.
+     *
+     * @return array{teacher_id: int, teaching_group_id: ?int, class_section_id: ?int, session_year_id: int}|null
+     */
+    public static function placement(array $lesson): ?array
+    {
+        if (! isset($lesson['teacher_id'], $lesson['session_year_id'])) {
+            return null;
+        }
+        $group = isset($lesson['teaching_group_id']) ? (int) $lesson['teaching_group_id'] : null;
+        $homeroom = isset($lesson['class_section_id']) ? (int) $lesson['class_section_id'] : null;
+
+        return ($group === null) === ($homeroom === null) ? null
+            : ['teacher_id' => (int) $lesson['teacher_id'], 'teaching_group_id' => $group, 'class_section_id' => $homeroom, 'session_year_id' => (int) $lesson['session_year_id']];
     }
 
     public function normalise(array $input): array

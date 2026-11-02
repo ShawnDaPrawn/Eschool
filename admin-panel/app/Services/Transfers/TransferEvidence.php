@@ -23,6 +23,7 @@ use App\Services\Academics\Transitions\ExitEvidence;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Academics\Transitions\TransitionContext;
 use App\Services\People\Profiles\ProfileFiles;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Validator;
 
@@ -101,6 +102,8 @@ class TransferEvidence
         $contents = ['schema_version' => 1, 'export_only' => $exportOnly, 'from_school_id' => app(CurrentSchool::class)->id(), 'from_school_name' => app(CurrentSchool::class)->school()->name,
             'to_school_id' => $d['to_school_id'], 'to_school_name' => $d['to_school_id'] === null ? $d['external_school'] : School::findOrFail($d['to_school_id'])->name,
             'source_enrolment_fingerprint' => hash('sha256', json_encode($state, JSON_THROW_ON_ERROR)), 'source_learner_id' => (int) $learner->id, 'learner_user_id' => (int) $learner->user_id, 'learner_name' => $learner->user->full_name, 'student_number' => $learner->student_number,
+            // The headline number (ADR 0007): LURITS, or the temporary NavigateEd number.
+            'primary_identifier' => app(LuritsNumbers::class)->primary($learner),
             'guardian_id' => (int) $guardian->id, 'guardian_name' => $guardian->full_name, 'session_year_id' => (int) $cover->session_year_id,
             'last_attended_on' => $d['last_attended_on'], 'starts_on' => $d['starts_on'], 'selection' => $d, 'reports' => $reportData, 'documents' => $documents,
             'released_marks' => $marks, 'attendance' => $this->attendance((int) $learner->id, $d['last_attended_on'])];

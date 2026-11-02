@@ -10,12 +10,15 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolAccountEvent;
 use App\Models\Platform\SchoolContract;
+use App\Models\Platform\SchoolJoinInvitation;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolSendingDomain;
 use App\Models\Platform\StaffInvitation;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Mail\SendingDomains;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -104,10 +107,16 @@ class PlatformOnboarding
     private function administrator(): array
     {
         $invitations = StaffInvitation::query()->where('purpose', StaffInvitation::SCHOOL_ADMIN);
+        // A first administrator who already had an account joins instead (Action Plan 1.3).
+        $joins = SchoolJoinInvitation::query()->where('purpose', SchoolJoinInvitation::SCHOOL_ADMIN);
         if ((clone $invitations)->whereNotNull('accepted_at')->exists()) {
             return $this->step('administrator', 'First administrator signed in', self::DONE, 'The first administrator accepted their invitation and chose a password.', null);
         }
-        $waiting = (clone $invitations)->whereNull('used_at')->whereNull('accepted_at')->where('expires_at', '>', now())->exists();
+        if ((clone $joins)->whereNotNull('accepted_at')->exists()) {
+            return $this->step('administrator', 'First administrator signed in', self::DONE, 'The first administrator accepted their invitation with their existing account.', null);
+        }
+        $waiting = (clone $invitations)->whereNull('used_at')->whereNull('accepted_at')->where('expires_at', '>', now())->exists()
+            || (clone $joins)->waiting()->exists();
 
         return $this->step('administrator', 'First administrator signed in', $waiting ? self::STARTED : self::TODO,
             $waiting ? 'The invitation is sent and not accepted yet.' : 'No invitation is waiting: it expired or was never sent.',
@@ -116,8 +125,17 @@ class PlatformOnboarding
 
     private function sendingDomain(): array
     {
-        // Branded email from the school's own domain arrives with Action Plan 2.2.
-        return $this->step('sending_domain', 'Email from the school\'s own domain', self::LATER, 'Available when branded email is released.', null);
+        // Branded email from the school's own domain (Action Plan 2.2), once switched on for the platform.
+        if (! SendingDomains::enabled()) {
+            return $this->step('sending_domain', 'Email from the school\'s own domain', self::LATER, 'Available when branded email is switched on.', null);
+        }
+        $status = SchoolSendingDomain::query()->value('status');
+
+        return match ($status) {
+            SchoolSendingDomain::VERIFIED => $this->step('sending_domain', 'Email from the school\'s own domain', self::DONE, 'The school\'s domain is verified; its notices come from it.', null),
+            null => $this->step('sending_domain', 'Email from the school\'s own domain', self::TODO, 'No domain connected.', 'The school connects its domain under Settings, Email from your domain.'),
+            default => $this->step('sending_domain', 'Email from the school\'s own domain', self::STARTED, 'A domain is connected and not verified yet.', 'The school adds the DNS records shown on its page; it is checked automatically.'),
+        };
     }
 
     private function homerooms(): array
