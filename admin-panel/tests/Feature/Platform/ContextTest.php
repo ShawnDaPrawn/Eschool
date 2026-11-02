@@ -87,6 +87,8 @@ class ContextTest extends TestCase
             'name' => 'Asha Demo',
             'image' => null,
             'student_number' => null,
+            // Farid is Asha's father on the learner record only, with no approving guardian link.
+            'primary_identifier' => null,
             'approved' => false,
             'homeroom' => 'Grade 5 A',
             'school' => ['id' => 1, 'name' => schoolSetting('school_name'), 'short_name' => null, 'crest_url' => null],
