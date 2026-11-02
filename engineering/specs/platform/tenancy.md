@@ -248,6 +248,19 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
+### HQ AI spending caps
+
+`platform_ai_caps` and `platform_ai_cap_changes` are global: Navigate Ed's own
+daily AI caps per feature and their history, read and written only from
+`/saas/ai`. They name no school. A school's own lower limits stay in the
+school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+### HQ feature flags
+
+`platform_feature_flags` is global: platform-wide switches written only from
+`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
+school switched on or off by name. HQ reads it across schools; a school's app
+context reads only its own row ([feature flags](feature-flags.md)).
+
 ### HQ incident register
 
 `platform_incidents` and `platform_incident_entries` are global: Navigate Ed's
@@ -266,3 +279,59 @@ membership and role at the inviting school only, and
 `ExistingAccountInvitationsTest` checks that the person's roles and permissions
 at their first school are exactly as before, and at the new one exactly the role
 it gave.
+
+### A guardian at two schools (Action Plan 1.1, server side)
+
+A parent with children at two schools signs in once. `/api/v2/me/context` lists both schools and each child with their own school. The app reads each child with `X-School-Id` set to that child's school: the header picks one of the user's active memberships, and a school they don't belong to is refused (403).
+
+A child is only found in their own school. Every v2 family read keyed by `{learner}` refuses another school's child, with or without the header, and never echoes that child's details. The other school's child is not found (404) or the read is refused (403/422), never answered.
+
+`Tenancy/ParentAcrossSchoolsTest` checks this:
+- It finds the family reads from the route list rather than a fixed list, so a new `learners/{learner}` read is covered automatically.
+- Five reads the demo schools have data for (content, marks periods, register QR, register today, reports) are named controls. Each must answer 200 for each child in that child's own school and refuse the other school's child, so for these a refusal is the school check and not a read that refuses every parent. The other reads in the sweep need module data the demo schools don't have; for them, the sweep proves only that they never answer across schools.
+
+The apps' parent home and child screens are app work and not part of this step; nor are the v1 parent endpoints that take `child_id`.
+
+### Calendar feeds
+
+`calendar_feeds` is required school-owned: each link belongs to the school whose
+timetable it serves. The public `.ics` endpoint has no school header; it finds
+the link by its token hash, then runs inside the link's school and rechecks the
+owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### Packages and prices
+
+`platform_packages`, `platform_package_modules` and `platform_prices` are global:
+Navigate Ed's own package list and price list, written only from `/saas`. They
+name no school; a school names its package by key and the module set version
+applied to it on its own `schools` row (`package_key`, `package_version`)
+([package editor](package-editor.md)).
+
+### Support access
+
+`support_access_grants` and `support_access_views` are required school-owned
+(foreign keys to the school; the models use BelongsToSchool). The school reads its
+own rows in its panel through the ordinary school scope; HQ reads them across
+schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: the
+granted school with the impersonation flag, which cannot be switched to another
+school or widened to every school for the rest of the request
+([support access](support-access.md)).
+
+### HQ announcements to schools
+
+`platform_announcements` is global: Navigate Ed's own announcements, written only
+from `/saas`. Its `audience_values` may list school ids (an explicit audience);
+only HQ reads it. `platform_announcement_schools` (the schools an announcement
+reached, fixed at publication) and `platform_announcement_reads` (one row per
+Super Admin who dismissed it) are required school-owned, with models that use
+`BelongsToSchool`: a school reads an announcement only through its own target
+row and sees only its own people's reads; it never sees which other schools an
+announcement reached or their reads. HQ reads both across schools and shows
+counts ([HQ announcements](hq-announcements.md)).
+
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).

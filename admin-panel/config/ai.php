@@ -37,6 +37,9 @@ return [
     ],
     'inference' => [
         'enabled' => false,
+        // The daily *_cents caps below are the defaults until HQ saves its own
+        // value at /saas/ai (platform_ai_caps); a school's own lower limit at
+        // /ai-settings still applies on top.
         'features' => [
             'school_assistant' => ['enabled' => false, 'roles' => ['Parent'], 'capabilities' => ['complete'],
                 'provider' => 'openai', 'provider_class' => OpenAiProvider::class, 'moderator' => AssistanceModeration::class,
@@ -69,6 +72,14 @@ return [
         // Server-owned feature => InferenceFeaturePolicy class allowlist; never a client setting.
         'staff_actor_policies' => ['message_translation' => TranslationFeaturePolicy::class],
         'feature_policies' => ['school_assistant' => AssistantFeaturePolicy::class, 'message_translation' => TranslationFeaturePolicy::class, 'teaching_assistant' => TeachingDraftFeaturePolicy::class, 'exam_coach' => ExamAnswerFeaturePolicy::class, 'tutor' => TutorFeaturePolicy::class],
+        // The school module (config/modules.php) each feature runs in: a school
+        // switches the feature on or off by switching that module (HQ /saas/ai).
+        'school_modules' => ['school_assistant' => 'ask_school', 'message_translation' => 'ask_school', 'teaching_assistant' => 'teaching_assistant', 'exam_coach' => 'exam_coach', 'tutor' => 'tutor'],
+        // Personal services (owner decision, 31 October 2026): the Mastery tutor is a
+        // service to one learner, not to the school. Its spend is neither checked
+        // against nor added to a school's daily total; it keeps its own per-person
+        // and per-learner caps (engineering/specs/platform/hq-ai.md).
+        'personal_features' => ['tutor'],
         // Only explicit feature-owned resolvers may load approved private derivatives.
         'vision_resolvers' => ['teaching_assistant' => TeachingDraftVisionResolver::class, 'exam_coach' => ExamAnswerVisionResolver::class, 'tutor' => TutorVisionResolver::class],
     ],

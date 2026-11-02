@@ -90,3 +90,7 @@ that select the latest ID show the restored facts. A forward migration retains
 old rows and changes the historical fingerprint uniqueness constraint to a lookup
 index; rollback refuses histories containing genuine repeated fingerprints.
 The hourly refresh is registered in the active routes/console.php schedule.
+
+## Renewals into a new year
+
+Open risk caseload grants are offered for renewal into the next school year by caseload administrators only: see [caseload renewals](caseload-renewals.md) (Action Plan 1.20).

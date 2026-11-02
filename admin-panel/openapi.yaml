@@ -5049,6 +5049,115 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AcademicRegisterSyncWrite'
+  /academics/calendar-feeds:
+    get:
+      operationId: listCalendarFeeds
+      tags:
+      - Academics
+      summary: List your calendar subscription links
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Your live calendar links at this school.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createCalendarFeed
+      tags:
+      - Academics
+      summary: Make a calendar subscription link for a learner
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API. At most five live links per person and learner. Not idempotent by design, so a retry makes another link (the response carries the secret, which is never stored for replay); remove extra links with the revoke call.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - learner_id
+              properties:
+                learner_id:
+                  type: integer
+                  minimum: 1
+                include_lessons:
+                  type: boolean
+                  default: false
+                  description: Exams are always included; lessons for the next four weeks only when true.
+      responses:
+        '200':
+          description: The new link, with its URL shown this once.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/calendar-feeds/{feed}:
+    delete:
+      operationId: revokeCalendarFeed
+      tags:
+      - Academics
+      summary: Revoke one of your calendar subscription links
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: feed
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The link no longer works.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedRevokedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /academics/timetable/configuration:
     get:
       operationId: getTimetableConfiguration
@@ -7250,6 +7359,51 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/drafts/{message}/report:
+    get:
+      operationId: schoolMessageDeliveryReport
+      tags:
+      - Communication
+      summary: Delivery report for a published school message
+      description: Private no-store report for the message's author and the staff who may review it. Counts recipients,
+        read acknowledgements and each channel's state per person, and lists recipients by name only, 50 per page. Never
+        includes addresses, device tokens or provider errors. 404 until the message is published.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Delivery report for a published school message.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
@@ -38195,6 +38349,123 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/AcademicTimetableCommitData'
+    CalendarFeedListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CalendarFeed'
+    CalendarFeed:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - include_lessons
+      - created_at
+      - last_used_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        include_lessons:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    CalendarFeedCreatedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - learner_id
+          - include_lessons
+          - url
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            learner_id:
+              type: integer
+              minimum: 1
+            include_lessons:
+              type: boolean
+            url:
+              type: string
+              format: uri
+              description: The secret subscription address. Shown only here; treat it like a password.
+    CalendarFeedRevokedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - revoked
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            revoked:
+              type: boolean
     AcademicTimetableWeekResponse:
       type: object
       additionalProperties: false
@@ -42145,6 +42416,28 @@ components:
         audience_revision:
           type: integer
           minimum: 1
+        smart:
+          type: object
+          additionalProperties: false
+          description: A smart group's rules, resolved again at preview and at sending.
+          required:
+          - session_year_id
+          - match
+          - parents
+          - rules
+          properties:
+            session_year_id:
+              type: integer
+              minimum: 1
+            match:
+              type: string
+              enum:
+              - any
+              - all
+            parents:
+              type: boolean
+            rules:
+              $ref: '#/components/schemas/CommunicationSmartRules'
     CommunicationAudience:
       type: object
       additionalProperties: false
@@ -42155,6 +42448,9 @@ components:
       - active
       - editable
       - user_ids
+      - kind
+      - shared
+      - smart
       properties:
         id:
           type: integer
@@ -42174,6 +42470,34 @@ components:
             type: integer
             minimum: 1
           uniqueItems: true
+        kind:
+          type: string
+          enum:
+          - fixed
+          - smart
+        shared:
+          type: boolean
+          description: Shared lists are offered to other staff who may address everyone on them (every rule, for a smart group). Private ones only to their creator and communication managers.
+        smart:
+          description: A smart group's rules (null for a fixed list, whose people are user_ids).
+          type:
+          - object
+          - 'null'
+          additionalProperties: false
+          required:
+          - match
+          - parents
+          - rules
+          properties:
+            match:
+              type: string
+              enum:
+              - any
+              - all
+            parents:
+              type: boolean
+            rules:
+              $ref: '#/components/schemas/CommunicationSmartRules'
     CommunicationAudienceList:
       type: object
       additionalProperties: false
@@ -42193,7 +42517,6 @@ components:
       - session_year_id
       - name
       - active
-      - user_ids
       properties:
         operation_id:
           type: string
@@ -42217,6 +42540,49 @@ components:
           minItems: 0
           maxItems: 1000
           uniqueItems: true
+        kind:
+          type: string
+          enum:
+          - fixed
+          - smart
+          default: fixed
+          description: Fixed for a new audience unless smart. An existing audience keeps its kind.
+        shared:
+          type: boolean
+          default: true
+        match:
+          type: string
+          enum:
+          - any
+          - all
+          description: Smart groups only. Learners in any rule, or only those in all of them.
+        parents:
+          type: boolean
+          description: Smart groups only. The learners, or their parents and guardians.
+        rules:
+          $ref: '#/components/schemas/CommunicationSmartRules'
+    CommunicationSmartRules:
+      type: array
+      minItems: 1
+      maxItems: 10
+      description: Each rule is an audience scope the author may address. Required for a smart group, refused for a fixed list.
+      items:
+        type: object
+        additionalProperties: false
+        required:
+        - kind
+        - target_id
+        properties:
+          kind:
+            type: string
+            enum:
+            - grade
+            - homeroom
+            - group
+            - activity_group
+          target_id:
+            type: integer
+            minimum: 1
     CommunicationAudienceReceipt:
       type: object
       additionalProperties: false
@@ -43022,6 +43388,78 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/CommunicationMessagePreview'
+    CommunicationMessageReportResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageReport'
+    CommunicationMessageReport:
+      type: object
+      additionalProperties: false
+      description: People are counted once per channel by their best result (one reached device is enough for push).
+      required: [id, title, published_at, recipient_count, read_count, not_notified, channels, page, last_page, items]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        published_at: {type: string, format: date-time}
+        recipient_count: {type: integer, minimum: 0}
+        read_count: {type: integer, minimum: 0}
+        not_notified:
+          type: integer
+          minimum: 0
+          description: Recipients whose own choices or access left no notification channel. They can still read the message in the app.
+        channels:
+          type: object
+          additionalProperties: false
+          required: [email, push]
+          properties:
+            email:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+            push:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+        page: {type: integer, minimum: 1}
+        last_page: {type: integer, minimum: 1}
+        items:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, read_at, notice, email, push]
+            properties:
+              name: {type: string}
+              read_at: {type: [string, 'null'], format: date-time}
+              notice: {type: string, enum: [pending, queued, none]}
+              email:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+              push:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+    CommunicationDeliveryCounts:
+          type: object
+          additionalProperties: false
+          required: [delivered, sent, queued, bounced, complained, failed, suppressed]
+          properties:
+            delivered: {type: integer, minimum: 0}
+            sent: {type: integer, minimum: 0}
+            queued: {type: integer, minimum: 0}
+            bounced: {type: integer, minimum: 0}
+            complained: {type: integer, minimum: 0}
+            failed: {type: integer, minimum: 0}
+            suppressed: {type: integer, minimum: 0}
     CommunicationMessageReaderResponse:
       type: object
       additionalProperties: false

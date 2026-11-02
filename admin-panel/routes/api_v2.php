@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
+use App\Http\Controllers\Api\V2\Academics\CalendarFeedController;
 use App\Http\Controllers\Api\V2\Academics\ContentController;
 use App\Http\Controllers\Api\V2\Academics\CurriculumController;
 use App\Http\Controllers\Api\V2\Academics\MarkController;
@@ -328,6 +329,12 @@ Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.
         // The durable operation UUID is the sync idempotency key. Fresh policy runs first.
         Route::post('{register}/sync', [$controller, 'sync'])->whereNumber('register')->middleware($policy.':sync')->name('sync');
     });
+    Route::prefix('calendar-feeds')->name('calendar-feeds.')->group(function () {
+        Route::get('/', [CalendarFeedController::class, 'index'])->name('index');
+        // No idempotency replay: the response holds the link's secret, which must never be stored or replayed.
+        Route::post('/', [CalendarFeedController::class, 'store'])->name('store');
+        Route::delete('{feed}', [CalendarFeedController::class, 'destroy'])->whereNumber('feed')->name('destroy');
+    });
     Route::prefix('timetable')->name('timetable.')->group(function () {
         $controller = TimetableController::class;
         foreach (['week', 'next'] as $action) {
@@ -534,6 +541,7 @@ Route::prefix('communication')->middleware(['auth:sanctum', 'school.context', 'r
     Route::get('drafts/{message}', [$c, 'editor'])->whereNumber('message')->name('editor');
     Route::put('drafts/{message}', [$c, 'save'])->whereNumber('message')->name('save');
     Route::get('drafts/{message}/preview', [$c, 'preview'])->whereNumber('message')->name('preview');
+    Route::get('drafts/{message}/report', [$c, 'report'])->whereNumber('message')->name('report');
     foreach (['submit', 'decision', 'withdraw'] as $action) {
         Route::post('drafts/{message}/'.$action, [$c, $action])->whereNumber('message')->name($action);
     }
