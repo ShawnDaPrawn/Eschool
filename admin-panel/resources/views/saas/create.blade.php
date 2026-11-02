@@ -29,8 +29,8 @@
         <div class="saas-field">
             <label for="package_key">{{ __('Package') }}</label>
             <select id="package_key" name="package_key" required>
-                @foreach ($packages as $package)
-                    <option value="{{ $package }}" @selected(old('package_key', 'core') === $package)>{{ $package }}</option>
+                @foreach ($packages as $package => $name)
+                    <option value="{{ $package }}" @selected(old('package_key', 'core') === $package)>{{ $name }} ({{ $package }})</option>
                 @endforeach
             </select>
         </div>

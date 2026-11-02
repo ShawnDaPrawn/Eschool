@@ -14,6 +14,7 @@ use App\Services\Platform\Saas\PlatformAuditLog;
 use App\Services\Platform\Saas\PlatformSchools;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Auth;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -24,6 +25,7 @@ use Tests\TestCase;
  */
 class HqAuditLogTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     protected function setUp(): void
@@ -58,7 +60,7 @@ class HqAuditLogTest extends TestCase
         $staff = $this->staff();
         $this->history($staff);
 
-        $response = $this->actingAs($staff)->get('/saas/audit')->assertOk()
+        $response = $this->actingAsHq($staff)->get('/saas/audit')->assertOk()
             ->assertSee('Package changed')->assertSee('School status changed')
             ->assertSee('Overdue contract, suspended after notice')
             ->assertSee('→ standard', false)
@@ -80,7 +82,7 @@ class HqAuditLogTest extends TestCase
         app(PlatformSchools::class)->changeModule(1, 'gallery', false, $other);
         Auth::forgetUser();
 
-        $this->actingAs($staff);
+        $this->actingAsHq($staff);
         // Only the named platform actions: the module row change (updated) and staff set-up (created) ride along.
         $actions = fn (array $query) => collect($this->get('/saas/audit?'.http_build_query($query))->assertOk()->viewData('rows')->items())->pluck('action')->filter(fn ($a) => str_starts_with($a, 'platform_'))->values()->all();
 
@@ -98,7 +100,7 @@ class HqAuditLogTest extends TestCase
         $staff = $this->staff();
         $this->history($staff);
 
-        $response = $this->actingAs($staff)->get('/saas/audit/export?school='.self::SCHOOL_B_ID)->assertOk();
+        $response = $this->actingAsHq($staff)->get('/saas/audit/export?school='.self::SCHOOL_B_ID)->assertOk();
         $this->assertStringContainsString('text/csv', (string) $response->headers->get('Content-Type'));
         $csv = $response->streamedContent();
         $lines = array_values(array_filter(explode("\n", $csv)));
@@ -121,7 +123,7 @@ class HqAuditLogTest extends TestCase
         app(CurrentSchool::class)->acrossSchools(fn () => Audit::record('platform_staff_password_set', null, [], ['password_hash' => 'synthetic-hash-value', 'api_token' => 'synthetic-token-value', 'note' => 'visible']));
         Auth::forgetUser();
 
-        $this->actingAs($staff)->get('/saas/audit')->assertOk()
+        $this->actingAsHq($staff)->get('/saas/audit')->assertOk()
             ->assertDontSee('synthetic-hash-value')->assertDontSee('synthetic-token-value')
             ->assertSee('note: visible');
     }

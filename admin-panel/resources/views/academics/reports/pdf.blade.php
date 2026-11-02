@@ -10,6 +10,12 @@ table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #88
 @if($design['show_crest'] && $design['crest'])<img src="{{ $design['crest'] }}" class="crest" alt="">@endif
 <h1>{{ $card['school_name'] }}</h1><h2>{{ $design['heading'] }}</h2>
 <p>{{ $card['learner_name'] }} · {{ $card['homeroom_name'] }} · {{ $card['year_name'] }} {{ $card['term_name'] ?? __('Annual report') }}</p>
+@php($identifierLabel = ($identifier ?? null) === null ? null : ($identifier['type'] === 'lurits' ? __('LURITS number') : __('NavigateEd number (temporary)')))
+@if($identifierLabel !== null)
+<p class="identifiers">{{ $identifierLabel }}: {{ $identifier['value'] }}@if((string) ($admissionNo ?? '') !== '') · {{ __('Admission number') }}: {{ $admissionNo }}@endif</p>
+@elseif((string) ($admissionNo ?? '') !== '')
+<p class="identifiers">{{ __('Admission number') }}: {{ $admissionNo }}</p>
+@endif
 @if($card['provisional'])<p class="provisional">{{ __('Provisional running report — incomplete results are not final term or year marks.') }}</p>@endif
 <p class="comment">{{ $design['introduction'] }}</p>
 @foreach($design['sections'] as $section)
