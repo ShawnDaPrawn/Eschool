@@ -137,6 +137,7 @@ use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\PlatformSupportAccessController;
 use App\Http\Controllers\Platform\PlatformTwoFactorController;
+use App\Http\Controllers\Platform\PlatformSupportController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
@@ -149,6 +150,7 @@ use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\School\SendingDomainController;
+use App\Http\Controllers\School\SupportTicketController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SessionYearController;
 use App\Http\Controllers\SettingController;
@@ -420,6 +422,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     // SES streams (2.3): each school's account and bulk configuration sets, their status and rates; counts only.
     Route::get('/mail-streams', [PlatformMailStreamsController::class, 'index'])->middleware('platform.can:mail.view')->name('mail-streams');
     Route::post('/mail-streams/check', [PlatformMailStreamsController::class, 'check'])->middleware(['platform.can:mail.manage', 'throttle:20,1'])->name('mail-streams.check');
+    // The support desk (SA.17): every school's tickets, replies, internal notes, assignee and status.
+    Route::prefix('/support-desk')->middleware('platform.can:support.manage')->name('support-desk.')->group(function () {
+        Route::get('/', [PlatformSupportController::class, 'index'])->name('index');
+        Route::get('/{ticket}', [PlatformSupportController::class, 'show'])->whereNumber('ticket')->name('show');
+        Route::post('/{ticket}/messages', [PlatformSupportController::class, 'message'])->middleware('throttle:60,1')->whereNumber('ticket')->name('messages.store');
+        Route::put('/{ticket}/status', [PlatformSupportController::class, 'status'])->whereNumber('ticket')->name('status');
+        Route::put('/{ticket}/assignee', [PlatformSupportController::class, 'assignee'])->whereNumber('ticket')->name('assignee');
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -1454,6 +1464,12 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/sending-domain', [SendingDomainController::class, 'store'])->middleware('throttle:10,1')->name('sending-domain.store');
     Route::post('/sending-domain/{sendingDomain}/check', [SendingDomainController::class, 'check'])->whereNumber('sendingDomain')->middleware('throttle:20,1')->name('sending-domain.check');
     Route::delete('/sending-domain/{sendingDomain}', [SendingDomainController::class, 'destroy'])->whereNumber('sendingDomain')->middleware('throttle:10,1')->name('sending-domain.destroy');
+    // Support tickets to Navigate Ed (Action Plan SA.17); SupportTicketRequest checks the right.
+    Route::get('/support-tickets', [SupportTicketController::class, 'index'])->name('support-tickets.index');
+    Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:10,1')->name('support-tickets.store');
+    Route::get('/support-tickets/{ticket}', [SupportTicketController::class, 'show'])->whereNumber('ticket')->name('support-tickets.show');
+    Route::post('/support-tickets/{ticket}/messages', [SupportTicketController::class, 'message'])->whereNumber('ticket')->middleware('throttle:30,1')->name('support-tickets.messages.store');
+    Route::post('/support-tickets/{ticket}/close', [SupportTicketController::class, 'close'])->whereNumber('ticket')->middleware('throttle:30,1')->name('support-tickets.close');
 });
 
 Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {

@@ -513,3 +513,10 @@ Both link to the school panel's `/support-access` page and name no person, reaso
 or record. No ability, module or permission row is added to schools; HQ adds the
 platform abilities `support.access` (Owner, Operations, Support) and
 `support.emergency` (Owner).
+## Support desk
+
+Navigate Ed support replies: `school.support_reply` (school module, admin portal
+only, standard channel preferences) tells the school staff member who opened a
+support ticket that Navigate Ed replied. The notice carries the ticket's subject
+and a link to `/support-tickets/{id}` in the admin panel, never the message;
+internal notes and status changes send nothing.

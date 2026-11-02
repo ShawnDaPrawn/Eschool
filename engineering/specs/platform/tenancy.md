@@ -365,3 +365,10 @@ use the delivery's own school: the connect check that no other school has the
 domain, a subdomain or a parent of it, and the From address a queued notice uses,
 read by the school the delivery row names. The scheduled poll lists due domains
 across schools and checks each inside its own school ([sending domains](sending-domains.md)).
+### Support desk
+
+`school_support_tickets` and `school_support_ticket_messages` are required
+school-owned: a school reads and writes only its own tickets (another school's
+id is a 404), and HQ reads them across schools from `/saas` and writes inside
+the ticket's school. `platform_support_views` is global: when each HQ staff
+member last opened the queue ([support desk](support-desk.md)).
