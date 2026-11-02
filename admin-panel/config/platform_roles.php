@@ -41,13 +41,16 @@ declare(strict_types=1);
  *  health.view      platform health on the HQ home page: queue backlog, failed jobs, delivery failures
  *  library.manage   the platform content library: frameworks, topics, sources, items, publishing, reviewers, each school's library switch
  *  library.review   approve or reject library items, for the subjects the reviewer is assigned to
+ *  offboarding.view    a leaving school's offboarding: states, dates and counts
+ *  offboarding.manage  start an offboarding, archive the school, run the deletion dry run, ask for deletion, place a legal hold
+ *  offboarding.approve the second approval of a school's deletion, and lifting a legal hold (Owner only)
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage', 'ai.view', 'mail.view', 'mail.manage', 'support.manage', 'messaging.view']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage', 'ai.view', 'mail.view', 'mail.manage', 'support.manage', 'messaging.view', 'offboarding.view', 'offboarding.manage']],
     'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'support.access', 'ai.view', 'mail.view', 'support.manage']],
     'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'billing.view', 'billing.manage', 'audit.view', 'audit.export', 'health.view', 'messaging.view']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view', 'library.manage']],

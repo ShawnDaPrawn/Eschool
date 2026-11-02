@@ -63,4 +63,6 @@ return [
     'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
     'platform.announcement' => ['label' => 'Announcements from Navigate Ed', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'off', 'email' => 'default_on', 'in_app' => 'default_on']],
     'billing.overdue' => ['label' => 'Navigate Ed account overdue', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'default_on', 'email' => 'mandatory', 'in_app' => 'mandatory'], 'locked' => ['admin']],
+    // School offboarding (SA.11): the leaving school's Super Admins, who must collect the export.
+    'school.offboarding_export' => ['label' => 'School data export ready', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
 ];

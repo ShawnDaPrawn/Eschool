@@ -520,3 +520,12 @@ only, standard channel preferences) tells the school staff member who opened a
 support ticket that Navigate Ed replied. The notice carries the ticket's subject
 and a link to `/support-tickets/{id}` in the admin panel, never the message;
 internal notes and status changes send nothing.
+## School offboarding
+
+School data export ready: `school.offboarding_export` (people module, admin
+portal; push, email and in-app are mandatory and locked) tells a leaving
+school's active Super Admins (never platform staff) that the full export of
+their school's data is ready in the panel at `/school-exit`, and the date by
+which to download it and confirm receipt. The notice names no person and
+carries no data; the download itself needs the Super Admin's sign-in and a
+short-lived signed link (engineering/specs/platform/offboarding.md).

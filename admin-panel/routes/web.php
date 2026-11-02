@@ -134,6 +134,7 @@ use App\Http\Controllers\Platform\PlatformLibraryController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformMailStreamsController;
 use App\Http\Controllers\Platform\PlatformMessagingController;
+use App\Http\Controllers\Platform\PlatformOffboardingController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
@@ -147,6 +148,7 @@ use App\Http\Controllers\Platform\SchoolAccountController;
 use App\Http\Controllers\Platform\SchoolAnnouncementController;
 use App\Http\Controllers\Platform\SchoolJoinInvitationController;
 use App\Http\Controllers\Platform\SchoolSupportAccessController;
+use App\Http\Controllers\Platform\SchoolExitController;
 use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\Platform\SupportSessionController;
 use App\Http\Controllers\Platform\UrgentMessagingController;
@@ -362,6 +364,19 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::delete('contacts/{contact}', [SchoolAccountController::class, 'removeContact'])->whereNumber('contact')->name('contacts.destroy');
         Route::post('contracts', [SchoolAccountController::class, 'contract'])->name('contracts.store');
         Route::post('notes', [SchoolAccountController::class, 'note'])->name('notes.store');
+    });
+    // School offboarding (SA.11): export, receipt, archive and deletion approvals of a leaving school; states and counts only.
+    Route::prefix('/schools/{school}/offboarding')->whereNumber('school')->name('schools.offboarding')->group(function () {
+        Route::get('/', [PlatformOffboardingController::class, 'show'])->middleware('platform.can:offboarding.view');
+        Route::post('/', [PlatformOffboardingController::class, 'start'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.start');
+        Route::post('/retry', [PlatformOffboardingController::class, 'retry'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.retry');
+        Route::post('/archive', [PlatformOffboardingController::class, 'archive'])->middleware('platform.can:offboarding.manage')->name('.archive');
+        Route::post('/cancel', [PlatformOffboardingController::class, 'cancel'])->middleware('platform.can:offboarding.manage')->name('.cancel');
+        Route::post('/dry-run', [PlatformOffboardingController::class, 'dryRun'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.dry-run');
+        Route::post('/deletion', [PlatformOffboardingController::class, 'requestDeletion'])->middleware('platform.can:offboarding.manage')->name('.request');
+        Route::post('/deletion/approval', [PlatformOffboardingController::class, 'approve'])->middleware('platform.can:offboarding.approve')->name('.approve');
+        Route::post('/legal-hold', [PlatformOffboardingController::class, 'hold'])->middleware('platform.can:offboarding.manage')->name('.hold');
+        Route::delete('/legal-hold', [PlatformOffboardingController::class, 'liftHold'])->middleware('platform.can:offboarding.approve')->name('.hold.lift');
     });
     Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->middleware('platform.can:schools.package')->whereNumber('school')->name('schools.package');
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->middleware('platform.can:schools.status')->whereNumber('school')->name('schools.status');
@@ -1509,6 +1524,10 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::get('/support-tickets/{ticket}', [SupportTicketController::class, 'show'])->whereNumber('ticket')->name('support-tickets.show');
     Route::post('/support-tickets/{ticket}/messages', [SupportTicketController::class, 'message'])->whereNumber('ticket')->middleware('throttle:30,1')->name('support-tickets.messages.store');
     Route::post('/support-tickets/{ticket}/close', [SupportTicketController::class, 'close'])->whereNumber('ticket')->middleware('throttle:30,1')->name('support-tickets.close');
+    // A leaving school's export (SA.11): its Super Admin downloads it through a short-lived signed link and confirms receipt.
+    Route::get('/school-exit', [SchoolExitController::class, 'index'])->name('school-exit.index');
+    Route::get('/school-exit/{offboarding}/download', [SchoolExitController::class, 'download'])->whereNumber('offboarding')->middleware(['signed', 'throttle:10,1'])->name('school-exit.download');
+    Route::post('/school-exit/{offboarding}/receipt', [SchoolExitController::class, 'confirm'])->whereNumber('offboarding')->name('school-exit.confirm');
 });
 
 Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {

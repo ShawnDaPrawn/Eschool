@@ -443,6 +443,8 @@ return [
                             'keywords' => ['mandatory notices', 'email', 'push', 'notification settings']],
                         ['key' => 'navigate-ed-announcements', 'label' => 'nav_navigate_ed_announcements', 'route' => 'platform-announcements.index', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
                             'keywords' => ['release notes', 'maintenance', 'policy change', 'platform news', 'navigate ed']],
+                        ['key' => 'school-exit', 'label' => 'nav_school_exit', 'route' => 'school-exit.index', 'permissions' => [], 'roles' => ['Super Admin'], 'school_exit' => true, 'module' => null,
+                            'active' => ['school-exit.*'], 'keywords' => ['leaving', 'offboarding', 'data export', 'download our data']],
                         ['key' => 'school-information', 'label' => 'nav_school_information', 'route' => 'school-information.index', 'permissions' => ['setting-create'], 'module' => null,
                             'active' => ['school-information.*'], 'keywords' => ['my school', 'contacts', 'branding', 'published documents', 'term dates']],
                         ['key' => 'school-profile', 'label' => 'nav_school_profile', 'url' => 'settings', 'permissions' => ['setting-create'], 'module' => null,

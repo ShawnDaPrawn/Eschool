@@ -282,6 +282,15 @@ rows may point into the library (`mastery_topics.library_topic_id`,
 `practice_set_entries.library_item_version_id`,
 `practice_memories.library_item_id`), never the other way
 ([content library](../learning/content-library.md)).
+### School offboarding
+
+`school_offboardings` is required school-owned (a foreign key to the school):
+one row per offboarding of a leaving school, holding states, dates, hashes and
+counts, never the school's data. HQ writes it from `/saas` inside the school and
+the school's Super Admin confirms receipt from the panel, where an id from
+another school is not found ([Offboarding](offboarding.md)). The export and the
+deletion dry run read the school's rows through `SchoolOwnedTables`, always with
+the school's id.
 
 ### A guardian at two schools (Action Plan 1.1, server side)
 
