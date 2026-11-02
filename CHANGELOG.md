@@ -117,6 +117,9 @@ Earlier history is kept where it was written and is not repeated here:
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
 
+- Academics: a learner or guardian can subscribe their calendar app to the
+  learner's exams, and optionally the next four weeks of lessons, through a
+  secret link they can revoke at any time. **Deploy:** run the migrations.
 
 - HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
   families, how many learners have a guardian the school can reach, sign-ins by
@@ -132,6 +135,7 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
+
 
 - Academics: a learner or guardian can subscribe their calendar app to the
   learner's exams, and optionally the next four weeks of lessons, through a
