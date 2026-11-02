@@ -29,6 +29,22 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Learning: The Monday learning update now starts with growth (Action Plan
+  4.6). Parents see "This week [child] grew in…", listing only topics where the
+  child's mastery rose last week (never falls, rankings or comparisons with
+  other children), and a help-at-home line naming the topics the school's
+  published curriculum plans start next week. Learners get their own short
+  in-app note, "This week you grew in…", in their inbox only (no push or
+  email). Growth uses only what the family may already see on the mastery map,
+  compares like with like within one mastery model version, and follows the
+  existing guardian approval rules. The new lines appear once a school approves
+  a weekly update template that uses `{grew_in}` and `{help_at_home}`; the
+  English starting text has them. Schools can also switch on two persistence
+  badges in the awards settings: one for practising on several days in a week,
+  and one for coming back to a hard topic and improving. Both start off. Badges
+  are presented as permanent awards each Monday, with the usual family award
+  notice, and are never awarded twice for the same week.
+  **Deploy:** run the migrations.
 - Admin panel: Teachers can now break an exam coach memo into mark points. On
   the new Exam coach memos page, a teacher picks a teaching group and a past
   paper, and for each question records what earns each mark, the kind of mark

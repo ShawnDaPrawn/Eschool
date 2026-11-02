@@ -501,6 +501,19 @@ use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
 
+
+## Growth-first digest and persistence badges (Action Plan 4.6)
+
+`growth.weekly` (digest module, learner portal, in-app only: push and email are
+locked off through `locked_off_channels`, so no school rule can switch them on) tells a learner, once a week, which topics they grew in. The text names up
+to three topics and no scores, levels or other learners. The payload carries an
+opaque `growth_week_id`; the inbox and delivery recheck the learner's own
+current, guardian-approved account and the digest and mastery modules. Parents
+get growth inside the existing `digest.weekly` update. Persistence badges are
+permanent awards with source `badge` and use the existing
+`recognition.award_presented` notice. No new outbox event type.
+
+
 ## School offboarding
 
 School data export ready: `school.offboarding_export` (people module, admin
