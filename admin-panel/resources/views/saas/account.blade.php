@@ -99,17 +99,18 @@
 <div class="saas-card">
     <table class="saas-table">
         <caption>{{ __('Contracts are kept as history: a change is recorded as a new contract') }}</caption>
-        <thead><tr><th scope="col">{{ __('From') }}</th><th scope="col">{{ __('Until') }}</th><th scope="col" class="num">{{ __('Learners') }}</th><th scope="col" class="num">{{ __('Per learner per month') }}</th><th scope="col">{{ __('Operator agreement') }}</th><th scope="col">{{ __('Signed by') }}</th><th scope="col">{{ __('Renewal reminder') }}</th><th scope="col">{{ __('Data processing addendum') }}</th><th scope="col">{{ __('Notes') }}</th></tr></thead>
+        <thead><tr><th scope="col">{{ __('From') }}</th><th scope="col">{{ __('Until') }}</th><th scope="col" class="num">{{ __('Learners') }}</th><th scope="col" class="num">{{ __('Per learner per month') }}</th><th scope="col">{{ __('Operator agreement') }}</th><th scope="col">{{ __('Signed by') }}</th><th scope="col">{{ __('Renewal reminder') }}</th><th scope="col">{{ __('Data processing addendum') }}</th><th scope="col">{{ __('Data deleted') }}</th><th scope="col">{{ __('Notes') }}</th></tr></thead>
         <tbody>
         @forelse ($contracts as $contract)
             <tr>
                 <th scope="row">{{ $contract['starts_on'] }}</th><td>{{ $contract['ends_on'] ?? __('Open-ended') }}</td>
                 <td class="num">{{ $contract['contracted_learners'] }}</td><td class="num">{{ $money($contract['price_per_learner_cents']) }}</td>
                 <td>{{ $contract['operator_agreement_version'] }} · {{ $contract['operator_agreement_signed_on'] }}</td><td>{{ $contract['signatory'] }}</td>
-                <td>{{ $contract['renewal_on'] ?? '—' }}</td><td>{{ $contract['data_processing_signed_on'] === null ? __('Not signed') : __('Signed :date', ['date' => $contract['data_processing_signed_on']]) }}</td><td>{{ $contract['notes'] ?? '—' }}</td>
+                <td>{{ $contract['renewal_on'] ?? '—' }}</td><td>{{ $contract['data_processing_signed_on'] === null ? __('Not signed') : __('Signed :date', ['date' => $contract['data_processing_signed_on']]) }}</td>
+                <td>{{ $contract['deletion_days_after_end'] === null ? __('Not recorded') : __(':days days after the end', ['days' => $contract['deletion_days_after_end']]) }}</td><td>{{ $contract['notes'] ?? '—' }}</td>
             </tr>
         @empty
-            <tr><td colspan="9">{{ __('No contract recorded yet.') }}</td></tr>
+            <tr><td colspan="10">{{ __('No contract recorded yet.') }}</td></tr>
         @endforelse
         </tbody>
     </table>
@@ -126,6 +127,7 @@
             <div class="saas-field"><label for="contract-agreement">{{ __('Operator agreement version') }}</label><input id="contract-agreement" name="operator_agreement_version" maxlength="32" required value="{{ old('operator_agreement_version') }}"></div>
             <div class="saas-field"><label for="contract-agreement-signed">{{ __('Operator agreement signed on') }}</label><input id="contract-agreement-signed" name="operator_agreement_signed_on" type="date" required value="{{ old('operator_agreement_signed_on') }}"></div>
             <div class="saas-field"><label for="contract-dpa">{{ __('Data processing addendum signed on (optional)') }}</label><input id="contract-dpa" name="data_processing_signed_on" type="date" value="{{ old('data_processing_signed_on') }}"></div>
+            <div class="saas-field"><label for="contract-deletion">{{ __('Days after the end before the school\'s data is deleted (optional)') }}</label><input id="contract-deletion" name="deletion_days_after_end" type="number" min="0" max="3650" value="{{ old('deletion_days_after_end') }}"></div>
             <div class="saas-field"><label for="contract-notes">{{ __('Notes (optional)') }}</label><textarea id="contract-notes" name="notes" maxlength="500" rows="2">{{ old('notes') }}</textarea></div>
         </div>
         <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Record contract') }}</button></div>

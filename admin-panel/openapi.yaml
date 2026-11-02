@@ -2586,6 +2586,165 @@ paths:
                   - in_app
                 enabled:
                   type: boolean
+  /me/notifications:
+    get:
+      operationId: listMyNotifications
+      tags:
+      - Platform
+      summary: Your notifications in this school, newest first
+      description: Three-layer notifications (Action Plan 1.4). Each row has the title, a short excerpt (at most 140
+        characters) and the app path it opens, plus has_body when a fuller text can be read with getMyNotification. Only
+        notices sent to you in the selected school (and older whole-school notices) are listed; private sources are
+        filtered before paging. Private and notice-only types show only their generic text and never have a body. 25 a
+        page.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: One page of your notifications; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationInboxResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/notifications/{notice}:
+    get:
+      operationId: getMyNotification
+      tags:
+      - Platform
+      summary: One of your notifications with its full body
+      description: The full body is returned only after the same fresh access check the notice's delivery uses
+        (membership, the source record and any private-source rule). Another user's notice, another school's notice and a
+        notice whose source no longer allows you all answer 404. Without a stored body (has_body false), body repeats the
+        excerpt; private and notice-only types always answer with their generic text.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: notice
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The notice; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/notification-quiet-hours:
+    get:
+      operationId: getMyQuietHours
+      tags:
+      - Platform
+      summary: Read your push quiet hours
+      description: Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuietHoursResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateMyQuietHours
+      tags:
+      - Platform
+      summary: Set your push quiet hours
+      description: Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held. An end time before the start time means overnight. Without a timezone, the current school's is used.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - enabled
+              - starts_at
+              - ends_at
+              properties:
+                enabled:
+                  type: boolean
+                starts_at:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                ends_at:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                timezone:
+                  type:
+                  - string
+                  - 'null'
+                  description: An IANA time zone such as Africa/Johannesburg.
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuietHoursResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile:
     get:
       operationId: getMyProfile
@@ -7359,6 +7518,51 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/drafts/{message}/report:
+    get:
+      operationId: schoolMessageDeliveryReport
+      tags:
+      - Communication
+      summary: Delivery report for a published school message
+      description: Private no-store report for the message's author and the staff who may review it. Counts recipients,
+        read acknowledgements and each channel's state per person, and lists recipients by name only, 50 per page. Never
+        includes addresses, device tokens or provider errors. 404 until the message is published.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Delivery report for a published school message.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
@@ -35565,6 +35769,21 @@ components:
         approved_by_count:
           type: integer
           minimum: 0
+    LearnerPrimaryIdentifier:
+      type: object
+      additionalProperties: false
+      description: A learner's headline number. `lurits` is the LURITS number; `navigateed` is the NavigateEd number (ADR 0005), shown as "NavigateEd number (temporary)" until a LURITS number is recorded.
+      required:
+      - type
+      - value
+      properties:
+        type:
+          type: string
+          enum:
+          - lurits
+          - navigateed
+        value:
+          type: string
     ApprovalLearner:
       type: object
       additionalProperties: false
@@ -35587,6 +35806,11 @@ components:
           type:
           - string
           - 'null'
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
         school:
           $ref: '#/components/schemas/SchoolSummary'
     GuardianConsent:
@@ -36062,6 +36286,44 @@ components:
               $ref: '#/components/schemas/NotificationChannelPreference'
             in_app:
               $ref: '#/components/schemas/NotificationChannelPreference'
+    QuietHoursResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - enabled
+          - starts_at
+          - ends_at
+          - timezone
+          - exempt_types
+          properties:
+            enabled:
+              type: boolean
+            starts_at:
+              type: string
+            ends_at:
+              type: string
+            timezone:
+              type: string
+            exempt_types:
+              type: array
+              description: Notice types that are never held.
+              items:
+                type: string
     NotificationPreferencesResponse:
       type: object
       additionalProperties: false
@@ -36080,6 +36342,150 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NotificationTypePreference'
+        code:
+          type: integer
+          description: Always 200.
+    NotificationInboxItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - title
+      - excerpt
+      - target
+      - has_body
+      - date
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          description: The notification type, for example `academics.exam_changed`.
+        title:
+          type: string
+          maxLength: 128
+        excerpt:
+          type: string
+          maxLength: 140
+          description: The collapsed row's text.
+        target:
+          type: string
+          pattern: ^/(?!/)
+          description: The app path the notice opens, for example `/calendar`.
+        has_body:
+          type: boolean
+          description: Whether getMyNotification has a fuller text than the excerpt.
+        date:
+          type: string
+          format: date-time
+    NotificationDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - title
+      - excerpt
+      - target
+      - has_body
+      - date
+      - body
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          description: The notification type, for example `academics.exam_changed`.
+        title:
+          type: string
+          maxLength: 128
+        excerpt:
+          type: string
+          maxLength: 140
+          description: The collapsed row's text.
+        target:
+          type: string
+          pattern: ^/(?!/)
+          description: The app path the notice opens, for example `/calendar`.
+        has_body:
+          type: boolean
+          description: Whether getMyNotification has a fuller text than the excerpt.
+        date:
+          type: string
+          format: date-time
+        body:
+          type: string
+          maxLength: 5000
+          description: The full text; the excerpt when has_body is false.
+    NotificationInboxPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/NotificationInboxItem'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+    NotificationInboxResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationInboxPage'
+        code:
+          type: integer
+          description: Always 200.
+    NotificationDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationDetail'
         code:
           type: integer
           description: Always 200.
@@ -36253,6 +36659,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFormCategory'
+        primary_identifier:
+          description: For a learner profile, the learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) for other profile types, or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
     ProfileDefinition:
       type: object
       additionalProperties: false
@@ -36702,6 +37113,11 @@ components:
           type:
           - string
           - 'null'
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
         approved:
           type: boolean
         homeroom:
@@ -38078,6 +38494,58 @@ components:
           items:
             type: string
             pattern: ^\d{4}-\d{2}-\d{2}$
+        breaks:
+          type: array
+          description: A learner's week only. Named breaks of the bells their lessons follow each day (the replacement bells on a short day).
+          items:
+            type: object
+            additionalProperties: false
+            required: [date, name, starts_at, ends_at]
+            properties:
+              date:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+              name:
+                type: string
+              starts_at:
+                type: string
+                pattern: ^\d{2}:\d{2}$
+              ends_at:
+                type: string
+                pattern: ^\d{2}:\d{2}$
+        activities:
+          type: array
+          description: A learner's week only. Sessions of activity groups they belong to on that day, not cancelled. A session without times is all day.
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, date, starts_at, ends_at, name, group_name, venue, status]
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              date:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+              starts_at:
+                type:
+                - string
+                - 'null'
+                pattern: ^\d{2}:\d{2}$
+              ends_at:
+                type:
+                - string
+                - 'null'
+                pattern: ^\d{2}:\d{2}$
+              name:
+                type: string
+              group_name:
+                type: string
+              venue:
+                type: string
+              status:
+                type: string
+                enum: [scheduled, completed]
     AcademicTimetableNextData:
       type: object
       additionalProperties: false
@@ -43343,6 +43811,78 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/CommunicationMessagePreview'
+    CommunicationMessageReportResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageReport'
+    CommunicationMessageReport:
+      type: object
+      additionalProperties: false
+      description: People are counted once per channel by their best result (one reached device is enough for push).
+      required: [id, title, published_at, recipient_count, read_count, not_notified, channels, page, last_page, items]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        published_at: {type: string, format: date-time}
+        recipient_count: {type: integer, minimum: 0}
+        read_count: {type: integer, minimum: 0}
+        not_notified:
+          type: integer
+          minimum: 0
+          description: Recipients whose own choices or access left no notification channel. They can still read the message in the app.
+        channels:
+          type: object
+          additionalProperties: false
+          required: [email, push]
+          properties:
+            email:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+            push:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+        page: {type: integer, minimum: 1}
+        last_page: {type: integer, minimum: 1}
+        items:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, read_at, notice, email, push]
+            properties:
+              name: {type: string}
+              read_at: {type: [string, 'null'], format: date-time}
+              notice: {type: string, enum: [pending, queued, none]}
+              email:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+              push:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+    CommunicationDeliveryCounts:
+          type: object
+          additionalProperties: false
+          required: [delivered, sent, queued, bounced, complained, failed, suppressed]
+          properties:
+            delivered: {type: integer, minimum: 0}
+            sent: {type: integer, minimum: 0}
+            queued: {type: integer, minimum: 0}
+            bounced: {type: integer, minimum: 0}
+            complained: {type: integer, minimum: 0}
+            failed: {type: integer, minimum: 0}
+            suppressed: {type: integer, minimum: 0}
     CommunicationMessageReaderResponse:
       type: object
       additionalProperties: false
@@ -43570,6 +44110,16 @@ components:
         on_date:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
         name:
           type: string
           maxLength: 191
@@ -43911,6 +44461,17 @@ components:
         on_date:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type:
+          - string
+          - 'null'
+          description: Optional; with ends_at.
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
         name:
           type: string
           maxLength: 191
@@ -46486,6 +47047,11 @@ components:
           type: string
         admission_no:
           type: string
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
     WellbeingCategory:
       type: object
       additionalProperties: false

@@ -131,7 +131,9 @@ class TeachingGroupController extends Controller
             'years' => SessionYear::query()->orderByDesc('start_date')->get(),
             'rooms' => ClassSection::query()->with('class', 'section')->get()->mapWithKeys(fn ($r) => [$r->id => $r->class->name.' '.$r->section->name])->all(),
             'teacherChoices' => Teacher::query()->with('user')->whereIn('user_id', $staff)->whereHas('user', fn ($q) => $q->where('status', 1))->get()->mapWithKeys(fn ($t) => [$t->id => $name($t->user)])->all(),
-            'learners' => Students::query()->with('user')->whereHas('user', fn ($q) => $q->where('status', 1))->get()->mapWithKeys(fn ($s) => [$s->id => $name($s->user)])->all(),
+            // Current learners only: leavers keep an active account (Action Plan 1.21).
+            'learners' => Students::query()->with('user')->whereHas('user', fn ($q) => $q->where('status', 1))
+                ->whereIn('user_id', SchoolMembership::query()->active()->where('school_id', app(CurrentSchool::class)->id())->where('role', 'Student')->select('user_id'))->get()->mapWithKeys(fn ($s) => [$s->id => $name($s->user)])->all(),
             'staff' => User::query()->where('status', 1)->whereIn('id', $staff)->orderBy('first_name')->get()->mapWithKeys(fn ($u) => [$u->id => $name($u)])->all()];
     }
 }
