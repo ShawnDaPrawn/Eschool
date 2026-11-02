@@ -11,6 +11,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Services\Platform\Context\ContextContributor;
 use App\Services\Platform\Context\ContextScope;
+use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,6 +90,35 @@ class ContextSchoolsTest extends TestCase
             ->assertJsonPath('data.current_school.branding.theme_color', '#000001')
             ->assertJsonPath('data.current_school.branding.secondary_color', $before['current_school']['branding']['secondary_color'])
             ->assertJsonPath('data.feature_flags', ['new_switch' => true]);
+    }
+
+    public function test_membership_package_projection_keeps_school_and_applied_version_boundaries(): void
+    {
+        $package = DB::table('platform_packages')->insertGetId([
+            'package_key' => 'context-versions', 'name' => 'Context versions', 'status' => 'active', 'modules_version' => 2,
+        ]);
+        foreach ([1 => ['core', 'finance'], 2 => ['core', 'learning']] as $version => $products) {
+            foreach ($products as $product) {
+                DB::table('platform_package_modules')->insert(['package_id' => $package, 'version' => $version, 'product_module' => $product]);
+            }
+        }
+        foreach ([1 => 1, 2 => 2] as $school => $version) {
+            School::whereKey($school)->update(['package_key' => 'context-versions', 'package_version' => $version]);
+            DB::table('school_modules')->updateOrInsert(['school_id' => $school, 'module' => 'fees'], ['enabled' => true, 'in_package' => true, 'read_only' => false]);
+        }
+        $first = $this->withToken($this->token)->withHeader('X-School-Id', '1')->getJson('/api/v2/me/context')->assertOk();
+        $this->assertContains('fees', array_column($first->json('data.modules'), 'key'));
+        $this->assertNotContains('online_exams', array_column($first->json('data.modules'), 'key'));
+        $second = $this->withToken($this->token)->withHeader('X-School-Id', '2')->getJson('/api/v2/me/context')->assertOk();
+        $this->assertNotContains('fees', array_column($second->json('data.modules'), 'key'));
+        $this->assertContains('online_exams', array_column($second->json('data.modules'), 'key'));
+        School::whereKey(1)->update(['package_version' => 2]);
+        // This test reuses its container; a new web request has fresh scoped memberships.
+        app(MembershipService::class)->forget(User::where('email', 'pieter@example.com')->sole());
+        $reapplied = $this->withToken($this->token)->withHeader('X-School-Id', '1')->getJson('/api/v2/me/context')->assertOk();
+        $this->assertNotContains('fees', array_column($reapplied->json('data.modules'), 'key'));
+        $this->assertContains('online_exams', array_column($reapplied->json('data.modules'), 'key'));
+        $reapplied->assertDontSee('school__package_products')->assertDontSee('membershipPackage');
     }
 
     public function test_the_calendar_orders_live_terms_and_never_joins_another_schools_term(): void
