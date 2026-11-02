@@ -26,7 +26,7 @@ class PeerOperations
             }
             $ids = DB::table('teaching_group_memberships')->where('school_id', $school)->where('teaching_group_id', $group)->pluck('learner_id');
             DB::table('students')->where('school_id', $school)->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get(['id']);
-            foreach (['learner_approvals', 'enrolments', 'mastery_records'] as $table) {
+            foreach (['learner_approvals', 'enrolments', 'mastery_records', 'activity_group_memberships'] as $table) {
                 DB::table($table)->where('school_id', $school)->whereIn('learner_id', $ids)->orderBy('id')->lockForUpdate()->get(['id']);
             }
         }

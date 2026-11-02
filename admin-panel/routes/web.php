@@ -1442,6 +1442,8 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     $controller = PeerPanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
     Route::post('sessions', [$controller, 'write'])->defaults('action', 'create')->name('create');
+    Route::get('measure', [$controller, 'measure'])->name('measure');
+    Route::post('skill-sessions', [$controller, 'write'])->defaults('action', 'skill')->name('skill');
     Route::post('sessions/{session}/{action}', [$controller, 'write'])->whereUuid('session')->whereIn('action', ['complete', 'cancel', 'reverse'])->name('change');
 });
 

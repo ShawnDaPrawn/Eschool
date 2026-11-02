@@ -12,6 +12,11 @@ use App\Services\PeerTutoring\PeerSessions;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * The v2 contract carries mastery-topic sessions only. Activity-skill sessions
+ * (Action Plan 4.7) are panel-only until the API and apps are extended, so
+ * every call here passes $skills = false and treats them as not found.
+ */
 class PeerController extends Controller
 {
     private function response(array $data): JsonResponse
@@ -38,13 +43,13 @@ class PeerController extends Controller
 
     public function index(PeerRequest $request): JsonResponse
     {
-        return $this->response(app(PeerQueries::class)->listing($request->user(), $request->persona(), $request->integer('page', 1)));
+        return $this->response(app(PeerQueries::class)->listing($request->user(), $request->persona(), $request->integer('page', 1), false));
     }
 
     public function show(PeerRequest $request, string $session): JsonResponse
     {
         return $this->response(['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $request->user()->id,
-            'session' => app(PeerQueries::class)->read($request->user(), $session, $request->persona())]);
+            'session' => app(PeerQueries::class)->read($request->user(), $session, $request->persona(), false)]);
     }
 
     public function store(PeerRequest $request): JsonResponse
@@ -52,7 +57,7 @@ class PeerController extends Controller
         $row = app(PeerSessions::class)->create($request->user(), $request->safe()->except('persona'));
 
         return $this->response(['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $request->user()->id,
-            'session' => app(PeerQueries::class)->read($request->user(), $row->id, 'staff')]);
+            'session' => app(PeerQueries::class)->read($request->user(), $row->id, 'staff', false)]);
     }
 
     public function complete(PeerRequest $request, string $session): JsonResponse
@@ -72,9 +77,9 @@ class PeerController extends Controller
 
     private function change(PeerRequest $request, string $id, string $action): JsonResponse
     {
-        $row = app(PeerSessions::class)->change($request->user(), $id, $action, $request->safe()->except('persona'));
+        $row = app(PeerSessions::class)->change($request->user(), $id, $action, $request->safe()->except('persona'), false);
 
         return $this->response(['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $request->user()->id,
-            'session' => app(PeerQueries::class)->read($request->user(), $row->id, 'staff')]);
+            'session' => app(PeerQueries::class)->read($request->user(), $row->id, 'staff', false)]);
     }
 }

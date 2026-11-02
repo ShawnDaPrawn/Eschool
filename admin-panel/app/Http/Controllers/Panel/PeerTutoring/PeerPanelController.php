@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Panel\PeerTutoring;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PeerTutoring\PeerMeasureRequest;
 use App\Http\Requests\PeerTutoring\PeerPanelRequest;
 use App\Services\PeerTutoring\PeerMatches;
+use App\Services\PeerTutoring\PeerMeasure;
 use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\PeerTutoring\PeerQueries;
 use App\Services\PeerTutoring\PeerSessions;
@@ -34,11 +36,18 @@ class PeerPanelController extends Controller
         $group = (int) ($selection['group'] ?? 0);
         $learner = (int) ($selection['learner'] ?? 0);
         $roster = $group > 0 ? $queries->roster($request->user(), $group) : [];
-        $matches = $group > 0 && $learner > 0 ? app(PeerMatches::class)->forLearner($request->user(), $group, $learner) : [];
+        $matches = $group > 0 && $learner > 0 ? app(PeerMatches::class)->ranked($request->user(), $group, $learner) : [];
         $school = app(CurrentSchool::class)->id();
         $account = (int) $request->user()->id;
+        $canMeasure = app(PeerMeasure::class)->available($request->user());
 
-        return response()->view('peer-tutoring.index', compact('configuration', 'listing', 'group', 'learner', 'roster', 'matches', 'school', 'account', 'messages'), $status);
+        return response()->view('peer-tutoring.index', compact('configuration', 'listing', 'group', 'learner', 'roster', 'matches', 'school', 'account', 'messages', 'canMeasure'), $status);
+    }
+
+    /** Action Plan 4.7: per grade, how many learners have tutored this term (counts only). */
+    public function measure(PeerMeasureRequest $request): Response
+    {
+        return response()->view('peer-tutoring.measure', ['rows' => app(PeerMeasure::class)->rows($request->user())]);
     }
 
     public function write(PeerPanelRequest $request): Response|RedirectResponse
@@ -50,6 +59,8 @@ class PeerPanelController extends Controller
         try {
             if ($action === 'create') {
                 app(PeerSessions::class)->create($request->user(), $input);
+            } elseif ($action === 'skill') {
+                app(PeerSessions::class)->createSkill($request->user(), $input);
             } else {
                 app(PeerSessions::class)->change($request->user(), (string) $request->route('session'), $action, $input);
             }
