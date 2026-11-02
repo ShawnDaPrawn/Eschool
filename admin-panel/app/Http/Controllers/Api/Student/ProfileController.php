@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shift;
 use App\Models\StudentSessions;
 use App\Services\IdCardService;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,26 +42,31 @@ class ProfileController extends Controller
                 return ResponseService::successResponse('Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration.');
             }
 
+            // A leaver (Action Plan 1.21) has no homeroom this year: the answer names their last one.
+            $room = $studentSession->class_section;
             if ($studentSession->status == 0) {
-                return ResponseService::successResponse('Your Account is Deactivate Please contact Admin for Further Help.', null);
+                $room = app(LeaverState::class)->until($user->student) !== null ? $user->student->class_section : null;
+                if ($room === null) {
+                    return ResponseService::successResponse('Your Account is Deactivate Please contact Admin for Further Help.', null);
+                }
             }
 
             // Set Class Section name
-            $classSectionName = $studentSession->class_section->class->name.' '.$studentSession->class_section->section->name;
+            $classSectionName = $room->class->name.' '.$room->section->name;
 
             // Set Class Section name
-            $streamName = $studentSession->class_section->class->streams->name ?? null;
+            $streamName = $room->class->streams->name ?? null;
             if ($streamName !== null) {
                 $user->class_section_name = $classSectionName.' '.$streamName;
             } else {
                 $user->class_section_name = $classSectionName;
             }
-            $user->is_term_on_in_class = $studentSession->class_section->class->getIncludeTermsForSession($session_year_id);
+            $user->is_term_on_in_class = $room->class->getIncludeTermsForSession($session_year_id);
             // Set Medium name
-            $user->medium_name = $studentSession->class_section->class->medium->name;
+            $user->medium_name = $room->class->medium->name;
 
             // Set School Shift name
-            $user->shift_id = $studentSession->class_section->class->shifts->id ?? '';
+            $user->shift_id = $room->class->shifts->id ?? '';
             $user->shift = Shift::find($user->shift_id);
             if ($user->shift) {
                 $user->shift->id;
@@ -73,7 +79,7 @@ class ProfileController extends Controller
             $user->category_name = $user->student->category->name;
             unset($user->student->category);
 
-            $class_id = $studentSession->class_section->class_id;
+            $class_id = $room->class_id;
 
             $user->is_fee_payment_due = 0; // Retired v1 hint; statements are authoritative.
 
@@ -83,7 +89,7 @@ class ProfileController extends Controller
 
             // Override class_id and class_section_id using student sessions
             $user['class_id'] = $class_id;
-            $user['class_section_id'] = $studentSession->class_section_id;
+            $user['class_section_id'] = $room->id;
 
             $data = json_decode($dynamicField ?? '[]', true);
             if (is_array($data)) {
