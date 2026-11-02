@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Learning\LearnerGrowthWeek;
 use App\Models\Learning\WeeklyParentDigest;
 use App\Models\Platform\School;
 use App\Services\Learning\Digests\WeeklyDigests;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Recognition\PersistenceBadges;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -17,7 +19,7 @@ class SendWeeklyDigests extends Command
 {
     protected $signature = 'digest:weekly {--retention : Erase expired private summary copies}';
 
-    protected $description = 'Compose school-local Monday parent digests from approved language templates and school evidence';
+    protected $description = 'Compose school-local Monday parent digests, learner growth notes and persistence badges from approved templates and school evidence';
 
     public function handle(): int
     {
@@ -27,7 +29,10 @@ class SendWeeklyDigests extends Command
                 app(CurrentSchool::class)->run((int) $school->id, function (): void {
                     if ($this->option('retention')) {
                         WeeklyParentDigest::where('expires_at', '<=', now())->delete();
+                        LearnerGrowthWeek::where('expires_at', '<=', now())->delete();
                     } else {
+                        // Badges follow the awards module, not the digest module.
+                        $this->badges();
                         app(WeeklyDigests::class)->monday();
                     }
                 });
@@ -43,5 +48,16 @@ class SendWeeklyDigests extends Command
         });
 
         return $failed ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function badges(): void
+    {
+        try {
+            app(PersistenceBadges::class)->monday();
+        } catch (HttpExceptionInterface $error) {
+            if (! in_array($error->getStatusCode(), [403, 404, 423], true)) {
+                throw $error;
+            }
+        }
     }
 }

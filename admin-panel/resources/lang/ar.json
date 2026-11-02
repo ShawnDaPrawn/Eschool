@@ -4921,5 +4921,22 @@
     "Notification": "Notification",
     "Not yet": "Not yet",
     "No recipients": "No recipients",
-    "Former member": "Former member"
+    "Former member": "Former member",
+    "Persistence badges": "Persistence badges",
+    "Persistence badge settings": "Persistence badge settings",
+    "Badges are presented automatically each Monday for the week before, and appear with the learner’s permanent awards. Each badge is earned once a week and is never awarded again for that week after a correction.": "Badges are presented automatically each Monday for the week before, and appear with the learner’s permanent awards. Each badge is earned once a week and is never awarded again for that week after a correction.",
+    "The comeback badge uses only evidence the family may see, and needs the mastery map. You are recorded as the presenter of badges while you keep them switched on.": "The comeback badge uses only evidence the family may see, and needs the mastery map. You are recorded as the presenter of badges while you keep them switched on.",
+    "Save persistence badges": "Save persistence badges",
+    "Practice badge": "Practice badge",
+    "Different practice days needed in a week": "Different practice days needed in a week",
+    "Comeback badge": "Comeback badge",
+    "An earlier topic score below this percentage counts as low": "An earlier topic score below this percentage counts as low",
+    "Off": "Off",
+    "On": "On",
+    "Your week of growth": "Your week of growth",
+    "This week you grew in :topics. Keep going!": "This week you grew in :topics. Keep going!",
+    "Kept practising on :days days in one week": "Kept practising on :days days in one week",
+    "Earned automatically for practising on at least :required different days in the week of :week.": "Earned automatically for practising on at least :required different days in the week of :week.",
+    "Came back to :topic and grew": "Came back to :topic and grew",
+    "Earned automatically for returning to a topic after an earlier low score and improving, in the week of :week.": "Earned automatically for returning to a topic after an earlier low score and improving, in the week of :week."
 }

@@ -5994,5 +5994,22 @@
     "Notification": "Isaziso",
     "Not yet": "Akukakabi",
     "No recipients": "Abekho abamukeli",
-    "Former member": "Owayeyilungu"
+    "Former member": "Owayeyilungu",
+    "Persistence badges": "Amabheji okuphikelela",
+    "Persistence badge settings": "Izilungiselelo zamabheji okuphikelela",
+    "Badges are presented automatically each Monday for the week before, and appear with the learner’s permanent awards. Each badge is earned once a week and is never awarded again for that week after a correction.": "Amabheji anikezwa ngokuzenzakalelayo njalo ngoMsombuluko ngesonto elidlule, futhi avela nemiklomelo yomfundi ehlala njalo. Ibheji ngalinye litholwa kanye ngesonto futhi alisanikezwa futhi ngalelo sonto ngemuva kokulungiswa.",
+    "The comeback badge uses only evidence the family may see, and needs the mastery map. You are recorded as the presenter of badges while you keep them switched on.": "Ibheji lokubuya lisebenzisa kuphela ubufakazi umndeni ovunyelwe ukububona, futhi lidinga imephu yokuqonda. Ubhalwa njengomnikezi wamabheji uma nje uwagcina evuliwe.",
+    "Save persistence badges": "Londoloza amabheji okuphikelela",
+    "Practice badge": "Ibheji lokuzijwayeza",
+    "Different practice days needed in a week": "Izinsuku ezihlukene zokuzijwayeza ezidingekayo ngesonto",
+    "Comeback badge": "Ibheji lokubuya",
+    "An earlier topic score below this percentage counts as low": "Amaphuzu esihloko angaphambili angaphansi kwaleli phesenti abalwa njengaphansi",
+    "Off": "Kuvaliwe",
+    "On": "Kuvuliwe",
+    "Your week of growth": "Isonto lakho lokukhula",
+    "This week you grew in :topics. Keep going!": "Kuleli sonto ukhule ku-:topics. Qhubeka!",
+    "Kept practising on :days days in one week": "Uqhubeke nokuzijwayeza izinsuku ezingu-:days ngesonto elilodwa",
+    "Earned automatically for practising on at least :required different days in the week of :week.": "Kutholwe ngokuzenzakalelayo ngokuzijwayeza okungenani izinsuku ezihlukene ezingu-:required ngesonto lika-:week.",
+    "Came back to :topic and grew": "Ubuyele ku-:topic futhi wakhula",
+    "Earned automatically for returning to a topic after an earlier low score and improving, in the week of :week.": "Kutholwe ngokuzenzakalelayo ngokubuyela esihlokweni ngemuva kwamaphuzu aphansi angaphambili nokuthuthuka, ngesonto lika-:week."
 }
