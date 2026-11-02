@@ -68,7 +68,7 @@ dependencies:
   meta: any
   path_provider: any
   firebase_crashlytics: ^5.4.1
-  firebase_analytics: ^12.3.0
+  firebase_analytics: ^12.6.1
   dotted_line: ^3.3.0
   youtube_player_iframe: ^6.0.2
   webview_flutter: ^4.13.1
