@@ -29,6 +29,21 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: a Navigate Ed content library in HQ at `/saas/library`. Content
+  staff add curriculum frameworks (such as CAPS), topics per subject and grade
+  with their prerequisites (a loop of prerequisites is refused), the source and
+  licence of the content, and practice questions, past-paper questions, lessons
+  and diagnostics as drafts. A new Content reviewer role approves or sends back
+  items, with a reason, but only for the subjects they are assigned to and
+  never their own work; only an approved version can be published, and a
+  published version never changes (editing starts a new draft). Every step is
+  in the HQ audit log. Nothing a school writes ever goes into the library.
+- Learning: HQ can switch the library on for a school (off by default). When it
+  is on, a learning group with fewer than ten approved practice questions of
+  its own gets published library questions for its curriculum framework,
+  subject and grade after its own, in daily practice. Mastery evidence now says
+  whether each answer came from the school's own questions or the library, and
+  which library version. **Deploy:** run the migrations.
 - Platform: an HQ home page at `/saas/home`, where signing in to HQ now lands.
   It shows, across every school, the schools by stage, the schools marked at
   risk, what blocks each school still being set up, and, for the roles that

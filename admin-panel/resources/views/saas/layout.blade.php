@@ -32,6 +32,8 @@
         @if ($platformCan('flags.manage'))<a href="{{ route('saas.flags.index') }}">{{ __('Feature flags') }}</a>@endif
         @if ($platformCan('incidents.manage'))<a href="{{ route('saas.incidents.index') }}">{{ __('Incidents') }}</a>@endif
         @if ($platformCan('ai.view'))<a href="{{ route('saas.ai') }}">{{ __('AI control centre') }}</a>@endif
+        @if ($platformCan('library.manage'))<a href="{{ route('saas.library.index') }}">{{ __('Content library') }}</a>@endif
+        @if ($platformCan('library.review'))<a href="{{ route('saas.library.reviews') }}">{{ __('Library reviews') }}</a>@endif
         @if ($platformCan('support.manage'))<a href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
         @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('identity.review'))<a href="{{ route('saas.lurits') }}">{{ __('LURITS claims') }}</a>@endif

@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'library_school_settings',
         'school_messaging_settings',
         'school_sending_domains',
         'lurits_conflicts',
@@ -134,6 +135,14 @@ final class SchoolOwnedTables
 
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
+        'library_frameworks' => 'the platform content library\'s curriculum frameworks (CAPS, IEB), written only from /saas/library; no school data flows into the library',
+        'library_sources' => 'where library content comes from and its licence, written only from /saas/library; names no school',
+        'library_topics' => 'the platform library\'s topics per framework, subject and grade, written only from /saas/library; a school mirrors them in its own mastery_topics',
+        'library_topic_prerequisites' => 'prerequisite edges between platform library topics, written only from /saas/library',
+        'library_items' => 'platform library items (practice and past-paper questions, lessons, diagnostics), written only from /saas/library; never a school\'s own material',
+        'library_item_versions' => 'versioned library item content; a published version is immutable; written only from /saas/library',
+        'library_reviews' => 'HQ reviewers\' decisions on library item versions; names platform staff only',
+        'library_reviewers' => 'which platform staff review which library framework and subject; no school role or record',
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
         'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
