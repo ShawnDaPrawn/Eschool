@@ -107,6 +107,20 @@ Earlier history is kept where it was written and is not repeated here:
   notification channel, and for email and push how many were delivered, sent,
   bounced or failed, with each recipient by name. Addresses are never shown.
   **Deploy:** run the migrations.
+- Platform and Admin panel: audited support access. Navigate Ed Support,
+  Operations and Owner staff ask a school for access at `/saas/support`, with a
+  reason and a length of up to four hours. The school's Super Admins are told
+  at once and approve or decline under Settings, "Navigate Ed support access";
+  when the school cannot be reached, another Owner can open a request that has
+  waited at least 15 minutes, with a recorded reason, and the school is told
+  immediately. A school's decline stands: nobody can ask again or override for
+  a day. While it is open, the staff member sees a read-only view of the
+  school's set-up and accounts (learners and parents only by exact email),
+  never wellbeing, counselling, health, safeguarding, discipline,
+  early-warning or support-plan records. Every page they open, and every
+  account a list or search showed, is listed for the school and in the HQ
+  audit log. It ends by itself, or earlier when the school or the staff member
+  ends it. **Deploy:** run the migrations.
 - Platform: announcements to schools at `/saas/announcements` for Owner and
   Operations. Write release notes, a maintenance window or a policy change, aim
   it at every school, at schools on a package or at a lifecycle stage, or at
