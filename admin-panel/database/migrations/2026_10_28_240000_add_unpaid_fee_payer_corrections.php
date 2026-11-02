@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('fee_charges', fn (Blueprint $t) => $t->string('kind', 16)->default('fee_item')->collation('utf8mb4_bin'));
-        DB::statement('ALTER TABLE fee_charges MODIFY fee_item_id BIGINT UNSIGNED NULL');
+        $this->feeItemNullability(true);
         DB::statement("ALTER TABLE fee_charges ADD CONSTRAINT fee_charge_kind_source CHECK ((kind='fee_item' AND fee_item_id IS NOT NULL) OR (kind='payer_correction' AND fee_item_id IS NULL))");
         $this->runRules(true);
         Schema::create('fee_payer_corrections', function (Blueprint $t): void {
@@ -71,8 +71,32 @@ SQL);
         Schema::drop('fee_payer_corrections');
         $this->dropCheck('fee_charges', 'fee_charge_kind_source');
         Schema::table('fee_charges', fn (Blueprint $t) => $t->dropColumn('kind'));
-        DB::statement('ALTER TABLE fee_charges MODIFY fee_item_id BIGINT UNSIGNED NOT NULL');
+        $this->feeItemNullability(false);
         $this->runRules(false);
+    }
+
+    /** Preserve the composite tenant/source reference while changing nullability. */
+    private function feeItemNullability(bool $nullable): void
+    {
+        $foreign = collect(Schema::getForeignKeys('fee_charges'))->first(fn (array $key): bool => $key['columns'] === ['school_id', 'fee_item_id'] && $key['foreign_table'] === 'fee_items'
+                && $key['foreign_columns'] === ['school_id', 'id']);
+        if ($foreign === null) {
+            throw new RuntimeException('The composite fee-item reference must exist before changing charge nullability.');
+        }
+        $oldName = str_replace('`', '``', $foreign['name']);
+        $newName = 'fee_charges_fee_item_'.($nullable ? 'optional' : 'required');
+        if ($newName === $foreign['name']) {
+            $newName .= '_restored';
+        }
+        $null = $nullable ? 'NULL' : 'NOT NULL';
+        // MySQL rejects tightening a column under its existing FK, and rejects
+        // dropping and re-adding the same FK name in one statement. Alternate
+        // names keep this atomic, with identical columns and RESTRICT behavior.
+        // Foreign-key checks remain enabled throughout the migration.
+        DB::statement("ALTER TABLE fee_charges DROP FOREIGN KEY `$oldName`,
+            MODIFY fee_item_id BIGINT UNSIGNED $null,
+            ADD CONSTRAINT `$newName` FOREIGN KEY (school_id, fee_item_id)
+                REFERENCES fee_items (school_id, id) ON DELETE RESTRICT");
     }
 
     private function runRules(bool $extended): void
