@@ -125,6 +125,7 @@ use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
+use App\Http\Controllers\Platform\PlatformMailStreamsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
@@ -134,6 +135,7 @@ use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
+use App\Http\Controllers\School\SendingDomainController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SessionYearController;
 use App\Http\Controllers\SettingController;
@@ -328,6 +330,9 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // SES streams (2.3): each school's account and bulk configuration sets, their status and rates; counts only.
+    Route::get('/mail-streams', [PlatformMailStreamsController::class, 'index'])->middleware('platform.can:mail.view')->name('mail-streams');
+    Route::post('/mail-streams/check', [PlatformMailStreamsController::class, 'check'])->middleware(['platform.can:mail.manage', 'throttle:20,1'])->name('mail-streams.check');
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -1332,6 +1337,11 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+    // The domain the school's notices are sent from (Action Plan 2.2); SendingDomainRequest checks the right.
+    Route::get('/sending-domain', [SendingDomainController::class, 'index'])->name('sending-domain.index');
+    Route::post('/sending-domain', [SendingDomainController::class, 'store'])->middleware('throttle:10,1')->name('sending-domain.store');
+    Route::post('/sending-domain/{sendingDomain}/check', [SendingDomainController::class, 'check'])->whereNumber('sendingDomain')->middleware('throttle:20,1')->name('sending-domain.check');
+    Route::delete('/sending-domain/{sendingDomain}', [SendingDomainController::class, 'destroy'])->whereNumber('sendingDomain')->middleware('throttle:10,1')->name('sending-domain.destroy');
 });
 
 Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {

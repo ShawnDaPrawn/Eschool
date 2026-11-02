@@ -21,6 +21,7 @@ use App\Services\Academics\SasamsExport;
 use App\Services\Academics\TeachingGroups;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -54,6 +55,8 @@ class SasamsExportTest extends TestCase
         $this->grade = (int) GradeLevel::where('code', '7')->value('id');
         $this->learner = $this->schoolA->ids['asha'];
         SessionYear::whereKey($this->year)->update(['start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
+        // DemoSchool uses the build date; this suite exports a fixed 2026 year.
+        DB::table('terms')->where('id', $this->schoolA->ids['term'])->update(['start_date' => '2026-01-01', 'end_date' => '2026-03-31']);
         ClassSchool::whereKey($this->schoolA->ids['class_a'])->update(['grade_level_id' => $this->grade]);
         Students::whereKey($this->learner)->update(['student_number' => '000007']);
         $this->number = '000007';
@@ -223,6 +226,8 @@ class SasamsExportTest extends TestCase
     public function test_undated_tasks_use_the_assessment_term_end_for_dated_membership(): void
     {
         $p = $this->task(false);
+        // The learner joins after today's test clock, but belongs at term end.
+        TeachingGroupMembership::where('teaching_group_id', $p['group_id'])->update(['starts_on' => '2026-03-01', 'ends_on' => '2026-03-31']);
         $this->assertStringContainsString('000042;15.75;20.00', $this->export($p)['content']);
     }
 

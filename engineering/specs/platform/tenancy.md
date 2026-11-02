@@ -56,7 +56,7 @@ Read from the real schema (`information_schema`) on the Phase 0 tip. The lists l
 
 Child rows (`lesson_topics`, `chat_files`, `media_files`, `online_exam_question_options` and the like) carry `school_id` too, rather than following their parent: a child row looked up by its own id is then refused across schools by the same scope, with no join to remember. `learner_invitations` is the one model without the scope: an invitation is found by its secret token or code on the public set-up page, before anyone knows the school, and is always created with the school set.
 
-**School-owned, `school_id` nullable** (indexed, no foreign key): `settings` (null rows are the platform's keys and the defaults beneath every school), `audit_log` and `domain_events` (platform actions and events have no school; log rows outlive what they describe), `notification_deliveries` (a delivery records the school it was sent for), `idempotency_keys` (the school a write was made in).
+**School-owned, `school_id` nullable** (indexed, no foreign key): `settings` (null rows are the platform's keys and the defaults beneath every school), `audit_log` and `domain_events` (platform actions and events have no school; log rows outlive what they describe), `notification_deliveries` (a delivery records the school it was sent for), `idempotency_keys` (the school a write was made in), `mail_streams` (a school's SES configuration set for each mail stream; rows without a school are the platform's own pair, and every read names the school explicitly, Action Plan 2.3).
 
 **Spatie teams** (`school_id` is the team key): `roles` (each school has its own Super Admin, Teacher, Parent and Student roles and the roles it creates; nullable only because Spatie reserves null for a role every school shares, and none exists), `model_has_roles` and `model_has_permissions` (NOT NULL and part of the primary key: a role or direct permission is given at one school).
 
@@ -281,3 +281,12 @@ The apps' parent home and child screens are app work and not part of this step; 
 timetable it serves. The public `.ics` endpoint has no school header; it finds
 the link by its token hash, then runs inside the link's school and rechecks the
 owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### School sending domains
+
+`school_sending_domains` is required school-owned, with a unique school foreign
+key (one domain per school) and a unique domain (one school per domain). Its model
+uses BelongsToSchool. Two reads cross schools on purpose and say only yes or no or
+use the delivery's own school: the connect check that no other school has the
+domain, a subdomain or a parent of it, and the From address a queued notice uses,
+read by the school the delivery row names. The scheduled poll lists due domains
+across schools and checks each inside its own school ([sending domains](sending-domains.md)).

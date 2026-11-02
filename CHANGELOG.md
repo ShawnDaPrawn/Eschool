@@ -79,6 +79,33 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
+- Platform: each school's mail now goes out on two Amazon SES streams, one for
+  account and safety mail (sign-in links, password resets, invitations, welcome
+  mails, safeguarding alerts, urgent notices and absence alerts) and one for
+  everything else, each through the school's own SES configuration set, so one
+  school's newsletter bounces can no longer hold up another school's or its own
+  password resets. HQ's new "Mail streams" page (/saas/mail-streams) shows each
+  school's streams, whether SES lets them send, any tenant pause SES reports,
+  and 30 days of bounce and complaint rates flagged at SES's review and pause
+  levels; Operations can set up or check a school's streams there. Off until
+  `MAIL_SES_STREAMS` is switched on. **Deploy:** run the migrations. Before
+  switching on, see engineering/specs/platform/ses-streams.md (VDM cost check,
+  SES key permissions, leave `AWS_SES_CONFIGURATION_SET` empty, then run
+  `php artisan mail:ensure-streams`).
+
+- Admin panel: schools can send their notices from their own domain. Under
+  Settings, "Email from your domain", the school's Super Admin enters the domain,
+  sees the exact DNS records to add (three DKIM records, the bounce MX and SPF
+  records and a recommended DMARC record), and presses "Check now" or waits for
+  the automatic check. Once Amazon SES has verified it, the school's notices come
+  from "<school name> <notices@that domain>"; until then, and always for password
+  and invitation emails, from the NavigateEd address. Disconnecting goes back to
+  the NavigateEd address at once. Each domain belongs to one school, and every
+  connect, verification change and disconnect is in the audit log. HQ's onboarding
+  checklist shows whether the school's domain is verified. Off until
+  `MAIL_SENDING_DOMAINS=true`. **Deploy:** run the migrations; to switch it on, give
+  the SES keys the identity permissions listed in
+  `engineering/specs/platform/sending-domains.md` and set `MAIL_SENDING_DOMAINS=true`.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and

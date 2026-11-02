@@ -39,6 +39,14 @@ Schedule::command('money:backfill-cents')->dailyAt('02:10')->withoutOverlapping(
 // Each school enables its own cadence and local delivery hour.
 Schedule::command('fees:remind')->hourly()->withoutOverlapping();
 
+// School sending domains (Action Plan 2.2): waiting domains are checked with
+// SES every ten minutes, verified ones once a day; nothing while switched off.
+Schedule::command('mail:check-sending-domains')->everyFiveMinutes()->withoutOverlapping();
+
+// SES streams (Action Plan 2.3): each school's account and bulk configuration
+// sets are set up within the hour and checked daily; nothing while switched off.
+Schedule::command('mail:ensure-streams')->hourly()->withoutOverlapping();
+
 // Read-only by default: discrepancies remain visible and generate a critical
 // operations log; historical receipts are never automatically reposted.
 Schedule::command('ledger:reconcile --json')->dailyAt('02:20')->withoutOverlapping();

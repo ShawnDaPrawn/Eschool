@@ -11,11 +11,13 @@ use App\Models\Platform\School;
 use App\Models\Platform\SchoolAccountEvent;
 use App\Models\Platform\SchoolContract;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolSendingDomain;
 use App\Models\Platform\StaffInvitation;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Mail\SendingDomains;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -116,8 +118,17 @@ class PlatformOnboarding
 
     private function sendingDomain(): array
     {
-        // Branded email from the school's own domain arrives with Action Plan 2.2.
-        return $this->step('sending_domain', 'Email from the school\'s own domain', self::LATER, 'Available when branded email is released.', null);
+        // Branded email from the school's own domain (Action Plan 2.2), once switched on for the platform.
+        if (! SendingDomains::enabled()) {
+            return $this->step('sending_domain', 'Email from the school\'s own domain', self::LATER, 'Available when branded email is switched on.', null);
+        }
+        $status = SchoolSendingDomain::query()->value('status');
+
+        return match ($status) {
+            SchoolSendingDomain::VERIFIED => $this->step('sending_domain', 'Email from the school\'s own domain', self::DONE, 'The school\'s domain is verified; its notices come from it.', null),
+            null => $this->step('sending_domain', 'Email from the school\'s own domain', self::TODO, 'No domain connected.', 'The school connects its domain under Settings, Email from your domain.'),
+            default => $this->step('sending_domain', 'Email from the school\'s own domain', self::STARTED, 'A domain is connected and not verified yet.', 'The school adds the DNS records shown on its page; it is checked automatically.'),
+        };
     }
 
     private function homerooms(): array

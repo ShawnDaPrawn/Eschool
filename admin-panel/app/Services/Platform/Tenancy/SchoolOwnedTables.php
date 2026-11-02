@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
@@ -101,6 +102,7 @@ final class SchoolOwnedTables
      */
     public const NULLABLE = [
         'audit_log', 'domain_events', 'idempotency_keys', 'notification_deliveries', 'settings',
+        'mail_streams',
     ];
 
     /**
