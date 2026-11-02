@@ -17,7 +17,7 @@ dependencies:
     path: ../eschool_core
   eschool_session:
     path: ../eschool_session
-  firebase_core: ^4.7.0
+  firebase_core: ^4.15.2
   firebase_messaging: ^16.2.0
   flutter_bloc: ^9.1.1
   permission_handler: ^12.0.1
