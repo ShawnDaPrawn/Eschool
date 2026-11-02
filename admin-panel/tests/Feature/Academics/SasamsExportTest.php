@@ -54,6 +54,10 @@ class SasamsExportTest extends TestCase
         $this->grade = (int) GradeLevel::where('code', '7')->value('id');
         $this->learner = $this->schoolA->ids['asha'];
         SessionYear::whereKey($this->year)->update(['start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
+        // The demo term is built relative to the real clock; pin it inside the frozen 2026 year
+        // so undated tasks (which fall back to the term end) stay inside the 2026 memberships.
+        SessionYear::query()->getConnection()->table('terms')->where('id', $this->schoolA->ids['term'])
+            ->update(['start_date' => '2026-01-14', 'end_date' => '2026-03-27']);
         ClassSchool::whereKey($this->schoolA->ids['class_a'])->update(['grade_level_id' => $this->grade]);
         Students::whereKey($this->learner)->update(['student_number' => '000007']);
         $this->number = '000007';
