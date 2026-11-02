@@ -130,6 +130,7 @@ use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
+use App\Http\Controllers\Platform\PlatformMessagingController;
 use App\Http\Controllers\Platform\PlatformMailStreamsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
@@ -145,6 +146,7 @@ use App\Http\Controllers\Platform\SchoolSupportAccessController;
 use App\Http\Controllers\Platform\SchoolJoinInvitationController;
 use App\Http\Controllers\Platform\SchoolAnnouncementController;
 use App\Http\Controllers\Platform\StaffInvitationController;
+use App\Http\Controllers\Platform\UrgentMessagingController;
 use App\Http\Controllers\Platform\SupportSessionController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
@@ -167,6 +169,7 @@ use App\Http\Controllers\TermController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
+use App\Http\Controllers\Webhooks\MessagingWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\AuthorizeCardEncodingPanel;
 use App\Http\Middleware\AuthorizeCardsPanel;
@@ -377,6 +380,8 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // SMS and WhatsApp pass-through cost per school (2.7): counts and sums only.
+    Route::get('/messaging', [PlatformMessagingController::class, 'index'])->middleware('platform.can:messaging.view')->name('messaging');
     // The support desk (SA.17): every school's tickets, replies, internal notes, assignee and status.
     Route::prefix('/support-desk')->middleware('platform.can:support.manage')->name('support-desk.')->group(function () {
         Route::get('/', [PlatformSupportController::class, 'index'])->name('index');
@@ -1397,6 +1402,10 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
 // only the topics in services.ses_notifications.topic_arns are accepted).
 Route::post('webhook/mail/ses', [MailWebhookController::class, 'ses'])->middleware('throttle:mail-webhook')->name('webhook.mail.ses');
 
+// Twilio SMS and WhatsApp status callbacks (Action Plan 2.7), signed with the
+// platform's auth token (X-Twilio-Signature).
+Route::post('webhook/messaging/twilio', [MessagingWebhookController::class, 'twilio'])->middleware('throttle:messaging-webhook')->name('webhook.messaging.twilio');
+
 // Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {
     $settings = getSettings('privacy_policy');
@@ -1457,6 +1466,9 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::put('/people-profiles/{person?}', [ProfileFormController::class, 'update'])->whereNumber('person')->name('people-profiles.update');
     Route::get('/notification-rules', [NotificationRuleController::class, 'index'])->name('notification-rules.index');
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
+    // SMS and WhatsApp for urgent notices (Action Plan 2.7): off until the school switches them on.
+    Route::get('/urgent-messaging', [UrgentMessagingController::class, 'index'])->name('urgent-messaging.index');
+    Route::put('/urgent-messaging', [UrgentMessagingController::class, 'update'])->middleware('throttle:20,1')->name('urgent-messaging.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
     // Support tickets to Navigate Ed (Action Plan SA.17); SupportTicketRequest checks the right.

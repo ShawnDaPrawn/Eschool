@@ -39,6 +39,9 @@ Schedule::command('money:backfill-cents')->dailyAt('02:10')->withoutOverlapping(
 // Each school enables its own cadence and local delivery hour.
 Schedule::command('fees:remind')->hourly()->withoutOverlapping();
 
+// Twilio prices SMS and WhatsApp messages after sending (Action Plan 2.7).
+Schedule::command('messaging:fetch-prices')->hourly()->name('messaging-prices')->withoutOverlapping();
+
 // School sending domains (Action Plan 2.2): waiting domains are checked with
 // SES every ten minutes, verified ones once a day; nothing while switched off.
 Schedule::command('mail:check-sending-domains')->everyFiveMinutes()->withoutOverlapping();

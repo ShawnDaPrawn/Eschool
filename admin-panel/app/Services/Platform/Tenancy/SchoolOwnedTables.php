@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'school_messaging_settings',
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',

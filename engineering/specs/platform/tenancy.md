@@ -328,6 +328,17 @@ name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
 
+### SMS and WhatsApp
+
+`school_messaging_settings` is required school-owned (one row per school, a
+foreign key to the school): each school's own SMS and WhatsApp opt-in, never
+another school's. Texted deliveries are `notification_deliveries` rows like mail
+and push, with the school they were sent for; HQ reads their counts and cost
+across schools. Guardians' numbers come from the school-owned `parents` row at
+the sending school, never from the shared `users` row
+([SMS and WhatsApp](sms-whatsapp.md)).
+
+
 ### Support desk
 
 `school_support_tickets` and `school_support_ticket_messages` are required
