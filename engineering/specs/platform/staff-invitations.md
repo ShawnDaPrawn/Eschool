@@ -69,6 +69,15 @@ password and opens Home; re-sending works until acceptance, then does nothing.
 Browser: `e2e/tests/saas-panel.spec.ts` follows the link in a second browser at
 both widths.
 
+## People who already have an account
+
+Someone whose address already has an account is not sent this link: a school
+invites them to join with that account ([existing-account-invitations.md](existing-account-invitations.md),
+Action Plan 1.3), and their password is never reset. A person who also belongs to
+another school is never sent a set-your-password link from a school either: the
+"Send sign-in invitation" button answers as usual and sends nothing
+(`staff_invitation_withheld`), and the staff import skips them.
+
 ## Not yet
 
 - Reminders before expiry (guardian invitations have them).

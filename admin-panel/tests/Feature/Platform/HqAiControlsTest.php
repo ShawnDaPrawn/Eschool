@@ -19,6 +19,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -29,6 +30,7 @@ use Tests\TestCase;
  */
 class HqAiControlsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const PRIVATE_OUTPUT = 'Synthetic private tutor answer never shown at HQ';
@@ -108,7 +110,7 @@ class HqAiControlsTest extends TestCase
     public function test_the_page_shows_qualification_caps_spend_and_queue_counts_from_metering(): void
     {
         $this->seedMetering();
-        $this->actingAs($this->staff('support'));
+        $this->actingAsHq($this->staff('support'));
 
         $response = $this->get('/saas/ai')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $response->assertSee('AI control centre')->assertSee('Not qualified')->assertSee('No evaluation result recorded')
@@ -147,7 +149,7 @@ class HqAiControlsTest extends TestCase
         $this->usage(2, '2026-10-20', 777);
         $this->usage(2, '2026-10-01', 333);
         $this->flag(2);
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
 
         $schools = collect($this->get('/saas/ai')->assertOk()->viewData('schools'))->keyBy('id');
         $this->assertSame([], $schools[1]['month']);
@@ -159,7 +161,7 @@ class HqAiControlsTest extends TestCase
     public function test_owner_switches_a_qualified_feature_on_and_off_with_an_audited_reason(): void
     {
         config(['ai.providers.openai.qualified' => true]);
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
         $this->get('/saas/ai')->assertOk()->assertSee('Switch an AI feature for a school');
         $before = $this->moduleRow(2, 'tutor');
 
@@ -192,7 +194,7 @@ class HqAiControlsTest extends TestCase
 
     public function test_switching_on_an_unqualified_feature_is_refused(): void
     {
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
         $before = [$this->moduleRow(1, 'tutor'), AuditLog::query()->where('action', 'platform_ai_feature_switched')->count()];
 
         $this->put('/saas/ai/switch', ['school_id' => 1, 'module' => 'tutor', 'enabled' => '1', 'reason' => self::REASON])->assertSessionHasErrors('module');
@@ -218,14 +220,14 @@ class HqAiControlsTest extends TestCase
         $snapshot = $before();
 
         foreach (['sales', 'finance', 'content'] as $role) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $this->get('/saas')->assertOk()->assertDontSee('AI control centre');
             $this->get('/saas/ai')->assertForbidden();
             $this->put('/saas/ai/switch', ['school_id' => 1, 'module' => 'tutor', 'enabled' => '1', 'reason' => self::REASON])->assertForbidden();
         }
         // Support and Operations see the page but cannot switch.
         foreach (['support', 'operations'] as $role) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $this->get('/saas')->assertOk()->assertSee('AI control centre');
             $this->put('/saas/ai/switch', ['school_id' => 1, 'module' => 'tutor', 'enabled' => '1', 'reason' => self::REASON])->assertForbidden();
             try {
@@ -257,7 +259,7 @@ class HqAiControlsTest extends TestCase
     public function test_the_dated_cost_report_stays_behind_its_own_grant_and_is_linked_for_holders(): void
     {
         $support = $this->staff('support');
-        $this->actingAs($support)->get('/saas/ai')->assertOk()->assertDontSee('Open the dated cost report');
+        $this->actingAsHq($support)->get('/saas/ai')->assertOk()->assertDontSee('Open the dated cost report');
         $this->get('/platform/ai-costs')->assertForbidden();
 
         PlatformAiCostGrant::create(['user_id' => $support->id, 'active' => true, 'expires_at' => now()->addHour()]);
