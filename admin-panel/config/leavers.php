@@ -20,7 +20,11 @@ return [
         /*
          * Requests a leaver (or a guardian acting for one) may still send as
          * POST, PUT, PATCH or DELETE ($request->is() patterns): reads sent as
-         * POST, and read receipts, which change nothing the school relies on.
+         * POST, read receipts and acknowledgements, which change nothing the
+         * school relies on, and a guardian's transfer consent. Decisions that
+         * only take access away (withdrawing an approval, rejecting a handle
+         * proposal, switching an optional fee item off) are let through by
+         * LeaverState::onlyRemovesAccess.
          * Everything else that writes is refused (App\Services\People\Leavers\
          * LeaverAccess and LeaverState::guardFamilyWrite). Signing out and
          * changing one's own password run without a school (school.context:
@@ -37,6 +41,12 @@ return [
             'api/student/get-user-message',
             'api/v2/wellbeing/own/follow-up',
             'api/v2/wellbeing/own/photos/download',
+            // Acknowledgements: accepting the school's terms, which every parent-app read needs.
+            'api/parent/policy-acceptance',
+            // A guardian consenting to (or withdrawing) a transfer that sends the leaver's
+            // records to a new school, which staff prepare and release.
+            'api/v2/transfers/packages/*/consent',
+            'api/v2/transfers/packages/*/withdraw',
             // Read receipts.
             'api/parent/read-all-message',
             'api/v2/communication/messages/*/read',
@@ -62,7 +72,6 @@ return [
         'api/student/leave-report',
         'api/student/assignment-report',
         'api/student/get-online-exam-result-list',
-        'api/student/get-online-exam-result',
         'api/student/get-leave-list',
         'api/student/get-user-message',
     ],

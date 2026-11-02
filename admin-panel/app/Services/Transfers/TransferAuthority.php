@@ -11,7 +11,6 @@ use App\Models\Transfers\TransferReceipt;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
-use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -48,8 +47,6 @@ class TransferAuthority
         $fresh = $this->actor($actor, $write);
         abort_unless($fresh->email_verified_at !== null && in_array('Parent', app(ProfilePolicy::class)->roles($fresh), true), 403);
         abort_unless(GuardianLink::where('learner_id', $learner)->where('guardian_user_id', $fresh->id)->where('status', 'active')->where('can_approve', true)->exists(), 404);
-        // Nothing is written for a leaver (Action Plan 1.21).
-        app(LeaverState::class)->guardFamilyWrite($learner);
 
         return $fresh;
     }

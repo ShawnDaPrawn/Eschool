@@ -54,8 +54,9 @@ class TransferEnrollment
         if ($learner->user !== null) {
             app(MembershipService::class)->forget($learner->user);
         }
-        // Guardians left with only leavers here, or none (Action Plan 1.21). A
-        // transfer dated later is settled only once the learner's membership has ended.
+        // Guardians left with only leavers here, or none (Action Plan 1.21). This
+        // settles them only if the learner's membership has already ended: when it
+        // ends on a later date nothing settles them then (spec, Not in this step).
         app(LeaverState::class)->settleGuardians(app(GuardianService::class)->guardianUserIds($learner)->all());
         app(AcademicProjections::class)->refresh();
         Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'academics.learner_changed'));

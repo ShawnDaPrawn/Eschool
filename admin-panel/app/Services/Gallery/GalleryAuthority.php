@@ -56,7 +56,7 @@ class GalleryAuthority
     public function family(User $actor, int $learnerId, bool $write = false, bool $approve = false, bool $removal = false): Students
     {
         $fresh = $this->actor($actor, $write, $removal);
-        $roles = app(ProfilePolicy::class)->roles($fresh, ! $removal);
+        $roles = app(ProfilePolicy::class)->roles($fresh, $removal ? false : null);
         abort_unless(array_intersect($roles, ['Parent', 'Student']) !== [], 403);
         $learner = Students::findOrFail($learnerId);
         $own = ! $approve && in_array('Student', $roles, true) && (int) $learner->user_id === (int) $fresh->id;
@@ -68,7 +68,7 @@ class GalleryAuthority
         abort_unless($own || $parent, 404);
         // A guardian may still remove a leaver's photo tag; nothing else is written for them (1.21).
         if ($write && ! $removal) {
-            app(LeaverState::class)->guardFamilyWrite($learner);
+            app(LeaverState::class)->guardFamilyWrite($learner, $fresh);
         }
         if ($own) {
             abort_unless(app(ApprovalService::class)->approved($learner), 403, 'Guardian approval is required.');
