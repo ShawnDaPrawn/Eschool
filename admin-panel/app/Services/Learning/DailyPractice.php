@@ -71,8 +71,10 @@ class DailyPractice
         $readable = app(ContentPolicy::class)->readableVersions($actor, $learner)->pluck('id')->all();
         $memories = PracticeMemory::where('learner_id', $learner)->whereIn('practice_item_id', $items->pluck('id'))->get()->keyBy('practice_item_id');
         // Only released-family or own-practice aggregates steer learner choices, never raw staff marks.
-        $audience = app(TopicGraph::class)->settings()['family_marks_enabled'] ? 'family' : 'practice';
-        $weakness = MasteryRecord::where('learner_id', $learner)->where('subject_id', $group->subject_id)->where('audience', $audience)->pluck('level', 'topic_id');
+        $settings = app(TopicGraph::class)->settings();
+        $audience = $settings['family_marks_enabled'] ? 'family' : 'practice';
+        $weakness = MasteryRecord::where('learner_id', $learner)->where('subject_id', $group->subject_id)->where('audience', $audience)
+            ->where('policy_version', $settings['policy_version'])->pluck('level', 'topic_id');
         $today = app(AcademicAuthority::class)->today();
         $byId = $items->keyBy('id');
         $available = [];

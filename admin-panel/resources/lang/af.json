@@ -5920,5 +5920,16 @@
     "A smart group needs between one and ten rules.": "'n Slim groep het tussen een en tien reëls nodig.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "'n Reël noem 'n groep wat nie meer aktief is nie. Verwyder daardie reël of argiveer die groep; boodskappe daaraan kan eers dan gestuur word.",
     "Remove a calendar link for this learner before making another.": "Verwyder 'n kalenderskakel vir hierdie leerder voordat jy nog een maak.",
-    "Exam: :subject": "Eksamen: :subject"
+    "Exam: :subject": "Eksamen: :subject",
+    "Scored with": "Bereken met",
+    "Mastery model": "Bemeesteringsmodel",
+    "Choose the mastery model": "Kies die bemeesteringsmodel",
+    "Mastery model for this school": "Bemeesteringsmodel vir hierdie skool",
+    "Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.": "Model v2 laat onlangse en moeiliker vrae swaarder weeg, laat ou bewyse vervaag teen die tempo van die leerder se oefengeheue, tel oefening teen die helfte van die gewig van punte, en laat bewysdekking stadig groei.",
+    "Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.": "Elke telling hou rekord van die model wat dit bereken het. Model v1-tellings word altyd bygehou, sodat jy enige tyd kan terugskakel. Om na model v2 oor te skakel, plaas ’n herberekening van elke aktiewe groep in die tou.",
+    "Save mastery model": "Stoor bemeesteringsmodel",
+    "Mastery model v1: the last 20 answers, marks added up": "Bemeesteringsmodel v1: die laaste 20 antwoorde, punte bymekaargetel",
+    "Mastery model v2: weighted by recency, difficulty and forgetting": "Bemeesteringsmodel v2: geweeg volgens onlangsheid, moeilikheid en vergeet",
+    "Mastery settings changed. Review the current model and try again.": "Die bemeesteringsinstellings het verander. Kyk na die huidige model en probeer weer.",
+    "Mastery model saved": "Bemeesteringsmodel gestoor"
 }

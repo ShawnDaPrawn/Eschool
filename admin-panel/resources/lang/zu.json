@@ -5920,5 +5920,16 @@
     "A smart group needs between one and ten rules.": "Iqembu elihlakaniphile lidinga imithetho ephakathi kweyodwa neyishumi.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "Umthetho ubala iqembu elingasasebenzi. Susa lowo mthetho noma ugcine iqembu; imilayezo eya kulo ayikwazi ukuthunyelwa kuze kube yileso sikhathi.",
     "Remove a calendar link for this learner before making another.": "Susa isixhumanisi sekhalenda salo mfundi ngaphambi kokwenza esinye.",
-    "Exam: :subject": "Isivivinyo: :subject"
+    "Exam: :subject": "Isivivinyo: :subject",
+    "Scored with": "Kubalwe nge",
+    "Mastery model": "Imodeli yokwazi",
+    "Choose the mastery model": "Khetha imodeli yokwazi",
+    "Mastery model for this school": "Imodeli yokwazi yalesi sikole",
+    "Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.": "Imodeli v2 inika imibuzo yakamuva neqinile isisindo esikhulu, ivumela ubufakazi obudala buphele ngejubane lenkumbulo yokuzijwayeza yomfundi, ibala ukuzijwayeza ngengxenye yesisindo samamaki, futhi ikhulisa ukumbozwa kobufakazi kancane.",
+    "Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.": "Amaphuzu wonke aqopha imodeli eyawakhiqiza. Amaphuzu emodeli v1 ahlala esesikhathini, ngakho ungabuyela kuyo noma nini. Ukushintshela kumodeli v2 kufaka emgqeni ukuvuselelwa kwawo wonke amaqembu asebenzayo.",
+    "Save mastery model": "Londoloza imodeli yokwazi",
+    "Mastery model v1: the last 20 answers, marks added up": "Imodeli yokwazi v1: izimpendulo zokugcina ezingu-20, amamaki ahlanganisiwe",
+    "Mastery model v2: weighted by recency, difficulty and forgetting": "Imodeli yokwazi v2: inesisindo ngokwakamuva, ubunzima nokukhohlwa",
+    "Mastery settings changed. Review the current model and try again.": "Izilungiselelo zokwazi zishintshile. Buyekeza imodeli yamanje bese uzama futhi.",
+    "Mastery model saved": "Imodeli yokwazi ilondoloziwe"
 }

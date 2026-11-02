@@ -28,11 +28,13 @@
             @if($writable)<form method="POST" action="{{ route('mastery.rebuild',['group'=>$group->id]) }}">@csrf<button class="m3-button m3-button--outlined" type="submit">{{ __('Refresh learner evidence') }}</button></form>@endif
             @endif
             <p>{{ __('Recent question evidence is bounded. Missing evidence remains unknown.') }}</p>
+            <p data-mastery-model>{{ \App\Services\Growth\MasteryModels::label($configuration['settings']['policy_version']) }}</p>
         </aside>
         <section class="mastery-panel" aria-labelledby="mastery-guidance-heading">
             <h2 id="mastery-guidance-heading">{{ __('Start with these topics') }}</h2>
             @if($view)
                 @php $topicNames=array_column($view['topics'],'name','id'); @endphp
+                <p data-mastery-version="{{ $view['policy_version'] }}">{{ __('Scored with') }}: {{ \App\Services\Growth\MasteryModels::label($view['policy_version']) }}</p>
                 @forelse($view['priorities'] as $priority)
                     <article class="mastery-topic"><h3>{{ $priority['name'] }}</h3><p>{{ $priority['level'] === null ? __('Not yet assessed') : __('Level').' '.$priority['level'].' / 4' }}</p>
                     <p>{{ match($priority['reason']) {'not_yet_assessed'=>__('Try this topic to establish a starting point.'),'prerequisite_gap'=>__('This earlier topic supports your current work.'),default=>__('More practice on this topic may help.')} }}</p>
@@ -47,6 +49,18 @@
             @else<p>{{ __('No current learners are allocated to this group.') }}</p>@endif
         </section>
     </div>
+    @if($configuration['can_manage'] && $writable)
+    <section class="mastery-panel" aria-labelledby="mastery-model-heading"><h2 id="mastery-model-heading">{{ __('Mastery model') }}</h2>
+        <form method="POST" action="{{ route('mastery.model') }}" class="mastery-form" aria-label="{{ __('Choose the mastery model') }}">@csrf
+            <input type="hidden" name="expected_revision" value="{{ $configuration['settings']['revision'] }}">
+            <x-page.field type="select" name="model_version" :label="__('Mastery model for this school')" :restore-old-input="false" :value="$configuration['settings']['policy_version']"
+                :options="collect(\App\Services\Growth\MasteryModels::VERSIONS)->mapWithKeys(fn($v)=>[$v=>\App\Services\Growth\MasteryModels::label($v)])->all()" />
+            <p>{{ __('Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.') }}</p>
+            <p>{{ __('Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.') }}</p>
+            <button class="m3-button m3-button--filled" type="submit">{{ __('Save mastery model') }}</button>
+        </form>
+    </section>
+    @endif
     <section class="mastery-panel" aria-labelledby="mastery-graph-heading"><h2 id="mastery-graph-heading">{{ __('Published prerequisite graph') }}</h2>
         @if($configuration['can_manage'])<form method="GET" action="{{ route('mastery.index') }}" class="mastery-form mastery-subject" aria-label="{{ __('Choose graph subject') }}">
             <input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}"><x-page.field type="select" :restore-old-input="false" name="subject_id" :label="__('Subject')" :options="array_column($subjects,'name','id')" :value="$graph['subject_id'] ?? null" /><button class="m3-button m3-button--tonal" type="submit">{{ __('Open subject graph') }}</button>

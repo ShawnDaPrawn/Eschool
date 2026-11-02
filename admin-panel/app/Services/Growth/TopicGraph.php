@@ -52,8 +52,10 @@ class TopicGraph
     public function settings(): array
     {
         $setting = MasterySettings::query()->first();
+        $version = $setting?->model_version ?? config('mastery.default_version', MasteryScore::VERSION);
 
-        return ['family_marks_enabled' => $setting?->family_marks_enabled ?? false, 'revision' => (int) ($setting?->revision ?? 0), 'policy_version' => MasteryScore::VERSION];
+        return ['family_marks_enabled' => $setting?->family_marks_enabled ?? false, 'revision' => (int) ($setting?->revision ?? 0),
+            'policy_version' => in_array($version, MasteryModels::VERSIONS, true) ? $version : MasteryScore::VERSION];
     }
 
     public static function rules(): array

@@ -4847,5 +4847,16 @@
     "A smart group needs between one and ten rules.": "A smart group needs between one and ten rules.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.",
     "Remove a calendar link for this learner before making another.": "Remove a calendar link for this learner before making another.",
-    "Exam: :subject": "Exam: :subject"
+    "Exam: :subject": "Exam: :subject",
+    "Scored with": "Scored with",
+    "Mastery model": "Mastery model",
+    "Choose the mastery model": "Choose the mastery model",
+    "Mastery model for this school": "Mastery model for this school",
+    "Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.": "Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.",
+    "Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.": "Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.",
+    "Save mastery model": "Save mastery model",
+    "Mastery model v1: the last 20 answers, marks added up": "Mastery model v1: the last 20 answers, marks added up",
+    "Mastery model v2: weighted by recency, difficulty and forgetting": "Mastery model v2: weighted by recency, difficulty and forgetting",
+    "Mastery settings changed. Review the current model and try again.": "Mastery settings changed. Review the current model and try again.",
+    "Mastery model saved": "Mastery model saved"
 }

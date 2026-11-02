@@ -23,6 +23,17 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: schools can choose a second mastery model. On the Mastery map, a
+  curriculum manager can switch from model v1 (the last 20 answers, marks added
+  up) to model v2. Model v2 weighs recent and harder questions more, lets old
+  evidence fade at the pace of the learner's practice memory, counts practice at
+  half the weight of marks, and grows evidence coverage slowly, so one right
+  answer is no longer top level. Every score records the model that produced
+  it, and the panel shows which model the levels come from. Model v1 is the
+  default and keeps working as before, so nothing changes until a school opts
+  in, and a school can switch back at any time. The change is in the audit log.
+  The apps receive the model's name but don't show it yet. **Deploy:** run the
+  migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.
