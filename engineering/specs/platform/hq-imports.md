@@ -32,7 +32,12 @@ imports themselves are the school's own ([school imports](../people/school-impor
    leader is notified (`people.hq_import_approval`, linking to the import).
 3. **The school decides.** In the panel, `/hq-imports` ("Imports by Navigate Ed"
    under People) lists every import prepared for the school; each one shows the
-   rows, the settings' result and every step. The leader it was sent to approves
+   settings, every step, and every row with its result and what it will write:
+   for learners the homeroom, admission number, date of birth, gender, LURITS
+   number and each guardian who will be linked and invited (name, email, mobile,
+   relationship); for staff the email, role, mobile, gender and qualification;
+   for homerooms the class, letter, grade, medium and whether a class is new.
+   Two files that differ in any of these give different approval pages. The leader it was sent to approves
    or declines, with a reason (5 to 500 characters). Before approving, the
    stored file's SHA-256 must match the preview's, and the check, run again as
    the leader, must give the preview's fingerprint. Approval records the SHA-256
@@ -71,8 +76,9 @@ imports themselves are the school's own ([school imports](../people/school-impor
 
 ## Personal information
 
-The file and the preview rows are personal information. Both are encrypted in
-the database (`encrypted` casts) and set to null when the import is applied,
+The file and the preview rows (with the values each row will write) are
+personal information. Both are encrypted in the database (`encrypted` casts)
+and set to null when the import is applied,
 declined, cancelled, stopped or expires. Audit entries hold counts, kinds,
 SHA-256 values, ids, statuses and the reasons, never the file or a row.
 
@@ -104,6 +110,7 @@ written, who cancelled or stopped it and why, and `expires_at`.
 | Test | Shows |
 | --- | --- |
 | `test_operations_preview_send_and_apply_an_import_the_school_approved` | preview writes nothing; the file is stored encrypted; nothing applies before approval; the leader sees rows and steps and approves; applying writes in School A only; file deleted; steps in the HQ log and on the school's page |
+| `test_the_approver_sees_each_learner_s_guardians_homeroom_and_settings_before_approving` | the approver sees each guardian's name, email and relationship, the homeroom and the settings; neither stored column holds the email in clear; HQ's page does not show it; School B gets 404 |
 | `test_other_platform_roles_cannot_preview_send_apply_or_cancel` | Support, Finance, Content and Sales get 403 on every route; nothing changes |
 | `test_school_staff_cannot_use_the_hq_import_routes` | School A's Super Admin, School B's leader and a teacher get 403 on every HQ route |
 | `test_only_the_named_leader_of_the_target_school_decides` | a School B leader cannot be named; School B cannot see, approve or decline School A's import (404); another School A leader gets 403; a teacher gets 403; the named leader declines and the file is deleted |

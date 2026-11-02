@@ -57,12 +57,12 @@ class HqSchoolImportsTest extends TestCase
     }
 
     /** Operations check the file for School A and send it to the leader; returns the import's id. */
-    private function send(User $operator, string $csv = self::CSV, ?User $approver = null): int
+    private function send(User $operator, string $csv = self::CSV, ?User $approver = null, string $kind = 'homerooms'): int
     {
         $approver ??= $this->superAdmin();
         $this->actingAs($operator);
-        $check = $this->post('/saas/schools/1/imports/preview', ['kind' => 'homerooms', 'approver_id' => $approver->id, 'csv' => $csv])->assertOk()->viewData('check');
-        $this->post('/saas/schools/1/imports', ['kind' => 'homerooms', 'approver_id' => $approver->id, 'csv' => $csv, 'mapped' => 1,
+        $check = $this->post('/saas/schools/1/imports/preview', ['kind' => $kind, 'approver_id' => $approver->id, 'csv' => $csv])->assertOk()->viewData('check');
+        $this->post('/saas/schools/1/imports', ['kind' => $kind, 'approver_id' => $approver->id, 'csv' => $csv, 'mapped' => 1,
             'mapping' => $check['mapping'], 'fingerprint' => $check['fingerprint']])->assertRedirect()->assertSessionHasNoErrors();
 
         return (int) PlatformSchoolImport::acrossSchools()->max('id');
@@ -121,7 +121,8 @@ class HqSchoolImportsTest extends TestCase
 
         // The leader sees the rows and every step, and approves with a reason.
         $this->actingAs($leader)->get('/hq-imports')->assertOk()->assertSee('Homerooms')->assertSee('Waiting for the school&#039;s approval', false);
-        $this->get('/hq-imports/'.$id)->assertOk()->assertSee('Grade 8 A')->assertSee('Your decision')->assertSee('Navigate Ed checked the file (nothing written)');
+        $this->get('/hq-imports/'.$id)->assertOk()->assertSee('Grade 8 A')->assertSee('Your decision')->assertSee('Navigate Ed checked the file (nothing written)')
+            ->assertSee('A new class with this letter')->assertSee('Medium for rows that do not name one');
         $this->approve($leader, $id);
         $this->assertSame([PlatformSchoolImport::APPROVED, hash('sha256', self::CSV)], [$this->import($id)->status, $this->import($id)->approved_sha256]);
 
@@ -139,6 +140,32 @@ class HqSchoolImportsTest extends TestCase
         $this->get('/saas/audit?school=1')->assertOk()->assertSee('Import applied for the school')->assertSee('Import approved by the school')->assertSee('Checked against the SA-SAMS class list.');
         $this->get('/saas/imports/'.$id)->assertOk()->assertSee('Imported')->assertDontSee('Apply the import');
         $this->actingAs($leader)->get('/hq-imports/'.$id)->assertOk()->assertSee('Imported by Navigate Ed')->assertSee('Checked against the SA-SAMS class list.')->assertDontSee('Your decision');
+    }
+
+    public function test_the_approver_sees_each_learner_s_guardians_homeroom_and_settings_before_approving(): void
+    {
+        $grade = fn (int $order) => (int) DB::table('grade_levels')->where('sort_order', $order)->value('id');
+        ClassSchool::query()->whereKey($this->schoolA->ids['class_a'])->update(['grade_level_id' => $grade(5)]);
+        $email = 'thandeka.guardian@example.com';
+        $csv = "Admission No,First Names,Surname,Class,Parent First Name,Parent Surname,Parent Email,Parent Relationship\nA900,Sizwe,Ndlovu,Grade 5 A,Thandeka,Ndlovu,{$email},Mother";
+        $id = $this->send($this->staff('operations'), $csv, null, 'learners');
+
+        // Encrypted at rest: neither the file nor the stored preview shows the guardian.
+        $row = DB::table('platform_school_imports')->where('id', $id)->first(['contents', 'preview']);
+        foreach ([$row->contents, $row->preview] as $raw) {
+            $this->assertStringNotContainsString($email, (string) $raw);
+            $this->assertStringNotContainsString('Thandeka', (string) $raw);
+        }
+        $this->assertSame($email, $this->import($id)->preview[0]['data']['guardians'][0]['email']);
+
+        // The approver sees exactly whom the import links and invites, the homeroom and the settings.
+        $this->actingAs($this->superAdmin())->get('/hq-imports/'.$id)->assertOk()
+            ->assertSee('Thandeka Ndlovu, '.$email.', Mother')->assertSee('Homeroom: Grade 5 A')->assertSee('Admission number: A900')
+            ->assertSee('School year')->assertSee('Email the guardians their invitations once it is imported');
+        // HQ's page shows no more than before: each row's result and notes.
+        $this->actingAs($this->staff('owner'))->get('/saas/imports/'.$id)->assertOk()->assertSee('Sizwe Ndlovu')->assertDontSee($email);
+        // Another school still finds nothing.
+        $this->actingAs($this->leader(self::SCHOOL_B_ID, 'Baobab'))->get('/hq-imports/'.$id)->assertNotFound()->assertDontSee($email);
     }
 
     public function test_other_platform_roles_cannot_preview_send_apply_or_cancel(): void

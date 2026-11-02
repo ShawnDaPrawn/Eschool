@@ -6044,5 +6044,16 @@
     "Declined": "Kwenqatshiwe",
     "Imported by Navigate Ed": "Kungeniswe yi-Navigate Ed",
     "Stopped": "Kumisiwe",
-    "Expired, file deleted": "Kuphelelwe yisikhathi, ifayela lisusiwe"
+    "Expired, file deleted": "Kuphelelwe yisikhathi, ifayela lisusiwe",
+    "Settings": "Izilungiselelo",
+    "What will be written": "Okuzobhalwa",
+    "Guardian :n": "Umnakekeli :n",
+    "Qualification": "Iziqu",
+    "Letter": "Uhlamvu",
+    "Creates": "Kudala",
+    "A new class with this letter": "Ikilasi elisha elinalolu hlamvu",
+    "A new letter for the existing class": "Uhlamvu olusha lwekilasi elikhona",
+    "Email each new staff member an invitation to set their password": "Thumela i-imeyili kuwo wonke amalungu amasha abasebenzi ukuze bakhethe iphasiwedi yabo",
+    "Email the guardians their invitations once it is imported": "Thumela abanakekeli izimemo zabo nge-imeyili uma sekungenisiwe",
+    "This is a learner list exported from SA-SAMS": "Lolu uhlu lwabafundi olukhishwe ku-SA-SAMS"
 }

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Saas;
 
+use App\Models\Academics\GradeLevel;
 use App\Models\Category;
 use App\Models\Mediums;
 use App\Models\Platform\PlatformSchoolImport;
+use App\Models\Platform\Role;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
@@ -221,7 +223,8 @@ class PlatformSchoolImports
             }
             $import = PlatformSchoolImport::query()->create([
                 'kind' => $kind, 'status' => PlatformSchoolImport::AWAITING, 'requested_by' => (int) $operator->id, 'approver_id' => (int) $approver->id,
-                'contents' => $csv, 'preview' => array_map(fn (array $row) => Arr::except($row, ['data']), $check['rows']),
+                // Every row with the values the import will write (guardians, homerooms, roles), for the approver.
+                'contents' => $csv, 'preview' => $check['rows'],
                 'file_sha256' => hash('sha256', $csv), 'fingerprint' => $check['fingerprint'], 'mapping' => $check['mapping'],
                 'options' => $check['options'], 'counts' => $check['counts'], 'rows' => count($check['rows']), 'expires_at' => now()->addDays(self::EXPIRY_DAYS),
             ]);
@@ -407,12 +410,19 @@ class PlatformSchoolImports
         });
     }
 
-    /** One import with its preview (while open) and every step. @return array<string, mixed> */
-    public function show(int $id, ?int $schoolId = null): array
+    /**
+     * One import with its preview (while open) and every step. The school's
+     * page ($forSchool) also gets what each row will write and the settings,
+     * so the approver sees exactly what they approve; HQ gets each row's
+     * result and notes only.
+     *
+     * @return array<string, mixed>
+     */
+    public function show(int $id, ?int $schoolId = null, bool $forSchool = false): array
     {
         $schoolId ??= $this->schoolOf($id);
 
-        return $this->currentSchool->run($schoolId, function () use ($id, $schoolId): array {
+        return $this->currentSchool->run($schoolId, function () use ($id, $schoolId, $forSchool): array {
             $import = PlatformSchoolImport::query()->findOrFail($id);
             $steps = DB::table('audit_log')->where('school_id', $schoolId)
                 ->where(fn ($q) => $q->where(fn ($q) => $q->where('subject_type', $import->getMorphClass())->where('subject_id', $import->id))
@@ -422,7 +432,9 @@ class PlatformSchoolImports
             $names = $this->names($steps->pluck('actor_id')->merge([$import->requested_by, $import->approver_id, $import->applied_by, $import->closed_by]));
 
             return $this->summary($import, $names) + [
-                'preview' => $import->isOpen() ? ($import->preview ?? []) : [],
+                'preview' => array_map(fn (array $row) => Arr::except($row, ['data']) + ($forSchool ? ['details' => $this->details($import->kind, $row)] : []),
+                    $import->isOpen() ? ($import->preview ?? []) : []),
+                'settings' => $forSchool ? $this->settings($import) : [],
                 'mapping' => $import->mapping,
                 'options' => $import->options,
                 'decision_reason' => $import->decision_reason,
@@ -442,6 +454,93 @@ class PlatformSchoolImports
                 })->all(),
             ];
         });
+    }
+
+    /**
+     * What one previewed row will write, in words: for learners the homeroom,
+     * details and each guardian (who is linked and invited); for staff the
+     * email and role; for homerooms the class, letter, grade and medium.
+     *
+     * @param  array<string, mixed>  $row
+     * @return list<array{label: string, value: string}>
+     */
+    private function details(string $kind, array $row): array
+    {
+        $data = is_array($row['data'] ?? null) ? $row['data'] : [];
+        $details = [];
+        $add = function (string $label, mixed $value) use (&$details): void {
+            if ($value !== null && $value !== '') {
+                $details[] = ['label' => __($label), 'value' => (string) $value];
+            }
+        };
+        if ($kind === 'learners') {
+            $add('Homeroom', $row['homeroom'] ?? null);
+            $add('Admission number', $data['admission_no'] ?? null);
+            $add('Date of birth', $data['dob'] ?? null);
+            $add('Gender', $data['gender'] ?? null);
+            $add('LURITS number', $data['lurits'] ?? null);
+            foreach (array_values((array) ($data['guardians'] ?? [])) as $index => $guardian) {
+                $details[] = ['label' => __('Guardian :n', ['n' => $index + 1]), 'value' => implode(', ', array_filter([
+                    trim(($guardian['first_name'] ?? '').' '.($guardian['last_name'] ?? '')), $guardian['email'] ?? null, $guardian['mobile'] ?? null,
+                    isset($guardian['relationship']) && $guardian['relationship'] !== '' ? $this->relationship((string) $guardian['relationship']) : null,
+                ], fn ($part) => $part !== null && $part !== ''))];
+            }
+        } elseif ($kind === 'staff') {
+            $add('Email', $data['email'] ?? null);
+            $add('Role', isset($data['role_id']) ? Role::query()->whereKey((int) $data['role_id'])->value('name') : null);
+            $add('Mobile', $data['mobile'] ?? null);
+            $add('Gender', $data['gender'] ?? null);
+            $add('Qualification', $data['qualification'] ?? null);
+        } elseif ($data !== []) {
+            $add('Class', $data['name'] ?? null);
+            $add('Letter', $data['letter'] ?? null);
+            $add('Grade', isset($data['grade_level_id']) ? GradeLevel::query()->whereKey((int) $data['grade_level_id'])->value('name') : null);
+            $add('Medium', isset($data['medium_id']) ? Mediums::query()->whereKey((int) $data['medium_id'])->value('name') : null);
+            $add('Creates', empty($data['class_id']) ? __('A new class with this letter') : __('A new letter for the existing class'));
+        }
+
+        return $details;
+    }
+
+    /** A guardian's relationship as the panel names it (the import's values, grouped as the guardian pages group them). */
+    private function relationship(string $relationship): string
+    {
+        $key = 'relationship_'.match ($relationship) {
+            'grandmother', 'grandfather' => 'grandparent',
+            'aunt', 'uncle' => 'aunt_or_uncle',
+            'sister', 'brother' => 'sibling',
+            default => str_replace(' ', '_', $relationship),
+        };
+        $label = __($key);
+
+        return $label === $key ? $relationship : $label;
+    }
+
+    /**
+     * The import's settings, in words.
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    private function settings(PlatformSchoolImport $import): array
+    {
+        $options = $import->options;
+        $yes = fn (mixed $value): string => ! empty($value) ? __('Yes') : __('No');
+        if ($import->kind === 'staff') {
+            return [['label' => __('Email each new staff member an invitation to set their password'), 'value' => $yes($options['invite'] ?? false)]];
+        }
+        if ($import->kind === 'homerooms') {
+            $medium = isset($options['medium_id']) ? Mediums::query()->whereKey((int) $options['medium_id'])->value('name') : null;
+
+            return [['label' => __('Medium for rows that do not name one'), 'value' => (string) ($medium ?? __('Not set'))]];
+        }
+
+        return [
+            ['label' => __('School year'), 'value' => (string) (SessionYear::query()->whereKey((int) ($options['session_year_id'] ?? 0))->value('name') ?? __('Unknown'))],
+            ['label' => __('In their homerooms from'), 'value' => (string) ($options['starts_on'] ?? '')],
+            ['label' => __('Learner category'), 'value' => (string) (Category::query()->whereKey((int) ($options['category_id'] ?? 0))->value('name') ?? __('Unknown'))],
+            ['label' => __('Email the guardians their invitations once it is imported'), 'value' => $yes($options['invite'] ?? false)],
+            ['label' => __('This is a learner list exported from SA-SAMS'), 'value' => $yes($options['from_sasams'] ?? false)],
+        ];
     }
 
     /** Whether this person is the approving leader of an import that waits for them. */

@@ -41,6 +41,13 @@
     @endif
 
     @if ($import['preview'] !== [])
+        <section class="m3-card m3-card--outlined page-section" aria-labelledby="import-settings"><div class="m3-card__content">
+            <h2 id="import-settings">{{ __('Settings') }}</h2>
+            <dl>
+                @foreach ($import['settings'] as $setting)<dt>{{ $setting['label'] }}</dt><dd>{{ $setting['value'] }}</dd>@endforeach
+            </dl>
+        </div></section>
+
         <section class="page-section" aria-labelledby="import-rows">
             <h2 id="import-rows">{{ __('Rows in the file') }}</h2>
             <div class="page-table__scroll" role="region" aria-label="{{ __('Rows in the file') }}" tabindex="0"><table class="page-table__table">
@@ -49,6 +56,7 @@
                     <th scope="col">{{ __('Line') }}</th>
                     <th scope="col">{{ __('Row') }}</th>
                     <th scope="col">{{ __('Result') }}</th>
+                    <th scope="col">{{ __('What will be written') }}</th>
                     <th scope="col">{{ __('Notes') }}</th>
                 </tr></thead>
                 <tbody>
@@ -57,6 +65,7 @@
                         <td>{{ $row['line'] }}</td>
                         <th scope="row">{{ $row['label'] }}</th>
                         <td>{{ $statusLabels[$row['status']] ?? $row['status'] }}</td>
+                        <td>@if ($row['details'] !== [])<ul>@foreach ($row['details'] as $detail)<li>{{ $detail['label'] }}: {{ $detail['value'] }}</li>@endforeach</ul>@endif</td>
                         <td>{{ implode(' ', $row['notes']) }}</td>
                     </tr>
                 @endforeach

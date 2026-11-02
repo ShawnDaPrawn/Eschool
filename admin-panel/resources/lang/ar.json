@@ -4971,5 +4971,16 @@
     "Declined": "Declined",
     "Imported by Navigate Ed": "Imported by Navigate Ed",
     "Stopped": "Stopped",
-    "Expired, file deleted": "Expired, file deleted"
+    "Expired, file deleted": "Expired, file deleted",
+    "Settings": "Settings",
+    "What will be written": "What will be written",
+    "Guardian :n": "Guardian :n",
+    "Qualification": "Qualification",
+    "Letter": "Letter",
+    "Creates": "Creates",
+    "A new class with this letter": "A new class with this letter",
+    "A new letter for the existing class": "A new letter for the existing class",
+    "Email each new staff member an invitation to set their password": "Email each new staff member an invitation to set their password",
+    "Email the guardians their invitations once it is imported": "Email the guardians their invitations once it is imported",
+    "This is a learner list exported from SA-SAMS": "This is a learner list exported from SA-SAMS"
 }
