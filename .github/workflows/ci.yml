@@ -12,9 +12,13 @@ on:
 permissions:
   contents: read
 
-# Cancel superseded test jobs independently. Aggregate checks deliberately keep
-# always() and their success assertions: cancelled or failed tests must not pass.
-# A queued aggregate from an old head must not hold the next workflow's slot.
+# Cancel the entire superseded run, including its queued summary jobs.
+# Summaries remain failure-sensitive, but stop when their workflow is cancelled.
+concurrency:
+  # Use a fresh group: old runs with always() summaries can resist cancellation.
+  group: ci-run-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   converter:
     concurrency:
@@ -232,7 +236,7 @@ jobs:
 
   admin-panel:
     name: Admin panel (PHP tests)
-    if: always()
+    if: ${{ !cancelled() }}
     needs: [admin-panel-quality, admin-panel-tests]
     runs-on: ubuntu-latest
     steps:
@@ -451,7 +455,7 @@ jobs:
     name: Flutter smoke flows on Android (e-school family)
     runs-on: ubuntu-latest
     needs: apps-smoke-android
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Require every Android smoke part to pass
         env:
@@ -463,7 +467,7 @@ jobs:
     name: Flutter smoke flows on Android (e-school-teacher teacher)
     runs-on: ubuntu-latest
     needs: apps-smoke-android
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Require every Android smoke part to pass
         env:
@@ -888,7 +892,7 @@ jobs:
     name: Admin panel (Playwright)
     runs-on: ubuntu-latest
     needs: playwright-parts
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Require every isolated browser part to pass
         env:
