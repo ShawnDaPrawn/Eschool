@@ -126,7 +126,7 @@ class PlatformHome
 
     private function incidents(): array
     {
-        $open = $this->incidents->list()['open'];
+        $open = $this->incidents->unclosed();
         $count = fn (string $key, array $values): int => count(array_filter($open, fn (array $incident): bool => in_array($incident[$key], $values, true)));
 
         return [

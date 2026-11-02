@@ -127,6 +127,24 @@ class PlatformIncidents
         });
     }
 
+    /**
+     * Every incident not yet closed, for counts (the HQ home page). Unlike
+     * list(), which shows the register and stops at the 200 oldest, nothing
+     * here is capped, so a count can never silently leave incidents out.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function unclosed(): array
+    {
+        return $this->currentSchool->acrossSchools(function (): array {
+            $open = DB::table('platform_incidents')->where('status', '!=', 'closed')->orderBy('detected_at')->get();
+            $schools = DB::table('platform_incident_schools')->whereIn('incident_id', $open->pluck('id'))
+                ->get(['incident_id', 'notified_on'])->groupBy('incident_id');
+
+            return $open->map(fn (object $row): array => $this->summaryRow($row, $schools[$row->id] ?? collect()))->values()->all();
+        });
+    }
+
     /** One incident with its schools, timeline and what still stops it closing. */
     public function show(int $id, int $timelinePage = 1): array
     {

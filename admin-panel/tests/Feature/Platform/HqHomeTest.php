@@ -17,6 +17,7 @@ use App\Services\Platform\Saas\PlatformIncidents;
 use App\Services\Platform\Saas\PlatformStaffAccess;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Tests\Concerns\UsesTwoSchools;
@@ -278,5 +279,21 @@ class HqHomeTest extends TestCase
         DB::disableQueryLog();
 
         return count(DB::getQueryLog());
+    }
+
+    public function test_the_incident_tile_counts_every_unclosed_incident_beyond_the_registers_display_limit(): void
+    {
+        $row = ['category' => 'breach', 'personal_information' => 'no', 'summary' => 'Synthetic', 'status' => 'open', 'severity' => 'low',
+            'detected_at' => now()->subDays(10), 'created_at' => now(), 'updated_at' => now()];
+        $columns = Schema::getColumnListing('platform_incidents');
+        foreach (range(1, 205) as $n) {
+            DB::table('platform_incidents')->insert(array_intersect_key($row + ['title' => 'Synthetic incident '.$n], array_flip($columns)));
+        }
+        // The newest is the only serious one, so a count over the 200 oldest would miss it.
+        DB::table('platform_incidents')->orderByDesc('id')->limit(1)->update(['severity' => 'critical', 'detected_at' => now()->subDay()]);
+
+        $tiles = app(PlatformHome::class)->tiles($this->staff('owner', 'incident-count@platform.example'));
+        $this->assertSame(205, $tiles['incidents']['open']);
+        $this->assertSame(1, $tiles['incidents']['serious']);
     }
 }
