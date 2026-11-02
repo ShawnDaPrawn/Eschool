@@ -18,6 +18,7 @@ declare(strict_types=1);
  *  packages.view    the product catalogue and packages
  *  identity.review  LURITS claims between schools: see and close them
  *  incidents.manage the breach and incident register: record, update, close
+ *  flags.manage     feature flags: create, roll out, switch schools, kill
  *  ai.view          the AI control centre: qualification, caps, spend, queue counts
  *  ai.manage        switch a school's AI features on or off (Owner only)
  *  ai.caps          set the AI spending caps that replace config/ai.php's defaults (Owner only)
@@ -27,7 +28,7 @@ declare(strict_types=1);
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'ai.view']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'flags.manage', 'ai.view']],
     'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'ai.view']],
     'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'audit.view', 'audit.export']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
