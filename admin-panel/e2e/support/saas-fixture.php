@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
+use App\Models\Platform\PlatformStaffTwoFactor;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -23,6 +24,9 @@ return app(CurrentSchool::class)->acrossSchools(function (): array {
     if ((getenv('SAAS_FIXTURE_ACTION') ?: 'initial') === 'pending') {
         $operator->forceFill(['password' => 'NavigateDemo2026', 'password_change_required' => false])->save();
         $operator->forceFill(['password_change_required' => true])->save();
+        // Each viewport run starts as a new operator: the previous run enrolled an
+        // authenticator, which would send this sign-in to the code challenge instead.
+        PlatformStaffTwoFactor::query()->where('user_id', $operator->id)->delete();
     }
     PlatformStaffIdentity::query()->updateOrCreate(['user_id' => $operator->id], ['active' => true]);
     PlatformAdminGrant::query()->updateOrCreate(['user_id' => $operator->id], [

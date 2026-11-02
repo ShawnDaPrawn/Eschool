@@ -16,7 +16,7 @@ Each step is *done*, *in progress*, *not started* or *not yet available*, with a
 | --- | --- | --- |
 | Contract and operator agreement | a contract covering today is recorded (operator agreement signed on recording, #359) | none recorded / not current |
 | First administrator signed in | the school administrator invitation (#358) was accepted | waiting (sent, not expired) or not waiting |
-| Email from the school's own domain | (Action Plan 2.2) | not yet available |
+| Email from the school's own domain | `school_sending_domains` ([sending domains](sending-domains.md)) | verified (done); connected and waiting (started); none (to do); "later" while `MAIL_SENDING_DOMAINS` is off |
 | Homerooms set up | every homeroom's class has a grade | homerooms and how many have a grade |
 | Learners imported with LURITS numbers | every learner has a LURITS number (#354) | learners and how many have one |
 | Guardians linked and approving | at least 80% of learners hold a current guardian approval (`ApprovalService::approvedLearnerCount`, the same rule as access) | learners with an approving guardian linked, and the approved share |

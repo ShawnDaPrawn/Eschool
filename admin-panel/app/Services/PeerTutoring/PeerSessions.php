@@ -26,6 +26,10 @@ class PeerSessions
             'create' => $operation + ['teaching_group_id' => ['required', 'integer', 'min:1'], 'tutor_learner_id' => ['required', 'integer', 'min:1'],
                 'tutee_learner_id' => ['required', 'integer', 'min:1'], 'topic_id' => ['required', 'integer', 'min:1'], 'venue' => ['required', 'string', 'max:191'],
                 'starts_at' => ['required', 'date_format:Y-m-d\TH:i'], 'ends_at' => ['required', 'date_format:Y-m-d\TH:i']],
+            // Action Plan 4.7: an activity skill (panel only; not on the v2 API).
+            'skill' => $operation + ['teaching_group_id' => ['required', 'integer', 'min:1'], 'tutor_learner_id' => ['required', 'integer', 'min:1'],
+                'tutee_learner_id' => ['required', 'integer', 'min:1'], 'activity_group_id' => ['required', 'integer', 'min:1'], 'venue' => ['required', 'string', 'max:191'],
+                'starts_at' => ['required', 'date_format:Y-m-d\TH:i'], 'ends_at' => ['required', 'date_format:Y-m-d\TH:i']],
             'complete' => $operation + ['revision' => ['required', 'integer', 'min:1'], 'minutes' => ['required', 'integer', 'between:1,180'],
                 'point_category_id' => ['nullable', 'integer', 'min:1'], 'points' => ['nullable', 'integer', 'between:1,10000']],
             'cancel', 'reverse' => $operation + ['revision' => ['required', 'integer', 'min:1'], 'reason' => ['required', 'string', 'max:1000']],
@@ -36,7 +40,7 @@ class PeerSessions
     {
         abort_if(array_diff(array_keys($input), array_keys(self::rules($action))) !== [], 422);
         $data = Validator::make($input, self::rules($action))->validate();
-        foreach (['revision', 'minutes', 'teaching_group_id', 'tutor_learner_id', 'tutee_learner_id', 'topic_id', 'point_category_id', 'points'] as $key) {
+        foreach (['revision', 'minutes', 'teaching_group_id', 'tutor_learner_id', 'tutee_learner_id', 'topic_id', 'activity_group_id', 'point_category_id', 'points'] as $key) {
             if (isset($data[$key])) {
                 $data[$key] = (int) $data[$key];
             }
@@ -47,7 +51,17 @@ class PeerSessions
 
     public function create(User $actor, array $input): PeerTutoringSession
     {
-        $data = $this->input($input, 'create');
+        return $this->schedule($actor, $this->input($input, 'create'), 'create');
+    }
+
+    /** Schedule a supervised session teaching a recognised activity skill (Action Plan 4.7). */
+    public function createSkill(User $actor, array $input): PeerTutoringSession
+    {
+        return $this->schedule($actor, $this->input($input, 'skill'), 'skill');
+    }
+
+    private function schedule(User $actor, array $data, string $action): PeerTutoringSession
+    {
         $group = app(PeerAccess::class)->group($actor, $data['teaching_group_id'], true);
         $zone = app(CurrentSchool::class)->school()->timezone;
         foreach (['starts_at', 'ends_at'] as $key) {
@@ -63,17 +77,23 @@ class PeerSessions
             }
         };
 
-        return app(PeerOperations::class)->once($actor, 'session.create', $data, (int) $group->id, $authorize, function () use ($actor, $data, $group, $start, $end, $zone) {
+        return app(PeerOperations::class)->once($actor, 'session.'.$action, $data, (int) $group->id, $authorize, function () use ($actor, $data, $group, $start, $end, $zone, $action) {
             abort_unless($start->isFuture() && $start->lte(now()->addYear()) && $end->gt($start) && $end->lte($start->addHours(3)), 422, 'Choose a future peer session of up to three hours.');
             $year = SessionYear::findOrFail($group->session_year_id);
             abort_unless($start->setTimezone($zone)->toDateString() >= substr((string) $year->start_date, 0, 10)
                 && $end->setTimezone($zone)->toDateString() <= substr((string) $year->end_date, 0, 10), 422, 'Use the current school year.');
-            app(PeerMatches::class)->selected($actor, (int) $group->id, $data['tutor_learner_id'], $data['tutee_learner_id'], $data['topic_id']);
+            $skill = [];
+            if ($action === 'skill') {
+                $match = app(PeerMatches::class)->selectedSkill($actor, (int) $group->id, $data['tutor_learner_id'], $data['tutee_learner_id'], $data['activity_group_id']);
+                $skill = ['topic_id' => null, 'skill_name' => mb_substr($match['topic_name'], 0, 191)];
+            } else {
+                app(PeerMatches::class)->selected($actor, (int) $group->id, $data['tutor_learner_id'], $data['tutee_learner_id'], $data['topic_id']);
+            }
             $participants = [$data['tutor_learner_id'], $data['tutee_learner_id']];
             abort_if(PeerTutoringSession::where('status', 'scheduled')->where('starts_at', '<', CarbonImmutable::parse($data['ends_at']))
                 ->where('ends_at', '>', CarbonImmutable::parse($data['starts_at']))->where(fn ($q) => $q->where('supervisor_user_id', $actor->id)
                 ->orWhereIn('tutor_learner_id', $participants)->orWhereIn('tutee_learner_id', $participants))->exists(), 409, 'A supervisor or learner already has a peer session at this time.');
-            $row = PeerTutoringSession::create(array_diff_key($data, ['operation_id' => true]) + ['session_year_id' => $group->session_year_id,
+            $row = PeerTutoringSession::create($skill + array_diff_key($data, ['operation_id' => true]) + ['session_year_id' => $group->session_year_id,
                 'supervisor_user_id' => $actor->id, 'status' => 'scheduled', 'revision' => 1]);
             Audit::record('peer_tutoring.scheduled', $row, [], ['revision' => 1]);
 
@@ -81,11 +101,13 @@ class PeerSessions
         });
     }
 
-    public function change(User $actor, string $id, string $action, array $input): PeerTutoringSession
+    /** $skills false (the v2 API) treats activity-skill sessions as not found. */
+    public function change(User $actor, string $id, string $action, array $input, bool $skills = true): PeerTutoringSession
     {
         abort_unless(in_array($action, ['complete', 'cancel', 'reverse'], true), 404);
         $data = $this->input($input, $action);
         $row = PeerTutoringSession::findOrFail($id);
+        abort_if(! $skills && $row->topic_id === null, 404);
         $authorize = fn () => app(PeerAccess::class)->staffSession($actor, $row->fresh(), $action !== 'cancel');
 
         return app(PeerOperations::class)->once($actor, 'session.'.$action, $data + ['session_id' => $id], (int) $row->teaching_group_id, $authorize, function () use ($actor, $id, $action, $data) {

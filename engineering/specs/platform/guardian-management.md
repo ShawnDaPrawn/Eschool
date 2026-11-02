@@ -71,4 +71,8 @@ and 1280 pixels (accessibility and fit).
 
 The approving guardian managing co-guardians from the parent app (needs a v2
 API and an app release), and moving a guardian's consent history when a link
-ends.
+ends. Asking an existing account's owner before linking them as a guardian at a
+second school, as staff are asked
+([existing-account-invitations.md](existing-account-invitations.md)): today the
+link is made at once, and the add form's refusal of a deleted, inactive or
+learner-owned address can tell the school that the address has an account.

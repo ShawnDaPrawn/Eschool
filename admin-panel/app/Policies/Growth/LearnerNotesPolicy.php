@@ -26,6 +26,8 @@ class LearnerNotesPolicy
     {
         $school = app(CurrentSchool::class);
         abort_unless($school->isSet() && ! $school->isAcrossSchools() && ! $school->isImpersonating(), 403);
+        // Never in a Navigate Ed support session (SA.9), whatever its scope.
+        abort_if($school->isSupportSession(), 403);
         abort_unless(School::query()->active()->whereKey($school->id())->exists(), 403);
         $gate = app(ModuleGate::class);
         $gate->forget();

@@ -279,6 +279,7 @@ class MasteryEngineTest extends TestCase
             $dependents = [];
             foreach ([
                 '2026_11_05_100000_scope_practice_items_to_subject_and_grade.php',
+                '2026_11_04_120000_add_mastery_model_versions.php',
                 '2026_10_26_003400_create_peer_tutoring.php',
                 '2026_10_25_240000_add_tutor_topics_and_verified_checkpoints.php',
                 '2026_10_25_213000_create_daily_practice.php',
@@ -304,6 +305,8 @@ class MasteryEngineTest extends TestCase
             $this->assertTrue(Schema::hasTable('practice_items'));
             $this->assertTrue(Schema::hasTable('tutor_checkpoints'));
             $this->assertTrue(Schema::hasColumn('tutor_sessions', 'topic_id'));
+            $this->assertTrue(Schema::hasColumn('mastery_settings', 'model_version'));
+            $this->assertTrue(Schema::hasColumn('mastery_evidence', 'item_key'));
         } finally {
             DB::beginTransaction();
         }

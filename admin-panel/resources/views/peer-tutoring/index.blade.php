@@ -6,6 +6,7 @@
 @if($messages)<div role="alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</div>@endif
 <p>{{ __('Verified service does not change mastery or marks. House points follow existing school policy.') }}</p>
 <p>{{ __('School time zone') }}: {{ $configuration['timezone'] }}</p>
+@if($canMeasure)<p><a href="{{ route('peer-tutoring-panel.measure') }}">{{ __('Who has tutored this term, per grade') }}</a></p>@endif
 @if($configuration['writable'])
 <section aria-labelledby="peer-schedule"><h2 id="peer-schedule">{{ __('Schedule supervised peer tutoring') }}</h2>
 <form method="GET" action="{{ route('peer-tutoring-panel.index') }}" class="peer-fields">
@@ -22,12 +23,16 @@
 </form>
 @endif
 @if($learner && ! $matches)<p>{{ __('No current evidenced tutor matches for this learner.') }}</p>@endif
+@if($matches)<p>{{ __('Learners who have tutored least this term are offered first. Scheduled and completed sessions as tutor both count.') }} {{ __('This term') }}: {{ $matches[0]['term'] }}.</p>@endif
 @foreach($matches as $match)
-<details class="m3-card m3-card--outlined peer-card"><summary>{{ $match['tutor_name'] }} · {{ $match['topic_name'] }}</summary>
-<form method="POST" action="{{ route('peer-tutoring-panel.create') }}" class="peer-fields">
+@php($skill = $match['kind'] === 'activity_skill')
+<details class="m3-card m3-card--outlined peer-card"><summary>{{ $match['tutor_name'] }} · @if($skill){{ __('Activity skill') }}: @endif{{ $match['topic_name'] }}
+<span class="peer-why">@if($match['tutored_this_term'] === 0){{ __('Has not tutored yet this term') }}@elseif($match['tutored_this_term'] === 1){{ __('Has tutored once this term') }}@else{{ __('Has tutored :count times this term', ['count' => $match['tutored_this_term']]) }}@endif</span></summary>
+<form method="POST" action="{{ route($skill ? 'peer-tutoring-panel.skill' : 'peer-tutoring-panel.create') }}" class="peer-fields">
 @include('peer-tutoring.scope')
 <input type="hidden" name="teaching_group_id" value="{{ $group }}"><input type="hidden" name="tutee_learner_id" value="{{ $learner }}">
-<input type="hidden" name="tutor_learner_id" value="{{ $match['tutor_learner_id'] }}"><input type="hidden" name="topic_id" value="{{ $match['topic_id'] }}">
+<input type="hidden" name="tutor_learner_id" value="{{ $match['tutor_learner_id'] }}">@if($skill)<input type="hidden" name="activity_group_id" value="{{ $match['activity_group_id'] }}">@else<input type="hidden" name="topic_id" value="{{ $match['topic_id'] }}">@endif
+@if($skill)<p>{{ __('A recognised activity skill: this learner captains the group this school year. It is not an academic topic and does not change mastery.') }}</p>@endif
 <label for="peer-start-{{ $loop->index }}">{{ __('Starts at') }}</label><input id="peer-start-{{ $loop->index }}" type="datetime-local" name="starts_at" required>
 <label for="peer-end-{{ $loop->index }}">{{ __('Ends at') }}</label><input id="peer-end-{{ $loop->index }}" type="datetime-local" name="ends_at" required>
 <label for="peer-venue-{{ $loop->index }}">{{ __('Venue') }}</label><input id="peer-venue-{{ $loop->index }}" name="venue" maxlength="191" required>
@@ -40,7 +45,7 @@
 <section aria-labelledby="peer-history"><h2 id="peer-history">{{ __('Peer sessions') }}</h2>
 @forelse($listing['items'] as $row)
 <article class="m3-card m3-card--outlined peer-card" data-peer-session="{{ $row['id'] }}">
-<h3>{{ $row['topic_name'] }}</h3><p>{{ $row['tutor_name'] ?? __('Learner') }} → {{ $row['tutee_name'] ?? __('Learner') }}</p>
+<h3>@if($row['topic_id'] === null){{ __('Activity skill') }}: @endif{{ $row['topic_name'] }}</h3><p>{{ $row['tutor_name'] ?? __('Learner') }} → {{ $row['tutee_name'] ?? __('Learner') }}</p>
 <p>{{ __('Supervisor') }}: {{ $row['supervisor_name'] }}</p><p>{{ $row['venue'] }}</p>
 <p>{{ \Carbon\CarbonImmutable::parse($row['starts_at'])->setTimezone($configuration['timezone'])->format('Y-m-d H:i') }} — {{ \Carbon\CarbonImmutable::parse($row['ends_at'])->setTimezone($configuration['timezone'])->format('Y-m-d H:i') }}</p>
 <p>{{ __(ucfirst($row['status'])) }} · {{ __('Revision') }} {{ $row['revision'] }}</p>
@@ -72,5 +77,5 @@
 </div>
 @endsection
 @section('css')
-<style>.peer-page{overflow-wrap:anywhere}.peer-card{padding:16px;margin-block:16px}.peer-fields{display:grid;gap:10px;margin-block:16px;max-width:42rem}.peer-fields input,.peer-fields select,.peer-fields textarea{box-sizing:border-box;max-width:100%;min-width:0;width:100%;padding:10px}.peer-page summary{cursor:pointer;padding:10px;min-height:44px}.peer-page button{white-space:normal;min-height:44px}</style>
+<style>.peer-page{overflow-wrap:anywhere}.peer-card{padding:16px;margin-block:16px}.peer-fields{display:grid;gap:10px;margin-block:16px;max-width:42rem}.peer-fields input,.peer-fields select,.peer-fields textarea{box-sizing:border-box;max-width:100%;min-width:0;width:100%;padding:10px}.peer-page summary{cursor:pointer;padding:10px;min-height:44px}.peer-page button{white-space:normal;min-height:44px}.peer-why{display:block;font-size:.875rem}</style>
 @endsection
