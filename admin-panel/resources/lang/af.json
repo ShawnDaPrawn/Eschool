@@ -6131,5 +6131,7 @@
     "Use a time such as 21:00.": "Gebruik 'n tyd soos 21:00.",
     "Quiet hours must end at a different time from when they start.": "Stil ure moet op 'n ander tyd eindig as wanneer hulle begin.",
     "School notification": "Skoolkennisgewing",
-    "Open NavigateEd to view this notice.": "Maak NavigateEd oop om hierdie kennisgewing te sien."
+    "Open NavigateEd to view this notice.": "Maak NavigateEd oop om hierdie kennisgewing te sien.",
+    "Starts at (optional)": "Begin om (opsioneel)",
+    "Ends at (optional)": "Eindig om (opsioneel)"
 }

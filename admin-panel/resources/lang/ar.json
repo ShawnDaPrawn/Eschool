@@ -5058,5 +5058,7 @@
     "Use a time such as 21:00.": "Use a time such as 21:00.",
     "Quiet hours must end at a different time from when they start.": "Quiet hours must end at a different time from when they start.",
     "School notification": "School notification",
-    "Open NavigateEd to view this notice.": "Open NavigateEd to view this notice."
+    "Open NavigateEd to view this notice.": "Open NavigateEd to view this notice.",
+    "Starts at (optional)": "Starts at (optional)",
+    "Ends at (optional)": "Ends at (optional)"
 }
