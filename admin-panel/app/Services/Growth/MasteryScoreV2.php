@@ -25,12 +25,17 @@ use InvalidArgumentException;
  *   d_i = 1 + strength * (1 - 2 * f_i)                   f_i = item success rate
  *         across the school in the same audience; 1 when fewer than
  *         `difficulty_min_responses` different learners answered it
- *   w_i = c_i * a_i * r_i * d_i
+ *   w_i = c_i * r_i * d_i                                no time term: see below
  *   raw = sum(w_i * p_i) / sum(w_i)
  *   E   = sum(c_i * a_i)                                  fresh weighted evidence
  *   score      = raw                          when raw <= midpoint m
  *              = m + (raw - m) * E / (E + ks)  otherwise
  *   confidence = E / (E + kc)
+ * Time enters only through E. raw does not depend on as_of, and E never grows
+ * as as_of moves later, so for the same evidence the score never rises with
+ * time and a score at or below the midpoint never changes. (Freshness inside
+ * w_i would break this: as all answers age, a_old / a_new tends to 1, so an
+ * old success would gain weight against a recent failure.)
  * Level thresholds are recent20-v1's: 85%, 70%, 50% and 25% of score_bp.
  * No rows means no score (level and score_bp null), never zero.
  */
@@ -68,7 +73,7 @@ final class MasteryScoreV2
             }
             $source = (float) ($p['source_weights'][$row['source_type'] ?? ''] ?? $p['default_source_weight']);
             $fresh = 1 / (1 + $this->ageDays($row['observed_at'] ?? null, $asOf) / (9 * $stability));
-            $weight = $source * $fresh * ($p['recency_ratio'] ** $rank) * $this->difficulty($row);
+            $weight = $source * ($p['recency_ratio'] ** $rank) * $this->difficulty($row);
             $weighted += $weight * $score / $total;
             $weights += $weight;
             $evidence += $source * $fresh;

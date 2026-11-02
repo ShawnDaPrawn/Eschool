@@ -150,18 +150,29 @@ rows `i` (rank `i = 0` for the newest):
 | `p_i` | `achieved_units / maximum_units` | the answer's result |
 | `t_i` | whole days from `observed_at` to `asOf` | its age |
 | `S` | `(Σ own stabilities + n0 · S0) / (count + n0)` | the topic's memory stability: the learner's FSRS `stability_days` on the topic's practice items, blended with the default |
-| `a_i` | `1 / (1 + t_i / (9 · S))` | freshness: the FSRS forgetting curve `FsrsScheduler` already uses |
+| `a_i` | `1 / (1 + t_i / (9 · S))` | freshness: the FSRS forgetting curve `FsrsScheduler` already uses. It enters only `E`, never `w_i` |
 | `c_i` | source weight | marks 1, practice and tutor checkpoints 0.5 |
 | `r_i` | `recency_ratio ^ i` | recency |
 | `d_i` | `1 + strength · (1 − 2 · f_i)` | difficulty; `f_i` is the item's success rate, 1 when unknown |
-| `w_i` | `c_i · a_i · r_i · d_i` | the row's weight |
+| `w_i` | `c_i · r_i · d_i` | the row's weight: source, recency and difficulty |
 
 Then `raw = Σ w_i p_i / Σ w_i`, and the fresh evidence `E = Σ c_i a_i`.
 
 - `score = raw` when `raw ≤ m`; otherwise `score = m + (raw − m) · E / (E + ks)`.
   Above the midpoint `m`, a score keeps only the share of its lead that the
   evidence supports. As evidence ages, `E` falls and a strong score fades
-  towards the midpoint. A weak score is never lifted by time.
+  towards the midpoint.
+- **Time never raises a score.** Time enters only through `E`. `raw` does not
+  depend on the scoring date, and `E` only shrinks as the date moves later.
+  For the same evidence, a later score is never higher, and a score at or
+  below the midpoint does not change with time. Freshness is deliberately
+  kept out of `w_i`. As all answers age, the ratio between an old and a new
+  answer's freshness tends to 1. So an old success would gain weight against
+  a recent failure, and a weak score would rise with no new work. The Codex
+  review of #420 found exactly that: a wrong mark from 2026-06-01 and a
+  correct mark from 2023-01-01 scored 2230 (level 0) on 2026-06-01 and 2855
+  (level 1) a year later. Now both dates give 4872 (level 1), and only
+  confidence falls (979 to 660).
 - `confidence = E / (E + kc)`.
 - Levels use v1's thresholds on `score_bp`: 85%, 70%, 50% and 25%.
 - No rows: level and `score_bp` are null and confidence is 0. Unknown is never zero.
@@ -175,13 +186,13 @@ learner's topics in the subject, so decay is applied then.
 
 | Parameter | Default | Rationale |
 | --- | --- | --- |
-| `window` | 40 | Twice v1's 20. Recency and freshness weights already make older rows count less, so a longer window adds stability without letting old work dominate. |
-| `recency_ratio` | 0.95 | The 14th-newest answer still counts half. A term's work stays in view; the latest answers lead. |
+| `window` | 40 | Twice v1's 20. The recency weight already makes older rows count less, so a longer window adds stability without letting old work dominate. |
+| `recency_ratio` | 0.95 | The 14th-newest answer still counts half. A term's work stays in view; the latest answers lead. Recency is by rank, not by age, so the balance between answers never shifts as time passes. |
 | `source_weights` | marks 1.0, practice 0.5, tutor 0.5 | Marks are teacher-set and teacher-marked. Practice is self-study with the answer available offline, and tutor checkpoints are first attempts after help. Both are real evidence but weaker, so two practice answers carry one mark's weight. v1 summed units, so a 1-unit practice answer beside a 1000-unit question barely registered. |
 | `default_source_weight` | 0.5 | Any future source (for example 3.7 diagnostics) counts as practice until configured. |
 | `difficulty_strength` | 0.5 | Item weights between 0.5 (everyone gets it right) and 1.5 (nobody does). Harder items say more, but no single item can dominate. |
 | `difficulty_min_responses` | 5 | Fewer different learners give a noisy rate, and the rate would reflect one or two named classmates. |
-| `default_stability_days` | 60 | Without practice memory, half of a fresh mark's freshness is gone after 540 days (`t = 9S`) and a tenth after 60 days, so a term-old mark still counts. |
+| `default_stability_days` | 60 | Without practice memory, half of a fresh mark's freshness is gone after 540 days (`t = 9S`) and a tenth after 60 days. Freshness sets how fast a strong score fades and confidence falls, so a term-old mark still counts. |
 | `stability_prior_count` | 3 | A learner's first practice answers (FSRS stability 0.4 to 5.8 days) inform the decay without making last month's marks vanish. |
 | `midpoint_bp` | 5000 | The "secure" boundary of level 2. A lead above it must be earned with evidence. |
 | `score_evidence_half` | 2 | One fresh correct mark gives 67% (level 2), three give 80% (level 3), six give 88% (level 4). |
@@ -207,6 +218,8 @@ calibrate them; a change of formula, rather than of tuning, is a new version.
 | `MasteryScoreV2Test::test_v2_empty_evidence_gives_no_score_not_zero` | No evidence is unknown; a real zero stays zero |
 | `MasteryScoreV2Test::test_v2_golden_values_for_the_fixture_learner` | Exact v2 and v1 numbers for a fixed five-row learner, now and a year later |
 | `MasteryScoreV2Test::test_v2_decays_over_time_and_slower_with_more_stable_practice_memory` | Decay over time, stability slows it, weak scores never rise |
+| `MasteryScoreV2Test::test_v2_an_old_success_never_lifts_a_recent_failure_as_time_passes` | The Codex review case: the same score on both dates, lower confidence later |
+| `MasteryScoreV2Test::test_v2_score_never_rises_with_time_for_the_same_evidence` | Property test: 400 generated evidence sets, each scored on five increasingly later dates; score, level and confidence never rise, and scores at or below the midpoint never change |
 | `MasteryScoreV2Test::test_v2_harder_items_weigh_more` | Difficulty weighting and the five-learner minimum |
 | `MasteryScoreV2Test::test_v2_sufficiency_rises_slowly_with_evidence_count` | Slow confidence growth, the score lead and the window |
 | `MasteryScoreV2Test::test_v2_practice_counts_half_of_marks` | Practice against marks, configurable |
@@ -233,4 +246,8 @@ calibrate them; a change of formula, rather than of tuning, is a new version.
 - **Leadership reports.** No leadership report reads mastery today. 3.14
   (measurement) must group by `policy_version` and never compare across versions.
 - **Calibration.** The defaults are not fitted to outcomes yet (see P.4).
+- **Age gaps in the weights.** Recency in `raw` is by rank only. Weighting
+  answers by the gap in days to the newest answer (with exponential decay,
+  whose ratios don't drift with time) would keep the no-rise rule, but it is
+  a formula change and so a new version.
 - **An API to switch the model.** The switch is panel-only.

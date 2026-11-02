@@ -47,11 +47,11 @@ class MasteryScoreV2Test extends TestCase
     public function test_v2_golden_values_for_the_fixture_learner(): void
     {
         $score = new MasteryScoreV2;
-        $this->assertSame(['level' => 2, 'score_bp' => 6120, 'confidence_bp' => 2203, 'evidence_count' => 5, 'policy_version' => 'weighted-decay-v2'],
+        $this->assertSame(['level' => 2, 'score_bp' => 6007, 'confidence_bp' => 2203, 'evidence_count' => 5, 'policy_version' => 'weighted-decay-v2'],
             $score->calculate($this->golden(), $this->day('2026-06-01'), [10.0, 30.0]));
-        $this->assertSame(['level' => 2, 'score_bp' => 6108, 'confidence_bp' => 2268, 'evidence_count' => 5, 'policy_version' => 'weighted-decay-v2'],
+        $this->assertSame(['level' => 2, 'score_bp' => 6021, 'confidence_bp' => 2268, 'evidence_count' => 5, 'policy_version' => 'weighted-decay-v2'],
             $score->calculate($this->golden(), $this->day('2026-06-01')));
-        $this->assertSame(['level' => 2, 'score_bp' => 5827, 'confidence_bp' => 1362, 'evidence_count' => 5, 'policy_version' => 'weighted-decay-v2'],
+        $this->assertSame(['level' => 2, 'score_bp' => 5778, 'confidence_bp' => 1362, 'evidence_count' => 5, 'policy_version' => 'weighted-decay-v2'],
             $score->calculate($this->golden(), $this->day('2027-06-01'), [10.0, 30.0]));
         // The same learner under recent20-v1: all marks summed, five rows give full "confidence".
         $this->assertSame(['level' => 2, 'score_bp' => 6923, 'confidence_bp' => 10000, 'evidence_count' => 5, 'policy_version' => 'recent20-v1'],
@@ -82,6 +82,62 @@ class MasteryScoreV2Test extends TestCase
         $weak = array_fill(0, 6, $this->row(2, 10, observed: '2026-01-10'));
         $this->assertSame(2000, $score->calculate($weak, $this->day('2026-01-10'))['score_bp']);
         $this->assertSame(2000, $score->calculate($weak, $this->day('2027-07-10'))['score_bp']);
+    }
+
+    public function test_v2_an_old_success_never_lifts_a_recent_failure_as_time_passes(): void
+    {
+        // Codex review on #420: before the fix this scored 2230 (level 0) on 2026-06-01
+        // and 2855 (level 1) a year later, with no new work.
+        $score = new MasteryScoreV2;
+        $rows = [$this->row(0, 1, observed: '2026-06-01'), $this->row(1, 1, observed: '2023-01-01')];
+        $now = $score->calculate($rows, $this->day('2026-06-01'));
+        $later = $score->calculate($rows, $this->day('2027-06-01'));
+        $this->assertSame(['level' => 1, 'score_bp' => 4872, 'confidence_bp' => 979, 'evidence_count' => 2, 'policy_version' => 'weighted-decay-v2'], $now);
+        $this->assertSame(['level' => 1, 'score_bp' => 4872, 'confidence_bp' => 660, 'evidence_count' => 2, 'policy_version' => 'weighted-decay-v2'], $later);
+    }
+
+    public function test_v2_score_never_rises_with_time_for_the_same_evidence(): void
+    {
+        $score = new MasteryScoreV2;
+        $seed = 3820261102;
+        $next = function (int $mod) use (&$seed): int {
+            $seed = ($seed * 1103515245 + 12345) % 2147483648;
+
+            return intdiv($seed, 65536) % $mod;
+        };
+        $sources = ['question_mark', 'released_question_mark', 'practice_review', 'tutor_checkpoint', 'diagnostic'];
+        $base = $this->day('2022-01-01')->getTimestamp();
+        $checked = 0;
+        for ($set = 0; $set < 400; $set++) {
+            $rows = [];
+            $newest = 0;
+            for ($i = 0, $n = 1 + $next(45); $i < $n; $i++) {
+                $maximum = [1, 1, 2, 4, 10, 100, 1000][$next(7)];
+                $observed = $base + $next(1600) * 86400 + $next(86400);
+                $newest = max($newest, $observed);
+                $rows[] = ['achieved_units' => $next($maximum + 1), 'maximum_units' => $maximum, 'source_type' => $sources[$next(5)],
+                    'observed_at' => (new DateTimeImmutable)->setTimestamp($observed), 'facility_bp' => $next(3) === 0 ? null : $next(10001), 'facility_responses' => $next(12)];
+            }
+            // Callers pass rows newest first; the property must hold for any order.
+            if ($next(2) === 0) {
+                usort($rows, fn ($a, $b) => $b['observed_at'] <=> $a['observed_at']);
+            }
+            $stabilities = array_map(fn () => $next(40000) / 100, range(1, $next(5)));
+            $at = $newest + $next(400) * 86400;
+            $earlier = $score->calculate($rows, (new DateTimeImmutable)->setTimestamp($at), $stabilities);
+            foreach ([1, 30, 365, 3650] as $days) {
+                $later = $score->calculate($rows, (new DateTimeImmutable)->setTimestamp($at + $days * 86400 + $next(86400)), $stabilities);
+                $this->assertLessThanOrEqual($earlier['score_bp'], $later['score_bp'], 'Evidence set '.$set);
+                $this->assertLessThanOrEqual($earlier['level'], $later['level'], 'Evidence set '.$set);
+                $this->assertLessThanOrEqual($earlier['confidence_bp'], $later['confidence_bp'], 'Evidence set '.$set);
+                if ($earlier['score_bp'] <= 5000) {
+                    $this->assertSame($earlier['score_bp'], $later['score_bp'], 'A score at or below the midpoint is untouched by time; set '.$set);
+                }
+                $earlier = $later;
+                $checked++;
+            }
+        }
+        $this->assertSame(1600, $checked);
     }
 
     public function test_v2_harder_items_weigh_more(): void
