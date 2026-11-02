@@ -61,6 +61,7 @@ use App\Http\Controllers\Panel\Growth\CaseloadRenewalController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
+use App\Http\Controllers\Panel\Growth\UnseenLearnersController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
@@ -1351,6 +1352,10 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::get('renewals', [CaseloadRenewalController::class, 'index'])->name('renewals');
     Route::post('renewals', [CaseloadRenewalController::class, 'store'])->middleware('throttle:20,1')->name('renewals.store');
     Route::post('settings', [RiskPanelController::class, 'write'])->name('configure');
+    // "No child unseen" (Action Plan 4.5).
+    Route::get('unseen', [UnseenLearnersController::class, 'index'])->name('unseen');
+    Route::post('unseen/learners/{learner}/adult', [UnseenLearnersController::class, 'assign'])->whereNumber('learner')->middleware('throttle:30,1')->name('unseen.assign');
+    Route::post('unseen/settings', [UnseenLearnersController::class, 'configure'])->name('unseen.configure');
 });
 
 Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'module:discipline', EnforceReadOnlyYears::class])->prefix('school-discipline')->name('discipline-panel.')->group(function () {

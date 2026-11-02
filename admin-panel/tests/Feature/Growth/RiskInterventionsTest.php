@@ -93,7 +93,7 @@ class RiskInterventionsTest extends TestCase
         $this->assertGreaterThan(0, $risk->grade($this->year, $this->grade));
         $risk->grade($this->year, $this->grade);
         $rows = RiskObservation::where('learner_id', $this->schoolA->ids['asha'])->get()->keyBy('source');
-        $this->assertCount(4, $rows);
+        $this->assertCount(5, $rows); // academic, attendance, discipline, wellbeing and unseen (Action Plan 4.5)
         $this->assertSame(25, $rows['academic']->score);
         $this->assertSame(1, $rows['academic']->signal_count);
         $this->assertSame($this->grade, (int) $rows['academic']->grade_level_id);

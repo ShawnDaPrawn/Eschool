@@ -192,6 +192,15 @@ canonical evidence. Unavailable wellbeing and discipline sources stay null until
 explicit authoritative adapters exist. No family risk labels or clinical-source
 counts are exposed. Leadership receives grade/date counts only.
 
+"No child unseen" (Action Plan 4.5): `growth.unseen_adult_assigned`
+(early_warning module, teacher and admin portals, standard channel
+preferences) tells the one staff member a grade head or principal named to
+reach out to a learner with no recent positive contact. It links to
+`/risk-interventions/unseen` and names no learner; the page shows the named
+adult only their own learners. The hourly `risk:evaluate` run records an
+`unseen` observation per learner and closes the request when a positive
+contact is recorded.
+
 
 ## Discipline
 
