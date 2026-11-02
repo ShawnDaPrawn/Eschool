@@ -5958,5 +5958,7 @@
     "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
     "Choose a real time zone.": "Khetha indawo yesikhathi yangempela.",
     "Use a time such as 21:00.": "Sebenzisa isikhathi esifana no-21:00.",
-    "Quiet hours must end at a different time from when they start.": "Amahora athule kufanele aphele ngesikhathi esihlukile kunalapho eqala khona."
+    "Quiet hours must end at a different time from when they start.": "Amahora athule kufanele aphele ngesikhathi esihlukile kunalapho eqala khona.",
+    "School notification": "Isaziso sesikole",
+    "Open NavigateEd to view this notice.": "Vula i-NavigateEd ukuze ubone lesi saziso."
 }
