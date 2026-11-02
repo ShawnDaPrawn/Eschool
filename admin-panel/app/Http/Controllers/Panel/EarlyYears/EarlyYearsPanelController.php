@@ -9,7 +9,6 @@ use App\Http\Requests\EarlyYears\DevelopmentAreaRequest;
 use App\Http\Requests\EarlyYears\DiaryRequest;
 use App\Http\Requests\EarlyYears\ObservationActionRequest;
 use App\Http\Requests\EarlyYears\ObservationRequest;
-use App\Models\EarlyYears\DiaryEntry;
 use App\Models\EarlyYears\Observation;
 use App\Services\EarlyYears\DailyDiary;
 use App\Services\EarlyYears\DevelopmentAreas;
@@ -46,14 +45,7 @@ class EarlyYearsPanelController extends Controller
 
     public function classroom(Request $request, int $section): View
     {
-        $class = $this->authority->classRead($request->user(), $section);
-        $learners = $this->authority->roster($section);
-        $counts = Observation::whereIn('learner_id', $learners->pluck('id'))->whereNull('withdrawn_at')->selectRaw('learner_id, count(*) as total')->groupBy('learner_id')->pluck('total', 'learner_id');
-        $today = $this->authority->today();
-        $diary = DiaryEntry::whereIn('learner_id', $learners->pluck('id'))->whereDate('entry_date', $today)->count();
-        $this->authority->classRead($request->user(), $section);
-
-        return view('early-years.class', ['section' => $class, 'learners' => $learners, 'counts' => $counts, 'today' => $today, 'diaryCount' => $diary]);
+        return view('early-years.class', app(Observations::class)->classroom($request->user(), $section));
     }
 
     public function diary(Request $request, int $section): View

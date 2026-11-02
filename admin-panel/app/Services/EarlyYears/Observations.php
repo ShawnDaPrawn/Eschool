@@ -6,6 +6,7 @@ namespace App\Services\EarlyYears;
 
 use App\Models\Academics\AcademicLeadership;
 use App\Models\EarlyYears\DevelopmentArea;
+use App\Models\EarlyYears\DiaryEntry;
 use App\Models\EarlyYears\EarlyConcern;
 use App\Models\EarlyYears\Observation;
 use App\Models\Gallery\GalleryPhoto;
@@ -107,6 +108,19 @@ class Observations
         }
 
         return app(GalleryAuthority::class)->approved($tag) ? 'approved' : 'awaiting';
+    }
+
+    /** A class page: its children today, their observation counts and how many diary entries today has. */
+    public function classroom(User $actor, int $sectionId): array
+    {
+        $section = $this->authority->classRead($actor, $sectionId);
+        $learners = $this->authority->roster($sectionId);
+        $counts = Observation::whereIn('learner_id', $learners->pluck('id'))->whereNull('withdrawn_at')->selectRaw('learner_id, count(*) as total')->groupBy('learner_id')->pluck('total', 'learner_id');
+        $today = $this->authority->today();
+        $diary = DiaryEntry::whereIn('learner_id', $learners->pluck('id'))->whereDate('entry_date', $today)->count();
+        $this->authority->classRead($actor, $sectionId);
+
+        return ['section' => $section, 'learners' => $learners, 'counts' => $counts, 'today' => $today, 'diaryCount' => $diary];
     }
 
     public function portfolio(User $actor, int $learnerId): array
