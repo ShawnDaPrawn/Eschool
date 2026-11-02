@@ -58,5 +58,6 @@ audited; secret-looking values are hidden; school staff are refused.
 ## Not yet
 
 Requiring a reason for every sensitive action arrives with platform roles
-(SA.1) and audited support access (SA.9), which also add their own actions to
-this log.
+(SA.1). Audited support access (SA.9, [support-access.md](support-access.md))
+adds its own actions to this log: requests and emergency overrides with their
+reasons, the school's decisions, endings, and every page viewed in a session.

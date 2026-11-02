@@ -19,9 +19,11 @@ use App\Models\User;
 use App\Services\Academics\AcademicProjections;
 use App\Services\Academics\Transitions\LeaveLearner;
 use App\Services\People\EnrolmentService;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 
@@ -52,6 +54,10 @@ class TransferEnrollment
         if ($learner->user !== null) {
             app(MembershipService::class)->forget($learner->user);
         }
+        // Guardians left with only leavers here, or none (Action Plan 1.21). This
+        // settles them only if the learner's membership has already ended: when it
+        // ends on a later date nothing settles them then (spec, Not in this step).
+        app(LeaverState::class)->settleGuardians(app(GuardianService::class)->guardianUserIds($learner)->all());
         app(AcademicProjections::class)->refresh();
         Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'academics.learner_changed'));
         Audit::record('transfer.source_enrolment_closed', $transition, [], ['transfer_package_id' => $package->public_id, 'last_attended_on' => $date, 'released_by' => (int) $signer->id]);
