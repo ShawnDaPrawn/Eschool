@@ -127,16 +127,16 @@ class SupportDeskTest extends TestCase
         $support = $this->staff('support');
         $this->as($support);
         $this->get('/saas')->assertOk()->assertSee('Support desk');
-        $this->get('/saas/support')->assertOk()->assertSee($reference)->assertSee('Timetable page is empty')->assertSee('Jacaranda')->assertSee('Urgent')->assertSee('New');
-        $this->get('/saas/support/'.$id)->assertOk()->assertSee(self::BODY)->assertSee('Opened 2026-11-02 09:00 by super admin');
+        $this->get('/saas/support-desk')->assertOk()->assertSee($reference)->assertSee('Timetable page is empty')->assertSee('Jacaranda')->assertSee('Urgent')->assertSee('New');
+        $this->get('/saas/support-desk/'.$id)->assertOk()->assertSee(self::BODY)->assertSee('Opened 2026-11-02 09:00 by super admin');
 
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'reply', 'body' => self::REPLY])->assertRedirect('/saas/support/'.$id)->assertSessionHasNoErrors();
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'note', 'body' => self::NOTE])->assertRedirect()->assertSessionHasNoErrors();
-        $this->put('/saas/support/'.$id.'/status', ['status' => 'waiting_on_school'])->assertRedirect()->assertSessionHasNoErrors();
-        $this->put('/saas/support/'.$id.'/assignee', ['assigned_to' => $support->id])->assertRedirect()->assertSessionHasNoErrors();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'reply', 'body' => self::REPLY])->assertRedirect('/saas/support-desk/'.$id)->assertSessionHasNoErrors();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'note', 'body' => self::NOTE])->assertRedirect()->assertSessionHasNoErrors();
+        $this->put('/saas/support-desk/'.$id.'/status', ['status' => 'waiting_on_school'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->put('/saas/support-desk/'.$id.'/assignee', ['assigned_to' => $support->id])->assertRedirect()->assertSessionHasNoErrors();
         $ticket = $this->ticket($id);
         $this->assertSame(['waiting_on_school', (int) $support->id], [$ticket->status, $ticket->assigned_to]);
-        $this->get('/saas/support/'.$id)->assertOk()->assertSee(self::REPLY)->assertSee(self::NOTE)->assertSee('Internal note: the school never sees this')->assertSee('Support Operator');
+        $this->get('/saas/support-desk/'.$id)->assertOk()->assertSee(self::REPLY)->assertSee(self::NOTE)->assertSee('Internal note: the school never sees this')->assertSee('Support Operator');
         $this->assertSame(1, DB::table('notifications')->where('type', 'school.support_reply')->where('school_id', 1)->count(), 'only the reply tells the school');
 
         $this->as($admin);
@@ -207,7 +207,7 @@ class SupportDeskTest extends TestCase
         $this->post('/support-tickets/'.$old.'/messages', ['body' => 'Any news on this one?'])->assertRedirect();
         $this->travel(1)->minutes();
         $this->as($support);
-        $page = $this->get('/saas/support')->assertOk()->assertSee('Marked new: changed since you last opened the queue');
+        $page = $this->get('/saas/support-desk')->assertOk()->assertSee('Marked new: changed since you last opened the queue');
         $second = $page->viewData('queue');
         $this->assertSame([$urgent => false, $old => true, $newer => false], array_column($second, 'new', 'id'));
     }
@@ -239,15 +239,15 @@ class SupportDeskTest extends TestCase
             $this->as($this->staff($role));
             $this->get('/saas')->assertOk()->assertDontSee('Support desk');
             $this->get('/saas/schools/1')->assertOk()->assertSee('One open support ticket.')->assertDontSee('Timetable page is empty')->assertDontSee(SupportTicket::referenceFor($id));
-            $this->get('/saas/support')->assertForbidden();
-            $this->get('/saas/support/'.$id)->assertForbidden();
-            $this->post('/saas/support/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Should never be sent'])->assertForbidden();
-            $this->put('/saas/support/'.$id.'/status', ['status' => 'closed'])->assertForbidden();
-            $this->put('/saas/support/'.$id.'/assignee', ['assigned_to' => $owner->id])->assertForbidden();
+            $this->get('/saas/support-desk')->assertForbidden();
+            $this->get('/saas/support-desk/'.$id)->assertForbidden();
+            $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Should never be sent'])->assertForbidden();
+            $this->put('/saas/support-desk/'.$id.'/status', ['status' => 'closed'])->assertForbidden();
+            $this->put('/saas/support-desk/'.$id.'/assignee', ['assigned_to' => $owner->id])->assertForbidden();
         }
         $this->as($this->superAdmin());
-        $this->get('/saas/support')->assertForbidden();
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Should never be sent'])->assertForbidden();
+        $this->get('/saas/support-desk')->assertForbidden();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Should never be sent'])->assertForbidden();
         $this->assertSame($before, $this->counts());
         $ticket = $this->ticket($id);
         $this->assertSame(['open', null], [$ticket->status, $ticket->assigned_to]);
@@ -277,7 +277,7 @@ class SupportDeskTest extends TestCase
         $this->as($this->superAdmin());
         $id = $this->open();
         $this->as($this->staff('operations'));
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'note', 'body' => self::NOTE])->assertRedirect()->assertSessionHasNoErrors();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'note', 'body' => self::NOTE])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame(0, DB::table('notifications')->where('type', 'school.support_reply')->count(), 'a note tells nobody');
 
         $this->as($this->superAdmin());
@@ -293,7 +293,7 @@ class SupportDeskTest extends TestCase
         $this->as($admin);
         $id = $this->open(['subject' => 'Timetable page is empty']);
         $this->as($this->staff('support'));
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'reply', 'body' => self::REPLY])->assertRedirect()->assertSessionHasNoErrors();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'reply', 'body' => self::REPLY])->assertRedirect()->assertSessionHasNoErrors();
 
         $notice = Notification::acrossSchools()->where('type', 'school.support_reply')->sole();
         $this->assertSame(1, (int) $notice->school_id);
@@ -322,9 +322,9 @@ class SupportDeskTest extends TestCase
         $id = $this->open(['subject' => 'Secret subject words']);
         $this->post('/support-tickets/'.$id.'/messages', ['body' => 'Secret school follow up'])->assertRedirect();
         $this->as($this->staff('owner'));
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Secret hq reply words'])->assertRedirect();
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'note', 'body' => 'Secret hq note words'])->assertRedirect();
-        $this->put('/saas/support/'.$id.'/status', ['status' => 'closed'])->assertRedirect();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Secret hq reply words'])->assertRedirect();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'note', 'body' => 'Secret hq note words'])->assertRedirect();
+        $this->put('/saas/support-desk/'.$id.'/status', ['status' => 'closed'])->assertRedirect();
 
         $rows = DB::table('audit_log')->where('action', 'like', 'support_ticket_%')->get();
         $this->assertCount(5, $rows);
@@ -348,7 +348,7 @@ class SupportDeskTest extends TestCase
         $this->as($this->staff('support'));
         $this->get('/saas/schools/1')->assertOk()->assertSee('One open support ticket.')
             ->assertSee('Second Jacaranda ticket')->assertSee('First Jacaranda ticket')->assertDontSee('Baobab ticket')
-            ->assertSee(route('saas.support.show', $second), false)->assertSee(route('saas.support.show', $first), false);
+            ->assertSee(route('saas.support-desk.show', $second), false)->assertSee(route('saas.support-desk.show', $first), false);
         $this->get('/saas/schools/2')->assertOk()->assertSee('One open support ticket.')->assertSee('Baobab ticket')->assertDontSee('Jacaranda ticket');
     }
 
@@ -363,20 +363,20 @@ class SupportDeskTest extends TestCase
         $owner = $this->staff('owner');
         $sales = $this->staff('sales');
         $this->as($owner);
-        $this->put('/saas/support/'.$id.'/assignee', ['assigned_to' => $sales->id])->assertSessionHasErrors('assigned_to');
-        $this->put('/saas/support/'.$id.'/assignee', ['assigned_to' => $this->superAdmin()->id])->assertSessionHasErrors('assigned_to');
+        $this->put('/saas/support-desk/'.$id.'/assignee', ['assigned_to' => $sales->id])->assertSessionHasErrors('assigned_to');
+        $this->put('/saas/support-desk/'.$id.'/assignee', ['assigned_to' => $this->superAdmin()->id])->assertSessionHasErrors('assigned_to');
         $this->assertNull($this->ticket($id)->assigned_to);
-        $this->put('/saas/support/'.$id.'/assignee', ['assigned_to' => $owner->id])->assertSessionHasNoErrors();
-        $this->put('/saas/support/'.$id.'/assignee', ['assigned_to' => ''])->assertSessionHasNoErrors();
+        $this->put('/saas/support-desk/'.$id.'/assignee', ['assigned_to' => $owner->id])->assertSessionHasNoErrors();
+        $this->put('/saas/support-desk/'.$id.'/assignee', ['assigned_to' => ''])->assertSessionHasNoErrors();
         $this->assertNull($this->ticket($id)->assigned_to);
-        $this->put('/saas/support/'.$id.'/status', ['status' => 'lost'])->assertSessionHasErrors('status');
-        $this->get('/saas/support/999999')->assertNotFound();
+        $this->put('/saas/support-desk/'.$id.'/status', ['status' => 'lost'])->assertSessionHasErrors('status');
+        $this->get('/saas/support-desk/999999')->assertNotFound();
 
-        $this->put('/saas/support/'.$id.'/status', ['status' => 'closed'])->assertSessionHasNoErrors();
+        $this->put('/saas/support-desk/'.$id.'/status', ['status' => 'closed'])->assertSessionHasNoErrors();
         $this->assertSame('Support ticket '.SupportTicket::referenceFor($id).' closed by Navigate Ed.', (string) DB::table('school_account_events')->where('kind', 'support')->latest('id')->value('body'));
         $messages = DB::table('school_support_ticket_messages')->count();
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Too late to reply'])->assertStatus(409);
-        $this->post('/saas/support/'.$id.'/messages', ['kind' => 'note', 'body' => 'A note after closing is fine'])->assertSessionHasNoErrors();
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'reply', 'body' => 'Too late to reply'])->assertStatus(409);
+        $this->post('/saas/support-desk/'.$id.'/messages', ['kind' => 'note', 'body' => 'A note after closing is fine'])->assertSessionHasNoErrors();
         $this->assertSame($messages + 1, DB::table('school_support_ticket_messages')->count());
 
         $this->as($this->superAdmin());
@@ -384,7 +384,7 @@ class SupportDeskTest extends TestCase
         $this->post('/support-tickets/'.$id.'/close')->assertStatus(409);
 
         $this->as($owner);
-        $this->put('/saas/support/'.$id.'/status', ['status' => 'open'])->assertSessionHasNoErrors();
+        $this->put('/saas/support-desk/'.$id.'/status', ['status' => 'open'])->assertSessionHasNoErrors();
         $ticket = $this->ticket($id);
         $this->assertSame(['open', null, null], [$ticket->status, $ticket->closed_at, $ticket->closed_by]);
         $this->assertSame('Support ticket '.SupportTicket::referenceFor($id).' reopened by Navigate Ed.', (string) DB::table('school_account_events')->where('kind', 'support')->latest('id')->value('body'));

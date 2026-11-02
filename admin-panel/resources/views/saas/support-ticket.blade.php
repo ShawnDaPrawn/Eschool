@@ -31,7 +31,7 @@
 </ol>
 
 <h2>{{ __('Reply or add a note') }}</h2>
-<form method="POST" action="{{ route('saas.support.messages.store', $ticket['id']) }}" class="saas-card" aria-label="{{ __('Reply or add a note') }}">
+<form method="POST" action="{{ route('saas.support-desk.messages.store', $ticket['id']) }}" class="saas-card" aria-label="{{ __('Reply or add a note') }}">
     @csrf
     <div class="saas-field">
         <label for="support-kind">{{ __('Kind') }}</label>
@@ -51,7 +51,7 @@
 
 <h2>{{ __('Status and assignment') }}</h2>
 <div class="saas-grid">
-    <form method="POST" action="{{ route('saas.support.status', $ticket['id']) }}" class="saas-card" aria-label="{{ __('Status') }}">
+    <form method="POST" action="{{ route('saas.support-desk.status', $ticket['id']) }}" class="saas-card" aria-label="{{ __('Status') }}">
         @csrf
         @method('PUT')
         <div class="saas-field">
@@ -62,7 +62,7 @@
         </div>
         <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Save status') }}</button></div>
     </form>
-    <form method="POST" action="{{ route('saas.support.assignee', $ticket['id']) }}" class="saas-card" aria-label="{{ __('Assigned to') }}">
+    <form method="POST" action="{{ route('saas.support-desk.assignee', $ticket['id']) }}" class="saas-card" aria-label="{{ __('Assigned to') }}">
         @csrf
         @method('PUT')
         <div class="saas-field">
@@ -80,5 +80,5 @@
         </div>
     </form>
 </div>
-<p class="saas-actions"><a class="saas-btn saas-btn--quiet" href="{{ route('saas.support.index') }}">{{ __('Back to the queue') }}</a></p>
+<p class="saas-actions"><a class="saas-btn saas-btn--quiet" href="{{ route('saas.support-desk.index') }}">{{ __('Back to the queue') }}</a></p>
 @endsection

@@ -18,9 +18,9 @@ class SupportDeskRequest extends PlatformStaffRequest
     public function rules(): array
     {
         return match ((string) $this->route()?->getName()) {
-            'saas.support.messages.store' => PlatformSupportDesk::messageRules(),
-            'saas.support.status' => PlatformSupportDesk::statusRules(),
-            'saas.support.assignee' => PlatformSupportDesk::assigneeRules(),
+            'saas.support-desk.messages.store' => PlatformSupportDesk::messageRules(),
+            'saas.support-desk.status' => PlatformSupportDesk::statusRules(),
+            'saas.support-desk.assignee' => PlatformSupportDesk::assigneeRules(),
             default => [],
         };
     }

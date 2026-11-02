@@ -331,7 +331,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
     // The support desk (SA.17): every school's tickets, replies, internal notes, assignee and status.
-    Route::prefix('/support')->middleware('platform.can:support.manage')->name('support.')->group(function () {
+    Route::prefix('/support-desk')->middleware('platform.can:support.manage')->name('support-desk.')->group(function () {
         Route::get('/', [PlatformSupportController::class, 'index'])->name('index');
         Route::get('/{ticket}', [PlatformSupportController::class, 'show'])->whereNumber('ticket')->name('show');
         Route::post('/{ticket}/messages', [PlatformSupportController::class, 'message'])->middleware('throttle:60,1')->whereNumber('ticket')->name('messages.store');

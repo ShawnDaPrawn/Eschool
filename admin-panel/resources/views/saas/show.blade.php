@@ -115,7 +115,7 @@
             <tbody>
             @foreach ($support['latest'] as $ticket)
                 <tr>
-                    <td><a href="{{ route('saas.support.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a></td>
+                    <td><a href="{{ route('saas.support-desk.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a></td>
                     <th scope="row">{{ $ticket['subject'] }}@if ($ticket['priority'] === 'urgent') <span class="saas-badge saas-badge--warn">{{ __('Urgent') }}</span>@endif</th>
                     <td>{{ \App\Models\Platform\SupportTicket::STATUS_LABELS[$ticket['status']] }}</td>
                     <td>{{ $ticket['updated_at'] }}</td>
@@ -130,7 +130,7 @@
     @if ($platformCan('accounts.manage'))<a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.onboarding', $school['id']) }}">{{ __('Onboarding checklist') }}</a>
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
-    @if ($platformCan('support.manage'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.support.index') }}">{{ __('Support desk') }}</a>@endif
+    @if ($platformCan('support.manage'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
     @if ($platformCan('audit.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>@endif
 </p>
 @endsection

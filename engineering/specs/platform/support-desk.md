@@ -46,7 +46,7 @@ Models `App\Models\Platform\SupportTicket` and `SupportTicketMessage` use `Belon
 | `test_office_staff_with_the_settings_permission_use_it_and_see_it_in_the_menu` | a custom "Front office" role with `setting-create` | open a billing ticket | it works; the menu has "Navigate Ed support"; a teacher's menu does not |
 | `test_the_queue_is_urgent_first_then_oldest_and_marks_what_changed_since_the_last_look` | three School A tickets and a closed School B ticket | Support opens the queue; the school adds a message to one; Support opens it again | urgent, then oldest, then newer; the closed one is under recently resolved or closed; all new on the first visit; then only the changed ticket is new |
 | `test_teachers_and_parents_are_refused_and_nothing_is_written` | a School A ticket | a teacher and a parent try all five school endpoints | 403 each; no ticket, message, timeline line, notice or audit row; ticket unchanged |
-| `test_sales_finance_content_and_school_accounts_are_refused_on_hq_and_nothing_is_written` | a School A ticket | Sales, Finance and Content try all five HQ endpoints; a school Super Admin tries `/saas/support` | no menu link; the school page shows the count but no subject or reference; 403 everywhere; nothing written; no queue visit recorded |
+| `test_sales_finance_content_and_school_accounts_are_refused_on_hq_and_nothing_is_written` | a School A ticket | Sales, Finance and Content try all five HQ endpoints; a school Super Admin tries `/saas/support-desk` | no menu link; the school page shows the count but no subject or reference; 403 everywhere; nothing written; no queue visit recorded |
 | `test_another_school_cannot_see_reply_to_or_close_a_ticket` | a School A ticket | School B's Super Admin lists tickets, opens, replies to and closes it by id | not listed; 404 each; School A's ticket and messages unchanged; nothing written |
 | `test_a_school_never_reads_hq_internal_notes` | Operations adds a note | the school opens the ticket and the list | the note is not shown; the service returns only the school's message; no notice |
 | `test_the_reply_notice_tells_the_opener_with_the_subject_only` | Support replies | the notice is made and delivered (called directly) | one `school.support_reply` in School A, title, subject as body, link to the ticket, no reply text anywhere in it; the outbox event names only the opener; the opener gets it in the app; a teacher is not offered it |
@@ -72,11 +72,11 @@ HQ (`platform.can:support.manage`; writes use `SupportDeskRequest` and `Platform
 
 | Method | Path | Name |
 | --- | --- | --- |
-| GET | `/saas/support` | `saas.support.index` |
-| GET | `/saas/support/{ticket}` | `saas.support.show` |
-| POST | `/saas/support/{ticket}/messages` | `saas.support.messages.store` |
-| PUT | `/saas/support/{ticket}/status` | `saas.support.status` |
-| PUT | `/saas/support/{ticket}/assignee` | `saas.support.assignee` |
+| GET | `/saas/support-desk` | `saas.support-desk.index` |
+| GET | `/saas/support-desk/{ticket}` | `saas.support-desk.show` |
+| POST | `/saas/support-desk/{ticket}/messages` | `saas.support-desk.messages.store` |
+| PUT | `/saas/support-desk/{ticket}/status` | `saas.support-desk.status` |
+| PUT | `/saas/support-desk/{ticket}/assignee` | `saas.support-desk.assignee` |
 
 No API or OpenAPI change. HQ pages are English only; the school pages have en, af, zu and ar keys.
 
@@ -87,3 +87,5 @@ No API or OpenAPI change. HQ pages are English only; the school pages have en, a
 - Notifying HQ staff (by email or in the app) of new tickets or school messages; the queue's "New" mark is the signal for now.
 - Per-ticket read state for HQ staff, automatic closing of resolved tickets, and response-time targets.
 - Tickets from the mobile apps or the API.
+
+The HQ desk uses the dedicated `/saas/support-desk` URL, `saas.support-desk.*` route names and `saas.support-desk` list view. The audited school-access workflow owns `/saas/support` and `saas.support.*`; ticket IDs and access-grant IDs must never resolve through each other's routes or views.

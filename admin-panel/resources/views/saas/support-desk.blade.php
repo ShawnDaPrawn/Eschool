@@ -25,7 +25,7 @@
         <tbody>
         @foreach ($queue as $ticket)
             <tr>
-                <td><a href="{{ route('saas.support.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a>@if ($ticket['new']) <span class="saas-badge">{{ __('New') }}</span>@endif</td>
+                <td><a href="{{ route('saas.support-desk.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a>@if ($ticket['new']) <span class="saas-badge">{{ __('New') }}</span>@endif</td>
                 <th scope="row">{{ $ticket['subject'] }}</th>
                 <td>{{ $ticket['school'] }}</td>
                 <td><span class="saas-badge {{ $ticket['priority'] === 'urgent' ? 'saas-badge--warn' : '' }}">{{ SupportTicket::PRIORITY_LABELS[$ticket['priority']] }}</span></td>
@@ -49,7 +49,7 @@
         <tbody>
         @foreach ($recent as $ticket)
             <tr>
-                <td><a href="{{ route('saas.support.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a>@if ($ticket['new']) <span class="saas-badge">{{ __('New') }}</span>@endif</td>
+                <td><a href="{{ route('saas.support-desk.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a>@if ($ticket['new']) <span class="saas-badge">{{ __('New') }}</span>@endif</td>
                 <th scope="row">{{ $ticket['subject'] }}</th>
                 <td>{{ $ticket['school'] }}</td>
                 <td>{{ SupportTicket::STATUS_LABELS[$ticket['status']] }}</td>

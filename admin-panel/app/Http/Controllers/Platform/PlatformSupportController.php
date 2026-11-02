@@ -18,7 +18,7 @@ class PlatformSupportController extends Controller
 
     public function index(Request $request): View
     {
-        return view('saas.support', $this->desk->queue($request->user()));
+        return view('saas.support-desk', $this->desk->queue($request->user()));
     }
 
     public function show(Request $request, int $ticket): View
@@ -30,7 +30,7 @@ class PlatformSupportController extends Controller
     {
         $this->desk->addMessage($request->user(), $ticket, $request->validated());
 
-        return redirect()->route('saas.support.show', $ticket)
+        return redirect()->route('saas.support-desk.show', $ticket)
             ->with('success', $request->validated('kind') === 'note' ? __('Internal note added.') : __('Reply sent to the school.'));
     }
 
@@ -38,13 +38,13 @@ class PlatformSupportController extends Controller
     {
         $this->desk->setStatus($request->user(), $ticket, $request->validated());
 
-        return redirect()->route('saas.support.show', $ticket)->with('success', __('Status saved.'));
+        return redirect()->route('saas.support-desk.show', $ticket)->with('success', __('Status saved.'));
     }
 
     public function assignee(SupportDeskRequest $request, int $ticket): RedirectResponse
     {
         $this->desk->assign($request->user(), $ticket, $request->validated());
 
-        return redirect()->route('saas.support.show', $ticket)->with('success', __('Assignment saved.'));
+        return redirect()->route('saas.support-desk.show', $ticket)->with('success', __('Assignment saved.'));
     }
 }
