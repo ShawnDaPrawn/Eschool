@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Jobs\Platform\PrepareOffboardingExport;
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\SchoolOffboarding;
@@ -14,10 +15,12 @@ use App\Services\Platform\Saas\PlatformOffboarding;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolOwnedTables;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 use ZipArchive;
@@ -427,5 +430,70 @@ class SchoolOffboardingTest extends TestCase
         $this->assertSame(SchoolOffboarding::CANCELLED, $row->fresh()->state);
         $this->assertSame([], Storage::disk(OffboardingExport::DISK)->allFiles('schools/2/offboarding'));
         $this->actingAs($admin)->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
+    }
+
+    public function test_card_keys_and_other_credentials_never_leave_in_the_export_encrypted_or_decrypted(): void
+    {
+        $operations = $this->staff('operations');
+        $admin = $this->headOfB();
+        // Live chip key material SunVerifier checks taps against, the card signing key, and the chip encoding plan.
+        $plain = ['metadata' => 'a1b2c3d4e5f60718293a4b5c6d7e8f90', 'file_read' => '0f1e2d3c4b5a69788796a5b4c3d2e1f0', 'signing' => 'SECRET-CARD-SIGNING-KEY-7d41', 'plan' => '{"keys":["PLAN-KEY-91c2"]}'];
+        $stored = ['metadata' => Crypt::encryptString($plain['metadata']), 'file_read' => Crypt::encryptString($plain['file_read']), 'signing' => Crypt::encryptString($plain['signing']), 'plan' => Crypt::encryptString($plain['plan'])];
+        DB::table('card_keys')->insert(['id' => (string) Str::uuid(), 'school_id' => self::LEAVING, 'public_key' => 'public-card-key', 'secret_key' => $stored['signing'],
+            'starts_at' => now(), 'sign_until' => now()->addYear(), 'verify_until' => now()->addYears(2), 'created_at' => now(), 'updated_at' => now()]);
+        // The chip's card and encoder are not what this test is about; their rows are left out.
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        try {
+            DB::table('card_chip_profiles')->insert(['id' => (string) Str::uuid(), 'school_id' => self::LEAVING, 'card_id' => (string) Str::uuid(), 'encoder_device_id' => (string) Str::uuid(),
+                'uid' => Crypt::encryptString('04A1B2C3D4E5F6'), 'uid_hash' => hash('sha256', '04A1B2C3D4E5F6'), 'metadata_key' => $stored['metadata'], 'file_read_key' => $stored['file_read'],
+                'encoding_package' => $stored['plan'], 'created_at' => now(), 'updated_at' => now()]);
+        } finally {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+
+        $this->actingAs($operations);
+        $row = $this->build($this->start());
+        $files = $this->unzip($this->get($this->link($admin))->assertOk()->getContent());
+
+        // Neither the plaintext nor the stored ciphertext of any key is anywhere in the archive.
+        foreach ($files as $name => $contents) {
+            foreach ([...array_values($plain), ...array_values($stored)] as $secret) {
+                $this->assertStringNotContainsString($secret, $contents, $name);
+            }
+        }
+        // The chip row itself is the school's: it is exported, decrypted, without its keys.
+        $chips = array_map(fn (string $line): array => json_decode($line, true), array_values(array_filter(explode("\n", $files['tables/card_chip_profiles.jsonl']))));
+        $this->assertCount(1, $chips);
+        $this->assertSame('04A1B2C3D4E5F6', $chips[0]['uid']);
+        foreach (['metadata_key', 'file_read_key', 'encoding_package'] as $column) {
+            $this->assertArrayNotHasKey($column, $chips[0]);
+        }
+        // No excluded column is in any row of any table, and the manifest names each one it left out.
+        $byTable = array_column(json_decode($files['manifest.json'], true)['tables'], null, 'table');
+        foreach ($byTable as $table => $entry) {
+            foreach (array_filter(explode("\n", $files[$entry['file']])) as $line) {
+                $this->assertSame([], array_values(array_intersect(array_keys(json_decode($line, true)), OffboardingExport::NEVER_EXPORTED_COLUMNS)), $table);
+            }
+            $this->assertSame([], array_values(array_intersect($entry['decrypted_columns'], OffboardingExport::NEVER_EXPORTED_COLUMNS)), $table);
+        }
+        foreach (['card_chip_profiles' => ['metadata_key', 'file_read_key', 'encoding_package'], 'card_keys' => ['secret_key'], 'card_reader_devices' => ['secret_hash'],
+            'tickets' => ['private_qr_token', 'qr_hash', 'private_number', 'number_hash'], 'learner_invitations' => ['token_hash', 'code_hash'],
+            'guardian_invitations' => ['token_hash', 'encrypted_token'], 'online_exams' => ['exam_key'], 'users' => ['password', 'remember_token', 'fcm_id']] as $table => $columns) {
+            foreach ($columns as $column) {
+                $this->assertContains($column, $byTable[$table]['omitted_columns'], $table.'.'.$column);
+            }
+        }
+        $this->assertSame(SchoolOffboarding::READY, $row->state);
+    }
+
+    public function test_the_export_job_runs_on_the_provisioned_worker_and_finishes_before_its_connection_retries_it(): void
+    {
+        $job = new PrepareOffboardingExport(self::LEAVING, 1, (string) Str::uuid());
+
+        // The default worker (docker/entrypoint.sh, CONTAINER_ROLE=worker) consumes the database connection's default queue.
+        $this->assertSame('database', $job->connection);
+        $this->assertSame('default', $job->queue);
+        $this->assertSame('default', config('queue.connections.database.queue'));
+        $this->assertLessThan((int) config('queue.connections.'.$job->connection.'.retry_after'), $job->timeout);
     }
 }

@@ -17,10 +17,19 @@ class PrepareOffboardingExport implements ShouldQueue
 
     public int $tries = 3;
 
-    /** Under the database queue's retry_after (420 seconds), so a slow build is never run twice at once. */
-    public int $timeout = 400;
+    /**
+     * Shorter than the database connection's retry_after (180 seconds), so a
+     * slow build is never handed to a second worker while it still runs. The
+     * long-running academic_content worker is an optional profile that
+     * production does not provision, so the job stays on the default worker.
+     */
+    public int $timeout = 150;
 
-    public function __construct(public readonly int $schoolId, public readonly int $offboardingId, public readonly string $generation) {}
+    public function __construct(public readonly int $schoolId, public readonly int $offboardingId, public readonly string $generation)
+    {
+        // The queue the provisioned worker consumes (docker/entrypoint.sh, infra/gcp/provision.sh).
+        $this->onConnection('database')->onQueue('default');
+    }
 
     public function backoff(): array
     {

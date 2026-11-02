@@ -61,10 +61,21 @@ class OffboardingExport
         'idempotency_keys' => 'stored replies to retried requests',
     ];
 
-    /** Credentials and secrets: never exported, whatever the table. */
+    /**
+     * Credentials, keys and the hashes that stand in for them: never exported,
+     * whatever the table, and never decrypted. They are access material, not
+     * the school's records, and some stay live after the export (card chip
+     * keys are what SunVerifier checks a tap against).
+     */
     public const NEVER_EXPORTED_COLUMNS = [
-        'password', 'remember_token', 'secret_key', 'secret_hash', 'secret_digest', 'token', 'token_hash', 'encrypted_token',
-        'private_qr_token', 'file_read_key', 'draft_key_hash', 'fcm_id', 'two_factor_secret', 'two_factor_recovery_codes',
+        // Sign-in and device credentials.
+        'password', 'remember_token', 'fcm_id', 'two_factor_secret', 'two_factor_recovery_codes',
+        // Invitation, calendar, lease and reader secrets, and their hashes (a short invitation code's hash can be guessed).
+        'token', 'token_hash', 'encrypted_token', 'code_hash', 'secret_hash', 'secret_digest', 'key_hash', 'draft_key_hash',
+        // Card keys: the card signing key and the chip's SUN metadata and file-read keys, and the chip encoding plan that carries them.
+        'secret_key', 'metadata_key', 'file_read_key', 'encoding_package',
+        // Bearer codes that admit or redeem: ticket and order QR tokens and ticket numbers, their lookup hashes, online exam keys.
+        'private_qr_token', 'qr_hash', 'private_number', 'number_hash', 'exam_key',
     ];
 
     /** @var array<string, array<string, string>>|null */

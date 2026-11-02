@@ -44,7 +44,12 @@ approvals. It deletes nothing.
      (`entered`). The data is never deleted before the school's deadline: an
      entered date on or before the deadline is refused, and a contract date on
      or before it moves to the day after the deadline, which the terms record.
-   - The export is queued (`PrepareOffboardingExport`).
+   - The export is queued (`PrepareOffboardingExport`) on the `database`
+     connection's `default` queue, which the provisioned worker consumes. Its
+     timeout (150 seconds) is shorter than that connection's `retry_after`
+     (180), so a slow build is never handed to a second worker. The longer
+     `academic_content` connection is not used: its worker is an optional
+     profile that production does not provision.
 2. **Export** (`OffboardingExport`), built inside the school with the academic
    exit building blocks: a ZIP with one JSON Lines file per table, a
    `manifest.json` (each file's rows, bytes and SHA-256, what is not exported
@@ -63,9 +68,17 @@ approvals. It deletes nothing.
      `role_has_permissions`, and the `permissions` names they refer to), its
      `school_memberships`, and the `users` rows of its members;
    - not `domain_events` or `idempotency_keys` (delivery machinery), and never
-     credential columns (`password`, `remember_token`, `secret_key`,
-     `secret_hash`, `token`, `token_hash` and the like; the manifest lists them
-     per table);
+     a credential or key, in any table, encrypted or decrypted
+     (`OffboardingExport::NEVER_EXPORTED_COLUMNS`; the manifest lists what it
+     left out per table): sign-in and device credentials (`password`,
+     `remember_token`, `fcm_id`); invitation, calendar, lease and reader
+     secrets and their hashes (`token`, `token_hash`, `encrypted_token`,
+     `code_hash`, `secret_hash`, `secret_digest`, `key_hash`); card keys (the
+     card signing `secret_key`, the chip's live SUN `metadata_key` and
+     `file_read_key`, and the `encoding_package` that carries them); and bearer
+     codes that admit or redeem (`private_qr_token`, `qr_hash`,
+     `private_number`, `number_hash`, online exam `exam_key`). The rows
+     themselves are still exported, without those columns;
    - values the models keep encrypted at rest (their `encrypted` casts) are
      decrypted so the school can read them; a value that cannot be decrypted is
      exported as null and counted in the manifest.
@@ -156,6 +169,8 @@ default school and can never be archived; school 1 is the other school.
 
 | Test | Given | Then |
 | --- | --- | --- |
+| `test_card_keys_and_other_credentials_never_leave_in_the_export_encrypted_or_decrypted` | a card signing key and a chip profile with its SUN keys and encoding plan | neither the plaintext nor the ciphertext of any key is anywhere in the archive; the chip row is exported with its UID and without its keys; no excluded column is in any row or decrypted; the manifest names each omitted credential column (cards, readers, tickets, invitations, exam keys, users) |
+| `test_the_export_job_runs_on_the_provisioned_worker_and_finishes_before_its_connection_retries_it` | the export job | it is on the `database` connection's `default` queue and its timeout is shorter than that connection's `retry_after` |
 | `test_operations_offboards_a_school_whose_super_admin_collects_and_confirms_its_export` | a contract with a 30-day deletion term; Operations starts | deletion on end + 30 days from the contract; export built and encrypted at rest; HQ page shows counts and the hash, no person and no link; the Super Admin is notified, downloads a signed archive whose manifest signature verifies, every row is the school's, no password column, card keys omitted, contracts not exported; receipt confirmed; school archived; every step audited without the reason text |
 | `test_every_step_refuses_the_wrong_role_and_writes_nothing` | Support, Finance, Content, Sales and a school Super Admin on every HQ route; Operations on the second approval and lifting a hold; a teacher in the school's panel | 403 on each, no offboarding or audit row written, no download counted |
 | `test_the_leaving_schools_offboarding_never_touches_the_other_schools_rows` | the whole flow up to the second approval | every school-owned table's row count, memberships and status of the other school are unchanged; the dry run counts only the leaving school; the other school's Super Admin sees no offboarding and the leaving school's id is not found |
@@ -176,7 +191,9 @@ default school and can never be archived; school 1 is the other school.
 - **Stored files** (documents, photos, report PDFs, gallery) are not in the
   export and not counted by the dry run; the manifest says so.
 - **Large schools:** the archive is built and encrypted in one piece (up to
-  256 MB). Chunked encryption and streaming downloads are for a later step.
+  256 MB), within the 150-second job timeout; a build that takes longer fails
+  and can be prepared again. Chunked encryption, streaming downloads and a
+  provisioned long-running worker for big exports are for a later step.
 - **Copying the export to the school another way** (a second channel, a
   hardware copy) and a school-side verification tool for the signature.
 - **HQ timeline entries** on the school record for each step (the audit log
