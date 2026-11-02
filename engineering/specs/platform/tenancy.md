@@ -288,3 +288,10 @@ Navigate Ed's own package list and price list, written only from `/saas`. They
 name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
+
+### Mastery growth snapshots
+
+`mastery_growth_snapshots` is required school-owned: each row is one learner's
+derived mastery at the start and end of one of the school's terms. The nightly
+capture runs inside one school's context and the impact report reads only the
+current school's rows ([mastery impact](../leadership/mastery-impact.md)).

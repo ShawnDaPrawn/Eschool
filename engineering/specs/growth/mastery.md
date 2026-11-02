@@ -89,3 +89,10 @@ School/Subject rows are not locked. The initial, unmerged feature migration uses
 one mutex row per school/subject. Former group members resolve released target
 topics from both retained task and question definitions, so question-only tags
 remain visible subject to the current published graph filter.
+
+## Growth over a term
+
+`mastery_growth_snapshots` keeps each learner's mastery per topic, audience and
+model version at the start and end of every term, and the leadership impact
+report counts how many rose, held or have no evidence yet
+([mastery impact](../leadership/mastery-impact.md)).

@@ -4,6 +4,7 @@
 @section('content')
 <div class="content-wrapper m3 page-content leadership-dashboard">
 <x-page.header :title="__('Leadership dashboard')" :subtitle="__('School trends by grade')" />
+@if($masteryImpact ?? false)<p><a href="{{ route('mastery-impact.index') }}" class="m3-button m3-button--outlined">{{ __('Mastery impact by term') }}</a></p>@endif
 <p>{{ __('Attendance is based on recorded school days. Activity counts show observed signed-in learners. Missing sources are shown as unavailable.') }}</p>
 <p>{{ __('Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.') }}</p>
 <form method="GET" action="{{ route('leadership-dashboard.index') }}" class="leadership-filters" aria-label="{{ __('Choose dashboard period') }}">
