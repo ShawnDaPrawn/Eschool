@@ -21,6 +21,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
+### Fixed
+
+- API: guardians with leaver-only access can remove a child's photo tag and
+  withdraw existing consent without regaining any other write access. Revoked
+  relationships and expired access still stop changes and receipt replay.
+
 ### Added
 
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
@@ -109,6 +115,49 @@ Earlier history is kept where it was written and is not repeated here:
   apps off for a school, but never on where the app does not offer it.
   **Deploy:** run the migrations.
 
+- Platform and Admin panel: audited support access. Navigate Ed Support,
+  Operations and Owner staff ask a school for access at `/saas/support`, with a
+  reason and a length of up to four hours. The school's Super Admins are told
+  at once and approve or decline under Settings, "Navigate Ed support access";
+  when the school cannot be reached, another Owner can open a request that has
+  waited at least 15 minutes, with a recorded reason, and the school is told
+  immediately. A school's decline stands: nobody can ask again or override for
+  a day. While it is open, the staff member sees a read-only view of the
+  school's set-up and accounts (learners and parents only by exact email),
+  never wellbeing, counselling, health, safeguarding, discipline,
+  early-warning or support-plan records. Every page they open, and every
+  account a list or search showed, is listed for the school and in the HQ
+  audit log. It ends by itself, or earlier when the school or the staff member
+  ends it. **Deploy:** run the migrations.
+- Platform: announcements to schools at `/saas/announcements` for Owner and
+  Operations. Write release notes, a maintenance window or a policy change, aim
+  it at every school, at schools on a package or at a lifecycle stage, or at
+  chosen schools, see how many schools and Super Admins it reaches, then
+  publish. Each school's Super Admins get a notice and a banner in their panel
+  while it is current; dismissing the banner counts as read, and HQ sees how
+  many schools and Super Admins have read it. A published announcement never
+  changes: withdraw it and publish a new one. Super Admins find every
+  announcement for their school under Settings, Navigate Ed announcements.
+  **Deploy:** run the migrations.
+- Admin panel and apps: learners who leave at the end of the year are no longer
+  locked out on the day the new year starts. Until 31 March they, and their
+  guardians, can still sign in and read their final reports, marks and
+  documents, but change nothing; then their access ends. A learner who leaves
+  during the year reads for 90 days. Leavers are not in any class list, register or
+  group of the new year, are counted apart on the dashboard and are marked on the
+  student list. The new Leavers page (Calendar and years) lets the office bring a
+  leaver back as a returning learner or end their access sooner. **Deploy:** run
+  the additive `school_memberships.leaver_until` migration.
+
+- HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
+  families, how many learners have a guardian the school can reach, sign-ins by
+  role, module use, email bounces and complaints, push failures, AI spend against
+  the month's cap and failed jobs, counts only and never a person. `/saas/health`
+  compares every school from nightly figures, schools at risk first; the at-risk
+  rules (activity down 30%, reach under 60%, bounces at 5% and others) are in
+  `config/school_health.php`. Owner, Operations, Support and Finance can see it.
+  **Deploy:** run the `school_health_snapshots` migration; the scheduler runs
+  `platform:school-health` nightly (run it once by hand to fill the comparison).
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
@@ -116,7 +165,6 @@ Earlier history is kept where it was written and is not repeated here:
   incident that may involve personal information cannot close until every
   school has been told and the Regulator decision is recorded. **Deploy:** run
   the migrations.
-
 - Notifications now reach every device a person is signed in on, not only the last
   one: a parent's phone and tablet, or a teacher's two devices, all receive them.
   Signing in to an app on another device no longer signs the first one out (up to
