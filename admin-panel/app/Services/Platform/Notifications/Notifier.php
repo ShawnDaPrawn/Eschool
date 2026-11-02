@@ -140,7 +140,7 @@ class Notifier
         } else {
             $school = app(CurrentSchool::class)->school();
             $mailBody = $user->email_verified_at === null ? __('Open NavigateEd to view this notice.') : $body;
-            $mailBase = in_array($type, array_merge(['communication.approval_requested', 'pastoral.cover_assigned', 'progress.staff_band_changed'], (array) config('private_notices.staff_types', [])), true) ? config('app.url') : config('identity.portal_url');
+            $mailBase = in_array($type, array_merge(['communication.approval_requested', 'pastoral.cover_assigned', 'progress.staff_band_changed', 'support_access.requested', 'support_access.emergency', 'platform.announcement'], (array) config('private_notices.staff_types', [])), true) ? config('app.url') : config('identity.portal_url');
             $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) $mailBase, '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
             if (! MailService::queue($mail, (int) $user->id)) {
                 throw new RuntimeException('A notification email could not be queued.');
@@ -166,6 +166,8 @@ class Notifier
         $data['school_id'] = (string) app(CurrentSchool::class)->id();
         $data['click_action'] ??= 'FLUTTER_NOTIFICATION_CLICK';
         $data['notice_type'] = NotificationTypes::legacy($deliveryType);
+        // The app's notification channel (Android) is the type's area: comms, academics, wellbeing and so on (1.5).
+        $data['channel'] = Str::before(NotificationTypes::legacy($deliveryType), '.');
         $payload = array_map(fn ($value) => $value === null ? '' : (is_string($value) ? $value : (is_scalar($value) ? (string) $value : (json_encode($value) ?: ''))), $data);
         // One job per signed-in device, so a retry never repeats a message
         // another device already received.
@@ -173,6 +175,9 @@ class Notifier
             $message = ['token' => $device['token'], 'data' => $payload];
             if ($device['platform'] === 'ios') {
                 $message['notification'] = ['title' => $title, 'body' => $body];
+                // Safety notices break through Focus; notices about one child group together (1.5).
+                $message['apns'] = ['payload' => ['aps' => ['interruption-level' => QuietHours::exempt($deliveryType) ? 'time-sensitive' : 'active',
+                    'thread-id' => isset($data['learner_id']) && is_scalar($data['learner_id']) ? 'learner-'.$data['learner_id'] : $data['channel']]]];
             }
             PushQueue::toDevice($deliveryType, (int) $user->id, $device['token'], ['message' => $message]);
         }
