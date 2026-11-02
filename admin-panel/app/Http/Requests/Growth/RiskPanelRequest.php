@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Growth;
 
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
+use App\Services\Growth\InterventionLibrary;
+use App\Services\Growth\InterventionPlans;
 use App\Services\Growth\RiskPanelScope;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -51,6 +53,15 @@ class RiskPanelRequest extends RiskRequest
         $rules = parent::rules();
         if ($this->operation() === 'update') {
             unset($rules['session_year_id']);
+        }
+        // Panel only (Action Plan 4.11): a plan from the library, and dated progress against its steps.
+        if ($this->operation() === 'create') {
+            $rules['library_action_id'] = ['sometimes', 'nullable', 'integer', 'min:1'];
+            $rules['action'] = ['required_without:library_action_id', 'nullable', 'string', 'max:20000'];
+        }
+        if ($this->operation() === 'progress') {
+            $rules = ['operation_id' => ['required', 'uuid'], 'recorded_on' => ['required', 'date_format:Y-m-d'], 'step' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:'.InterventionLibrary::MAX_STEPS],
+                'status' => ['required', 'in:'.implode(',', InterventionPlans::STATUSES)], 'note' => ['sometimes', 'nullable', 'string', 'max:2000']];
         }
 
         return $rules + $context + ['professional_id' => [in_array($this->operation(), ['assign', 'revoke'], true) ? 'required' : 'sometimes', 'integer', 'min:1'],

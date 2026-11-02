@@ -213,3 +213,6 @@ there. The Early warning workbench links to it for grade heads and principals.
   chosen mentor) is still an open owner question; for now the grade head
   chooses any staff member.
 - One-to-one conversations as a source: there is no such record in main yet.
+## Library, progress and check-in context
+
+Interventions can start from the school's intervention library and record dated progress against the plan's steps; the early warning list shows wellbeing check-ins as context to the learner's own pastoral professional only, never as a risk: see [check-ins and the intervention library](check-ins-and-intervention-library.md) (Action Plan 4.11).

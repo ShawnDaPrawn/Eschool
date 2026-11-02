@@ -432,3 +432,9 @@ version id is not found, so its memo is never read or changed
 derived mastery at the start and end of one of the school's terms. The nightly
 capture runs inside one school's context and the impact report reads only the
 current school's rows ([mastery impact](../leadership/mastery-impact.md)).
+### Intervention library and wellbeing check-ins
+
+`intervention_library_actions`, `intervention_progress_entries` and
+`wellbeing_check_ins` are required school-owned: a school's library, the
+progress against its own interventions and its learners' check-ins. Another
+school's ids are not found ([check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)).

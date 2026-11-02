@@ -223,6 +223,18 @@ Earlier history is kept where it was written and is not repeated here:
   **Deploy:** run the migrations; the scheduler runs
   `platform:expire-school-imports` hourly.
 
+- Admin panel: Wellbeing check-ins and an intervention library (Action Plan
+  4.11). Principals keep a library of everyday school actions in early warning
+  (the steps, a suggested length and how to measure progress) and can add
+  NavigateEd's six suggested actions in one step. Staff who plan an
+  intervention can start it from a library action and record dated progress
+  against its steps: on track, needs review or completed. A learner's
+  counsellor or safeguarding professional can schedule a short private
+  check-in for one learner or a group on their caseload and record the
+  learner's answer, from Not good to Great with an optional note. Only that learner's
+  authorised pastoral staff see the answers; their early warning list shows
+  recent check-ins as context, never as a risk. The learner app answer comes
+  later. **Deploy:** run the migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.
