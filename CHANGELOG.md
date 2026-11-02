@@ -107,6 +107,16 @@ Earlier history is kept where it was written and is not repeated here:
   notification channel, and for email and push how many were delivered, sent,
   bounced or failed, with each recipient by name. Addresses are never shown.
   **Deploy:** run the migrations.
+- Platform: announcements to schools at `/saas/announcements` for Owner and
+  Operations. Write release notes, a maintenance window or a policy change, aim
+  it at every school, at schools on a package or at a lifecycle stage, or at
+  chosen schools, see how many schools and Super Admins it reaches, then
+  publish. Each school's Super Admins get a notice and a banner in their panel
+  while it is current; dismissing the banner counts as read, and HQ sees how
+  many schools and Super Admins have read it. A published announcement never
+  changes: withdraw it and publish a new one. Super Admins find every
+  announcement for their school under Settings, Navigate Ed announcements.
+  **Deploy:** run the migrations.
 - Admin panel and apps: learners who leave at the end of the year are no longer
   locked out on the day the new year starts. Until 31 March they, and their
   guardians, can still sign in and read their final reports, marks and

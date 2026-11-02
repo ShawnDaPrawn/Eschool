@@ -23,6 +23,7 @@ final class SchoolOwnedTables
     public const REQUIRED = [
         'lurits_conflicts',
         'platform_incident_schools',
+        'platform_announcement_schools', 'platform_announcement_reads',
         'school_health_snapshots',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
@@ -126,6 +127,7 @@ final class SchoolOwnedTables
         'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
         'platform_package_modules' => 'which product modules each version of a package includes; names no school',
         'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
+        'platform_announcements' => 'Navigate Ed\'s own announcements to schools, written only from /saas; a school reads one only through its own platform_announcement_schools row, and the audience list is never shown to a school',
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_ai_caps' => 'Navigate Ed\'s own daily AI spending caps per feature, set only from /saas/ai; a school\'s own lower limits stay in ai_school_limits',
         'platform_ai_cap_changes' => 'the history of HQ AI cap changes (who, when, old and new cents, reason), written only from /saas/ai; names no school',
