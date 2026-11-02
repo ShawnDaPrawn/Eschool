@@ -7,7 +7,10 @@ namespace App\Services\Platform\Identity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Services\Platform\RequestContext;
+use App\Services\Platform\Saas\PlatformPackages;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Which schools a person belongs to, with which roles (the Build Bible,
@@ -37,24 +40,41 @@ class MembershipService
 
         // One query: the memberships with their schools joined (it runs on
         // every signed-in request).
-        $schoolColumns = ['name', 'slug', 'status', 'timezone', 'package_key', 'short_name', 'tagline', 'crest_path', 'theme_color', 'secondary_color', 'created_at', 'updated_at'];
-        $rows = SchoolMembership::query()
+        $schoolColumns = ['name', 'slug', 'status', 'timezone', 'package_key', 'package_version', 'short_name', 'tagline', 'crest_path', 'theme_color', 'secondary_color', 'created_at', 'updated_at'];
+        $withPackage = RequestContext::inHttpRequest();
+        $query = SchoolMembership::query()
             ->join('schools', 'schools.id', '=', 'school_memberships.school_id')
             ->where('school_memberships.user_id', $user->getKey())
             ->where('school_memberships.status', SchoolMembership::ACTIVE)
             ->where('schools.status', School::ACTIVE)
             ->orderBy('school_memberships.school_id')
             ->orderBy('school_memberships.id')
-            ->select(['school_memberships.*', ...array_map(fn ($column) => "schools.{$column} as school__{$column}", $schoolColumns)])
-            ->get();
+            ->select(['school_memberships.*', ...array_map(fn ($column) => "schools.{$column} as school__{$column}", $schoolColumns)]);
+        if ($withPackage) {
+            // One scalar projection per school, without duplicating memberships.
+            // Applied package versions are immutable; a locked fresh School still reads its own version.
+            $query->selectSub(DB::table('platform_packages as pp')
+                ->join('platform_package_modules as ppm', 'ppm.package_id', '=', 'pp.id')
+                ->whereRaw('pp.package_key = COALESCE(schools.package_key, ?)', [PlatformPackages::LEGACY])
+                ->whereRaw('ppm.version = COALESCE(schools.package_version, 1)')
+                ->selectRaw('JSON_ARRAYAGG(ppm.product_module)'), 'school__package_products');
+        }
+        $rows = $query->get();
 
-        $rows->each(function (SchoolMembership $membership) use ($schoolColumns) {
+        $rows->each(function (SchoolMembership $membership) use ($schoolColumns, $withPackage) {
             $attributes = ['id' => $membership->school_id];
             foreach ($schoolColumns as $column) {
                 $attributes[$column] = $membership->getAttribute("school__{$column}");
                 $membership->offsetUnset("school__{$column}");
             }
-            $membership->setRelation('school', (new School)->newFromBuilder($attributes));
+            $school = (new School)->newFromBuilder($attributes);
+            if ($withPackage) {
+                $raw = $membership->getAttribute('school__package_products');
+                $products = $raw === null ? [] : json_decode((string) $raw, true, 512, JSON_THROW_ON_ERROR);
+                $school->withMembershipPackage((string) ($school->package_key ?? PlatformPackages::LEGACY), (int) ($school->package_version ?? 1), $products);
+                $membership->offsetUnset('school__package_products');
+            }
+            $membership->setRelation('school', $school);
             $membership->syncOriginal();
         });
 
