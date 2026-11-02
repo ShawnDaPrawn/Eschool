@@ -27,6 +27,27 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 /** Recheck mutable access and the destination immediately before transport. */
 class DeliveryGuard
 {
+    /**
+     * A silent push to one person's device (timetable.refresh, 1.9): the
+     * person is still active in the delivery's school and the device is still
+     * theirs. It has no notice type, so no choices or quiet hours apply.
+     */
+    public function allowsSilent(?NotificationDelivery $delivery, string $token): bool
+    {
+        if (! $delivery?->school_id || ! $delivery->recipient_user_id || ! $delivery->recipient_hash
+            || ! hash_equals($delivery->recipient_hash, DeliveryLog::hash($token))) {
+            return false;
+        }
+
+        return app(CurrentSchool::class)->run($delivery->school_id, function () use ($delivery, $token) {
+            $user = User::query()->find($delivery->recipient_user_id);
+
+            return $user !== null && (int) $user->status === 1 && app(CurrentSchool::class)->school()?->status === 'active'
+                && SchoolMembership::query()->active()->where('school_id', $delivery->school_id)->where('user_id', $user->id)->exists()
+                && app(PushDevices::class)->isCurrent($user, $token);
+        });
+    }
+
     public function allows(?NotificationDelivery $delivery, string $type, string $channel, string $address, array $context = []): bool
     {
         if (! $delivery?->school_id || ! $delivery->recipient_user_id || ! $delivery->recipient_hash

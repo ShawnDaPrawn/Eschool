@@ -162,6 +162,14 @@ Earlier history is kept where it was written and is not repeated here:
   records the LURITS numbers of learners already at the school. A number that
   another learner already holds is not recorded: it waits for Navigate Ed
   support, and the school is not told who holds it.
+- Notifications: richer pushes. Consent requests show Yes and No, messages
+  show Reply and their sender, urgent notices and safeguarding alerts show
+  Acknowledge; every button only opens the app to confirm. Private notices
+  (wellbeing, discipline, consent, progress and similar) show only "School
+  notification" on a lock screen. When a timetable changes, the affected
+  people's phones can quietly refresh it. **Deploy:** nothing to run; leave
+  `PUSH_TIMETABLE_REFRESH` and `PUSH_ANDROID_PRIVATE_VISIBILITY` off until
+  the apps that handle them are released.
 
 
 - **LURITS when adding a learner.** The Add learner form takes the learner's
