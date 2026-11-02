@@ -96,6 +96,8 @@ return [
                             'keywords' => ['id card', 'teacher card']],
                         ['key' => 'staff', 'label' => 'nav_staff', 'route' => 'staff.index', 'permissions' => ['staff-list'], 'module' => null,
                             'keywords' => ['employees', 'admin staff', 'add staff', 'finance']],
+                        ['key' => 'join-invitations', 'label' => 'nav_join_invitations', 'route' => 'join-invitations.index', 'permissions' => ['staff-create', 'teacher-create'], 'module' => null,
+                            'active' => ['join-invitations.*'], 'keywords' => ['invitations', 'invited staff', 'second school', 'existing account']],
                         ['key' => 'staff-id-cards', 'label' => 'nav_staff_id_cards', 'route' => 'generate_staff_id.index', 'permissions' => ['staff-list', 'generate-id-card'], 'module' => 'cards',
                             'keywords' => ['id card', 'staff card']],
                     ],

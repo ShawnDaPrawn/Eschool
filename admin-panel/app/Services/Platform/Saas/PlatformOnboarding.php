@@ -10,6 +10,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolAccountEvent;
 use App\Models\Platform\SchoolContract;
+use App\Models\Platform\SchoolJoinInvitation;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\StaffInvitation;
 use App\Models\Students;
@@ -104,10 +105,16 @@ class PlatformOnboarding
     private function administrator(): array
     {
         $invitations = StaffInvitation::query()->where('purpose', StaffInvitation::SCHOOL_ADMIN);
+        // A first administrator who already had an account joins instead (Action Plan 1.3).
+        $joins = SchoolJoinInvitation::query()->where('purpose', SchoolJoinInvitation::SCHOOL_ADMIN);
         if ((clone $invitations)->whereNotNull('accepted_at')->exists()) {
             return $this->step('administrator', 'First administrator signed in', self::DONE, 'The first administrator accepted their invitation and chose a password.', null);
         }
-        $waiting = (clone $invitations)->whereNull('used_at')->whereNull('accepted_at')->where('expires_at', '>', now())->exists();
+        if ((clone $joins)->whereNotNull('accepted_at')->exists()) {
+            return $this->step('administrator', 'First administrator signed in', self::DONE, 'The first administrator accepted their invitation with their existing account.', null);
+        }
+        $waiting = (clone $invitations)->whereNull('used_at')->whereNull('accepted_at')->where('expires_at', '>', now())->exists()
+            || (clone $joins)->waiting()->exists();
 
         return $this->step('administrator', 'First administrator signed in', $waiting ? self::STARTED : self::TODO,
             $waiting ? 'The invitation is sent and not accepted yet.' : 'No invitation is waiting: it expired or was never sent.',

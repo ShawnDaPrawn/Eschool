@@ -12,6 +12,7 @@ use App\Policies\People\ProfilePolicy;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -116,6 +117,18 @@ class ProfileForms
                 throw ValidationException::withMessages(['values' => 'A field is not editable or available.']);
             }
             $values[$key] = $this->validateValue($context['person'], $field, $value);
+        }
+        $accountFields = [];
+        foreach ($values as $key => $value) {
+            $source = (string) $definitions->get($key)?->source;
+            if (str_starts_with($source, 'user.')) {
+                $accountFields[substr($source, 5)] = $value;
+            }
+        }
+        $shared = app(SharedAccounts::class);
+        if ($shared->changes($context['person'], $accountFields) !== []) {
+            // An account that also belongs elsewhere is its owner's to change (Action Plan 1.3).
+            throw ValidationException::withMessages(['values' => $shared->message()]);
         }
         DB::transaction(function () use ($context, $profile, $values) {
             $person = User::query()->lockForUpdate()->findOrFail($context['person']->id);
