@@ -13,6 +13,7 @@ use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Saas\PlatformPackages;
 use App\Services\Platform\Saas\PlatformSchools;
+use App\Services\Platform\Saas\PlatformSupportDesk;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,6 +68,7 @@ class SaasController extends Controller
             'packages' => $this->schools->packages(),
             'packageVersion' => ($current = app(PlatformPackages::class)->package($row['package_key'] ?? PlatformPackages::LEGACY)) === null ? null
                 : ['applied' => $row['package_version'], 'current' => (int) $current->modules_version],
+            'support' => app(PlatformSupportDesk::class)->forSchool($school),
         ]);
     }
 

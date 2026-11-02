@@ -328,6 +328,15 @@ name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
 
+### Support desk
+
+`school_support_tickets` and `school_support_ticket_messages` are required
+school-owned: a school reads and writes only its own tickets (another school's
+id is a 404), and HQ reads them across schools from `/saas` and writes inside
+the ticket's school. `platform_support_views` is global: when each HQ staff
+member last opened the queue ([support desk](support-desk.md)).
+
+
 ### School sending domains
 
 `school_sending_domains` is required school-owned, with a unique school foreign

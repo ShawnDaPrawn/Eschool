@@ -24,6 +24,7 @@ final class SchoolOwnedTables
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
+        'school_support_tickets', 'school_support_ticket_messages',
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
         // notes, their lines, its EFT payments and what each payment or credit
         // note settles. Each row is about one school, so it carries the school
@@ -145,6 +146,7 @@ final class SchoolOwnedTables
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_ai_caps' => 'Navigate Ed\'s own daily AI spending caps per feature, set only from /saas/ai; a school\'s own lower limits stay in ai_school_limits',
         'platform_ai_cap_changes' => 'the history of HQ AI cap changes (who, when, old and new cents, reason), written only from /saas/ai; names no school',
+        'platform_support_views' => 'when each HQ staff member last opened the support queue; one row per staff user, no school data',
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'platform_staff_two_factor' => 'a platform staff member\'s own authenticator app (encrypted secret, hashed recovery codes) for signing in to /saas; platform staff belong to no school',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',

@@ -20,6 +20,7 @@ declare(strict_types=1);
  *                   modules and prices; re-apply a package to its schools
  *  identity.review  LURITS claims between schools: see and close them
  *  incidents.manage the breach and incident register: record, update, close
+ *  support.manage   the support desk: every school's tickets, replies, internal notes, assignee, status
  *  mail.view        each school's SES mail streams, their status and rates
  *  mail.manage      set up or check a school's SES mail streams now
  *  flags.manage     feature flags: create, roll out, switch schools, kill
@@ -38,8 +39,8 @@ declare(strict_types=1);
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['health.view', 'schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'announcements.manage', 'flags.manage', 'ai.view', 'support.access', 'billing.view', 'mail.view', 'mail.manage']],
-    'support' => ['label' => 'Support', 'abilities' => ['health.view', 'schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'ai.view', 'support.access', 'mail.view']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['health.view', 'schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'announcements.manage', 'flags.manage', 'ai.view', 'support.access', 'billing.view', 'mail.view', 'mail.manage', 'support.manage']],
+    'support' => ['label' => 'Support', 'abilities' => ['health.view', 'schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'ai.view', 'support.access', 'mail.view', 'support.manage']],
     'finance' => ['label' => 'Finance', 'abilities' => ['health.view', 'schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'audit.view', 'audit.export', 'billing.view', 'billing.manage']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],

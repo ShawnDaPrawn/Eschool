@@ -32,6 +32,7 @@ return [
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'platform.announcement' => ['label' => 'Announcements from Navigate Ed', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'off', 'email' => 'default_on', 'in_app' => 'default_on']],
     'school.new_year' => ['label' => 'New school year', 'module' => 'people', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'school.support_reply' => ['label' => 'Navigate Ed support replies', 'module' => 'school', 'portals' => ['admin'], 'channels' => $on],
     'academics.exam_changed' => ['label' => 'Exam changes', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.register_amended' => ['label' => 'Register amended', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'academics.timetable_changed' => ['label' => 'Timetable changes', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
