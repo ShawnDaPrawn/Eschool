@@ -249,6 +249,15 @@ Earlier history is kept where it was written and is not repeated here:
   changes: withdraw it and publish a new one. Super Admins find every
   announcement for their school under Settings, Navigate Ed announcements.
   **Deploy:** run the migrations.
+- Admin panel, Apps and API: the LURITS number is now the number a learner
+  is known by. Person profiles, the student report page, report cards, school
+  transfer packages, exit archives and the leaving certificate show it first,
+  then the school's admission number. A learner without a LURITS number shows
+  the NavigateEd number instead, labelled "NavigateEd number (temporary)". The
+  v2 API adds `primary_identifier` to learner profiles, a parent's children,
+  guardian approvals and the wellbeing learner picker; only the learner,
+  guardians who may approve and staff with profile permission receive it.
+  No migration.
 - Admin panel and Platform: a support desk. A school's Super Admin, or office
   staff who look after the settings, open a support ticket to Navigate Ed
   under Settings > Navigate Ed support (a question, a problem, a request or
