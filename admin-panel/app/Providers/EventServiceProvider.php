@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Listeners\ForgetPlatformTwoFactor;
 use App\Listeners\RotateBrowserSessionIdentity;
 use Illuminate\Auth\Events\CurrentDeviceLogout;
 use Illuminate\Auth\Events\Login;
@@ -21,8 +22,8 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        Login::class => [RotateBrowserSessionIdentity::class],
-        Logout::class => [RotateBrowserSessionIdentity::class],
+        Login::class => [RotateBrowserSessionIdentity::class, ForgetPlatformTwoFactor::class],
+        Logout::class => [RotateBrowserSessionIdentity::class, ForgetPlatformTwoFactor::class],
         CurrentDeviceLogout::class => [RotateBrowserSessionIdentity::class],
         Registered::class => [
             SendEmailVerificationNotification::class,

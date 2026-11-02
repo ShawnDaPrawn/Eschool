@@ -16,6 +16,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -27,6 +28,7 @@ use Tests\TestCase;
  */
 class HqAiCapsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const REASON = 'Raised for the term four pilot budget.';
@@ -70,7 +72,7 @@ class HqAiCapsTest extends TestCase
     public function test_owner_sets_caps_that_apply_from_the_next_request_with_history_and_audit(): void
     {
         $owner = $this->staff('owner');
-        $this->actingAs($owner);
+        $this->actingAsHq($owner);
         $this->get('/saas/ai')->assertOk()->assertSee('Spending caps')->assertSee('Save caps for School Assistant')->assertSee('cents, USD')
             ->assertSee('No cap has been changed in HQ');
         $this->assertSame(1000, $this->inForce(1, 'school_assistant')['school_daily_cents']);
@@ -114,7 +116,7 @@ class HqAiCapsTest extends TestCase
 
     public function test_invalid_caps_are_refused_and_nothing_is_written(): void
     {
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
         $before = $this->written();
         foreach ([
             ['school_daily_cents' => '-1'], ['school_daily_cents' => '12.5'], ['school_daily_cents' => 'ten'],
@@ -137,7 +139,7 @@ class HqAiCapsTest extends TestCase
         $before = $this->written();
         foreach (['operations', 'support', 'finance', 'content', 'sales'] as $role) {
             $staff = $this->staff($role);
-            $this->actingAs($staff);
+            $this->actingAsHq($staff);
             if (in_array($role, ['operations', 'support'], true)) {
                 $this->get('/saas/ai')->assertOk()->assertSee('Spending caps')->assertDontSee('Save caps for');
             }
@@ -176,7 +178,7 @@ class HqAiCapsTest extends TestCase
         app(CurrentSchool::class)->run(1, fn () => AiSchoolLimit::create(['revision' => 3, 'paused' => false, 'limits' => ['school_daily_cents' => 600, 'learner_daily_cents' => 20]]));
         $schoolRows = fn (): array => DB::table('ai_school_limits')->orderBy('id')->get()->toArray();
         $limits = $schoolRows();
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
 
         // HQ raises the ceiling: School A's own 600 is lower and still applies; School B gets HQ's.
         $this->put('/saas/ai/caps', ['feature' => 'school_assistant', 'school_daily_cents' => '2000', 'learner_daily_cents' => '80', 'reason' => self::REASON])->assertSessionHasNoErrors();
@@ -197,7 +199,7 @@ class HqAiCapsTest extends TestCase
 
     public function test_the_audit_row_holds_no_secrets(): void
     {
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
         $this->put('/saas/ai/caps', ['feature' => 'school_assistant', 'school_daily_cents' => '2500', 'reason' => self::REASON])->assertSessionHasNoErrors();
 
         $row = AuditLog::query()->where('action', 'platform_ai_caps_changed')->sole();

@@ -8,7 +8,7 @@ The panel platform staff use to see the schools on the install, set one up with 
 
 Built: school list with counts, set up a school, package, suspend/archive/restore, module switches, audited and fenced.
 
-Not built, and not implied by any screen: audited support access into a school (acting as a school user), import toolkit (CSV, SA-SAMS), usage, health and delivery views, consent/retention/personal-data tooling, and a way to give an existing account a role at a new school. Each needs its own spec; support access also needs the decision on what platform staff may see (below).
+Not built, and not implied by any screen: import toolkit (CSV, SA-SAMS), delivery views (the core usage and health figures are in [HQ school health](hq-school-health.md)), consent/retention/personal-data tooling, and a way to give an existing account a role at a new school. Each needs its own spec. Audited support access is now [support-access.md](support-access.md) (SA.9): consented, time-limited, read-only, never restricted records, every page logged.
 
 ## User stories
 
@@ -25,6 +25,8 @@ Both of these, checked on fresh rows on every request ([`PlatformStaffAccess`](.
 
 1. an **active platform staff identity** (`platform_staff_identities`, `php artisan platform:staff-identity <user_id>`), the exclusion identity every operator has; and
 2. an **unexpired platform admin grant** (`platform_admin_grants`, `php artisan platform:admin-access <user_id> [--hours=24] [--revoke]`, 1 to 8760 hours), set only from the operator console.
+
+And, in each browser session, **two-factor sign-in** passed with an authenticator app ([two-factor sign-in](hq-two-factor.md), SA.2): without it every `/saas` page sends the staff member to set up the app or to the challenge.
 
 The existing login accepts a role-free operator only after the same fresh grant checks, redirects them to `/saas`, and gives them no school membership. Default or flagged passwords do not open platform metadata; those operators can reach only the separately guarded `/saas/password` purpose to replace their own password. Both keys must still be fresh and unexpired; impersonation is refused.
 
@@ -65,7 +67,7 @@ All web, session auth, `PrivateDomainResponse`, `platform.staff`; none under `sc
 | GET | `/saas` | schools with status, package and active people by role |
 | GET, POST | `/saas/schools/create`, `/saas/schools` | the set-up form; creates the school, emails the first administrator's invitation and shows its link once in that response (throttled 20 a minute) |
 | GET | `/saas/schools/{id}` | one school: counts, package, status, modules as the school sees them |
-| PUT | `/saas/schools/{id}/package` | package key from `config/school_packages.php`; a money module (fees) the new package leaves out stays read-only while the school has records; queues `context.changed` for that school. Moving back to a package that includes fees leaves it read-only until someone enables it (the school's own switch or `/saas`) |
+| PUT | `/saas/schools/{id}/package` | an active package key ([package editor](package-editor.md)); the school gets the package's current module set version; a money module (fees) the new package leaves out stays read-only while the school has records; queues `context.changed` for that school. Moving back to a package that includes fees leaves it read-only until someone enables it (the school's own switch or `/saas`) |
 | PUT | `/saas/schools/{id}/status` | `active`, `suspended` or `archived`, with a reason of 10 to 500 characters |
 | PUT | `/saas/schools/{id}/modules/{module}` | `ModuleGate::change` inside that school, so the rules of the school's own switch apply |
 | POST | `/saas/schools/{id}/administrator-invitation` | sends the first administrator's invitation again while nobody has accepted it; the old link stops working; names no person (throttled 20 a minute) |
@@ -92,7 +94,7 @@ Five standalone Material 3 pages (`resources/views/saas/`, `public/assets/css/sa
 
 ## Self-test steps
 
-1. `php artisan platform:staff-identity <your user id>` then `php artisan platform:admin-access <your user id> --hours=8`; sign in and open `/saas` (a bare `/saas` link is not in the school menu).
+1. `php artisan platform:staff-identity <your user id>` then `php artisan platform:admin-access <your user id> --hours=8`; sign in, set up an authenticator app (or type its code) and open `/saas` (a bare `/saas` link is not in the school menu).
 2. See the schools and counts; open one; change its package; switch a module; confirm the school's own School modules page shows the change.
 3. Set up a school; open the invitation link in another browser; choose a password; sign in as the new administrator; confirm they see only their own school and `/saas` answers 403.
 4. Suspend that school with a reason; confirm its administrator is refused; restore it.

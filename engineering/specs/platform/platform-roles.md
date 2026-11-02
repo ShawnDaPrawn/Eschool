@@ -12,19 +12,18 @@ and Owners invite staff by email from HQ.
 | Role | Can |
 | --- | --- |
 | Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; AI control centre (view) |
-| Support | see schools; audit log; LURITS claims; incident register; AI control centre (view) |
-| Finance | see schools; change package; customer records; packages; audit log and its export |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; school health; feature flags; AI control centre (view); approved support sessions |
+| Support | see schools; audit log; LURITS claims; incident register; school health; AI control centre (view); approved support sessions |
+| Finance | see schools; change package; customer records; packages, and edit packages and prices; audit log and its export; school health |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
 
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
-`audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
-`ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `staff.manage`. A role that is no longer in the
+`packages.manage` ([package editor](package-editor.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`, `health.view`, `flags.manage`, `ai.view`, `ai.manage`, `ai.caps` (the last two Owner only; see `hq-ai.md`), `support.access`, `support.emergency` (Owner only; see `support-access.md`), `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
-Every `/saas` route except the operator's own password names its ability with
+Every `/saas` route except the operator's own password and the two-factor pages names its ability with
 the `platform.can:{ability}` middleware (`EnsurePlatformAbility`, after
 `platform.staff`); `SaasPanelTest` fails the build for a route without one.
 Pages hide what the role cannot do: the set-up link, the package, status and
@@ -44,6 +43,8 @@ whether they have accepted their invitation. An Owner can:
 - **revoke** access, with a reason. This also voids any unused link;
 - **send a new invitation** to someone who has not chosen a password yet. The
   new link replaces the old one.
+- **reset two-factor sign-in** for someone else who lost their phone, with a
+  reason ([two-factor sign-in](hq-two-factor.md), SA.2).
 
 The install always keeps at least one active Owner: demoting or revoking the
 last one is refused. An Owner whose user account is disabled or deleted does
@@ -60,7 +61,8 @@ once. It works only while the person is active platform staff with a current
 grant, has no school membership, and still has the address it was sent to.
 `/platform/invite/{token}` (no sign-in, private, never cached) sets the chosen
 password (the password policy applies), verifies the mailbox, and ends every
-other session and app sign-in. The person then signs in and lands in `/saas`.
+other session and app sign-in. The person then signs in and sets up an
+authenticator app before any `/saas` page opens ([two-factor sign-in](hq-two-factor.md)).
 A queued email re-checks all of this before it is sent.
 
 The operator console still works: `platform:admin-access {user} --hours=…`

@@ -44,3 +44,9 @@
 .saas-onboarding { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
 .saas-onboarding__step h2 { font-size: 1.05rem; margin: 0 0 6px; }
 .saas-onboarding__step p { margin: 4px 0; }
+
+/* Two-factor sign-in (SA.2): the setup QR code and the recovery codes. */
+.saas-qr { background: var(--md-sys-color-surface); border-radius: 8px; display: inline-block; line-height: 0; padding: 8px; }
+.saas-qr svg { display: block; height: auto; max-width: 100%; width: 220px; }
+.saas-codes { display: grid; gap: 8px 24px; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); padding-inline-start: 1.5rem; }
+.saas-codes code { font-family: ui-monospace, monospace; font-size: 1.05rem; letter-spacing: .05em; user-select: all; }

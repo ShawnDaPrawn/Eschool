@@ -25,16 +25,18 @@ today everything is level 3, and the AI tutor level 2.
 
 ## Packages
 
-`config/school_packages.php` keeps its shape (a package lists technical
-modules, which `ModuleGate` reads) and gains **`pilot`**, built from every
-product module, for the design-partner pilot. Platform staff assign it like any
-other package; nothing else changes for existing schools.
+Packages are built from whole product modules and live in the database since
+SA.7 ([package editor](package-editor.md)); `config/school_packages.php`, which
+added **`pilot`** (every product module, for the design-partner pilot), is now
+only the seed. The `price_cents` placeholders in `config/product_modules.php`
+were never set; prices are effective-dated rows in `platform_prices`.
 
 ## Platform page
 
-`/saas/packages` ("Product modules and packages", in the platform bar): each
-product module with its readiness, price and whether each package includes it
-fully, partly or not at all, and what each contains. Platform staff only.
+`/saas/packages` ("Product modules and packages", in the platform bar): the
+packages with their status, schools and price today, each product module with
+its readiness and whether each package includes it fully, partly or not at
+all, and what each contains. Platform staff with `packages.view` only.
 
 ## Tests
 
@@ -46,5 +48,4 @@ fully, partly or not at all, and what each contains. Platform staff only.
 
 ## Not yet
 
-Effective-dated prices and package history in the database (SA.7), and
-invoices from them (SA.8, 1.17).
+Invoices from the prices (SA.8, 1.17).

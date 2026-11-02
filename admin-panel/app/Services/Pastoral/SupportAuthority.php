@@ -24,6 +24,8 @@ class SupportAuthority
     {
         $context = app(CurrentSchool::class);
         abort_unless($context->isSet() && ! $context->isAcrossSchools() && ! $context->isImpersonating(), 403);
+        // Never in a Navigate Ed support session (SA.9), whatever its scope.
+        abort_if($context->isSupportSession(), 403);
         abort_if(PlatformStaffIdentity::where('user_id', $actor->id)->where('active', true)->exists(), 403);
         $fresh = app(AcademicAuthority::class)->staff($actor);
         $context->school()?->refresh();

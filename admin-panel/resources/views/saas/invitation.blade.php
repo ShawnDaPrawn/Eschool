@@ -14,6 +14,7 @@
         <label for="password_confirmation">{{ __('Confirm new password') }}</label>
         <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
     </div>
+    <p>{{ __('Next you sign in and set up an authenticator app on your phone (such as Google Authenticator, Microsoft Authenticator or 1Password). The platform area always asks for a code from it.') }}</p>
     <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Set password') }}</button></div>
 </form>
 @endsection

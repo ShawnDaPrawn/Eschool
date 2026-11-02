@@ -30,6 +30,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -40,6 +41,7 @@ use Tests\TestCase;
  */
 class SaasPanelTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     protected function setUp(): void
@@ -96,7 +98,7 @@ class SaasPanelTest extends TestCase
 
     public function test_platform_staff_see_every_school_with_counts_and_never_a_person(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
 
         $this->get('/saas')->assertOk()
             ->assertHeader('Cache-Control', 'no-store, private')
@@ -145,7 +147,7 @@ class SaasPanelTest extends TestCase
     public function test_a_revoked_inactive_or_unsettled_account_loses_access_at_once(): void
     {
         $staff = $this->staff();
-        $this->actingAs($staff)->get('/saas')->assertOk();
+        $this->actingAsHq($staff)->get('/saas')->assertOk();
 
         PlatformStaffIdentity::query()->where('user_id', $staff->id)->update(['active' => false]);
         $this->get('/saas')->assertForbidden();
@@ -203,7 +205,7 @@ class SaasPanelTest extends TestCase
         PlatformStaffIdentity::query()->create(['user_id' => $nobody->id]);
         PlatformAdminGrant::query()->create(['user_id' => $nobody->id, 'active' => true, 'expires_at' => now()->addHour()]);
 
-        $this->actingAs($nobody)->get('/saas')->assertOk();
+        $this->actingAsHq($nobody)->get('/saas')->assertOk();
         $this->assertNotSame(200, $this->get('/school-modules')->getStatusCode());
         $this->assertNotSame(200, $this->get('/ai-settings')->getStatusCode());
     }
@@ -217,14 +219,20 @@ class SaasPanelTest extends TestCase
             }
             $count++;
             $middleware = $route->gatherMiddleware();
-            $this->assertContains(str_starts_with($route->getName() ?? '', 'saas.password') ? 'platform.staff:password' : 'platform.staff', $middleware, $route->uri());
+            // The own password and the two-factor pages (SA.2) are the staff member's own; every other page needs two-factor passed.
+            $own = str_starts_with($route->getName() ?? '', 'saas.password') || str_starts_with($route->getName() ?? '', 'saas.two-factor.');
+            $this->assertContains(match (true) {
+                str_starts_with($route->getName() ?? '', 'saas.password') => 'platform.staff:password',
+                str_starts_with($route->getName() ?? '', 'saas.two-factor.') => 'platform.staff:two-factor',
+                default => 'platform.staff',
+            }, $middleware, $route->uri());
             $this->assertContains('auth', $middleware, $route->uri());
             $this->assertNotContains('school.context', $middleware, $route->uri());
-            if (! str_starts_with($route->getName() ?? '', 'saas.password')) {
+            if (! $own) {
                 $this->assertNotEmpty(array_filter($middleware, fn ($name) => is_string($name) && str_starts_with($name, 'platform.can:')), $route->uri().' names the ability its role must hold');
             }
         }
-        $this->assertSame(39, $count);
+        $this->assertSame(63, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void
@@ -233,8 +241,10 @@ class SaasPanelTest extends TestCase
         PlatformStaffIdentity::query()->create(['user_id' => $operator->id]);
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
 
-        $this->post('/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!'])->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!']))->assertRedirect('/saas');
         $this->assertAuthenticatedAs($operator);
+        $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
+        $this->passPlatformTwoFactor($operator);
         $this->get('/saas')->assertOk();
         $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
         $this->assertFalse(app(CurrentSchool::class)->run(1, fn () => $operator->fresh()->hasRole('Super Admin')));
@@ -247,7 +257,7 @@ class SaasPanelTest extends TestCase
         $entry = $this->seedCanonicalFeeHistory();
         $count = DB::table('fees_paids')->where('school_id', 2)->count();
         $this->assertGreaterThan(0, $count);
-        $this->actingAs($staff)->put('/saas/schools/2/package', ['package_key' => 'core'])->assertRedirect();
+        $this->actingAsHq($staff)->put('/saas/schools/2/package', ['package_key' => 'core'])->assertRedirect();
 
         app(CurrentSchool::class)->run(2, function (): void {
             app(ModuleGate::class)->forget();
@@ -284,7 +294,7 @@ class SaasPanelTest extends TestCase
 
     public function test_the_created_school_admin_chooses_a_password_from_their_invitation_and_opens_their_home(): void
     {
-        $response = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $response = $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $path = (string) parse_url($response->viewData('invitationUrl'), PHP_URL_PATH);
         $admin = $response->viewData('admin');
         auth()->forgetGuards();
@@ -306,7 +316,7 @@ class SaasPanelTest extends TestCase
 
     public function test_staff_can_resend_an_unaccepted_administrator_invitation_but_not_after_acceptance(): void
     {
-        $response = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $response = $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $first = (string) parse_url($response->viewData('invitationUrl'), PHP_URL_PATH);
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
         $this->get('/saas/schools/'.$school->id)->assertOk()->assertSee('Send the invitation again')->assertDontSee('lerato@marula.example');
@@ -319,7 +329,7 @@ class SaasPanelTest extends TestCase
         $second = (string) parse_url(app(StaffInvitations::class)->url((string) $latest->encrypted_token), PHP_URL_PATH);
         $this->post($second, ['password' => 'Synthetic-new-school-password-746!', 'password_confirmation' => 'Synthetic-new-school-password-746!'])->assertRedirect(route('login'));
 
-        $this->actingAs($this->staff())->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->actingAsHq($this->staff())->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
         $this->post('/saas/schools/'.$school->id.'/administrator-invitation')->assertRedirect();
         $this->assertSame(2, StaffInvitation::acrossSchools()->where('school_id', $school->id)->count());
         $this->post('/saas/schools/999999/administrator-invitation')->assertNotFound();
@@ -327,7 +337,7 @@ class SaasPanelTest extends TestCase
 
     public function test_school_counts_only_include_current_memberships_of_active_people(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
         $before = collect($this->get('/saas')->assertOk()->viewData('schools'))->keyBy('id')[2];
         $members = SchoolMembership::query()->where('school_id', 2)->where('role', 'Student')->orderBy('id')->limit(3)->get();
         $this->assertCount(3, $members);
@@ -374,7 +384,7 @@ class SaasPanelTest extends TestCase
         $staff = $this->staff();
         $before = [1 => $this->moduleRows(1), 2 => $this->moduleRows(2), 'members' => SchoolMembership::query()->count()];
 
-        $response = $this->actingAs($staff)->post('/saas/schools', $this->newSchool())->assertOk()
+        $response = $this->actingAsHq($staff)->post('/saas/schools', $this->newSchool())->assertOk()
             ->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Marula Primary');
         $url = $response->viewData('invitationUrl');
@@ -423,12 +433,12 @@ class SaasPanelTest extends TestCase
 
     public function test_the_new_administrator_sees_only_their_own_school_and_never_the_platform(): void
     {
-        $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
 
         auth()->forgetGuards();
-        $this->actingAs($admin)->get('/saas')->assertForbidden();
+        $this->newBrowserSession()->actingAs($admin)->get('/saas')->assertForbidden();
         $this->get('/saas/schools/1')->assertForbidden();
 
         $active = app(MembershipService::class)->active($admin);
@@ -437,11 +447,11 @@ class SaasPanelTest extends TestCase
 
     public function test_the_new_administrator_can_open_the_panel_home_and_sees_nothing_of_other_schools(): void
     {
-        $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
 
         auth()->forgetGuards();
-        $this->actingAs($admin)->get('/home')->assertOk()->assertDontSee('Baobab')->assertDontSee('Jacaranda');
+        $this->newBrowserSession()->actingAs($admin)->get('/home')->assertOk()->assertDontSee('Baobab')->assertDontSee('Jacaranda');
 
         // The school has its own current year and settings, and the staff member's session year was not touched.
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
@@ -455,7 +465,7 @@ class SaasPanelTest extends TestCase
 
     public function test_a_name_gets_a_unique_short_name_when_none_is_given(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
         $this->post('/saas/schools', $this->newSchool())->assertOk();
         $this->post('/saas/schools', $this->newSchool(['admin_email' => 'second@marula.example']))->assertOk();
 
@@ -464,7 +474,7 @@ class SaasPanelTest extends TestCase
 
     public function test_bad_input_creates_nothing(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
         $schools = School::query()->count();
         $users = User::query()->count();
         $taken = $this->superAdmin()->email;
@@ -494,7 +504,7 @@ class SaasPanelTest extends TestCase
         School::query()->whereKey(2)->update(['package_key' => 'core']);
         $before = OutboxEvent::query()->count();
 
-        $this->actingAs($staff)->put('/saas/schools/2/package', ['package_key' => 'standard'])->assertRedirect('/saas/schools/2');
+        $this->actingAsHq($staff)->put('/saas/schools/2/package', ['package_key' => 'standard'])->assertRedirect('/saas/schools/2');
 
         $this->assertSame('standard', School::query()->findOrFail(2)->package_key);
         $this->assertNull(School::query()->findOrFail(1)->package_key);
@@ -506,7 +516,7 @@ class SaasPanelTest extends TestCase
 
     public function test_an_unknown_package_is_refused(): void
     {
-        $this->actingAs($this->staff())->put('/saas/schools/2/package', ['package_key' => 'platinum'])->assertSessionHasErrors('package_key');
+        $this->actingAsHq($this->staff())->put('/saas/schools/2/package', ['package_key' => 'platinum'])->assertSessionHasErrors('package_key');
         $this->assertNull(School::query()->findOrFail(2)->package_key);
     }
 
@@ -518,7 +528,7 @@ class SaasPanelTest extends TestCase
         $records = DB::table('students')->where('school_id', 2)->count();
         $this->assertSame([2], app(MembershipService::class)->active($baobab)->pluck('school_id')->all());
 
-        $this->actingAs($staff)->put('/saas/schools/2/status', ['status' => 'suspended', 'reason' => 'Fees unpaid for two terms'])->assertRedirect('/saas/schools/2');
+        $this->actingAsHq($staff)->put('/saas/schools/2/status', ['status' => 'suspended', 'reason' => 'Fees unpaid for two terms'])->assertRedirect('/saas/schools/2');
 
         $this->assertSame('suspended', School::query()->findOrFail(2)->status);
         $this->assertTrue((new MembershipService)->active($baobab)->isEmpty());
@@ -533,7 +543,7 @@ class SaasPanelTest extends TestCase
 
     public function test_a_status_change_needs_a_real_reason_and_never_touches_the_default_school(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
 
         $this->put('/saas/schools/2/status', ['status' => 'suspended', 'reason' => 'short'])->assertSessionHasErrors('reason');
         $this->put('/saas/schools/2/status', ['status' => 'deleted', 'reason' => 'A perfectly long reason'])->assertSessionHasErrors('status');
@@ -549,7 +559,7 @@ class SaasPanelTest extends TestCase
         School::query()->whereKey(2)->update(['package_key' => 'core']);
         $jacarandaRows = $this->moduleRows(1);
 
-        $this->actingAs($staff)->put('/saas/schools/2/modules/chat', ['enabled' => 0])->assertRedirect('/saas/schools/2');
+        $this->actingAsHq($staff)->put('/saas/schools/2/modules/chat', ['enabled' => 0])->assertRedirect('/saas/schools/2');
 
         $this->assertDatabaseHas('school_modules', ['school_id' => 2, 'module' => 'chat', 'enabled' => false, 'changed_by' => $staff->id]);
         $this->assertSame($jacarandaRows, $this->moduleRows(1));
@@ -563,7 +573,7 @@ class SaasPanelTest extends TestCase
 
     public function test_module_rules_still_apply_to_platform_staff(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
         School::query()->whereKey(2)->update(['package_key' => 'core']);
 
         // Required modules stay on; a module outside the package is not switched on by a switch alone.
@@ -575,7 +585,7 @@ class SaasPanelTest extends TestCase
 
     public function test_a_school_that_does_not_exist_is_not_found_for_staff(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
 
         $this->get('/saas/schools/987654')->assertNotFound();
         $this->get('/saas/schools/abc')->assertNotFound();
@@ -587,7 +597,7 @@ class SaasPanelTest extends TestCase
     public function test_a_downgrade_keeps_retained_fee_records_readable_but_not_writable(): void
     {
         $staff = $this->staff();
-        $this->actingAs($staff);
+        $this->actingAsHq($staff);
         $this->put('/saas/schools/2/package', ['package_key' => 'standard'])->assertRedirect();
         $this->put('/saas/schools/2/modules/fees', ['enabled' => 1])->assertRedirect();
         $entry = $this->seedCanonicalFeeHistory();
@@ -612,7 +622,7 @@ class SaasPanelTest extends TestCase
 
     public function test_a_downgrade_leaves_a_school_without_fee_records_alone(): void
     {
-        $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool(['package_key' => 'standard']))->assertOk();
+        $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool(['package_key' => 'standard']))->assertOk();
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
 
         $this->put('/saas/schools/'.$school->id.'/package', ['package_key' => 'core'])->assertRedirect();
@@ -636,8 +646,11 @@ class SaasPanelTest extends TestCase
     {
         $operator = $this->operatorWithoutRoles();
 
-        $this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1'])->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1']))->assertRedirect('/saas');
         $this->assertAuthenticatedAs($operator);
+        // Two-factor sign-in first (SA.2), then the school list.
+        $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
+        $this->passPlatformTwoFactor($operator);
         $this->get('/saas')->assertOk()->assertSee('Baobab High');
         // Their account holds no school role or membership.
         $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
@@ -668,7 +681,9 @@ class SaasPanelTest extends TestCase
         $this->post('/saas/password', ['old_password' => 'a-long-password-1', 'new_password' => 'short', 'confirm_password' => 'mismatch'], ['Accept' => 'text/html'])->assertUnprocessable()->assertSessionMissing('_old_input');
         $this->postJson('/saas/password', ['old_password' => 'a-long-password-1', 'new_password' => 'Synthetic-rotated-platform-password-674!', 'confirm_password' => 'Synthetic-rotated-platform-password-674!'])->assertOk()->assertJsonPath('error', false);
         $this->assertFalse($operator->fresh()->password_change_required);
-        $this->get('/saas')->assertOk();
+        // With the password settled, two-factor sign-in is set up next (SA.2).
+        $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
+        $this->get('/saas/two-factor')->assertOk();
         $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
         $this->assertDatabaseMissing('model_has_roles', ['model_id' => $operator->id, 'model_type' => User::class]);
     }
@@ -684,7 +699,7 @@ class SaasPanelTest extends TestCase
         $this->get('/saas')->assertRedirect(route('saas.password'))->assertHeader('Cache-Control', 'no-store, private');
         $this->get('/saas/password')->assertOk();
         $this->postJson('/saas/password', ['old_password' => 'superadmin', 'new_password' => 'Synthetic-rotated-platform-password-674!', 'confirm_password' => 'Synthetic-rotated-platform-password-674!'])->assertOk()->assertJsonPath('error', false);
-        $this->get('/saas')->assertOk();
+        $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
         $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
     }
 
@@ -712,7 +727,7 @@ class SaasPanelTest extends TestCase
 
     public function test_no_year_home_guard_survives_removal_of_the_editable_onboarding_preset(): void
     {
-        $response = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $response = $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $admin = $response->viewData('admin');
         $school = $response->viewData('school');
         app(CurrentSchool::class)->run($school, function (): void {
@@ -722,7 +737,7 @@ class SaasPanelTest extends TestCase
         });
         $admin->forceFill(['password_change_required' => false])->save();
         auth()->forgetGuards();
-        $this->actingAs($admin)->get('/home')->assertOk();
+        $this->newBrowserSession()->actingAs($admin)->get('/home')->assertOk();
         foreach (['attendance', 'assessment', 'leaves', 'events'] as $widget) {
             $this->getJson('/home/widget/'.$widget)->assertOk();
         }
@@ -743,7 +758,7 @@ class SaasPanelTest extends TestCase
         $this->assertTrue($grant->active);
         $this->assertEqualsWithDelta(now()->addHours(2)->timestamp, $grant->expires_at->timestamp, 5);
         $this->assertTrue(AuditLog::query()->where('subject_type', PlatformAdminGrant::class)->exists());
-        $this->actingAs($user)->get('/saas')->assertOk();
+        $this->actingAsHq($user)->get('/saas')->assertOk();
 
         $this->artisan('platform:admin-access', ['user_id' => $user->id, '--revoke' => true])->assertSuccessful();
         $this->assertFalse($grant->fresh()->active);
