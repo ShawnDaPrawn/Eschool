@@ -61,6 +61,7 @@ Earlier history is kept where it was written and is not repeated here:
   linked for staff who hold its grant.
   `engineering/specs/platform/hq-ai.md`.
 
+
 - Platform: packages and prices are edited at `/saas/packages` instead of being
   fixed in the code. Owner and Finance create draft packages from the product
   modules, set trial days, activate and retire them, and add prices per learner
