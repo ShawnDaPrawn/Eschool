@@ -20,6 +20,7 @@ import 'package:eschool_api/src/model/communication_message_list_response.dart';
 import 'package:eschool_api/src/model/communication_message_preview_response.dart';
 import 'package:eschool_api/src/model/communication_message_reader_response.dart';
 import 'package:eschool_api/src/model/communication_message_receipt_response.dart';
+import 'package:eschool_api/src/model/communication_message_report_response.dart';
 import 'package:eschool_api/src/model/communication_message_write.dart';
 import 'package:eschool_api/src/model/communication_read_receipt_response.dart';
 import 'package:eschool_api/src/model/communication_role_rule_response.dart';
@@ -1748,6 +1749,112 @@ class CommunicationApi {
     }
 
     return Response<CommunicationMessageReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Delivery report for a published school message
+  /// Private no-store report for the message&#39;s author and the staff who may review it. Counts recipients, read acknowledgements and each channel&#39;s state per person, and lists recipients by name only, 50 per page. Never includes addresses, device tokens or provider errors. 404 until the message is published.
+  ///
+  /// Parameters:
+  /// * [message]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [CommunicationMessageReportResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<CommunicationMessageReportResponse>>
+  schoolMessageDeliveryReport({
+    required int message,
+    int? xAccountId,
+    int? activityGroups = 0,
+    int? xSchoolId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/communication/drafts/{message}/report'.replaceAll(
+      '{'
+      r'message'
+      '}',
+      message.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+      if (page != null) r'page': page,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    CommunicationMessageReportResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              CommunicationMessageReportResponse,
+              CommunicationMessageReportResponse
+            >(rawData, 'CommunicationMessageReportResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<CommunicationMessageReportResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

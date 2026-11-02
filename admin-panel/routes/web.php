@@ -476,6 +476,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             foreach (['save', 'submit', 'decision', 'withdraw'] as $action) {
                 Route::post('drafts/{message}/'.$action, [$c, $action])->whereNumber('message')->name($action);
             }
+            Route::get('messages/{message}/report', [$c, 'report'])->whereNumber('message')->name('report');
             Route::post('audiences', [$c, 'audienceCreate'])->name('audience-create');
             Route::post('audiences/{audience}', [$c, 'audienceSave'])->whereNumber('audience')->name('audience-save');
             Route::post('rules/{role}', [$c, 'ruleSave'])->whereNumber('role')->name('rule-save');
