@@ -121,6 +121,9 @@ class LibraryPracticeTest extends TestCase
         $this->assertSame($this->items['fractions']->published_version_id, (int) $fromLibrary->library_item_version_id);
         $this->assertSame((int) MasteryTopic::where('library_topic_id', $this->fractions->id)->value('id'), (int) $fromLibrary->topic_id);
         $this->assertSame(['practice_review'], MasteryEvidence::pluck('source_type')->unique()->values()->all());
+        // Item facility keys keep the two sources apart.
+        $this->assertStringStartsWith('practice_item:', (string) $school->item_key);
+        $this->assertSame('library_item:'.$this->items['fractions']->id, $fromLibrary->item_key);
         $this->assertSame($this->items['fractions']->id, (int) PracticeMemory::whereNotNull('library_item_id')->sole()->library_item_id);
         // The school's practice wrote only school rows: the library is exactly as it was.
         $this->assertSame($before, $this->libraryCounts());
