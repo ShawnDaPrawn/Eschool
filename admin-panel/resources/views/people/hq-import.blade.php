@@ -18,11 +18,6 @@
             @if (! $import['expired'] && in_array($import['status'], ['awaiting_approval', 'approved'], true))
                 <dt>{{ __('Expires') }}</dt><dd>{{ __(':at. The file is deleted then if it has not been imported.', ['at' => $import['expires_at']]) }}</dd>
             @endif
-            @foreach (['session_year_id' => ['years', 'School year'], 'category_id' => ['categories', 'Category'], 'medium_id' => ['mediums', 'Medium']] as $option => [$choice, $label])
-                @if (isset($import['options'][$option]))<dt>{{ __($label) }}</dt><dd>{{ $import['choices'][$choice][$import['options'][$option]] ?? __('Unknown') }}</dd>@endif
-            @endforeach
-            @if (isset($import['options']['starts_on']))<dt>{{ __('Starts on') }}</dt><dd>{{ $import['options']['starts_on'] }}</dd>@endif
-            @if (array_key_exists('invite', $import['options']))<dt>{{ __('Send invitations') }}</dt><dd>{{ $import['options']['invite'] ? __('Yes') : __('No') }}</dd>@endif
             @if ($import['decision_reason'])<dt>{{ __('Reason given') }}</dt><dd>{{ $import['decision_reason'] }}</dd>@endif
             @if ($import['close_reason'])<dt>{{ __('Navigate Ed\'s reason') }}</dt><dd>{{ $import['close_reason'] }}</dd>@endif
         </dl>
@@ -46,6 +41,13 @@
     @endif
 
     @if ($import['preview'] !== [])
+        <section class="m3-card m3-card--outlined page-section" aria-labelledby="import-settings"><div class="m3-card__content">
+            <h2 id="import-settings">{{ __('Settings') }}</h2>
+            <dl>
+                @foreach ($import['settings'] as $setting)<dt>{{ $setting['label'] }}</dt><dd>{{ $setting['value'] }}</dd>@endforeach
+            </dl>
+        </div></section>
+
         <section class="page-section" aria-labelledby="import-rows">
             <h2 id="import-rows">{{ __('Rows in the file') }}</h2>
             <div class="page-table__scroll" role="region" aria-label="{{ __('Rows in the file') }}" tabindex="0"><table class="page-table__table">
@@ -54,19 +56,16 @@
                     <th scope="col">{{ __('Line') }}</th>
                     <th scope="col">{{ __('Row') }}</th>
                     <th scope="col">{{ __('Result') }}</th>
+                    <th scope="col">{{ __('What will be written') }}</th>
                     <th scope="col">{{ __('Notes') }}</th>
                 </tr></thead>
                 <tbody>
                 @foreach ($import['preview'] as $row)
                     <tr>
                         <td>{{ $row['line'] }}</td>
-                        <th scope="row">{{ $row['label'] }}
-                            @if (! empty($row['homeroom']))<p>{{ __('Homeroom') }}: {{ $row['homeroom'] }}</p>@endif
-                            @foreach ($row['data']['guardians'] ?? [] as $guardian)
-                                <p>{{ __('Guardian') }}: {{ $guardian['first_name'] }} {{ $guardian['last_name'] }} · {{ $guardian['email'] }} · {{ $guardian['relationship'] }}@if ($guardian['mobile']) · {{ $guardian['mobile'] }}@endif</p>
-                            @endforeach
-                        </th>
+                        <th scope="row">{{ $row['label'] }}</th>
                         <td>{{ $statusLabels[$row['status']] ?? $row['status'] }}</td>
+                        <td>@if ($row['details'] !== [])<ul>@foreach ($row['details'] as $detail)<li>{{ $detail['label'] }}: {{ $detail['value'] }}</li>@endforeach</ul>@endif</td>
                         <td>{{ implode(' ', $row['notes']) }}</td>
                     </tr>
                 @endforeach

@@ -34,7 +34,8 @@ use Tests\TestCase;
  */
 class HqContentLibraryTest extends TestCase
 {
-    use PassesPlatformTwoFactor, UsesContentLibrary, UsesTwoSchools;
+    use PassesPlatformTwoFactor;
+    use UsesContentLibrary, UsesTwoSchools;
 
     protected function setUp(): void
     {
@@ -67,7 +68,7 @@ class HqContentLibraryTest extends TestCase
 
     public function test_content_staff_build_a_framework_and_publish_only_after_a_subject_reviewer_approves(): void
     {
-        $this->actingAsHq($this->libraryStaff('content'));
+        $this->signInAs($this->libraryStaff('content'));
         $this->post('/saas/library/frameworks', ['code' => 'CAPS', 'name' => 'Curriculum and Assessment Policy Statement'])->assertRedirect()->assertSessionHasNoErrors();
         $framework = LibraryFramework::query()->sole();
         $this->post('/saas/library/sources', ['title' => 'Navigate Ed maths bank', 'kind' => 'original', 'licence' => 'All rights reserved, Navigate Ed',
@@ -97,12 +98,12 @@ class HqContentLibraryTest extends TestCase
         $this->post('/saas/library/reviewers', ['user_id' => $this->libraryStaff('reviewer')->id, 'library_framework_id' => $framework->id, 'subject_code' => 'MATH-SP'])
             ->assertRedirect()->assertSessionHasNoErrors();
 
-        $this->actingAsHq($this->libraryStaff('reviewer'));
+        $this->signInAs($this->libraryStaff('reviewer'));
         $this->get('/saas/library/reviews')->assertOk()->assertSee('Half as a decimal')->assertSee('Approve');
         $this->post('/saas/library/versions/'.$version->id.'/review', ['decision' => 'approved'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame('approved', $version->fresh()->state);
 
-        $this->actingAsHq($this->libraryStaff('content'));
+        $this->signInAs($this->libraryStaff('content'));
         $this->post('/saas/library/items/'.$item->id.'/publish', ['version_id' => $version->id, 'revision' => $item->fresh()->revision])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame('published', $version->fresh()->state);
         $this->assertSame($version->id, $item->fresh()->published_version_id);
@@ -127,7 +128,7 @@ class HqContentLibraryTest extends TestCase
         $this->invalid(fn () => $catalogue->setPrerequisites($content, $numbers->id, ['prerequisite_ids' => [$decimals->id]]), 'prerequisite_ids');
         $this->invalid(fn () => $catalogue->setPrerequisites($content, $numbers->id, ['prerequisite_ids' => [$numbers->id]]), 'prerequisite_ids');
         $this->invalid(fn () => $catalogue->setPrerequisites($content, $numbers->id, ['prerequisite_ids' => [$grammar->id]]), 'prerequisite_ids');
-        $this->actingAsHq($content)->put('/saas/library/topics/'.$numbers->id.'/prerequisites', ['prerequisite_ids' => [$decimals->id]])->assertSessionHasErrors('prerequisite_ids');
+        $this->signInAs($content)->put('/saas/library/topics/'.$numbers->id.'/prerequisites', ['prerequisite_ids' => [$decimals->id]])->assertSessionHasErrors('prerequisite_ids');
         $this->assertSame($before, LibraryTopicPrerequisite::query()->orderBy('id')->get(['library_topic_id', 'prerequisite_id'])->toArray());
 
         // Replacing an edge is fine; an empty list clears them.
@@ -174,7 +175,7 @@ class HqContentLibraryTest extends TestCase
         $this->assignReviewer('ENG-SP');
         $this->refuses(fn () => $items->review($this->libraryStaff('reviewer'), $version->id, ['decision' => 'approved']), 403);
         // Another subject's queue is not this reviewer's: the item is not listed at all.
-        $this->actingAsHq($this->libraryStaff('reviewer'))->get('/saas/library/reviews')->assertOk()->assertSee('Nothing is waiting for review in your subjects.')->assertDontSee('Half as a decimal');
+        $this->signInAs($this->libraryStaff('reviewer'))->get('/saas/library/reviews')->assertOk()->assertSee('Nothing is waiting for review in your subjects.')->assertDontSee('Half as a decimal');
         $this->post('/saas/library/versions/'.$version->id.'/review', ['decision' => 'approved'])->assertForbidden();
         // An Owner holds every ability but still needs the subject, and never reviews their own submission.
         $owner = $this->libraryStaff('owner');
@@ -216,7 +217,7 @@ class HqContentLibraryTest extends TestCase
         $this->assertEqualsCanonicalizing([(int) $content->id, (int) $owner->id], $version->fresh()->editors());
 
         $this->refuses(fn () => $items->review($owner, $version->id, ['decision' => 'approved']), 403);
-        $this->actingAsHq($owner)->post('/saas/library/versions/'.$version->id.'/review', ['decision' => 'approved'])->assertForbidden();
+        $this->signInAs($owner)->post('/saas/library/versions/'.$version->id.'/review', ['decision' => 'approved'])->assertForbidden();
         $this->get('/saas/library/reviews')->assertOk()->assertSee('Someone else must review a version you wrote, changed or submitted.');
         $this->assertSame(0, LibraryReview::query()->count());
         $this->assertSame('in_review', $version->fresh()->state);
@@ -254,7 +255,7 @@ class HqContentLibraryTest extends TestCase
         $this->assertSame(1, $queue['total']);
         $this->assertSame(['Half as a decimal'], array_column($queue['waiting'], 'title'));
         $this->assertNull($queue['waiting'][0]['refusal']);
-        $this->actingAsHq($reviewer)->get('/saas/library/reviews')->assertOk()->assertSee('Half as a decimal')->assertSee('Approve')->assertDontSee('English lesson 1');
+        $this->signInAs($reviewer)->get('/saas/library/reviews')->assertOk()->assertSee('Half as a decimal')->assertSee('Approve')->assertDontSee('English lesson 1');
 
         // Assigned to English too: every waiting version is reachable, a page at a time.
         $this->assignReviewer('ENG-SP');
@@ -294,15 +295,15 @@ class HqContentLibraryTest extends TestCase
             $this->post('/saas/library/versions/'.$version->id.'/review', ['decision' => 'approved'])->assertForbidden();
         };
         foreach (['operations', 'support', 'finance', 'sales'] as $role) {
-            $this->actingAsHq($this->libraryStaff($role));
+            $this->signInAs($this->libraryStaff($role));
             $manage();
             $review();
         }
         // Content staff do not review; reviewers do not manage.
-        $this->actingAsHq($this->libraryStaff('content'));
+        $this->signInAs($this->libraryStaff('content'));
         $review();
         $this->assignReviewer();
-        $this->actingAsHq($this->libraryStaff('reviewer'));
+        $this->signInAs($this->libraryStaff('reviewer'));
         $manage();
         $this->get('/saas/library/reviews')->assertOk();
 
@@ -316,7 +317,7 @@ class HqContentLibraryTest extends TestCase
         $topic = $this->libraryTopic('Fractions');
         $before = $this->libraryCounts();
         foreach ([$this->superAdmin(), User::query()->findOrFail($this->schoolA->ids['tara_user']), User::query()->findOrFail($this->schoolB->ids['tara_user'])] as $person) {
-            $this->newBrowserSession()->actingAs($person);
+            $this->signInAs($person);
             foreach (['/saas/library', '/saas/library/reviews', '/saas/library/frameworks/'.$topic->library_framework_id] as $page) {
                 $this->get($page)->assertForbidden();
             }
@@ -354,7 +355,7 @@ class HqContentLibraryTest extends TestCase
 
     public function test_switching_the_library_for_one_school_leaves_the_other_alone(): void
     {
-        $this->actingAsHq($this->libraryStaff('content'));
+        $this->signInAs($this->libraryStaff('content'));
         $this->put('/saas/library/schools/2', ['enabled' => 1, 'reason' => 'Baobab High pilots the library'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame([2 => 1], DB::table('library_school_settings')->pluck('enabled', 'school_id')->map(fn ($v) => (int) $v)->all());
         $this->get('/saas/library')->assertOk()->assertSee('Switch off')->assertSee('Switch on');
@@ -364,6 +365,6 @@ class HqContentLibraryTest extends TestCase
         $this->assertSame([2 => 1], DB::table('library_school_settings')->pluck('enabled', 'school_id')->map(fn ($v) => (int) $v)->all());
         $audit = AuditLog::query()->where('action', 'library_school_switched')->sole();
         $this->assertSame(2, (int) $audit->school_id);
-        $this->assertSame([true, 'Baobab High pilots the library', $this->libraryStaff('content')->id], [$audit->after['enabled'], $audit->after['reason'], $audit->after['changed_by']]);
+        $this->assertEqualsCanonicalizing(['enabled' => true, 'reason' => 'Baobab High pilots the library', 'changed_by' => $this->libraryStaff('content')->id], $audit->after);
     }
 }

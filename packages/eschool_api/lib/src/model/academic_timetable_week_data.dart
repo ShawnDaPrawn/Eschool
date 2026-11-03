@@ -3,9 +3,7 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:eschool_api/src/model/academic_timetable_week_data_activities_inner.dart';
 import 'package:eschool_api/src/model/academic_timetable_lesson.dart';
-import 'package:eschool_api/src/model/academic_timetable_week_data_breaks_inner.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'academic_timetable_week_data.g.dart';
@@ -30,10 +28,6 @@ class AcademicTimetableWeekData {
     required this.lessons,
 
     this.examDays,
-
-    this.breaks,
-
-    this.activities,
   });
 
   // minimum: 1
@@ -55,14 +49,6 @@ class AcademicTimetableWeekData {
   @JsonKey(name: r'exam_days', required: false, includeIfNull: false)
   final List<String>? examDays;
 
-  /// A learner's week only. Named breaks of the bells their lessons follow each day (the replacement bells on a short day).
-  @JsonKey(name: r'breaks', required: false, includeIfNull: false)
-  final List<AcademicTimetableWeekDataBreaksInner>? breaks;
-
-  /// A learner's week only. Sessions of activity groups they belong to on that day, not cancelled. A session without times is all day.
-  @JsonKey(name: r'activities', required: false, includeIfNull: false)
-  final List<AcademicTimetableWeekDataActivitiesInner>? activities;
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -72,9 +58,7 @@ class AcademicTimetableWeekData {
           other.endsOn == endsOn &&
           other.canManage == canManage &&
           other.lessons == lessons &&
-          other.examDays == examDays &&
-          other.breaks == breaks &&
-          other.activities == activities;
+          other.examDays == examDays;
 
   @override
   int get hashCode =>
@@ -83,9 +67,7 @@ class AcademicTimetableWeekData {
       endsOn.hashCode +
       canManage.hashCode +
       lessons.hashCode +
-      examDays.hashCode +
-      breaks.hashCode +
-      activities.hashCode;
+      examDays.hashCode;
 
   factory AcademicTimetableWeekData.fromJson(Map<String, dynamic> json) =>
       _$AcademicTimetableWeekDataFromJson(json);

@@ -125,9 +125,8 @@ class HqHomeTest extends TestCase
     {
         $sales = $this->staff('sales');
 
-        $this->keepSession($this->post('/login', ['email' => 'sales@platform.example', 'password' => 'Synthetic-hq-home-password-264!'])->assertRedirect('/saas/home'));
-        $this->get('/saas/home')->assertRedirect(route('saas.two-factor.enrol'));
-        $this->actingAsHq($sales);
+        $this->post('/login', ['email' => 'sales@platform.example', 'password' => 'Synthetic-hq-home-password-264!'])->assertRedirect('/saas/home');
+        $this->passPlatformTwoFactor($sales);
         $this->get('/saas/home')->assertOk()->assertSee('Schools by stage')
             ->assertSee('href="'.route('saas.index').'"', false);
         // The school list keeps its address, and the platform name in the bar leads home.
@@ -179,6 +178,7 @@ class HqHomeTest extends TestCase
             'owner' => self::ALL,
             'operations' => self::ALL,
             'support' => self::ALL,
+            // Finance holds health.view for school health (SA.10), which also opens the platform health tile.
             'finance' => [...self::SCHOOL_TILES, 'health'],
             'content' => self::SCHOOL_TILES,
             'reviewer' => self::SCHOOL_TILES,
@@ -268,8 +268,9 @@ class HqHomeTest extends TestCase
         app(CurrentSchool::class)->run(3, fn () => SchoolAccount::query()->create(['stage' => 'live', 'revision' => 1]));
         $this->assertSame($ownerQueries, $this->queriesFor($owner), 'The number of queries grows with the number of live schools');
 
-        $this->assertLessThanOrEqual(70, $ownerQueries, "The owner's home page takes $ownerQueries queries, more than budgeted");
-        $this->assertLessThanOrEqual(50, $salesQueries, "Sales' home page takes $salesQueries queries, more than budgeted");
+        // The budgets include the per-request staff, grant and two-factor checks every /saas page makes (SA.2).
+        $this->assertLessThanOrEqual(80, $ownerQueries, "The owner's home page takes $ownerQueries queries, more than budgeted");
+        $this->assertLessThanOrEqual(60, $salesQueries, "Sales' home page takes $salesQueries queries, more than budgeted");
     }
 
     private function queriesFor(User $user): int

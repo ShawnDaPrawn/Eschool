@@ -11,19 +11,18 @@ and Owners invite staff by email from HQ.
 
 | Role | Can |
 | --- | --- |
-| Owner | everything, including managing platform staff and the support access emergency override |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; billing (read-only); audit log; LURITS claims; incident register; school health; announcements to schools; ask for support access; feature flags; AI control centre (view); mail streams; support desk; messaging counts; offboarding; imports on a school's behalf |
-| Support | see schools; audit log; LURITS claims; incident register; school health; ask for support access; AI control centre (view); mail streams (view); support desk |
-| Finance | see schools; change package; customer records; packages, and edit packages and prices; billing: invoices, credit notes, payments and reminders; audit log and its export; school health; messaging counts |
-| Content | see schools; packages; manage the content library |
-| Content reviewer | see schools; review assigned library subjects |
+| Owner | everything, including managing platform staff |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; announcements; feature flags; AI control centre (view); approved support sessions; school health; billing (read-only); mail streams (see and set up); support desk; SMS and WhatsApp costs; platform health on the HQ home page; school offboarding (start, archive, dry run, first deletion approval, legal hold); imports on a school's behalf |
+| Support | see schools; audit log; LURITS claims; incident register; AI control centre (view); approved support sessions; school health; mail streams (see); support desk; platform health on the HQ home page |
+| Finance | see schools; change package; customer records; audit log and its export; school health; invoices, credit notes, payments and reminders; SMS and WhatsApp costs; packages, and edit packages and prices |
+| Content | see schools; packages; the content library (`library.manage`) |
+| Content reviewer | see schools; approve or reject library items for their assigned subjects (`library.review`) |
 | Sales (read-only) | see schools; packages |
 
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
-`packages.manage` ([package editor](package-editor.md)), `billing.view`, `billing.manage` ([HQ billing](hq-billing.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`, `health.view`,
-`announcements.manage`, `support.access`, `support.emergency` ([support access](support-access.md)), `flags.manage`, `ai.view`, `ai.manage`, `ai.caps` (the latter two Owner only), `mail.view`, `mail.manage`, `support.manage`, `messaging.view`, `library.manage`, `library.review`,
-`offboarding.view`, `offboarding.manage`, `offboarding.approve` (Owner only), `imports.run`, `staff.manage`. A role that is no longer in the
+`packages.manage` ([package editor](package-editor.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
+`health.view` (see `hq-home.md`), `announcements.manage`, `flags.manage`, `support.access`, `support.emergency` (Owner only; see `support-access.md`), `support.manage`, `billing.view`, `billing.manage` ([HQ billing](hq-billing.md)), `mail.view`, `mail.manage`, `messaging.view`, `ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `library.manage`, `library.review` (see `../learning/content-library.md`), `offboarding.view`, `offboarding.manage`, `offboarding.approve` (see `offboarding.md`), `imports.run`, `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password and the two-factor pages names its ability with

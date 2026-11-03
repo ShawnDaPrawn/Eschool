@@ -213,11 +213,11 @@ class Navigation
         if (($item['gallery_actor'] ?? false) && ! app(GalleryPanelScope::class)->available($user)) {
             return false;
         }
-        // Only while the school is leaving and has an export to collect (SA.11).
-        if (($item['school_exit'] ?? false) && (! app(SchoolExit::class)->allowed($user) || app(SchoolExit::class)->current() === null)) {
+        if (($item['early_years_actor'] ?? false) && ! app(EarlyYearsAuthority::class)->available($user)) {
             return false;
         }
-        if (($item['early_years_actor'] ?? false) && ! app(EarlyYearsAuthority::class)->available($user)) {
+        // Only while the school is leaving and has an export to collect (SA.11).
+        if (($item['school_exit'] ?? false) && (! app(SchoolExit::class)->allowed($user) || app(SchoolExit::class)->current() === null)) {
             return false;
         }
         if (($item['ai_manager'] ?? false) && ! app(AiSchoolControls::class)->available($user)) {

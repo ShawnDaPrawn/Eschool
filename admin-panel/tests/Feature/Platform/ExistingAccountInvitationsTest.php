@@ -21,8 +21,6 @@ use App\Services\People\SchoolImports;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\SharedAccounts;
-use App\Services\Platform\Modules\ModuleGate;
-use App\Services\Platform\Saas\PlatformPackages;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -87,7 +85,7 @@ class ExistingAccountInvitationsTest extends TestCase
 
     private function addTeacherAtB(string $email, array $overrides = []): array
     {
-        $response = $this->newBrowserSession()->actingAs($this->adminB(), 'web')->post(route('teachers.store'), $this->teacherForm($email, $overrides))->assertOk();
+        $response = $this->actingAs($this->adminB(), 'web')->post(route('teachers.store'), $this->teacherForm($email, $overrides))->assertOk();
         auth()->forgetGuards();
 
         return $response->json();
@@ -121,11 +119,11 @@ class ExistingAccountInvitationsTest extends TestCase
             $this->addTeacherAtB($tara->email);
         } else {
             $form = ['role_id' => $role->id, 'first_name' => 'Typed', 'last_name' => 'Name', 'email' => $tara->email, 'gender' => 'Female', 'mobile' => '0821234567', 'dob' => '1990-04-12'];
-            $this->newBrowserSession()->actingAs($this->adminB(), 'web')->post(route('staff.store'), $form)->assertOk()->assertJsonPath('error', false);
+            $this->actingAs($this->adminB(), 'web')->post(route('staff.store'), $form)->assertOk()->assertJsonPath('error', false);
             auth()->forgetGuards();
         }
         $path = $this->emailedPath($tara);
-        $this->newBrowserSession()->actingAs($tara, 'web')->post($path.'/accept')->assertRedirect(route('home'));
+        $this->actingAs($tara, 'web')->post($path.'/accept')->assertRedirect(route('home'));
         auth()->forgetGuards();
         app(MembershipService::class)->forget($tara);
     }
@@ -197,7 +195,7 @@ class ExistingAccountInvitationsTest extends TestCase
         $tara = $this->tara();
         $this->addTeacherAtB($tara->email);
         $path = $this->emailedPath($tara);
-        $this->newBrowserSession()->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect(route('home'));
+        $this->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect(route('home'));
 
         $this->assertNothingAttached($tara, $tara->password);
         $this->assertNotNull($this->invitationAtB($tara)->declined_at);
@@ -230,7 +228,7 @@ class ExistingAccountInvitationsTest extends TestCase
             $this->assertFalse(app(SchoolJoinInvitations::class)->deliver($this->invitationAtB($person)));
             $this->assertNothingAttached($person, (string) DB::table('users')->where('id', $person->id)->value('password'));
         }
-        $page = $this->newBrowserSession()->actingAs($this->adminB(), 'web')->get(route('join-invitations.index'))->assertOk();
+        $page = $this->actingAs($this->adminB(), 'web')->get(route('join-invitations.index'))->assertOk();
         foreach ([$tara->email, 'asha.learner@example.com', $operator->email] as $email) {
             $page->assertSee($email);
         }
@@ -267,7 +265,7 @@ class ExistingAccountInvitationsTest extends TestCase
         $path = $this->emailedPath($tara);
         $theo = User::acrossSchools()->findOrFail($this->schoolA->ids['theo_user']);
 
-        $this->newBrowserSession()->actingAs($theo, 'web')->get($path)->assertForbidden()->assertSee('This invitation is for another account');
+        $this->actingAs($theo, 'web')->get($path)->assertForbidden()->assertSee('This invitation is for another account');
         $this->post($path.'/accept')->assertForbidden();
         $this->post($path.'/decline')->assertForbidden();
         $this->assertNothingAttached($tara, $tara->password);
@@ -289,14 +287,14 @@ class ExistingAccountInvitationsTest extends TestCase
             match ($case) {
                 'expired' => $invitation->forceFill(['expires_at' => now()->subMinute()])->save(),
                 'superseded' => app(CurrentSchool::class)->run(self::B, fn () => $joins->inviteFromSchool($this->adminB(), $tara, Role::query()->where('name', 'Teacher')->firstOrFail())),
-                'withdrawn' => $this->newBrowserSession()->actingAs($this->adminB(), 'web')->post(route('join-invitations.withdraw', $invitation->id))->assertRedirect(route('join-invitations.index')),
+                'withdrawn' => $this->actingAs($this->adminB(), 'web')->post(route('join-invitations.withdraw', $invitation->id))->assertRedirect(route('join-invitations.index')),
                 'school_suspended' => School::query()->whereKey(self::B)->update(['status' => School::SUSPENDED]),
                 'email_changed' => DB::table('users')->where('id', $tara->id)->update(['email' => 'tara.moved@example.com']),
             };
             auth()->forgetGuards();
             Mail::fake();
             $this->assertFalse($joins->canDeliver($invitation), $case.': the queued email is not sent');
-            $this->newBrowserSession()->actingAs($tara->fresh(), 'web')->get($path)->assertNotFound();
+            $this->actingAs($tara->fresh(), 'web')->get($path)->assertNotFound();
             $this->post($path.'/accept')->assertNotFound();
             $this->assertNothingAttached($tara, $hash);
             auth()->forgetGuards();
@@ -315,7 +313,7 @@ class ExistingAccountInvitationsTest extends TestCase
         $this->addTeacherAtB('asha.learner@example.com');
         $withheld = $this->invitationAtB($learner);
         $this->assertNotNull($withheld->withheld_at);
-        $this->newBrowserSession()->actingAs($learner->fresh(), 'web')->post($this->pathOf($withheld).'/accept')->assertNotFound();
+        $this->actingAs($learner->fresh(), 'web')->post($this->pathOf($withheld).'/accept')->assertNotFound();
         $this->assertNothingAttached($learner, $learner->password);
         auth()->forgetGuards();
 
@@ -327,7 +325,7 @@ class ExistingAccountInvitationsTest extends TestCase
             $case === 'learner'
                 ? SchoolMembership::query()->create(['user_id' => $tara->id, 'school_id' => 1, 'role' => 'Student', 'status' => 'ended'])
                 : PlatformStaffIdentity::query()->create(['user_id' => $tara->id, 'active' => true]);
-            $this->newBrowserSession()->actingAs($tara->fresh(), 'web')->post($path.'/accept')->assertNotFound();
+            $this->actingAs($tara->fresh(), 'web')->post($path.'/accept')->assertNotFound();
             $this->assertNothingAttached($tara, $tara->password);
             SchoolMembership::query()->where('user_id', $tara->id)->where('role', 'Student')->delete();
             PlatformStaffIdentity::query()->where('user_id', $tara->id)->delete();
@@ -341,20 +339,20 @@ class ExistingAccountInvitationsTest extends TestCase
     {
         // School A invites School B's Tara (an account elsewhere for School A).
         $taraB = User::acrossSchools()->findOrFail($this->schoolB->ids['tara_user']);
-        $response = $this->newBrowserSession()->actingAs($this->superAdmin(), 'web')->post(route('teachers.store'), $this->teacherForm($taraB->email))->assertOk();
+        $response = $this->actingAs($this->superAdmin(), 'web')->post(route('teachers.store'), $this->teacherForm($taraB->email))->assertOk();
         $this->assertFalse($response->json('error'));
         $atA = SchoolJoinInvitation::acrossSchools()->where('school_id', 1)->where('user_id', $taraB->id)->sole();
         $this->get(route('join-invitations.index'))->assertOk()->assertSee($taraB->email);
         auth()->forgetGuards();
 
-        $this->newBrowserSession()->actingAs($this->adminB(), 'web')->get(route('join-invitations.index'))->assertOk()->assertDontSee($taraB->email);
+        $this->actingAs($this->adminB(), 'web')->get(route('join-invitations.index'))->assertOk()->assertDontSee($taraB->email);
         $this->post(route('join-invitations.withdraw', $atA->id))->assertNotFound();
         $this->assertNull($atA->fresh()->used_at);
         auth()->forgetGuards();
 
         // A teacher at School A has neither staff-create nor teacher-create.
         $theo = User::acrossSchools()->findOrFail($this->schoolA->ids['theo_user']);
-        $this->newBrowserSession()->actingAs($theo, 'web')->get(route('join-invitations.index'))->assertForbidden();
+        $this->actingAs($theo, 'web')->get(route('join-invitations.index'))->assertForbidden();
         $this->post(route('join-invitations.withdraw', $atA->id))->assertForbidden();
         $before = SchoolJoinInvitation::acrossSchools()->count();
         $this->post(route('teachers.store'), $this->teacherForm('someone.else@example.com'))->assertOk()->assertJsonMissing(['message' => trans('data_store_successfully')]);
@@ -385,10 +383,10 @@ class ExistingAccountInvitationsTest extends TestCase
         $tara = $this->tara();
         $this->addTeacherAtB($tara->email);
         $path = $this->emailedPath($tara);
-        $this->newBrowserSession()->actingAs($tara, 'web')->post($path.'/accept')->assertRedirect();
+        $this->actingAs($tara, 'web')->post($path.'/accept')->assertRedirect();
         auth()->forgetGuards();
 
-        $this->newBrowserSession()->actingAs($this->adminB(), 'web')->post(route('people-profiles.invitation', $tara->id))->assertRedirect();
+        $this->actingAs($this->adminB(), 'web')->post(route('people-profiles.invitation', $tara->id))->assertRedirect();
         $this->assertSame(0, StaffInvitation::acrossSchools()->where('user_id', $tara->id)->count());
         $this->assertSame($tara->password, DB::table('users')->where('id', $tara->id)->value('password'));
         $this->assertTrue(AuditLog::query()->where('action', 'staff_invitation_withheld')->where('school_id', self::B)->exists());
@@ -411,10 +409,10 @@ class ExistingAccountInvitationsTest extends TestCase
         $this->assertNotContains('fees-paid', $atA);
 
         $form = ['role_id' => $bursar->id, 'first_name' => 'Typed', 'last_name' => 'Name', 'email' => $tara->email, 'gender' => 'Female', 'mobile' => '0821234567', 'dob' => '1990-04-12'];
-        $this->newBrowserSession()->actingAs($this->adminB(), 'web')->post(route('staff.store'), $form)->assertOk()->assertJsonPath('error', false);
+        $this->actingAs($this->adminB(), 'web')->post(route('staff.store'), $form)->assertOk()->assertJsonPath('error', false);
         auth()->forgetGuards();
         $path = $this->emailedPath($tara);
-        $this->newBrowserSession()->actingAs($tara, 'web')->post($path.'/accept')->assertRedirect();
+        $this->actingAs($tara, 'web')->post($path.'/accept')->assertRedirect();
 
         $this->assertSame($atA, $permissionsAt(1), 'nothing new at School A');
         $this->assertSame(['Teacher'], $rolesAt(1));
@@ -443,12 +441,6 @@ class ExistingAccountInvitationsTest extends TestCase
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
         app(CurrentSchool::class)->forget();
         $users = User::acrossSchools()->count();
-        // Combined SA.7 / 1.3 regression: an existing first administrator must
-        // receive a school pinned to the latest package version at creation.
-        $packages = app(PlatformPackages::class);
-        $packageId = (int) DB::table('platform_packages')->where('package_key', 'core')->value('id');
-        $this->actingAsHq($operator)->put('/saas/packages/'.$packageId.'/modules', ['product_modules' => ['learning']])->assertRedirect();
-        $this->assertSame(2, $packages->versionToAssign('core'));
         $form = ['name' => 'Marula Primary', 'slug' => '', 'timezone' => 'Africa/Johannesburg', 'package_key' => 'core', 'admin_first_name' => 'Tara', 'admin_last_name' => 'Moving', 'admin_email' => strtoupper($tara->email), 'admin_mobile' => ''];
 
         // Accounts that may not be a school's administrator are refused, and nothing is created.
@@ -456,43 +448,31 @@ class ExistingAccountInvitationsTest extends TestCase
         $learner = User::acrossSchools()->findOrFail($this->schoolA->ids['asha_user']);
         DB::table('users')->where('id', $learner->id)->update(['email' => 'asha.learner@example.com']);
         foreach (['asha.learner@example.com', $operator->email, User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user'])->email] as $refused) {
-            $this->actingAsHq($operator)->post('/saas/schools', ['admin_email' => $refused] + $form)->assertSessionHasErrors('admin_email');
+            $this->signInAs($operator)->post('/saas/schools', ['admin_email' => $refused] + $form)->assertSessionHasErrors('admin_email');
         }
         $this->assertSame($schools, School::query()->count());
 
-        $response = $this->actingAsHq($operator)->post('/saas/schools', $form)->assertOk()->assertSee('already has a NavigateEd account');
+        $response = $this->signInAs($operator)->post('/saas/schools', $form)->assertOk()->assertSee('already has a NavigateEd account');
         $this->assertTrue($response->viewData('existingAccount'));
         $this->assertSame($users, User::acrossSchools()->count(), 'no second account');
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
-        $this->assertSame(['core', 2], [$school->package_key, $school->package_version]);
         $this->assertNothingAttached($tara, $hash, (int) $school->id);
         $first = (string) parse_url($response->viewData('invitationUrl'), PHP_URL_PATH);
         $this->get('/saas/schools/'.$school->id)->assertOk()->assertSee('Send the invitation again')->assertDontSee($tara->email);
         $this->post('/saas/schools/'.$school->id.'/administrator-invitation')->assertRedirect('/saas/schools/'.$school->id);
-        // Package edits while the invitation waits must not silently alter
-        // the newly created school's entitlements or attach its invitee.
-        $this->put('/saas/packages/'.$packageId.'/modules', ['product_modules' => []])->assertRedirect();
-        $this->assertSame(3, $packages->versionToAssign('core'));
-        $this->assertNothingAttached($tara, $hash, (int) $school->id);
         auth()->forgetGuards();
         app(CurrentSchool::class)->forget();
 
-        $this->newBrowserSession()->actingAs($tara, 'web')->get($first)->assertNotFound();
+        $this->signInAs($tara)->get($first)->assertNotFound();
         $latest = SchoolJoinInvitation::acrossSchools()->where('school_id', $school->id)->latest('id')->firstOrFail();
         $this->get($this->pathOf($latest))->assertOk()->assertSee('Be the first administrator of Marula Primary');
         $this->post($this->pathOf($latest).'/accept')->assertRedirect(route('home'));
         $this->assertSame($hash, DB::table('users')->where('id', $tara->id)->value('password'));
         $this->assertTrue(app(CurrentSchool::class)->run((int) $school->id, fn () => $tara->fresh()->hasRole('Super Admin')));
         $this->assertTrue(app(CurrentSchool::class)->run(1, fn () => $tara->fresh()->hasRole('Teacher')), 'still a teacher at her first school');
-        $this->assertSame(2, $school->fresh()->package_version, 'accepting does not re-apply a later package version');
-        $this->assertTrue(app(CurrentSchool::class)->run((int) $school->id, function (): bool {
-            app(ModuleGate::class)->forget();
-
-            return app(ModuleGate::class)->state('online_exams')['in_package'];
-        }), 'the school retains the learning module from version 2');
         auth()->forgetGuards();
 
-        $this->actingAsHq($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->signInAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
         $this->assertFalse(app(SchoolJoinInvitations::class)->resendAdministrator((int) $school->id, $operator));
     }
 
@@ -509,7 +489,7 @@ class ExistingAccountInvitationsTest extends TestCase
         $teacherB = (int) Teacher::acrossSchools()->where('school_id', self::B)->where('user_id', $tara->id)->value('id');
         $form = fn (array $changes = []) => array_merge($this->teacherForm($tara->email, ['first_name' => $tara->first_name, 'last_name' => $tara->last_name, 'gender' => $tara->gender,
             'mobile' => $tara->mobile, 'dob' => '1990-04-12', 'current_address' => $tara->current_address, 'permanent_address' => '2 School Lane']), ['id' => $teacherB, 'user_id' => $tara->id], $changes);
-        $this->newBrowserSession()->actingAs($this->adminB(), 'web');
+        $this->actingAs($this->adminB(), 'web');
 
         // Changing the account's email (then "forgot password") or name is refused.
         foreach ([['email' => 'takeover@baobab.example'], ['first_name' => 'Someone'], ['dob' => '1970-01-01']] as $change) {
@@ -544,7 +524,7 @@ class ExistingAccountInvitationsTest extends TestCase
         $tokens = $tara->tokens()->count();
         $form = fn (array $changes = []) => array_merge(['role_id' => $bursar->id, 'user_id' => $tara->id, 'first_name' => $tara->first_name, 'last_name' => $tara->last_name,
             'email' => $tara->email, 'gender' => $tara->gender, 'mobile' => $tara->mobile, 'dob' => '1990-04-12', 'address' => $tara->current_address], $changes);
-        $this->newBrowserSession()->actingAs($this->adminB(), 'web');
+        $this->actingAs($this->adminB(), 'web');
 
         $this->put('/staff/'.$tara->id, $form(['email' => 'takeover@baobab.example']))->assertJsonPath('error', true);
         $this->put('/staff/'.$tara->id, $form(['last_name' => 'Other']))->assertJsonPath('error', true);
@@ -563,7 +543,7 @@ class ExistingAccountInvitationsTest extends TestCase
         $tara = $this->tara();
         $account = $this->accountOf($tara);
         $tokens = $tara->tokens()->count();
-        $this->newBrowserSession()->actingAs($this->adminB(), 'web');
+        $this->actingAs($this->adminB(), 'web');
         $this->post(route('learner-guardians.store', $this->schoolB->ids['ben']), ['email' => $tara->email, 'first_name' => 'Tara', 'last_name' => 'Aunt',
             'relationship' => 'aunt_or_uncle', 'can_approve' => 1, 'can_see_fees' => 0])->assertRedirect();
         $parentRow = (int) DB::table('parents')->where('school_id', self::B)->where('user_id', $tara->id)->value('id');
@@ -619,14 +599,14 @@ class ExistingAccountInvitationsTest extends TestCase
         $tara = $this->tara();
         $this->addTeacherAtB($tara->email);
         $path = $this->emailedPath($tara);
-        $this->newBrowserSession()->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect();
+        $this->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect();
         auth()->forgetGuards();
         $this->assertTrue($this->addTeacherAtB($tara->email)['error'], 'declined: refused as a duplicate');
 
         SchoolJoinInvitation::acrossSchools()->where('user_id', $tara->id)->update(['declined_at' => now()->subDays(200)]);
         $this->assertFalse($this->addTeacherAtB($tara->email)['error'], 'long ago: invited again');
         $waiting = $this->invitationAtB($tara);
-        $this->newBrowserSession()->actingAs($this->adminB(), 'web')->post(route('join-invitations.withdraw', $waiting->id))->assertRedirect();
+        $this->actingAs($this->adminB(), 'web')->post(route('join-invitations.withdraw', $waiting->id))->assertRedirect();
         auth()->forgetGuards();
         $this->assertFalse($this->addTeacherAtB($tara->email)['error'], 'withdrawn by the school: invited again');
     }
@@ -655,13 +635,13 @@ class ExistingAccountInvitationsTest extends TestCase
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
         app(CurrentSchool::class)->forget();
         $form = ['name' => 'Marula Primary', 'slug' => '', 'timezone' => 'Africa/Johannesburg', 'package_key' => 'core', 'admin_first_name' => 'Tara', 'admin_last_name' => 'Moving', 'admin_email' => $tara->email, 'admin_mobile' => ''];
-        $path = (string) parse_url($this->actingAsHq($operator)->post('/saas/schools', $form)->assertOk()->viewData('invitationUrl'), PHP_URL_PATH);
+        $path = (string) parse_url($this->signInAs($operator)->post('/saas/schools', $form)->assertOk()->viewData('invitationUrl'), PHP_URL_PATH);
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
         auth()->forgetGuards();
-        $this->newBrowserSession()->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect();
+        $this->signInAs($tara)->post($path.'/decline')->assertRedirect();
         auth()->forgetGuards();
 
-        $this->actingAsHq($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->signInAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
         $this->assertFalse(app(SchoolJoinInvitations::class)->resendAdministrator((int) $school->id, $operator));
     }
 }

@@ -27,7 +27,7 @@ class HqImportController extends Controller
 
     public function show(HqImportDecisionRequest $request, int $import): View
     {
-        $details = $this->imports->show($import, $this->currentSchool->id());
+        $details = $this->imports->show($import, $this->currentSchool->id(), forSchool: true);
 
         return view('people.hq-import', ['import' => $details, 'decides' => $this->imports->awaits($request->user(), $details)]);
     }

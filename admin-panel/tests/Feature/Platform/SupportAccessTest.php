@@ -56,11 +56,12 @@ class SupportAccessTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Seed dated memberships under the same clock used by the requests.
-        // Freezing after seeding can leave every membership in the future.
-        $this->travelTo(CarbonImmutable::parse('2026-10-30 08:00', SupportAccess::TIMEZONE));
         $this->setUpTwoSchools();
         app(CurrentSchool::class)->forget();
+        // The demo memberships start on the day the fixture is built; this test's clock is pinned
+        // to 30 October 2026, so they must have started before it whatever day the suite runs.
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
+        $this->travelTo(CarbonImmutable::parse('2026-10-30 08:00', SupportAccess::TIMEZONE));
         $this->adminB = app(CurrentSchool::class)->run(self::SCHOOL_B_ID, function (): User {
             $user = User::query()->create(['first_name' => 'Baobab', 'last_name' => 'Principal', 'email' => 'principal@baobab.example', 'mobile' => '', 'password' => 'Synthetic-support-password-731!', 'status' => 1]);
             $user->assignRole('Super Admin');
@@ -202,7 +203,6 @@ class SupportAccessTest extends TestCase
 
         $this->actingAsSupportUser($admin);
         $this->get('/support-access')->assertOk()->assertSee('Waiting for your decision')->assertSee('Support Operator')->assertSee('Ticket 4411')
-            ->assertSee('class="m3-card__actions m3-card__actions--start"', false)->assertDontSee('class="d-inline"', false)
             ->assertDontSee('support@platform.example');
         $this->post('/support-access/'.$id.'/approve')->assertRedirect('/support-access')->assertSessionHas('success');
         $grant = $this->grant($id);

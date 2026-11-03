@@ -32,12 +32,12 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(UploadScanner::class, ClamAv::class);
-        // The alumni invitation hook (Action Plan 1.21); Phase 4 replaces it.
-        $this->app->bind(AlumniInvitations::class, NoAlumniInvitations::class);
         // School sending domains (Action Plan 2.2): tests bind one with a mocked client.
         $this->app->singleton(SesIdentities::class, fn () => SesIdentities::fromConfig());
         // SES streams (Action Plan 2.3): tests bind one with a mocked client.
         $this->app->singleton(SesConfigurationSets::class, fn () => SesConfigurationSets::fromConfig());
+        // The alumni invitation hook (Action Plan 1.21); Phase 4 replaces it.
+        $this->app->bind(AlumniInvitations::class, NoAlumniInvitations::class);
         $this->app->singleton('form', function ($app) {
             return new FormService;
         });

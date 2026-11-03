@@ -217,20 +217,6 @@ class CheckInsTest extends TestCase
         $this->assertEquals($before, DB::table('wellbeing_check_ins')->where('id', $foreign->id)->first(), 'School B\'s check-in is unchanged');
     }
 
-    public function test_context_counts_the_full_window_beyond_five_hundred_answers(): void
-    {
-        $id = $this->answered(2);
-        $answer = CheckIn::findOrFail($id);
-        for ($i = 0; $i < 500; $i++) {
-            $copy = $answer->replicate();
-            $copy->answered_at = now()->subDay();
-            $copy->save();
-        }
-        $context = app(CheckInContext::class)->forLearners($this->actor(), [$this->schoolA->ids['asha']]);
-        $this->assertSame(501, $context[$this->schoolA->ids['asha']]['answered']);
-        $this->assertSame(2, $context[$this->schoolA->ids['asha']]['latest_scale']);
-    }
-
     public function test_check_ins_feed_early_warning_as_context_only_and_never_raise_a_risk(): void
     {
         $risk = app(RiskRecompute::class);
@@ -247,6 +233,32 @@ class CheckInsTest extends TestCase
         $this->assertSame([$this->schoolA->ids['asha'] => ['answered' => 1, 'latest_scale' => 1, 'latest_on' => '2026-02-10']], $context, 'only the reader\'s own learners');
         $this->actingAs($this->actor())->get('/risk-interventions?mode=signals&session_year_id='.$this->year)->assertOk()
             ->assertSee('Check-in context')->assertSee('Not good')->assertSee('It does not affect the risk score.')->assertDontSee('Not a good week');
+    }
+
+    public function test_context_counts_every_answer_in_the_window_and_keeps_learners_with_only_older_answers(): void
+    {
+        $this->grant('ben', 'tara');
+        $answer = fn (string $learner, string $at, int $scale) => CheckIn::create(['learner_id' => $this->schoolA->ids[$learner], 'session_year_id' => $this->year,
+            'scheduled_by' => $this->actor()->id, 'prompt' => 'today', 'due_on' => substr($at, 0, 10), 'status' => 'answered', 'answer' => ['scale' => $scale, 'note' => null],
+            'answer_source' => 'staff', 'answered_by' => $this->actor()->id, 'answered_at' => $at, 'revision' => 2]);
+        // Asha answered once, five weeks ago; Ben answered 520 times since, more than any one page of rows.
+        $answer('asha', '2026-01-06 09:00:00', 4);
+        $answer('asha', '2025-12-01 09:00:00', 1);
+        for ($i = 0; $i < 520; $i++) {
+            $answer('ben', now()->subDays(1)->addSeconds($i)->toDateTimeString(), $i === 519 ? 5 : 2);
+        }
+        // Another school's answers for the same ids never count.
+        app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => CheckIn::create(['learner_id' => $this->schoolB->ids['asha'], 'session_year_id' => $this->schoolB->ids['session_year'],
+            'scheduled_by' => $this->schoolB->ids['tara_user'], 'prompt' => 'today', 'due_on' => '2026-02-09', 'status' => 'answered', 'answer' => ['scale' => 1, 'note' => null],
+            'answer_source' => 'staff', 'answered_by' => $this->schoolB->ids['tara_user'], 'answered_at' => '2026-02-09 10:00:00', 'revision' => 2]));
+
+        $context = app(CheckInContext::class)->forLearners($this->actor(), [$this->schoolA->ids['asha'], $this->schoolA->ids['ben']]);
+        $this->assertSame(['answered' => 1, 'latest_scale' => 4, 'latest_on' => '2026-01-06'], $context[$this->schoolA->ids['asha']], 'older-only learner still shown');
+        $this->assertSame(['answered' => 520, 'latest_scale' => 5, 'latest_on' => '2026-02-09'], $context[$this->schoolA->ids['ben']]);
+        // A counsellor holding only Ben's caseload sees Ben's context and nothing of Asha's.
+        $this->actor('theo')->assignRole(SchoolRoles::COUNSELLOR);
+        $this->grant('ben', 'theo');
+        $this->assertSame([$this->schoolA->ids['ben']], array_keys(app(CheckInContext::class)->forLearners($this->actor('theo'), [$this->schoolA->ids['asha'], $this->schoolA->ids['ben']])));
     }
 
     public function test_the_learner_answers_only_their_own_due_check_in(): void
@@ -294,5 +306,19 @@ class CheckInsTest extends TestCase
         $this->post(route('wellbeing-check-ins.record', ['checkIn' => $id]), $this->identity() + ['expected_revision' => 2, 'scale' => 3])->assertSessionHasErrors('check_in');
         $this->assertNull(CheckIn::findOrFail($id)->answer);
         $this->assertFalse(session()->has('_old_input'));
+    }
+
+    public function test_context_counts_the_full_window_beyond_five_hundred_answers(): void
+    {
+        $id = $this->answered(2);
+        $answer = CheckIn::findOrFail($id);
+        for ($i = 0; $i < 500; $i++) {
+            $copy = $answer->replicate();
+            $copy->answered_at = now()->subDay();
+            $copy->save();
+        }
+        $context = app(CheckInContext::class)->forLearners($this->actor(), [$this->schoolA->ids['asha']]);
+        $this->assertSame(501, $context[$this->schoolA->ids['asha']]['answered']);
+        $this->assertSame(2, $context[$this->schoolA->ids['asha']]['latest_scale']);
     }
 }

@@ -21,22 +21,23 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
-        'school_sending_domains',
-        'school_messaging_settings',
         'library_school_settings',
+        'school_messaging_settings',
+        'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
+        'platform_school_imports',
+        'school_support_tickets', 'school_support_ticket_messages',
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
         // notes, their lines, its EFT payments and what each payment or credit
         // note settles. Each row is about one school, so it carries the school
         // (written inside it from /saas); only HQ reads them, never the school.
+        // platform_billing_reminders logs each overdue reminder sent to it.
         'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
-        'school_health_snapshots',
-        'platform_announcement_schools', 'platform_announcement_reads',
         'support_access_grants', 'support_access_views',
+        'platform_announcement_schools', 'platform_announcement_reads',
+        'school_health_snapshots',
         'platform_feature_flag_schools',
-        'school_support_tickets', 'school_support_ticket_messages',
-        'platform_school_imports',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',
@@ -75,8 +76,8 @@ final class SchoolOwnedTables
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
         'exam_periods', 'calendar_feeds',
-        'risk_settings', 'risk_observations', 'risk_caseloads', 'interventions', 'intervention_versions', 'risk_operations', 'unseen_assignments',
         'school_stages',
+        'risk_settings', 'risk_observations', 'risk_caseloads', 'interventions', 'intervention_versions', 'risk_operations', 'unseen_assignments',
         'intervention_library_actions', 'intervention_progress_entries', 'wellbeing_check_ins',
         'wellbeing_notice_intents', 'incident_photos', 'wellbeing_categories', 'wellbeing_team_assignments', 'incident_reports', 'incident_threads', 'support_cases', 'support_case_assignments', 'support_case_entries', 'wellbeing_appointments', 'wellbeing_operations', 'wellbeing_events',
         'learner_note_operations', 'progress_band_states', 'progress_band_alerts', 'progress_band_settings', 'learner_notes', 'learner_note_revisions', 'learner_note_assignments',

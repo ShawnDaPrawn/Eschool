@@ -111,14 +111,14 @@ class PlatformSchools
     {
         return $this->currentSchool->acrossSchools(function () use ($data, $actor): array {
             return DB::transaction(function () use ($data, $actor): array {
-                // The package's current module set; later changes reach the school only when HQ re-applies them.
-                $version = app(PlatformPackages::class)->versionToAssign($data['package_key']);
                 $joins = app(SchoolJoinInvitations::class);
                 $existing = User::acrossSchools()->withTrashed()->where('email', strtolower(trim($data['admin_email'])))->lockForUpdate()->first();
                 if ($existing !== null) {
                     // Refused before the school exists, so nothing is created.
                     $joins->assertMayBeFirstAdministrator($existing, $data['admin_email']);
                 }
+                // The package's current module set; later changes reach the school only when HQ re-applies them.
+                $version = app(PlatformPackages::class)->versionToAssign($data['package_key']);
                 $school = School::query()->create([
                     'name' => $data['name'],
                     'slug' => ($data['slug'] ?? null) ?: $this->uniqueSlug($data['name']),

@@ -114,17 +114,18 @@ their current guardians when it becomes current, if the school chooses it in the
 new-year wizard. The notice names the year and its first day, never a learner or
 homeroom.
 
+Import waiting for approval: people.hq_import_approval (people module, teacher
+and admin portals, standard channel preferences) tells the school leader whom
+Navigate Ed Operations named when an onboarding import prepared on the school's
+behalf (SA.11) waits for their approval. The notice links to the import in the
+panel and names no learner, guardian or staff member.
+
 Announcements from Navigate Ed: platform.announcement (school module, which is
 always on; admin portal only; in-app and email on by default, no push; the
 school's notification rules apply) goes to the active Super Admins of each school
 an HQ announcement reaches (SA.13) when it is published. The notice carries the
 announcement's title and its kind (and a maintenance window's times), and links
 to the school panel's Navigate Ed announcements page; it names no other school.
-Import waiting for approval: people.hq_import_approval (people module, teacher
-and admin portals, standard channel preferences) tells the school leader whom
-Navigate Ed Operations named when an onboarding import prepared on the school's
-behalf (SA.11) waits for their approval. The notice links to the import in the
-panel and names no learner, guardian or staff member.
 
 Exam changes: academics.exam_changed (academics module, learner and parent
 portals, standard channel preferences) tells the learners in a class and their
@@ -506,6 +507,39 @@ use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
 
+
+## Growth-first digest and persistence badges (Action Plan 4.6)
+
+`growth.weekly` (digest module, learner portal, in-app only: push and email are
+locked off through `locked_off_channels`, so no school rule can switch them on) tells a learner, once a week, which topics they grew in. The text names up
+to three topics and no scores, levels or other learners. The payload carries an
+opaque `growth_week_id`; the inbox and delivery recheck the learner's own
+current, guardian-approved account and the digest and mastery modules. Parents
+get growth inside the existing `digest.weekly` update. Persistence badges are
+permanent awards with source `badge` and use the existing
+`recognition.award_presented` notice. No new outbox event type.
+
+
+## School offboarding
+
+School data export ready: `school.offboarding_export` (people module, admin
+portal; push, email and in-app are mandatory and locked) tells a leaving
+school's active Super Admins (never platform staff) that the full export of
+their school's data is ready in the panel at `/school-exit`, and the date by
+which to download it and confirm receipt. The notice names no person and
+carries no data; the download itself needs the Super Admin's sign-in and a
+short-lived signed link (engineering/specs/platform/offboarding.md).
+
+
+## Support desk
+
+Navigate Ed support replies: `school.support_reply` (school module, admin portal
+only, standard channel preferences) tells the school staff member who opened a
+support ticket that Navigate Ed replied. The notice carries the ticket's subject
+and a link to `/support-tickets/{id}` in the admin panel, never the message;
+internal notes and status changes send nothing.
+
+
 ### Navigate Ed account overdue (HQ billing)
 
 `billing.overdue` (school module, admin portal; in-app and email mandatory,
@@ -515,6 +549,7 @@ bursar contact on HQ's school record gets the same text by email. The notice
 names the overdue amount and invoice references only; no learner or person.
 No payment provider is involved: schools pay by EFT
 ([HQ billing](../specs/platform/hq-billing.md)).
+
 
 ## Navigate Ed support access (SA.9)
 
@@ -527,30 +562,3 @@ Both link to the school panel's `/support-access` page and name no person, reaso
 or record. No ability, module or permission row is added to schools; HQ adds the
 platform abilities `support.access` (Owner, Operations, Support) and
 `support.emergency` (Owner).
-## Support desk
-
-Navigate Ed support replies: `school.support_reply` (school module, admin portal
-only, standard channel preferences) tells the school staff member who opened a
-support ticket that Navigate Ed replied. The notice carries the ticket's subject
-and a link to `/support-tickets/{id}` in the admin panel, never the message;
-internal notes and status changes send nothing.
-## School offboarding
-
-School data export ready: `school.offboarding_export` (people module, admin
-portal; push, email and in-app are mandatory and locked) tells a leaving
-school's active Super Admins (never platform staff) that the full export of
-their school's data is ready in the panel at `/school-exit`, and the date by
-which to download it and confirm receipt. The notice names no person and
-carries no data; the download itself needs the Super Admin's sign-in and a
-short-lived signed link (engineering/specs/platform/offboarding.md).
-
-## Growth-first digest and persistence badges (Action Plan 4.6)
-
-`growth.weekly` (digest module, learner portal, in-app only: push and email are
-locked off through `locked_off_channels`, so no school rule can switch them on) tells a learner, once a week, which topics they grew in. The text names up
-to three topics and no scores, levels or other learners. The payload carries an
-opaque `growth_week_id`; the inbox and delivery recheck the learner's own
-current, guardian-approved account and the digest and mastery modules. Parents
-get growth inside the existing `digest.weekly` update. Persistence badges are
-permanent awards with source `badge` and use the existing
-`recognition.award_presented` notice. No new outbox event type.

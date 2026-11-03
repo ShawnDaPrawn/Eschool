@@ -31,7 +31,7 @@
 <p>{{ __('Current subjects') }}: @forelse($view['current_subjects'] as $subject){{ $subject['name'] }}@if(!$loop->last), @endif @empty{{ __('No current subject groups are recorded.') }}@endforelse</p>
 <ul>@foreach($view['subjects'] as $row)<li><strong>{{ implode(' / ', $row['names']) }}</strong> · {{ $row['requirement'] === 'required' ? __('Required by the source') : __('Recommended by the source') }}
 @if($row['minimum_bp'] !== null) · {{ __('Source minimum') }} {{ \App\Services\Academics\AcademicNumbers::decimal($row['minimum_bp']) }}%@endif
-<br>{{ $row['taking'] ? __('Already in current subjects.') : __('Not in current subjects yet. Worth talking through the options and timing with the learner and family.') }}</li>@endforeach</ul>
+<br>{{ $row['retired'] ? __('No longer offered at this school.') : ($row['taking'] ? __('Already in current subjects.') : __('Not in current subjects yet. Worth talking through the options and timing with the learner and family.')) }}</li>@endforeach</ul>
 </section>
 @if($view['topics'] !== [])
 <section aria-labelledby="guidance-topics"><h3 id="guidance-topics">{{ __('Linked curriculum topics') }}</h3>

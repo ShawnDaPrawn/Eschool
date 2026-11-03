@@ -17,13 +17,15 @@ use App\Services\Academics\AcademicAuthority;
 use App\Services\Growth\MasteryScore;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * The mastery impact report (Action Plan 3.14): per term, topic and grade, how
  * many learners rose a level, held, went lower, were first measured, or have
- * no evidence yet, from mastery_growth_snapshots. Counts only: no learner id,
+ * no evidence yet, from mastery_growth_snapshots and the term's planned topics
+ * and teaching-group rosters. Counts only: no learner id,
  * name or per-learner row ever leaves this service. Start and end are always
  * compared within one mastery model version.
  */
@@ -113,41 +115,39 @@ class MasteryImpact
         foreach ($base()->where('policy_version', $version)->whereNull('end_level')->get(['topic_id', 'learner_id']) as $row) {
             $unmeasured[(int) $row->topic_id][(int) $row->learner_id] = true;
         }
-        $eligibleGrades = GradeLevel::query()->whereBetween('sort_order', [$term->grade_from, $term->grade_to])
-            ->when($grades !== null, fn ($q) => $q->whereIn('id', $grades))->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $rosters = $this->rosters($term, $eligibleGrades);
-        // Seed the roster even when a topic has never produced a snapshot. An explicitly
-        // absent model version must still remain separate from the available versions.
-        if ($versions === [] || in_array($version, $versions, true)) {
-            $present = $rows->pluck('topic_id')->all();
-            foreach (MasteryTopic::whereIn('grade_level_id', $eligibleGrades)->whereNotIn('id', $present)
-                ->whereHas('source', fn ($q) => $q->where('term_id', $term->id)
-                    ->whereHas('curriculum', fn ($c) => $c->where('session_year_id', $term->session_year_id)->where('state', 'published')))
-                ->get() as $topic) {
-                if (isset($rosters[$topic->subject_id.':'.$topic->grade_level_id])) {
-                    $rows->push((object) (['grade_level_id' => $topic->grade_level_id, 'subject_id' => $topic->subject_id, 'topic_id' => $topic->id,
-                        'lower_level' => 0] + array_fill_keys(self::COUNTS, 0)));
-                }
-            }
+        // Every topic the term's published plans teach in these grades, measured or not,
+        // so a topic nobody has evidence on still shows its roster as "no evidence yet".
+        $entries = [];
+        foreach ($rows as $row) {
+            $entries[(int) $row->grade_level_id.':'.(int) $row->topic_id] = ['grade_level_id' => (int) $row->grade_level_id, 'subject_id' => (int) $row->subject_id,
+                'topic_id' => (int) $row->topic_id, 'rose' => (int) $row->rose, 'held' => (int) $row->held, 'lower' => (int) $row->lower_level,
+                'first_evidence' => (int) $row->first_evidence, 'start_unknown' => (int) $row->start_unknown, 'evidence_at_start' => (int) $row->evidence_at_start,
+                'evidence_now' => (int) $row->evidence_now];
         }
-        $topics = MasteryTopic::query()->whereIn('id', $rows->pluck('topic_id'))->pluck('name', 'id');
-        $subjects = Subject::query()->whereIn('id', $rows->pluck('subject_id'))->pluck('name', 'id');
-        $gradeLevels = GradeLevel::query()->whereIn('id', $rows->pluck('grade_level_id'))->orderBy('sort_order')->get(['id', 'name']);
+        foreach ($this->planned($term, $grades) as $topic) {
+            $entries[(int) $topic->grade_level_id.':'.(int) $topic->id] ??= ['grade_level_id' => (int) $topic->grade_level_id, 'subject_id' => (int) $topic->subject_id,
+                'topic_id' => (int) $topic->id] + array_fill_keys(array_diff(self::COUNTS, ['no_evidence']), 0);
+        }
+        $entries = collect($entries);
+        $rosters = $this->rosters($term, $entries->pluck('grade_level_id')->unique()->values()->all());
+        $topics = MasteryTopic::query()->whereIn('id', $entries->pluck('topic_id'))->pluck('name', 'id');
+        $subjects = Subject::query()->whereIn('id', $entries->pluck('subject_id'))->pluck('name', 'id');
+        $gradeLevels = GradeLevel::query()->whereIn('id', $entries->pluck('grade_level_id'))->orderBy('sort_order')->get(['id', 'name']);
         foreach ($gradeLevels as $grade) {
             $topicRows = [];
             $totals = array_fill_keys(self::COUNTS, 0);
-            foreach ($rows->where('grade_level_id', $grade->id) as $row) {
-                $topicId = (int) $row->topic_id;
-                $roster = $rosters[(int) $row->subject_id.':'.(int) $grade->id] ?? [];
+            foreach ($entries->where('grade_level_id', (int) $grade->id) as $entry) {
+                $topicId = $entry['topic_id'];
+                $roster = $rosters[$entry['subject_id'].':'.(int) $grade->id] ?? [];
                 $without = array_diff_key($roster + ($unmeasured[$topicId] ?? []), $measured[$topicId] ?? []);
-                $counts = ['rose' => (int) $row->rose, 'held' => (int) $row->held, 'lower' => (int) $row->lower_level, 'first_evidence' => (int) $row->first_evidence,
-                    'start_unknown' => (int) $row->start_unknown, 'no_evidence' => count($without), 'evidence_at_start' => (int) $row->evidence_at_start,
-                    'evidence_now' => (int) $row->evidence_now];
+                $counts = ['rose' => $entry['rose'], 'held' => $entry['held'], 'lower' => $entry['lower'], 'first_evidence' => $entry['first_evidence'],
+                    'start_unknown' => $entry['start_unknown'], 'no_evidence' => count($without), 'evidence_at_start' => $entry['evidence_at_start'],
+                    'evidence_now' => $entry['evidence_now']];
                 foreach ($counts as $key => $value) {
                     $totals[$key] += $value;
                 }
-                $topicRows[] = ['topic_id' => $topicId, 'topic_name' => (string) ($topics[$topicId] ?? ''), 'subject_id' => (int) $row->subject_id,
-                    'subject_name' => (string) ($subjects[(int) $row->subject_id] ?? '')] + $counts;
+                $topicRows[] = ['topic_id' => $topicId, 'topic_name' => (string) ($topics[$topicId] ?? ''), 'subject_id' => $entry['subject_id'],
+                    'subject_name' => (string) ($subjects[$entry['subject_id']] ?? '')] + $counts;
             }
             usort($topicRows, fn ($a, $b) => [$a['subject_name'], $a['topic_name'], $a['topic_id']] <=> [$b['subject_name'], $b['topic_name'], $b['topic_id']]);
             $result['grades'][] = ['grade_id' => (int) $grade->id, 'grade_name' => $grade->name, 'totals' => $totals, 'topics' => $topicRows];
@@ -159,6 +159,20 @@ class MasteryImpact
     private function term(Term $term): array
     {
         return ['id' => (int) $term->id, 'name' => (string) $term->name, 'starts_on' => $term->start_date->toDateString(), 'ends_on' => $term->end_date->toDateString()];
+    }
+
+    /** Mastery topics whose curriculum topic a published plan of this year teaches in this term. */
+    private function planned(Term $term, ?array $grades): Collection
+    {
+        $school = app(CurrentSchool::class)->id();
+
+        return MasteryTopic::query()->join('curriculum_topics as impact_source', 'impact_source.key', '=', 'mastery_topics.topic_key')
+            ->join('curriculum_plans as impact_plan', 'impact_plan.id', '=', 'impact_source.curriculum_plan_id')
+            ->where('impact_source.school_id', $school)->where('impact_plan.school_id', $school)
+            ->whereNull('impact_source.deleted_at')->whereNull('impact_plan.deleted_at')->where('impact_plan.state', 'published')
+            ->whereColumn('impact_plan.subject_id', 'mastery_topics.subject_id')->where('impact_plan.session_year_id', $term->session_year_id)
+            ->where('impact_source.term_id', $term->id)->when($grades !== null, fn ($q) => $q->whereIn('mastery_topics.grade_level_id', $grades))
+            ->distinct()->get(['mastery_topics.id', 'mastery_topics.subject_id', 'mastery_topics.grade_level_id']);
     }
 
     /** subject_id:grade_level_id => [learner_id => true] for memberships overlapping the term. */

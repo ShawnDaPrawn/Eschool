@@ -135,9 +135,9 @@
 <p class="saas-actions">
     @if ($platformCan('accounts.manage'))<a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.onboarding', $school['id']) }}">{{ __('Onboarding checklist') }}</a>
-    @if ($platformCan('health.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.health', $school['id']) }}">{{ __('School health') }}</a>@endif
-    @if ($platformCan('offboarding.view') && ! $school['is_default'])<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.offboarding', $school['id']) }}">{{ __('Offboarding') }}</a>@endif
     @if ($platformCan('imports.run'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.imports', $school['id']) }}">{{ __('Imports on the school\'s behalf') }}</a>@endif
+    @if ($platformCan('offboarding.view') && ! $school['is_default'])<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.offboarding', $school['id']) }}">{{ __('Offboarding') }}</a>@endif
+    @if ($platformCan('health.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.health', $school['id']) }}">{{ __('School health') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
     @if ($platformCan('support.manage'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
     @if ($platformCan('audit.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>@endif

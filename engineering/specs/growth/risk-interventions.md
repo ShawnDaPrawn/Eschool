@@ -95,6 +95,20 @@ The hourly refresh is registered in the active routes/console.php schedule.
 
 Open risk caseload grants are offered for renewal into the next school year by caseload administrators only: see [caseload renewals](caseload-renewals.md) (Action Plan 1.20).
 
+## Referrals from early years concerns
+
+An early concern raised from an early years observation (Action Plan 4.3) is
+referred as an intervention owned from the start by a current grade head of the
+learner's grade, with "leadership" authority and the referring teacher as its
+creator. The referrer's own authority is rechecked under the lock; only the
+grade head opens the body. See [early years](../learning/early-years.md).
+
+
+## Library, progress and check-in context
+
+Interventions can start from the school's intervention library and record dated progress against the plan's steps; the early warning list shows wellbeing check-ins as context to the learner's own pastoral professional only, never as a risk: see [check-ins and the intervention library](check-ins-and-intervention-library.md) (Action Plan 4.11).
+
+
 ## No child unseen (Action Plan 4.5)
 
 Early warning finds learners who are struggling or absent. This rule finds the
@@ -213,13 +227,3 @@ there. The Early warning workbench links to it for grade heads and principals.
   chosen mentor) is still an open owner question; for now the grade head
   chooses any staff member.
 - One-to-one conversations as a source: there is no such record in main yet.
-## Library, progress and check-in context
-
-Interventions can start from the school's intervention library and record dated progress against the plan's steps; the early warning list shows wellbeing check-ins as context to the learner's own pastoral professional only, never as a risk: see [check-ins and the intervention library](check-ins-and-intervention-library.md) (Action Plan 4.11).
-## Referrals from early years concerns
-
-An early concern raised from an early years observation (Action Plan 4.3) is
-referred as an intervention owned from the start by a current grade head of the
-learner's grade, with "leadership" authority and the referring teacher as its
-creator. The referrer's own authority is rechecked under the lock; only the
-grade head opens the body. See [early years](../learning/early-years.md).

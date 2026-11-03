@@ -3,7 +3,6 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:eschool_api/src/model/communication_audience_snapshot_smart.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'communication_audience_snapshot.g.dart';
@@ -30,8 +29,6 @@ class CommunicationAudienceSnapshot {
     this.name,
 
     this.audienceRevision,
-
-    this.smart,
   });
 
   @JsonKey(
@@ -64,9 +61,6 @@ class CommunicationAudienceSnapshot {
   @JsonKey(name: r'audience_revision', required: false, includeIfNull: false)
   final int? audienceRevision;
 
-  @JsonKey(name: r'smart', required: false, includeIfNull: false)
-  final CommunicationAudienceSnapshotSmart? smart;
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -77,8 +71,7 @@ class CommunicationAudienceSnapshot {
           other.parents == parents &&
           other.userIds == userIds &&
           other.name == name &&
-          other.audienceRevision == audienceRevision &&
-          other.smart == smart;
+          other.audienceRevision == audienceRevision;
 
   @override
   int get hashCode =>
@@ -88,8 +81,7 @@ class CommunicationAudienceSnapshot {
       parents.hashCode +
       userIds.hashCode +
       name.hashCode +
-      audienceRevision.hashCode +
-      smart.hashCode;
+      audienceRevision.hashCode;
 
   factory CommunicationAudienceSnapshot.fromJson(Map<String, dynamic> json) =>
       _$CommunicationAudienceSnapshotFromJson(json);

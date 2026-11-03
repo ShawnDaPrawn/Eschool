@@ -58,11 +58,11 @@ return new class extends Migration
         });
 
         Schema::table('practice_items', function (Blueprint $t) {
+            // MySQL requires these columns to reach their final nullability
+            // before their foreign keys are attached.
             $t->unsignedBigInteger('subject_id')->nullable(false)->change();
             $t->unsignedBigInteger('grade_level_id')->nullable(false)->change();
             $t->index(['school_id', 'subject_id', 'grade_level_id', 'active'], 'practice_items_bank');
-        });
-        Schema::table('practice_items', function (Blueprint $t) {
             $t->foreign('subject_id')->references('id')->on('subjects')->restrictOnDelete();
             $t->foreign('grade_level_id')->references('id')->on('grade_levels')->restrictOnDelete();
         });

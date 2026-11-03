@@ -28,8 +28,10 @@ return [
     'academics.submission' => ['label' => 'Assignment submission', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'academics.content_published' => ['label' => 'Lesson content', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.marks_released' => ['label' => 'Marks released', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'academics.content_published' => ['label' => 'Learning content published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'people.hq_import_approval' => ['label' => 'Import waiting for approval', 'module' => 'people', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'platform.announcement' => ['label' => 'Announcements from Navigate Ed', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'off', 'email' => 'default_on', 'in_app' => 'default_on']],
     'school.new_year' => ['label' => 'New school year', 'module' => 'people', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'school.support_reply' => ['label' => 'Navigate Ed support replies', 'module' => 'school', 'portals' => ['admin'], 'channels' => $on],
     'academics.exam_changed' => ['label' => 'Exam changes', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
@@ -62,13 +64,12 @@ return [
     'school_assistance.parent_update' => ['label' => 'School support replies', 'module' => 'ask_school', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'group_chat.staff_update' => ['label' => 'Staff group conversations', 'module' => 'groups', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
+    'billing.overdue' => ['label' => 'Navigate Ed account overdue', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'default_on', 'email' => 'mandatory', 'in_app' => 'mandatory'], 'locked' => ['admin']],
     'support_access.requested' => ['label' => 'Navigate Ed support access request', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
     'support_access.emergency' => ['label' => 'Navigate Ed emergency support access', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
     'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
-    'platform.announcement' => ['label' => 'Announcements from Navigate Ed', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'off', 'email' => 'default_on', 'in_app' => 'default_on']],
-    'billing.overdue' => ['label' => 'Navigate Ed account overdue', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'default_on', 'email' => 'mandatory', 'in_app' => 'mandatory'], 'locked' => ['admin']],
-    // School offboarding (SA.11): the leaving school's Super Admins, who must collect the export.
-    'school.offboarding_export' => ['label' => 'School data export ready', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
     // "No child unseen" (Action Plan 4.5): only the named adult; the notice names no learner.
     'growth.unseen_adult_assigned' => ['label' => 'Learner to check in with', 'module' => 'early_warning', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    // School offboarding (SA.11): the leaving school's Super Admins, who must collect the export.
+    'school.offboarding_export' => ['label' => 'School data export ready', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
 ];

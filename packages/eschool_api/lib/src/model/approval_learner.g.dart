@@ -7,43 +7,23 @@ part of 'approval_learner.dart';
 // **************************************************************************
 
 ApprovalLearner _$ApprovalLearnerFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'ApprovalLearner',
-      json,
-      ($checkedConvert) {
-        $checkKeys(
-          json,
-          requiredKeys: const [
-            'id',
-            'name',
-            'image',
-            'student_number',
-            'school',
-          ],
-        );
-        final val = ApprovalLearner(
-          id: $checkedConvert('id', (v) => (v as num).toInt()),
-          name: $checkedConvert('name', (v) => v as String),
-          image: $checkedConvert('image', (v) => v as String?),
-          studentNumber: $checkedConvert('student_number', (v) => v as String?),
-          primaryIdentifier: $checkedConvert(
-            'primary_identifier',
-            (v) => v == null
-                ? null
-                : LearnerPrimaryIdentifier.fromJson(v as Map<String, dynamic>),
-          ),
-          school: $checkedConvert(
-            'school',
-            (v) => SchoolSummary.fromJson(v as Map<String, dynamic>),
-          ),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'studentNumber': 'student_number',
-        'primaryIdentifier': 'primary_identifier',
-      },
-    );
+    $checkedCreate('ApprovalLearner', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        requiredKeys: const ['id', 'name', 'image', 'student_number', 'school'],
+      );
+      final val = ApprovalLearner(
+        id: $checkedConvert('id', (v) => (v as num).toInt()),
+        name: $checkedConvert('name', (v) => v as String),
+        image: $checkedConvert('image', (v) => v as String?),
+        studentNumber: $checkedConvert('student_number', (v) => v as String?),
+        school: $checkedConvert(
+          'school',
+          (v) => SchoolSummary.fromJson(v as Map<String, dynamic>),
+        ),
+      );
+      return val;
+    }, fieldKeyMap: const {'studentNumber': 'student_number'});
 
 Map<String, dynamic> _$ApprovalLearnerToJson(ApprovalLearner instance) =>
     <String, dynamic>{
@@ -51,6 +31,5 @@ Map<String, dynamic> _$ApprovalLearnerToJson(ApprovalLearner instance) =>
       'name': instance.name,
       'image': instance.image,
       'student_number': instance.studentNumber,
-      'primary_identifier': ?instance.primaryIdentifier?.toJson(),
       'school': instance.school.toJson(),
     };

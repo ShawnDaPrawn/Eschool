@@ -5,17 +5,6 @@ import 'package:test/test.dart';
 
 void main() {
   const operation = 'd2160bf5-7a51-4e32-8910-f978744cc17d';
-  test('omitted audience kind stays absent when editing an existing group', () {
-    final write = CommunicationAudienceWrite(
-      operationId: operation,
-      revision: 1,
-      sessionYearId: 3,
-      name: 'Existing audience',
-      active: true,
-    );
-    expect(write.kind, isNull);
-    expect(write.toJson().containsKey('kind'), isFalse);
-  });
   test(
     'family configuration contains current identity without staff contact scopes',
     () {

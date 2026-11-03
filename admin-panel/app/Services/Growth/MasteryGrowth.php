@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Growth;
 
 use App\Models\Academics\GradeLevel;
+use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryGrowthSnapshot;
 use App\Models\Growth\MasteryRecord;
 use App\Models\Growth\MasteryTopic;
@@ -22,11 +23,16 @@ use InvalidArgumentException;
  * Every mastery record (learner, topic, audience, model version) whose topic
  * grade has a running term, or one that ended in the last CLOSING_DAYS, gets
  * one snapshot row for that term. The start is written once and never
- * changes; the end is refreshed on every run until the term is over. Running
- * it twice gives the same rows (idempotent).
+ * changes; the end is refreshed on every run while the term runs, settled on
+ * the first run after it ends (end_final) and never written again. Running it
+ * twice gives the same rows (idempotent).
  *
  * recent20-v1 is a pure function of the evidence, so both ends are replayed
  * from evidence dated before the term start and up to the term end (or now).
+ * Evidence is a rebuilt projection, not a history: a corrected mark is dated
+ * at its correction. That is why starts and ends are frozen once written; a
+ * start first written mid-term (a backfill) can miss an earlier mark that was
+ * corrected during this term.
  * Another model version is read from its stored record: its start is known
  * only when first captured on the term's first day; otherwise it is
  * "unavailable", never zero, and its end stops at the term's last run.
@@ -107,7 +113,8 @@ class MasteryGrowth
         $counts = ['rows' => 0, 'closed' => 0, 'invalid' => 0];
         $records = MasteryRecord::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->whereIn('topic_id', $topics->keys())
             ->orderBy('id')->get(['topic_id', 'audience', 'policy_version', 'level', 'score_bp', 'confidence_bp', 'evidence_count']);
-        $history = [];
+        $evidence = MasteryEvidence::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->whereIn('topic_id', $records->pluck('topic_id')->unique())
+            ->orderByDesc('observed_at')->orderByDesc('id')->get(['topic_id', 'audience', 'achieved_units', 'maximum_units', 'observed_at'])->groupBy('topic_id');
         $existing = MasteryGrowthSnapshot::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->whereIn('term_id', $termIds)
             ->get(['id', 'term_id', 'topic_id', 'audience', 'policy_version', 'end_final'])
             ->keyBy(fn ($row) => $row->term_id.':'.$row->topic_id.':'.$row->audience.':'.$row->policy_version);
@@ -125,6 +132,12 @@ class MasteryGrowth
                 $starts = $term->start_date->toDateString();
                 $ends = $term->end_date->toDateString();
                 $ended = $today > $ends;
+                if ($prior !== null && $prior->end_final) {
+                    // Settled on the first run after the term. Evidence is a rebuilt projection:
+                    // a mark corrected later is re-dated at its correction, so replaying again
+                    // would drop it from the term rather than describe the term.
+                    continue;
+                }
                 if (! $replayable && $ended) {
                     // A stored record changes after the term: its end stays at the term's last run.
                     if ($prior !== null && ! $prior->end_final) {
@@ -138,10 +151,8 @@ class MasteryGrowth
                     if ($replayable) {
                         $startAt = CarbonImmutable::parse($starts, $timezone)->startOfDay();
                         $endAt = CarbonImmutable::parse($ends, $timezone)->addDay()->startOfDay()->min($now->addSecond());
-                        $startEvidence = $history[$startAt->toISOString()] ??= app(MasteryHistory::class)->before($learnerId, $subjectId, $startAt);
-                        $endEvidence = $history[$endAt->toISOString()] ??= app(MasteryHistory::class)->before($learnerId, $subjectId, $endAt);
-                        $start = $this->replay($startEvidence->get($record->topic_id), $record->audience, $startAt) + ['start_basis' => 'replayed'];
-                        $end = $this->replay($endEvidence->get($record->topic_id), $record->audience, $endAt);
+                        $start = $this->replay($evidence->get($record->topic_id), $record->audience, $startAt) + ['start_basis' => 'replayed'];
+                        $end = $this->replay($evidence->get($record->topic_id), $record->audience, $endAt);
                     } else {
                         $stored = ['level' => $record->level, 'score_bp' => $record->score_bp, 'confidence_bp' => $record->confidence_bp, 'evidence_count' => $record->evidence_count];
                         $start = $today === $starts ? $stored + ['start_basis' => 'captured']

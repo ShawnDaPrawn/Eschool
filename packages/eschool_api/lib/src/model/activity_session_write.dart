@@ -22,10 +22,6 @@ class ActivitySessionWrite {
 
     required this.onDate,
 
-    this.startsAt,
-
-    this.endsAt,
-
     required this.name,
 
     required this.venue,
@@ -42,13 +38,6 @@ class ActivitySessionWrite {
 
   @JsonKey(name: r'on_date', required: true, includeIfNull: false)
   final String onDate;
-
-  /// Optional; with ends_at.
-  @JsonKey(name: r'starts_at', required: false, includeIfNull: false)
-  final String? startsAt;
-
-  @JsonKey(name: r'ends_at', required: false, includeIfNull: false)
-  final String? endsAt;
 
   @JsonKey(name: r'name', required: true, includeIfNull: false)
   final String name;
@@ -71,8 +60,6 @@ class ActivitySessionWrite {
           other.operationId == operationId &&
           other.revision == revision &&
           other.onDate == onDate &&
-          other.startsAt == startsAt &&
-          other.endsAt == endsAt &&
           other.name == name &&
           other.venue == venue &&
           other.status == status;
@@ -82,8 +69,6 @@ class ActivitySessionWrite {
       operationId.hashCode +
       revision.hashCode +
       onDate.hashCode +
-      (startsAt == null ? 0 : startsAt.hashCode) +
-      (endsAt == null ? 0 : endsAt.hashCode) +
       name.hashCode +
       venue.hashCode +
       status.hashCode;

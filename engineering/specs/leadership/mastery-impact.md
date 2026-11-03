@@ -49,7 +49,12 @@ One row per school, term, learner, topic, audience (`staff`, `family`,
    (recent20-v1 by default, which is always computed; another version when the
    school has rows only for that one, or when chosen).
 3. **Start once, end until the term is over.** The start is written when the row
-   is created and never changes. The end is refreshed on every run.
+   is created and never changes. The end is refreshed on every run while the
+   term runs, settled on the first run after the term ends (`end_final`), and
+   never written again. Evidence is a rebuilt projection, not a history: when a
+   mark is corrected, all of that task's question evidence is re-dated at the
+   correction. Freezing settled rows keeps a correction after the term from
+   erasing the term's result.
 4. **recent20-v1 is replayed.** It is a pure function of the evidence (the
    latest 20 items for the audience, as `MasteryRecompute` aggregates), so the
    start is computed from evidence observed before the term's first day, and the
@@ -65,7 +70,7 @@ One row per school, term, learner, topic, audience (`staff`, `family`,
    still processed so their end settles on the term's last day. Two terms for the
    same grade that overlap (the term calendar refuses this; only imported data
    can have it) are skipped as ambiguous.
-7. **Idempotent and scheduled.** `mastery:growth-snapshots` runs nightly at 04:20
+7. **Idempotent and scheduled.** `mastery:growth-snapshots` runs nightly at 04:25
    (UTC scheduler) and queues `CaptureMasteryGrowth` for every active school with
    the mastery module on. Running it again writes the same rows. The command with
    a school and `--backfill` captures that school's current term in the same
@@ -86,6 +91,10 @@ One row per school, term, learner, topic, audience (`staff`, `family`,
 11. **"No evidence yet"** counts learners with a snapshot but no evidence now,
     plus learners in the subject's teaching groups for that grade during the term
     who have no snapshot for the topic.
+12. **Planned topics always show.** The report lists every mastery topic that a
+    published curriculum plan of the term's year teaches in that term (for the
+    grades in scope), even when nobody has evidence on it yet, so its roster
+    appears under "no evidence yet" and the grade totals include it.
 
 ## Panel
 
@@ -105,6 +114,8 @@ evidence yet; a footer row of learner-topic totals for the grade.
 | --- | --- |
 | `test_capture_replays_term_start_and_latest_once_per_learner_topic_term_audience_and_version` | One row per learner/topic/term/audience/version; replayed start and latest end; no evidence stays null; a second run changes nothing; later evidence never moves a recorded start. |
 | `test_term_end_settles_within_the_closing_window_and_is_then_left_alone` | After the term the end describes the term's last day and is final; after the closing window nothing changes. |
+| `test_a_mark_corrected_after_the_term_never_rewrites_the_settled_term_end` | A mark corrected after the term (its evidence re-dated past the term) leaves the settled term end unchanged. |
+| `test_planned_topics_and_grades_without_any_snapshot_still_show_their_roster_as_no_evidence_yet` | With no evidence at all, the grade and its planned topics appear with the roster as no evidence yet; an unmeasured topic stays listed once others have evidence; another grade's head sees none of them. |
 | `test_another_model_version_keeps_its_own_rows_and_an_unrecorded_start_stays_unknown` | A non-replayable version: start captured on the first day or unavailable; end frozen after the term; the report never mixes versions. |
 | `test_principal_reads_whole_school_counts_without_any_learner_detail` | Principal sees rose/held/first evidence/no evidence yet per topic and grade totals; no learner names; dashboard links the report. |
 | `test_grade_head_sees_only_their_grade_and_ordinary_staff_parents_and_operators_are_refused` | Grade head sees only their grade (and not the principal dashboard); ordinary teacher, expired appointment, parent, pending password and platform identity refused; module off is 404; nothing written. |
@@ -121,3 +132,10 @@ evidence yet; a footer row of learner-topic totals for the grade.
 - Small-group suppression (hiding counts below a threshold); counts are shown to
   staff who can already see these learners' mastery.
 - Learner grade from enrolment: rows use the topic's grade.
+- A genuine as-of history of evidence. A start first written in the middle of a
+  term (a backfill, or a learner's first record) is replayed from evidence whose
+  date is the mark's latest change, so an earlier mark corrected during this
+  term is left out of that start. The nightly path is not affected (the start is
+  written on the term's first day). Fixing it needs retained evidence revisions
+  or a different evidence date in `MasteryRecompute`, which is a separate
+  decision.

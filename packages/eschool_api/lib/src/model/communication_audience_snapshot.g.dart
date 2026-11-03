@@ -41,14 +41,6 @@ CommunicationAudienceSnapshot _$CommunicationAudienceSnapshotFromJson(
         'audience_revision',
         (v) => (v as num?)?.toInt(),
       ),
-      smart: $checkedConvert(
-        'smart',
-        (v) => v == null
-            ? null
-            : CommunicationAudienceSnapshotSmart.fromJson(
-                v as Map<String, dynamic>,
-              ),
-      ),
     );
     return val;
   },
@@ -70,7 +62,6 @@ Map<String, dynamic> _$CommunicationAudienceSnapshotToJson(
   'user_ids': ?instance.userIds?.toList(),
   'name': ?instance.name,
   'audience_revision': ?instance.audienceRevision,
-  'smart': ?instance.smart?.toJson(),
 };
 
 const _$CommunicationAudienceSnapshotKindEnumEnumMap = {

@@ -1,7 +1,17 @@
 @extends('layouts.master')
 @section('title', __('Exam coach memo'))
 @section('content')
-@php($decimal = fn (int $units) => \App\Services\Academics\AcademicNumbers::decimal($units))
+@php
+    $decimal = fn (int $units) => \App\Services\Academics\AcademicNumbers::decimal($units);
+    $memoRows = [];
+    if ($can_edit) {
+        foreach ($questions as $i => $question) {
+            $memoRows[$i] = min(\App\Services\Learning\PastPaperMemos::MAX_POINTS, max(count($question['points']), count((array) old('questions.'.$i.'.points', []))) + 2);
+        }
+    }
+    $nativeInputCount = 2 + count($questions) + 7 * array_sum($memoRows);
+    $nativeInputLimit = (int) ini_get('max_input_vars');
+@endphp
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Exam coach memo')" :subtitle="$paper['title'].' · '.$paper['paper_year'].' '.$paper['paper_code']" />
     <a href="{{ route('exam-memos.index', ['group' => $group_id]) }}">{{ __('All past papers') }}</a>
@@ -37,6 +47,10 @@
     <form method="POST" action="{{ route('exam-memos.save', ['group' => $group_id, 'version' => $paper['version_id']]) }}" aria-label="{{ __('Mark points') }}" data-exam-memo-form>
         @csrf
         <input type="hidden" name="expected_revision" value="{{ $memo['revision'] }}">
+        @if ($nativeInputLimit > 0 && $nativeInputCount > $nativeInputLimit)
+            {{-- The listener replaces this; missing JavaScript must fail validation before truncated rows can be saved. --}}
+            <input type="hidden" name="memo_payload" value="">
+        @endif
         <p>{{ __('The mark points of each question must add up to its total. Leave a row empty to skip it. Saving changes a reviewed memo back to not reviewed.') }}</p>
     @endif
     @foreach ($questions as $i => $question)
@@ -48,7 +62,7 @@
             <p role="status">{{ __('Mark points add up to :sum of :total.', ['sum' => $decimal($question['sum_units']), 'total' => $decimal($question['max_units'])]) }}</p>
             @if ($can_edit)
                 <input type="hidden" name="questions[{{ $i }}][number]" value="{{ $question['number'] }}">
-                @php($rows = min(\App\Services\Learning\PastPaperMemos::MAX_POINTS, max(count($question['points']), count((array) old('questions.'.$i.'.points', []))) + 2))
+                @php($rows = $memoRows[$i])
                 @for ($j = 0; $j < $rows; $j++)
                     @php($point = $question['points'][$j] ?? null)
                     @php($rule = $point['rule'] ?? null)

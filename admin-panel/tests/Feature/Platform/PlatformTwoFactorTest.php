@@ -48,10 +48,11 @@ class PlatformTwoFactorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // A fixed clock, so time steps are known: 08:00:00 is the start of a step.
+        // Set before the schools exist, so memberships start on that same day.
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC'));
         $this->setUpTwoSchools();
         app(CurrentSchool::class)->forget();
-        // A fixed clock, so time steps are known: 08:00:00 is the start of a step.
-        $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC'));
     }
 
     private function staff(string $role, string $email = ''): User
@@ -320,7 +321,7 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $support->id)->exists());
         $this->assertSame(0, DB::table('sessions')->where('user_id', $support->id)->count());
         $audit = AuditLog::query()->where('action', 'platform_two_factor_reset')->latest('id')->firstOrFail();
-        $this->assertSame(['user_id' => $support->id, 'via' => 'hq', 'reason' => 'Lost their phone on the school visit', 'changed_by' => $owner->id], array_replace(['user_id' => null, 'via' => null, 'reason' => null, 'changed_by' => null], $audit->after));
+        $this->assertSame(['user_id' => $support->id, 'via' => 'hq', 'reason' => 'Lost their phone on the school visit', 'changed_by' => $owner->id], $audit->after);
         $this->assertSame($owner->id, (int) $audit->actor_id);
         $this->assertNull($audit->school_id);
         $this->get('/saas/audit?action=platform_two_factor_reset')->assertOk()->assertSee('Two-factor sign-in reset')->assertSee('Lost their phone on the school visit');
@@ -369,7 +370,7 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $owner->id)->exists());
         $audit = AuditLog::query()->where('action', 'platform_two_factor_reset')->firstOrFail();
         $this->assertSame('system', $audit->actor_type);
-        $this->assertSame(['user_id' => $owner->id, 'via' => 'console', 'reason' => 'The only Owner lost their phone'], array_replace(['user_id' => null, 'via' => null, 'reason' => null], $audit->after));
+        $this->assertSame(['user_id' => $owner->id, 'via' => 'console', 'reason' => 'The only Owner lost their phone'], $audit->after);
     }
 
     public function test_a_session_from_before_a_reset_signs_in_again_whatever_the_session_driver(): void

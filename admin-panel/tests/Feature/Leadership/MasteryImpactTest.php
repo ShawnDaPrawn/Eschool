@@ -133,31 +133,6 @@ class MasteryImpactTest extends TestCase
         $this->assertSame([null, 0, 2, 5000, 2], [$first->start_level, $first->start_evidence_count, $first->end_level, $first->end_score_bp, $first->end_evidence_count]);
     }
 
-    public function test_term_end_uses_retained_marks_before_a_later_correction_and_release(): void
-    {
-        $this->growth();
-        $this->release();
-        $this->at('2026-04-05');
-        $this->capture('10.00', '1.00', 1);
-        $this->release();
-        app(MasteryRecompute::class)->group($this->group);
-        app(MasteryGrowth::class)->capture();
-        $this->assertSame(3000, $this->row($this->topic(1))->end_score_bp);
-        $this->assertSame(9000, $this->row($this->topic(2))->end_score_bp);
-        $this->assertSame(4000, $this->row($this->topic(1), 'family')->end_score_bp);
-        $this->assertSame(9000, $this->row($this->topic(2), 'family')->end_score_bp);
-    }
-
-    public function test_rostered_topics_without_any_evidence_are_visible(): void
-    {
-        $report = app(MasteryImpact::class)->read($this->superAdmin(), $this->term);
-        $this->assertCount(3, $report['grades'][0]['topics']);
-        foreach ($report['grades'][0]['topics'] as $topic) {
-            $this->assertSame(1, $topic['no_evidence']);
-            $this->assertSame(0, $topic['evidence_now']);
-        }
-    }
-
     public function test_term_end_settles_within_the_closing_window_and_is_then_left_alone(): void
     {
         $this->growth();
@@ -172,6 +147,55 @@ class MasteryImpactTest extends TestCase
         $before = $this->values();
         $this->assertSame(['terms' => 0, 'ambiguous_terms' => 0, 'rows' => 0, 'closed' => 0, 'invalid' => 0], app(MasteryGrowth::class)->capture());
         $this->assertSame($before, $this->values());
+    }
+
+    public function test_a_mark_corrected_after_the_term_never_rewrites_the_settled_term_end(): void
+    {
+        $this->capture('4.00', '9.00');
+        app(MasteryRecompute::class)->group($this->group);
+        app(MasteryGrowth::class)->capture();
+        $this->at('2026-04-01');
+        app(MasteryGrowth::class)->capture();
+        $end = fn () => collect($this->row($this->topic(1))->getAttributes())->only(['end_level', 'end_score_bp', 'end_confidence_bp', 'end_evidence_count', 'end_as_of', 'end_final'])->all();
+        $settled = $end();
+        $this->assertSame([1, 4000, 1, 1], [$settled['end_level'], $settled['end_score_bp'], $settled['end_evidence_count'], $settled['end_final']]);
+        // Rebuilding evidence dates a corrected mark at its correction, after the term ended.
+        $this->at('2026-04-02');
+        $this->capture('6.00', '9.00', 1);
+        app(MasteryRecompute::class)->group($this->group);
+        $this->assertTrue(MasteryEvidence::where('topic_id', $this->topic(1))->where('audience', 'staff')->sole()->observed_at
+            ->gt(CarbonImmutable::parse('2026-04-01', 'Africa/Johannesburg')));
+        app(MasteryGrowth::class)->capture();
+        $this->assertSame($settled, $end());
+    }
+
+    public function test_planned_topics_and_grades_without_any_snapshot_still_show_their_roster_as_no_evidence_yet(): void
+    {
+        $this->assertSame(0, app(MasteryGrowth::class)->capture()['rows']);
+        $head = $this->actor('theo');
+        $this->lead($head, 'grade_head', $this->grade);
+        $report = app(MasteryImpact::class)->read($head);
+        $this->assertSame([$this->grade], array_column($report['grades'], 'grade_id'));
+        $topics = collect($report['grades'][0]['topics'])->keyBy('topic_name');
+        $this->assertSame(['Decimals', 'Fractions', 'Number foundation'], $topics->keys()->sort()->values()->all());
+        foreach ($topics as $topic) {
+            $this->assertSame([0, 0, 0, 1], [$topic['evidence_at_start'], $topic['evidence_now'], $topic['rose'], $topic['no_evidence']]);
+        }
+        $this->assertSame(3, $report['grades'][0]['totals']['no_evidence']);
+        $this->actingAs($head)->get('/leadership-dashboard/mastery-impact')->assertOk()->assertSee('Number foundation')->assertDontSee('No mastery snapshots for this term yet');
+        // Marks on two topics: the third, still unmeasured, keeps its row and its roster.
+        $this->capture('4.00', '9.00');
+        app(MasteryRecompute::class)->group($this->group);
+        app(MasteryGrowth::class)->capture();
+        $report = app(MasteryImpact::class)->read($head);
+        $topics = collect($report['grades'][0]['topics'])->keyBy('topic_name');
+        $this->assertSame([0, 1], [$topics['Number foundation']['evidence_now'], $topics['Number foundation']['no_evidence']]);
+        $this->assertSame([1, 0], [$topics['Fractions']['evidence_now'], $topics['Fractions']['no_evidence']]);
+        $this->assertSame(1, $report['grades'][0]['totals']['no_evidence']);
+        // Another grade's head sees none of these planned topics.
+        $other = $this->actor('tara');
+        $this->lead($other, 'grade_head', (int) GradeLevel::where('code', '8')->value('id'));
+        $this->assertSame([], app(MasteryImpact::class)->read($other)['grades']);
     }
 
     public function test_another_model_version_keeps_its_own_rows_and_an_unrecorded_start_stays_unknown(): void
@@ -204,7 +228,8 @@ class MasteryImpactTest extends TestCase
         $this->assertSame([1, 0, 0, 0, 1], [$totals['rose'], $totals['held'], $totals['lower'], $totals['first_evidence'], $totals['start_unknown']]);
         // Without recent20-v1 rows the only version is shown; asking for recent20-v1 never mixes another version in.
         $this->assertSame('other-v9', app(MasteryImpact::class)->read($this->superAdmin(), $this->term)['policy_version']);
-        $this->assertSame([], app(MasteryImpact::class)->read($this->superAdmin(), $this->term, 'recent20-v1')['grades']);
+        $v1 = app(MasteryImpact::class)->read($this->superAdmin(), $this->term, 'recent20-v1')['grades'][0]['totals'];
+        $this->assertSame([0, 0, 0, 0, 0], [$v1['rose'], $v1['held'], $v1['start_unknown'], $v1['evidence_at_start'], $v1['evidence_now']]);
     }
 
     public function test_principal_reads_whole_school_counts_without_any_learner_detail(): void
@@ -313,7 +338,7 @@ class MasteryImpactTest extends TestCase
         $event = collect(app(Schedule::class)->events())->first(fn ($event) => $event->description === 'mastery-growth-snapshots');
         $this->assertNotNull($event);
         $this->assertStringContainsString('mastery:growth-snapshots', $event->command);
-        $this->assertSame('20 4 * * *', $event->expression);
+        $this->assertSame('25 4 * * *', $event->expression);
         Queue::fake();
         $this->artisan('mastery:growth-snapshots')->assertSuccessful();
         Queue::assertPushed(CaptureMasteryGrowth::class, 1);
@@ -323,5 +348,15 @@ class MasteryImpactTest extends TestCase
         $this->growth();
         (new CaptureMasteryGrowth(1))->handle(app(CurrentSchool::class), app(MasteryGrowth::class));
         $this->assertSame(9, MasteryGrowthSnapshot::count());
+    }
+
+    public function test_rostered_topics_without_any_evidence_are_visible(): void
+    {
+        $report = app(MasteryImpact::class)->read($this->superAdmin(), $this->term);
+        $this->assertCount(3, $report['grades'][0]['topics']);
+        foreach ($report['grades'][0]['topics'] as $topic) {
+            $this->assertSame(1, $topic['no_evidence']);
+            $this->assertSame(0, $topic['evidence_now']);
+        }
     }
 }

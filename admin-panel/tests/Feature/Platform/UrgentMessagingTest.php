@@ -268,7 +268,7 @@ class UrgentMessagingTest extends TestCase
     {
         $payload = ['revision' => 0, 'sms_enabled' => '1', 'whatsapp_enabled' => '0', 'sms_types' => ['comms.urgent']];
         foreach (['tara_user', 'farid_user', 'asha_user'] as $person) {
-            $this->newBrowserSession()->actingAs(User::findOrFail($this->schoolA->ids[$person]))->get('/urgent-messaging')->assertForbidden();
+            $this->signInAs(User::findOrFail($this->schoolA->ids[$person]))->get('/urgent-messaging')->assertForbidden();
             $this->put('/urgent-messaging', $payload)->assertForbidden();
             $this->app['auth']->forgetGuards();
         }
@@ -284,7 +284,7 @@ class UrgentMessagingTest extends TestCase
 
     public function test_the_school_office_switches_sms_and_whatsapp_on_from_settings(): void
     {
-        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/urgent-messaging')->assertOk()
+        $this->signInAs($this->superAdmin())->get('/urgent-messaging')->assertOk()
             ->assertSee('Urgent school notice')->assertSee('Absence alert')->assertSee('Guardians have agreed to receive WhatsApp messages');
 
         $this->put('/urgent-messaging', ['revision' => 0, 'sms_enabled' => '1', 'whatsapp_enabled' => '1', 'sms_types' => ['comms.urgent'], 'whatsapp_types' => ['comms.urgent']])
@@ -504,13 +504,13 @@ class UrgentMessagingTest extends TestCase
         $this->assertSame([2, 16, 'USD'], [$priced->segments, $priced->price_cents, $priced->price_currency]);
 
         app(CurrentSchool::class)->forget();
-        $this->actingAsHq($this->staff('finance'))->get('/saas/messaging?month=2026-11')->assertOk()
+        $this->signInAs($this->staff('finance'))->get('/saas/messaging?month=2026-11')->assertOk()
             ->assertSee('November 2026')->assertSee(School::query()->findOrFail(1)->name)->assertSee('Baobab High')
             ->assertSee('USD 0.16')->assertSee('USD 0.01')->assertSee('USD 0.24')->assertDontSee('USD 0.08')->assertDontSee('821234567');
         $this->app['auth']->forgetGuards();
-        $this->actingAsHq($this->staff('content'))->get('/saas/messaging')->assertForbidden();
+        $this->signInAs($this->staff('content'))->get('/saas/messaging')->assertForbidden();
         $this->app['auth']->forgetGuards();
-        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/saas/messaging')->assertForbidden();
+        $this->signInAs($this->superAdmin())->get('/saas/messaging')->assertForbidden();
     }
 
     public function test_a_message_twilio_cannot_price_yet_does_not_hold_back_the_next_batch(): void

@@ -74,10 +74,7 @@ class SupportDeskTest extends TestCase
     {
         $this->flushSession();
         app(CurrentSchool::class)->forget();
-        $this->newBrowserSession()->actingAs($user);
-        if (PlatformStaffIdentity::where('user_id', $user->id)->where('active', true)->exists()) {
-            $this->passPlatformTwoFactor($user);
-        }
+        $this->signInAs($user);
     }
 
     /** Opens a ticket as the signed-in school user and returns its id. */

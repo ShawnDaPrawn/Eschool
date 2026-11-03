@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Concerns;
 
+use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\PlatformStaffTwoFactor;
 use App\Models\User;
 use App\Services\Platform\Saas\PlatformTwoFactor;
@@ -60,6 +61,20 @@ trait PassesPlatformTwoFactor
         $this->app['session']->driver()->flush();
 
         return $this;
+    }
+
+    /**
+     * Signs in as whoever this is, in a fresh browser: platform staff with the
+     * challenge passed (actingAsHq), anyone else as a plain school account.
+     */
+    protected function signInAs(User $user): static
+    {
+        $this->newBrowserSession();
+        if (PlatformStaffIdentity::query()->where('user_id', $user->id)->exists()) {
+            return $this->actingAsHq($user);
+        }
+
+        return $this->actingAs($user);
     }
 
     /** Keeps the session cookie a response sets (a new id after sign-in or the challenge). */

@@ -6,8 +6,8 @@
 <p>{{ __('Counts only. No learner is named or ranked. A session counts once its supervisor has confirmed it; cancelled and corrected sessions do not count.') }}</p>
 <p><a href="{{ route('peer-tutoring-panel.index') }}">{{ __('Back to peer tutoring') }}</a></p>
 @if($rows)
-<div class="peer-table">
-<table class="table">
+<div class="peer-table page-table__scroll" role="region" aria-label="{{ __('Learners who have tutored this term, per grade') }}" tabindex="0">
+<table class="page-table__table">
 <caption>{{ __('Learners who have tutored this term, per grade') }}</caption>
 <thead><tr><th scope="col">{{ __('Grade') }}</th><th scope="col">{{ __('This term') }}</th><th scope="col">{{ __('Current learners') }}</th><th scope="col">{{ __('Have tutored') }}</th><th scope="col">{{ __('Share') }}</th></tr></thead>
 <tbody>

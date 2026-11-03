@@ -149,8 +149,6 @@ import 'package:eschool_api/src/model/academic_timetable_preview_data.dart';
 import 'package:eschool_api/src/model/academic_timetable_preview_response.dart';
 import 'package:eschool_api/src/model/academic_timetable_preview_write.dart';
 import 'package:eschool_api/src/model/academic_timetable_week_data.dart';
-import 'package:eschool_api/src/model/academic_timetable_week_data_activities_inner.dart';
-import 'package:eschool_api/src/model/academic_timetable_week_data_breaks_inner.dart';
 import 'package:eschool_api/src/model/academic_timetable_week_response.dart';
 import 'package:eschool_api/src/model/academic_transition_assignment.dart';
 import 'package:eschool_api/src/model/academic_transition_commit.dart';
@@ -247,13 +245,6 @@ import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
 import 'package:eschool_api/src/model/approve_practice_question_response.dart';
 import 'package:eschool_api/src/model/branding.dart';
-import 'package:eschool_api/src/model/calendar_feed.dart';
-import 'package:eschool_api/src/model/calendar_feed_created_response.dart';
-import 'package:eschool_api/src/model/calendar_feed_created_response_data.dart';
-import 'package:eschool_api/src/model/calendar_feed_list_response.dart';
-import 'package:eschool_api/src/model/calendar_feed_list_response_data.dart';
-import 'package:eschool_api/src/model/calendar_feed_revoked_response.dart';
-import 'package:eschool_api/src/model/calendar_feed_revoked_response_data.dart';
 import 'package:eschool_api/src/model/calendar_removed_response.dart';
 import 'package:eschool_api/src/model/cancel_consultation_response.dart';
 import 'package:eschool_api/src/model/cast_consultation_vote_response.dart';
@@ -290,9 +281,7 @@ import 'package:eschool_api/src/model/communication_audience_list_response.dart'
 import 'package:eschool_api/src/model/communication_audience_receipt.dart';
 import 'package:eschool_api/src/model/communication_audience_receipt_response.dart';
 import 'package:eschool_api/src/model/communication_audience_selection.dart';
-import 'package:eschool_api/src/model/communication_audience_smart.dart';
 import 'package:eschool_api/src/model/communication_audience_snapshot.dart';
-import 'package:eschool_api/src/model/communication_audience_snapshot_smart.dart';
 import 'package:eschool_api/src/model/communication_audience_write.dart';
 import 'package:eschool_api/src/model/communication_configuration.dart';
 import 'package:eschool_api/src/model/communication_configuration_response.dart';
@@ -325,7 +314,6 @@ import 'package:eschool_api/src/model/communication_rule_list.dart';
 import 'package:eschool_api/src/model/communication_rule_list_response.dart';
 import 'package:eschool_api/src/model/communication_rule_write.dart';
 import 'package:eschool_api/src/model/communication_scope.dart';
-import 'package:eschool_api/src/model/communication_smart_rules_inner.dart';
 import 'package:eschool_api/src/model/communication_submit_write.dart';
 import 'package:eschool_api/src/model/communication_summary.dart';
 import 'package:eschool_api/src/model/communication_withdraw_write.dart';
@@ -414,7 +402,6 @@ import 'package:eschool_api/src/model/cover_occurrence.dart';
 import 'package:eschool_api/src/model/cover_occurrence_response.dart';
 import 'package:eschool_api/src/model/cover_source.dart';
 import 'package:eschool_api/src/model/cover_teacher.dart';
-import 'package:eschool_api/src/model/create_calendar_feed_request.dart';
 import 'package:eschool_api/src/model/create_consultation_response.dart';
 import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
 import 'package:eschool_api/src/model/create_profile_category_request.dart';
@@ -766,7 +753,6 @@ import 'package:eschool_api/src/model/learner_note_list_response.dart';
 import 'package:eschool_api/src/model/learner_note_metadata.dart';
 import 'package:eschool_api/src/model/learner_note_revision.dart';
 import 'package:eschool_api/src/model/learner_note_update.dart';
-import 'package:eschool_api/src/model/learner_primary_identifier.dart';
 import 'package:eschool_api/src/model/leave_foundation_learner_response.dart';
 import 'package:eschool_api/src/model/link_wellbeing_case_incident_response.dart';
 import 'package:eschool_api/src/model/list_consultation_audience_choices_response.dart';
@@ -831,11 +817,6 @@ import 'package:eschool_api/src/model/my_grade_signal.dart';
 import 'package:eschool_api/src/model/my_school_info.dart';
 import 'package:eschool_api/src/model/my_school_response.dart';
 import 'package:eschool_api/src/model/notification_channel_preference.dart';
-import 'package:eschool_api/src/model/notification_detail.dart';
-import 'package:eschool_api/src/model/notification_detail_response.dart';
-import 'package:eschool_api/src/model/notification_inbox_item.dart';
-import 'package:eschool_api/src/model/notification_inbox_page.dart';
-import 'package:eschool_api/src/model/notification_inbox_response.dart';
 import 'package:eschool_api/src/model/notification_preferences_response.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/notification_type_preference.dart';
@@ -947,8 +928,6 @@ import 'package:eschool_api/src/model/progress_roster_response.dart';
 import 'package:eschool_api/src/model/progress_staff_band.dart';
 import 'package:eschool_api/src/model/progress_staff_band_response.dart';
 import 'package:eschool_api/src/model/publish_consultation_response.dart';
-import 'package:eschool_api/src/model/quiet_hours_response.dart';
-import 'package:eschool_api/src/model/quiet_hours_response_data.dart';
 import 'package:eschool_api/src/model/read_staff_private_notice_response.dart';
 import 'package:eschool_api/src/model/read_wellbeing_notice_response.dart';
 import 'package:eschool_api/src/model/recognition_access.dart';
@@ -1280,7 +1259,6 @@ import 'package:eschool_api/src/model/tutor_turn_write.dart';
 import 'package:eschool_api/src/model/update_consultation_response.dart';
 import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
 import 'package:eschool_api/src/model/update_my_profile_request.dart';
-import 'package:eschool_api/src/model/update_my_quiet_hours_request.dart';
 import 'package:eschool_api/src/model/update_person_profile_request.dart';
 import 'package:eschool_api/src/model/update_profile_category_request.dart';
 import 'package:eschool_api/src/model/update_profile_field_request.dart';
@@ -1973,16 +1951,6 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'AcademicTimetableWeekData':
       return AcademicTimetableWeekData.fromJson(value as Map<String, dynamic>)
           as ReturnType;
-    case 'AcademicTimetableWeekDataActivitiesInner':
-      return AcademicTimetableWeekDataActivitiesInner.fromJson(
-            value as Map<String, dynamic>,
-          )
-          as ReturnType;
-    case 'AcademicTimetableWeekDataBreaksInner':
-      return AcademicTimetableWeekDataBreaksInner.fromJson(
-            value as Map<String, dynamic>,
-          )
-          as ReturnType;
     case 'AcademicTimetableWeekResponse':
       return AcademicTimetableWeekResponse.fromJson(
             value as Map<String, dynamic>,
@@ -2336,32 +2304,6 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Branding':
       return Branding.fromJson(value as Map<String, dynamic>) as ReturnType;
-    case 'CalendarFeed':
-      return CalendarFeed.fromJson(value as Map<String, dynamic>) as ReturnType;
-    case 'CalendarFeedCreatedResponse':
-      return CalendarFeedCreatedResponse.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'CalendarFeedCreatedResponseData':
-      return CalendarFeedCreatedResponseData.fromJson(
-            value as Map<String, dynamic>,
-          )
-          as ReturnType;
-    case 'CalendarFeedListResponse':
-      return CalendarFeedListResponse.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'CalendarFeedListResponseData':
-      return CalendarFeedListResponseData.fromJson(
-            value as Map<String, dynamic>,
-          )
-          as ReturnType;
-    case 'CalendarFeedRevokedResponse':
-      return CalendarFeedRevokedResponse.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'CalendarFeedRevokedResponseData':
-      return CalendarFeedRevokedResponseData.fromJson(
-            value as Map<String, dynamic>,
-          )
-          as ReturnType;
     case 'CalendarRemovedResponse':
       return CalendarRemovedResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -2483,16 +2425,8 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
-    case 'CommunicationAudienceSmart':
-      return CommunicationAudienceSmart.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
     case 'CommunicationAudienceSnapshot':
       return CommunicationAudienceSnapshot.fromJson(
-            value as Map<String, dynamic>,
-          )
-          as ReturnType;
-    case 'CommunicationAudienceSnapshotSmart':
-      return CommunicationAudienceSnapshotSmart.fromJson(
             value as Map<String, dynamic>,
           )
           as ReturnType;
@@ -2619,11 +2553,6 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'CommunicationScope':
       return CommunicationScope.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'CommunicationSmartRulesInner':
-      return CommunicationSmartRulesInner.fromJson(
-            value as Map<String, dynamic>,
-          )
           as ReturnType;
     case 'CommunicationSubmitWrite':
       return CommunicationSubmitWrite.fromJson(value as Map<String, dynamic>)
@@ -2886,9 +2815,6 @@ ReturnType deserialize<ReturnType, BaseType>(
       return CoverSource.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'CoverTeacher':
       return CoverTeacher.fromJson(value as Map<String, dynamic>) as ReturnType;
-    case 'CreateCalendarFeedRequest':
-      return CreateCalendarFeedRequest.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
     case 'CreateConsultationResponse':
       return CreateConsultationResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -4093,9 +4019,6 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'LearnerNoteUpdate':
       return LearnerNoteUpdate.fromJson(value as Map<String, dynamic>)
           as ReturnType;
-    case 'LearnerPrimaryIdentifier':
-      return LearnerPrimaryIdentifier.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
     case 'LeaveFoundationLearnerResponse':
       return LeaveFoundationLearnerResponse.fromJson(
             value as Map<String, dynamic>,
@@ -4317,21 +4240,6 @@ ReturnType deserialize<ReturnType, BaseType>(
       return NotificationChannelPreference.fromJson(
             value as Map<String, dynamic>,
           )
-          as ReturnType;
-    case 'NotificationDetail':
-      return NotificationDetail.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'NotificationDetailResponse':
-      return NotificationDetailResponse.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'NotificationInboxItem':
-      return NotificationInboxItem.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'NotificationInboxPage':
-      return NotificationInboxPage.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'NotificationInboxResponse':
-      return NotificationInboxResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'NotificationPreferencesResponse':
       return NotificationPreferencesResponse.fromJson(
@@ -4672,12 +4580,6 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'PublishConsultationResponse':
       return PublishConsultationResponse.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'QuietHoursResponse':
-      return QuietHoursResponse.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'QuietHoursResponseData':
-      return QuietHoursResponseData.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ReadStaffPrivateNoticeResponse':
       return ReadStaffPrivateNoticeResponse.fromJson(
@@ -5831,9 +5733,6 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'UpdateMyProfileRequest':
       return UpdateMyProfileRequest.fromJson(value as Map<String, dynamic>)
-          as ReturnType;
-    case 'UpdateMyQuietHoursRequest':
-      return UpdateMyQuietHoursRequest.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'UpdatePersonProfileRequest':
       return UpdatePersonProfileRequest.fromJson(value as Map<String, dynamic>)

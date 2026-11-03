@@ -13,6 +13,7 @@
 @php
     // No HQ links until two-factor sign-in is passed in this session (SA.2).
     $hqOpen = auth()->check() && app(\App\Services\Platform\Saas\PlatformTwoFactor::class)->passed(request()->hasSession() ? request()->session() : null, auth()->user());
+    // The role's abilities, read once for the whole menu.
     $platformAbilities = $hqOpen ? app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->abilities(auth()->user()) : [];
     $platformCan = fn (string $ability): bool => in_array('*', $platformAbilities, true) || in_array($ability, $platformAbilities, true);
 @endphp
@@ -23,18 +24,18 @@
         @if ($platformCan('schools.view'))<a href="{{ route('saas.index') }}">{{ __('Schools') }}</a>@endif
         @if ($platformCan('schools.create'))<a href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a>@endif
         @if ($platformCan('packages.view'))<a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>@endif
-        @if ($platformCan('billing.view'))<a href="{{ route('saas.billing') }}">{{ __('Billing') }}</a>@endif
         @if ($platformCan('health.view'))<a href="{{ route('saas.health') }}">{{ __('School health') }}</a>@endif
+        @if ($platformCan('billing.view'))<a href="{{ route('saas.billing') }}">{{ __('Billing') }}</a>@endif
         @if ($platformCan('audit.view'))<a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>@endif
+        @if ($platformCan('messaging.view'))<a href="{{ route('saas.messaging') }}">{{ __('SMS and WhatsApp') }}</a>@endif
         @if ($platformCan('support.access'))<a href="{{ route('saas.support.index') }}">{{ __('Support access') }}</a>@endif
         @if ($platformCan('flags.manage'))<a href="{{ route('saas.flags.index') }}">{{ __('Feature flags') }}</a>@endif
-        @if ($platformCan('messaging.view'))<a href="{{ route('saas.messaging') }}">{{ __('SMS and WhatsApp') }}</a>@endif
         @if ($platformCan('incidents.manage'))<a href="{{ route('saas.incidents.index') }}">{{ __('Incidents') }}</a>@endif
-        @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('ai.view'))<a href="{{ route('saas.ai') }}">{{ __('AI control centre') }}</a>@endif
-        @if ($platformCan('support.manage'))<a href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
         @if ($platformCan('library.manage'))<a href="{{ route('saas.library.index') }}">{{ __('Content library') }}</a>@endif
         @if ($platformCan('library.review'))<a href="{{ route('saas.library.reviews') }}">{{ __('Library reviews') }}</a>@endif
+        @if ($platformCan('support.manage'))<a href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
+        @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('identity.review'))<a href="{{ route('saas.lurits') }}">{{ __('LURITS claims') }}</a>@endif
         @if ($platformCan('mail.view'))<a href="{{ route('saas.mail-streams') }}">{{ __('Mail streams') }}</a>@endif
         @if ($platformCan('staff.manage'))<a href="{{ route('saas.staff.index') }}">{{ __('Platform staff') }}</a>@endif

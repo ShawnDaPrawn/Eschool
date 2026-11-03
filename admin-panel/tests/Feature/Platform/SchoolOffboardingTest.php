@@ -381,8 +381,7 @@ class SchoolOffboardingTest extends TestCase
         $this->assertGreaterThan(0, DB::table('students')->where('school_id', self::LEAVING)->count());
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertStatus(409);
         $approved = DB::table('audit_log')->where('action', 'platform_school_offboarding_deletion_approved')->sole();
-        $approval = json_decode($approved->after, true);
-        $this->assertSame(['requested_by' => $first->id, 'approved_by' => $second->id], ['requested_by' => $approval['requested_by'], 'approved_by' => $approval['approved_by']]);
+        $this->assertSame(['requested_by' => $first->id, 'approved_by' => $second->id], array_intersect_key(json_decode($approved->after, true), ['requested_by' => 1, 'approved_by' => 1]));
     }
 
     public function test_starting_is_validated_and_each_step_waits_for_the_one_before(): void

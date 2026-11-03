@@ -30,12 +30,6 @@ Child _$ChildFromJson(Map<String, dynamic> json) => $checkedCreate(
       name: $checkedConvert('name', (v) => v as String),
       image: $checkedConvert('image', (v) => v as String?),
       studentNumber: $checkedConvert('student_number', (v) => v as String?),
-      primaryIdentifier: $checkedConvert(
-        'primary_identifier',
-        (v) => v == null
-            ? null
-            : LearnerPrimaryIdentifier.fromJson(v as Map<String, dynamic>),
-      ),
       approved: $checkedConvert('approved', (v) => v as bool?),
       homeroom: $checkedConvert('homeroom', (v) => v as String?),
       school: $checkedConvert(
@@ -50,7 +44,6 @@ Child _$ChildFromJson(Map<String, dynamic> json) => $checkedCreate(
     'firstName': 'first_name',
     'lastName': 'last_name',
     'studentNumber': 'student_number',
-    'primaryIdentifier': 'primary_identifier',
   },
 );
 
@@ -62,7 +55,6 @@ Map<String, dynamic> _$ChildToJson(Child instance) => <String, dynamic>{
   'name': instance.name,
   'image': instance.image,
   'student_number': ?instance.studentNumber,
-  'primary_identifier': ?instance.primaryIdentifier?.toJson(),
   'approved': ?instance.approved,
   'homeroom': ?instance.homeroom,
   'school': instance.school.toJson(),

@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
 test('a full memo posts one field without truncating or disabling the editor', async ({ page }) => {
   await page.route('https://memo.invalid/**', route => route.fulfill({ status: 204 }));
   const controls = ['earns', 'type', 'marks', 'rule_kind', 'rule_value', 'rule_tolerance', 'rule_unit'];
-  let html = '<iframe name="memo-test" hidden></iframe><form target="memo-test" method="post" action="https://memo.invalid/save" data-exam-memo-form><input name="_token" value="synthetic"><input name="expected_revision" value="7">';
+  let html = '<iframe name="memo-test" hidden></iframe><form target="memo-test" method="post" action="https://memo.invalid/save" data-exam-memo-form><input name="_token" value="synthetic"><input name="expected_revision" value="7"><input type="hidden" name="memo_payload" value="">';
   for (let i = 0; i < 20; i++) {
     html += `<input name="questions[${i}][number]" value="${i + 1}">`;
     for (let j = 0; j < 20; j++) {

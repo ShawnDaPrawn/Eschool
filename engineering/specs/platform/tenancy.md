@@ -250,18 +250,18 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
-### HQ feature flags
-
-`platform_feature_flags` is global: platform-wide switches written only from
-`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
-school switched on or off by name. HQ reads it across schools; a school's app
-context reads only its own row ([feature flags](feature-flags.md)).
 ### HQ AI spending caps
 
 `platform_ai_caps` and `platform_ai_cap_changes` are global: Navigate Ed's own
 daily AI caps per feature and their history, read and written only from
 `/saas/ai`. They name no school. A school's own lower limits stay in the
 school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+### HQ feature flags
+
+`platform_feature_flags` is global: platform-wide switches written only from
+`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
+school switched on or off by name. HQ reads it across schools; a school's app
+context reads only its own row ([feature flags](feature-flags.md)).
 
 ### HQ incident register
 
@@ -270,6 +270,25 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### Imports on a school's behalf
+
+`platform_school_imports` is required school-owned: each import Navigate Ed
+Operations prepare belongs to its target school. HQ reads it across schools
+only to find an import's school, then works inside that school (the preview,
+the approval check and the write all run in it). The school reads its own rows
+through `BelongsToSchool`; another school's import is not found
+([HQ imports](hq-imports.md)).
+
+### School offboarding
+
+`school_offboardings` is required school-owned (a foreign key to the school):
+one row per offboarding of a leaving school, holding states, dates, hashes and
+counts, never the school's data. HQ writes it from `/saas` inside the school and
+the school's Super Admin confirms receipt from the panel, where an id from
+another school is not found ([Offboarding](offboarding.md)). The export and the
+deletion dry run read the school's rows through `SchoolOwnedTables`, always with
+the school's id.
 
 ### Platform content library (Action Plan 3.3)
 
@@ -284,23 +303,17 @@ rows may point into the library (`mastery_topics.library_topic_id`,
 `practice_set_entries.library_item_version_id`,
 `practice_memories.library_item_id`), never the other way
 ([content library](../learning/content-library.md)).
-### School offboarding
 
-`school_offboardings` is required school-owned (a foreign key to the school):
-one row per offboarding of a leaving school, holding states, dates, hashes and
-counts, never the school's data. HQ writes it from `/saas` inside the school and
-the school's Super Admin confirms receipt from the panel, where an id from
-another school is not found ([Offboarding](offboarding.md)). The export and the
-deletion dry run read the school's rows through `SchoolOwnedTables`, always with
-the school's id.
-### Imports on a school's behalf
+### Invitations to join another school
 
-`platform_school_imports` is required school-owned: each import Navigate Ed
-Operations prepare belongs to its target school. HQ reads it across schools
-only to find an import's school, then works inside that school (the preview,
-the approval check and the write all run in it). The school reads its own rows
-through `BelongsToSchool`; another school's import is not found
-([HQ imports](hq-imports.md)).
+`school_join_invitations` is required school-owned: the inviting school's
+invitation for an existing account to join it ([existing-account invitations](existing-account-invitations.md)).
+It is read by its secret across schools only to find the school, then checked
+inside it. Nothing reaches the account's other schools: accepting adds a
+membership and role at the inviting school only, and
+`ExistingAccountInvitationsTest` checks that the person's roles and permissions
+at their first school are exactly as before, and at the new one exactly the role
+it gave.
 
 ### A guardian at two schools (Action Plan 1.1, server side)
 
@@ -326,56 +339,6 @@ owner's access there ([calendar feed](../academics/calendar-feed.md)).
 age stages, and a learner's stage is always read from their own school's
 mapping ([school stages](school-stages.md)).
 
-### Packages and prices
-
-`platform_packages`, `platform_package_modules` and `platform_prices` are global:
-Navigate Ed's own package list and price list, written only from `/saas`. They
-name no school; a school names its package by key and the module set version
-applied to it on its own `schools` row (`package_key`, `package_version`)
-([package editor](package-editor.md)).
-
-### HQ billing
-
-`platform_invoices`, `platform_invoice_lines`, `platform_payments` and
-`platform_payment_allocations` are required school-owned: each invoice, credit
-note, line, EFT payment and allocation is about one school's account with
-Navigate Ed, so it carries the school (not null, indexed, a foreign key) and is
-written inside that school from `/saas`. The models use `BelongsToSchool`, so
-another school's invoice or payment id resolves to "not found". HQ reads them
-across schools; no school reads them in this step
-([HQ billing](hq-billing.md)).
-
-### Invitations to join another school
-
-`school_join_invitations` is required school-owned: the inviting school's
-invitation for an existing account to join it ([existing-account invitations](existing-account-invitations.md)).
-It is read by its secret across schools only to find the school, then checked
-inside it. Nothing reaches the account's other schools: accepting adds a
-membership and role at the inviting school only, and
-`ExistingAccountInvitationsTest` checks that the person's roles and permissions
-at their first school are exactly as before, and at the new one exactly the role
-it gave.
-
-### HQ school health
-
-`school_health_snapshots` is required school-owned: each row is one school's
-nightly health figures (counts and shares only), so it carries a not-null
-`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
-and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
-school reads it ([HQ school health](hq-school-health.md)).
-
-### HQ announcements to schools
-
-`platform_announcements` is global: Navigate Ed's own announcements, written only
-from `/saas`. Its `audience_values` may list school ids (an explicit audience);
-only HQ reads it. `platform_announcement_schools` (the schools an announcement
-reached, fixed at publication) and `platform_announcement_reads` (one row per
-Super Admin who dismissed it) are required school-owned, with models that use
-`BelongsToSchool`: a school reads an announcement only through its own target
-row and sees only its own people's reads; it never sees which other schools an
-announcement reached or their reads. HQ reads both across schools and shows
-counts ([HQ announcements](hq-announcements.md)).
-
 ### HQ two-factor sign-in
 
 `platform_staff_two_factor` is global: a platform staff member's own authenticator
@@ -391,26 +354,38 @@ schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: th
 granted school with the impersonation flag, which cannot be switched to another
 school or widened to every school for the rest of the request
 ([support access](support-access.md)).
-### Notification quiet hours
+### HQ school health
 
-`notification_quiet_hours` is global, like `notification_preferences`: one
-person chooses their push quiet hours once for every school ([quiet hours](quiet-hours.md)).
-### School sending domains
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
+### Packages and prices
 
-`school_sending_domains` is required school-owned, with a unique school foreign
-key (one domain per school) and a unique domain (one school per domain). Its model
-uses BelongsToSchool. Two reads cross schools on purpose and say only yes or no or
-use the delivery's own school: the connect check that no other school has the
-domain, a subdomain or a parent of it, and the From address a queued notice uses,
-read by the school the delivery row names. The scheduled poll lists due domains
-across schools and checks each inside its own school ([sending domains](sending-domains.md)).
-### Support desk
+`platform_packages`, `platform_package_modules` and `platform_prices` are global:
+Navigate Ed's own package list and price list, written only from `/saas`. They
+name no school; a school names its package by key and the module set version
+applied to it on its own `schools` row (`package_key`, `package_version`)
+([package editor](package-editor.md)).
 
-`school_support_tickets` and `school_support_ticket_messages` are required
-school-owned: a school reads and writes only its own tickets (another school's
-id is a 404), and HQ reads them across schools from `/saas` and writes inside
-the ticket's school. `platform_support_views` is global: when each HQ staff
-member last opened the queue ([support desk](support-desk.md)).
+### Early years tools
+
+`early_years_development_areas`, `early_years_diary_entries`,
+`early_years_observations` and `early_years_concerns` are required school-owned:
+each school keeps its own development areas, and every diary entry, observation
+and concern belongs to the learner's school. Observation photographs stay in the
+school's private gallery tables and storage prefix; a concern's words stay in
+the school's encrypted intervention ([early years](../learning/early-years.md)).
+
+
+### Structured memos
+
+`past_paper_memos` is required school-owned: the mark points of a school's own
+exam coach paper version, unique per school and version. Another school's
+version id is not found, so its memo is never read or changed
+([structured memos](../ai/structured-memos.md)).
+
 ### SMS and WhatsApp
 
 `school_messaging_settings` is required school-owned (one row per school, a
@@ -420,29 +395,68 @@ and push, with the school they were sent for; HQ reads their counts and cost
 across schools. Guardians' numbers come from the school-owned `parents` row at
 the sending school, never from the shared `users` row
 ([SMS and WhatsApp](sms-whatsapp.md)).
-### Structured memos
 
-`past_paper_memos` is required school-owned: the mark points of a school's own
-exam coach paper version, unique per school and version. Another school's
-version id is not found, so its memo is never read or changed
-([structured memos](../ai/structured-memos.md)).
+
+### Support desk
+
+`school_support_tickets` and `school_support_ticket_messages` are required
+school-owned: a school reads and writes only its own tickets (another school's
+id is a 404), and HQ reads them across schools from `/saas` and writes inside
+the ticket's school. `platform_support_views` is global: when each HQ staff
+member last opened the queue ([support desk](support-desk.md)).
+
+
+### School sending domains
+
+`school_sending_domains` is required school-owned, with a unique school foreign
+key (one domain per school) and a unique domain (one school per domain). Its model
+uses BelongsToSchool. Two reads cross schools on purpose and say only yes or no or
+use the delivery's own school: the connect check that no other school has the
+domain, a subdomain or a parent of it, and the From address a queued notice uses,
+read by the school the delivery row names. The scheduled poll lists due domains
+across schools and checks each inside its own school ([sending domains](sending-domains.md)).
+
+
+### Notification quiet hours
+
+`notification_quiet_hours` is global, like `notification_preferences`: one
+person chooses their push quiet hours once for every school ([quiet hours](quiet-hours.md)).
+
+
+### HQ billing
+
+`platform_invoices`, `platform_invoice_lines`, `platform_payments` and
+`platform_payment_allocations` are required school-owned: each invoice, credit
+note, line, EFT payment and allocation is about one school's account with
+Navigate Ed, so it carries the school (not null, indexed, a foreign key) and is
+written inside that school from `/saas`. The models use `BelongsToSchool`, so
+another school's invoice or payment id resolves to "not found". HQ reads them
+across schools; no school reads them in this step
+([HQ billing](hq-billing.md)).
+
+
+### HQ announcements to schools
+
+`platform_announcements` is global: Navigate Ed's own announcements, written only
+from `/saas`. Its `audience_values` may list school ids (an explicit audience);
+only HQ reads it. `platform_announcement_schools` (the schools an announcement
+reached, fixed at publication) and `platform_announcement_reads` (one row per
+Super Admin who dismissed it) are required school-owned, with models that use
+`BelongsToSchool`: a school reads an announcement only through its own target
+row and sees only its own people's reads; it never sees which other schools an
+announcement reached or their reads. HQ reads both across schools and shows
+counts ([HQ announcements](hq-announcements.md)).
+
 ### Mastery growth snapshots
 
 `mastery_growth_snapshots` is required school-owned: each row is one learner's
 derived mastery at the start and end of one of the school's terms. The nightly
 capture runs inside one school's context and the impact report reads only the
 current school's rows ([mastery impact](../leadership/mastery-impact.md)).
+
 ### Intervention library and wellbeing check-ins
 
 `intervention_library_actions`, `intervention_progress_entries` and
 `wellbeing_check_ins` are required school-owned: a school's library, the
 progress against its own interventions and its learners' check-ins. Another
 school's ids are not found ([check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)).
-### Early years tools
-
-`early_years_development_areas`, `early_years_diary_entries`,
-`early_years_observations` and `early_years_concerns` are required school-owned:
-each school keeps its own development areas, and every diary entry, observation
-and concern belongs to the learner's school. Observation photographs stay in the
-school's private gallery tables and storage prefix; a concern's words stay in
-the school's encrypted intervention ([early years](../learning/early-years.md)).
