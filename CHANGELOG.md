@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-04
+
+- Learners get a guided learning path for each subject (Action Plan 3.9): the server finds the topic to work on next, shows the school's lesson (or a library lesson), gives a few practice questions, then a short check it marks itself, and plans a review for a later day. A check that does not go well yet leads back to the lesson with a kind message; after three tries the topic rests until tomorrow. Answers are never sent to the device before the learner answers. Teachers see which step each learner in their group is on (no scores or rankings), and guardians see a plain summary for their own child. When the tutor and the AI are switched on, the tutor opens on the topic and leads the lesson. API: new `/api/v2/learning/paths` endpoints; the Dart client needs regenerating.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
