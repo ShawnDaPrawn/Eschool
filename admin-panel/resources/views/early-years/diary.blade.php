@@ -25,8 +25,8 @@
                     <x-page.field :id="'diary-everyone-'.$field" :name="'everyone['.$field.']'" type="select" :label="$labels[$field]" :options="array_map(fn ($text) => __($text), $options)" :placeholder="__('Leave blank')" :restore-old-input="false" />
                 @endforeach
             </section>
-            <div class="table-responsive">
-                <table class="table">
+            <div class="page-table__scroll" role="region" aria-label="{{ __('Each child\'s day') }}" tabindex="0">
+                <table class="page-table__table">
                     <caption>{{ __('Each child\'s day') }}</caption>
                     <thead><tr><th scope="col">{{ __('Child') }}</th>@foreach ($labels as $label)<th scope="col">{{ $label }}</th>@endforeach<th scope="col">{{ __('Note for the day') }}</th></tr></thead>
                     <tbody>
@@ -56,8 +56,8 @@
         </form>
     @else
         <p role="status">{{ __('Only teachers allocated to this class can fill in its diary.') }}</p>
-        <div class="table-responsive">
-            <table class="table">
+        <div class="page-table__scroll" role="region" aria-label="{{ __('Each child\'s day') }}" tabindex="0">
+            <table class="page-table__table">
                 <caption>{{ __('Each child\'s day') }}</caption>
                 <thead><tr><th scope="col">{{ __('Child') }}</th>@foreach ($labels as $label)<th scope="col">{{ $label }}</th>@endforeach<th scope="col">{{ __('Note for the day') }}</th></tr></thead>
                 <tbody>

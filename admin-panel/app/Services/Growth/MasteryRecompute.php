@@ -164,14 +164,17 @@ class MasteryRecompute
                 [$libraryVersion, , $mirror] = app(LibraryPractice::class)->entry($group, (int) $entry->library_item_version_id);
                 abort_unless((int) $mirror->id === $topicId, 409);
                 $source = ['content_source' => 'library', 'library_item_version_id' => (int) $libraryVersion->id];
+                // Facility is per item across its versions, as for the school's own items.
+                $itemKey = 'library_item:'.$libraryVersion->library_item_id;
             } else {
                 $version = PracticeItemVersion::findOrFail($entry->practice_item_version_id);
                 PracticeItem::usedIn((int) $group->id)->where('topic_id', $topicId)->findOrFail($version->practice_item_id);
+                $itemKey = 'practice_item:'.$version->practice_item_id;
             }
             MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $review->learner_id, 'topic_id' => $topicId,
                 'audience' => 'practice', 'source_key' => 'practice:'.$review->id], ['grade_level_id' => $group->grade_level_id,
                     'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $review->correct ? 1 : 0,
-                    'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => 'practice_item:'.$version->practice_item_id] + $source);
+                    'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => $itemKey] + $source);
             $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
         });
     }

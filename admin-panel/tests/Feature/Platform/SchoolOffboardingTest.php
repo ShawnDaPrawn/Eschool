@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 use ZipArchive;
@@ -38,6 +39,7 @@ use ZipArchive;
  */
 class SchoolOffboardingTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const LEAVING = self::SCHOOL_B_ID;
@@ -99,7 +101,7 @@ class SchoolOffboardingTest extends TestCase
 
     private function link(User $admin): string
     {
-        $url = $this->actingAs($admin)->get('/school-exit')->assertOk()->viewData('offboarding')['download_url'];
+        $url = $this->newBrowserSession()->actingAs($admin)->get('/school-exit')->assertOk()->viewData('offboarding')['download_url'];
         $this->assertIsString($url);
 
         return $url;
@@ -108,11 +110,11 @@ class SchoolOffboardingTest extends TestCase
     /** Started, built, downloaded and confirmed, then archived by Operations. */
     private function archived(User $operations, User $admin): SchoolOffboarding
     {
-        $this->actingAs($operations);
+        $this->actingAsHq($operations);
         $row = $this->build($this->start());
         $this->get($this->link($admin))->assertOk();
         $this->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertRedirect()->assertSessionHasNoErrors();
-        $this->actingAs($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/archive')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/archive')->assertRedirect()->assertSessionHasNoErrors();
 
         return $row->fresh();
     }
@@ -155,7 +157,7 @@ class SchoolOffboardingTest extends TestCase
         $operations = $this->staff('operations');
         $admin = $this->headOfB();
         $learner = User::query()->findOrFail($this->schoolB->ids['asha_user']);
-        $this->actingAs($operations)->post('/saas/schools/'.self::LEAVING.'/contracts', [
+        $this->actingAsHq($operations)->post('/saas/schools/'.self::LEAVING.'/contracts', [
             'starts_on' => '2025-01-01', 'ends_on' => '2026-12-31', 'contracted_learners' => 300, 'price_per_learner' => '24.50', 'signatory' => 'Principal Baobab',
             'operator_agreement_version' => 'v2', 'operator_agreement_signed_on' => '2025-01-01', 'deletion_days_after_end' => 30,
         ])->assertRedirect()->assertSessionHasNoErrors();
@@ -206,7 +208,7 @@ class SchoolOffboardingTest extends TestCase
         // 3. Receipt confirmed in the panel; 4. archived by Operations, deletion scheduled.
         $this->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame([SchoolOffboarding::RECEIVED, 'confirmed', $admin->id, 1], [$row->fresh()->state, $row->fresh()->receipt_basis, (int) $row->fresh()->received_by, $row->fresh()->download_count]);
-        $this->actingAs($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/archive')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/archive')->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame('archived', DB::table('schools')->where('id', self::LEAVING)->value('status'));
         $this->assertSame(SchoolOffboarding::ARCHIVED, $row->fresh()->state);
         $this->get('/saas/schools/'.self::LEAVING.'/offboarding')->assertOk()->assertSee('Deletion is scheduled for 2027-01-30.');
@@ -233,11 +235,11 @@ class SchoolOffboardingTest extends TestCase
             $this->delete('/saas/schools/'.self::LEAVING.'/offboarding/legal-hold')->assertForbidden();
         };
         foreach (['support', 'finance', 'content', 'sales'] as $role) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $refused();
         }
         // A school's own Super Admin never reaches HQ.
-        $this->actingAs($admin);
+        $this->newBrowserSession()->actingAs($admin);
         $refused();
         $this->assertSame(0, SchoolOffboarding::acrossSchools()->count());
         $this->assertSame(0, DB::table('audit_log')->where('action', 'like', 'platform_school_offboarding_%')->count());
@@ -245,7 +247,7 @@ class SchoolOffboardingTest extends TestCase
         // Operations runs steps 1 to 4 and asks for deletion, but cannot give the second approval or lift a hold.
         $operations = $this->staff('operations');
         $row = $this->archived($operations, $admin);
-        $this->actingAs($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertRedirect()->assertSessionHasNoErrors();
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertForbidden();
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding/legal-hold', ['reason' => 'A records request from the department.'])->assertRedirect();
         $this->delete('/saas/schools/'.self::LEAVING.'/offboarding/legal-hold')->assertForbidden();
@@ -253,7 +255,7 @@ class SchoolOffboardingTest extends TestCase
         $this->assertNull($row->fresh()->deletion_approved_at);
 
         // In the school: only its Super Admin sees the page, downloads or confirms; a teacher is refused.
-        $this->actingAs($teacherB)->withHeader('X-School-Id', (string) self::LEAVING);
+        $this->newBrowserSession()->actingAs($teacherB)->withHeader('X-School-Id', (string) self::LEAVING);
         $this->get('/school-exit')->assertForbidden();
         $this->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertForbidden();
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $teacherB->id]))->assertForbidden();
@@ -265,8 +267,8 @@ class SchoolOffboardingTest extends TestCase
         $before = $this->rowsOf(self::OTHER);
         $owner = $this->staff('owner');
         $row = $this->archived($this->staff('operations'), $this->headOfB());
-        $this->actingAs($this->staff('operations', 'operations2'))->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertRedirect()->assertSessionHasNoErrors();
-        $this->actingAs($owner)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($this->staff('operations', 'operations2'))->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($owner)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertRedirect()->assertSessionHasNoErrors();
         $this->assertNotNull($row->fresh()->deletion_approved_at);
 
         $this->assertSame($before, $this->rowsOf(self::OTHER));
@@ -276,7 +278,7 @@ class SchoolOffboardingTest extends TestCase
         $this->assertSame(DB::table('session_years')->where('school_id', self::LEAVING)->count(), $report['delete']['session_years']);
         // The other school has no offboarding, and its Super Admin sees none.
         $this->get('/saas/schools/'.self::OTHER.'/offboarding')->assertOk()->assertSee('Start an offboarding');
-        $this->actingAs($this->superAdmin())->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
         // The leaving school's offboarding id is not found from the other school.
         $this->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertNotFound();
     }
@@ -285,28 +287,28 @@ class SchoolOffboardingTest extends TestCase
     {
         $operations = $this->staff('operations');
         $admin = $this->headOfB();
-        $this->actingAs($operations);
+        $this->actingAsHq($operations);
         $row = $this->build($this->start());
         $url = $this->link($admin);
 
         // HQ staff, signed in to /saas: no school membership, so the panel signs them out; never a file.
-        $this->actingAs($operations)->get($url)->assertRedirect(route('login'));
+        $this->actingAsHq($operations)->get($url)->assertRedirect(route('login'));
         // Platform staff who also hold a Super Admin role at the school: refused all the same.
         $insider = $this->headOfB('insider@baobab.example');
         PlatformStaffIdentity::query()->create(['user_id' => $insider->id]);
-        $this->actingAs($insider)->get('/school-exit')->assertForbidden();
+        $this->newBrowserSession()->actingAs($insider)->get('/school-exit')->assertForbidden();
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $insider->id]))->assertForbidden();
         // Another school's Super Admin with the forwarded link, or with the reader changed to themselves.
-        $this->actingAs($this->superAdmin())->get($url)->assertForbidden();
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get($url)->assertForbidden();
         $this->get(str_replace('reader='.$admin->id, 'reader='.$this->superAdmin()->id, $url))->assertForbidden();
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $this->superAdmin()->id]))->assertNotFound();
         // A second Super Admin of the school cannot use the first one's link.
-        $this->actingAs($this->headOfB('deputy@baobab.example'))->get($url)->assertForbidden();
+        $this->newBrowserSession()->actingAs($this->headOfB('deputy@baobab.example'))->get($url)->assertForbidden();
         $this->assertSame(0, $row->fresh()->download_count);
 
         // The link lasts minutes; the export itself lasts until the receipt deadline.
         $this->travel(16)->minutes();
-        $this->actingAs($admin)->get($url)->assertForbidden();
+        $this->newBrowserSession()->actingAs($admin)->get($url)->assertForbidden();
         $this->get($this->link($admin))->assertOk();
         $this->travelTo(CarbonImmutable::parse('2026-11-21 08:00', PlatformOffboarding::TIMEZONE));
         $this->get(URL::temporarySignedRoute('school-exit.download', now()->addMinutes(5), ['offboarding' => $row->id, 'reader' => $admin->id]))->assertStatus(410);
@@ -329,7 +331,7 @@ class SchoolOffboardingTest extends TestCase
         $before = $tables->mapWithKeys(fn (string $table): array => [$table => DB::table($table)->count()])->all();
         $offboardings = DB::table('school_offboardings')->count();
 
-        $this->actingAs($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/dry-run')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/dry-run')->assertRedirect()->assertSessionHasNoErrors();
 
         $this->assertSame($before, $tables->mapWithKeys(fn (string $table): array => [$table => DB::table($table)->count()])->all());
         $this->assertSame($offboardings, DB::table('school_offboardings')->count());
@@ -352,8 +354,8 @@ class SchoolOffboardingTest extends TestCase
         $row = $this->archived($this->staff('operations'), $this->headOfB());
 
         // Approval before anyone asked is refused.
-        $this->actingAs($second)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertStatus(409);
-        $this->actingAs($first)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($second)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertStatus(409);
+        $this->actingAsHq($first)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertRedirect()->assertSessionHasNoErrors();
         // The same person cannot give the second approval.
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertSessionHasErrors('approval');
         $this->assertNull($row->fresh()->deletion_approved_at);
@@ -362,17 +364,17 @@ class SchoolOffboardingTest extends TestCase
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding/legal-hold', ['reason' => 'Litigation hold from the school governing body.'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertNull($row->fresh()->deletion_requested_at);
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertStatus(409);
-        $this->actingAs($second)->delete('/saas/schools/'.self::LEAVING.'/offboarding/legal-hold')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($second)->delete('/saas/schools/'.self::LEAVING.'/offboarding/legal-hold')->assertRedirect()->assertSessionHasNoErrors();
 
         // The export copy must still be there and unchanged.
         $path = $row->fresh()->artifact_path;
         $stored = Storage::disk(OffboardingExport::DISK)->get($path);
         Storage::disk(OffboardingExport::DISK)->put($path, 'tampered');
-        $this->actingAs($first)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertStatus(409);
+        $this->actingAsHq($first)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertStatus(409);
         Storage::disk(OffboardingExport::DISK)->put($path, $stored);
 
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion')->assertRedirect()->assertSessionHasNoErrors();
-        $this->actingAs($second)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($second)->post('/saas/schools/'.self::LEAVING.'/offboarding/deletion/approval')->assertRedirect()->assertSessionHasNoErrors();
         $fresh = $row->fresh();
         $this->assertSame([$first->id, $second->id], [(int) $fresh->deletion_requested_by, (int) $fresh->deletion_approved_by]);
         $this->assertSame(0, $fresh->dry_run_report['deleted']);
@@ -385,7 +387,7 @@ class SchoolOffboardingTest extends TestCase
     public function test_starting_is_validated_and_each_step_waits_for_the_one_before(): void
     {
         $operations = $this->staff('operations');
-        $this->actingAs($operations);
+        $this->actingAsHq($operations);
         // The default school can never be offboarded.
         $this->post('/saas/schools/'.self::OTHER.'/offboarding', ['reason' => 'Should never start for the default school.', 'receipt_deadline' => '2026-11-20', 'delete_on' => '2026-12-31', 'retention_terms' => 'Clause 12 of the agreement.'])
             ->assertSessionHasErrors('reason');
@@ -422,14 +424,14 @@ class SchoolOffboardingTest extends TestCase
         $this->assertSame(SchoolOffboarding::READY, $row->state);
 
         // Receipt needs a download first.
-        $this->actingAs($admin)->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertSessionHasErrors('confirm');
+        $this->newBrowserSession()->actingAs($admin)->post('/school-exit/'.$row->id.'/receipt', ['confirm' => '1'])->assertSessionHasErrors('confirm');
         $this->assertSame(SchoolOffboarding::READY, $row->fresh()->state);
 
         // Cancelling discards the export copy; the school stays active and may start again.
-        $this->actingAs($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/cancel', ['reason' => 'The school renewed its contract.'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsHq($operations)->post('/saas/schools/'.self::LEAVING.'/offboarding/cancel', ['reason' => 'The school renewed its contract.'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame(SchoolOffboarding::CANCELLED, $row->fresh()->state);
         $this->assertSame([], Storage::disk(OffboardingExport::DISK)->allFiles('schools/2/offboarding'));
-        $this->actingAs($admin)->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
+        $this->newBrowserSession()->actingAs($admin)->get('/school-exit')->assertOk()->assertSee('Your school is not leaving NavigateEd');
     }
 
     public function test_card_keys_and_other_credentials_never_leave_in_the_export_encrypted_or_decrypted(): void
@@ -451,7 +453,7 @@ class SchoolOffboardingTest extends TestCase
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
 
-        $this->actingAs($operations);
+        $this->actingAsHq($operations);
         $row = $this->build($this->start());
         $files = $this->unzip($this->get($this->link($admin))->assertOk()->getContent());
 

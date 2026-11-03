@@ -48,10 +48,11 @@ class PlatformTwoFactorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // A fixed clock, so time steps are known: 08:00:00 is the start of a step.
+        // Set before the schools exist, so memberships start on that same day.
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC'));
         $this->setUpTwoSchools();
         app(CurrentSchool::class)->forget();
-        // A fixed clock, so time steps are known: 08:00:00 is the start of a step.
-        $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC'));
     }
 
     private function staff(string $role, string $email = ''): User
@@ -77,7 +78,7 @@ class PlatformTwoFactorTest extends TestCase
     private function signIn(User $user): void
     {
         auth()->forgetGuards();
-        $this->keepSession($this->post('/login', ['email' => $user->email, 'password' => self::PASSWORD]))->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $user->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
     }
 
     private function signOut(): void
@@ -235,7 +236,7 @@ class PlatformTwoFactorTest extends TestCase
         [$operator, $secret] = $this->enrolled('operations');
         $operator->forceFill(['password_change_required' => true])->save();
         auth()->forgetGuards();
-        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => self::PASSWORD]))->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
 
         $this->get('/saas')->assertRedirect(route('saas.password'));
         $this->get('/saas/password')->assertRedirect(route('saas.two-factor.challenge'));

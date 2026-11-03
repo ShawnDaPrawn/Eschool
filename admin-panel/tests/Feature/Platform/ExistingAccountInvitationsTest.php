@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -36,6 +37,7 @@ use Tests\TestCase;
  */
 class ExistingAccountInvitationsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const PASSWORD = 'Synthetic-own-password-4417!';
@@ -446,11 +448,11 @@ class ExistingAccountInvitationsTest extends TestCase
         $learner = User::acrossSchools()->findOrFail($this->schoolA->ids['asha_user']);
         DB::table('users')->where('id', $learner->id)->update(['email' => 'asha.learner@example.com']);
         foreach (['asha.learner@example.com', $operator->email, User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user'])->email] as $refused) {
-            $this->actingAs($operator)->post('/saas/schools', ['admin_email' => $refused] + $form)->assertSessionHasErrors('admin_email');
+            $this->signInAs($operator)->post('/saas/schools', ['admin_email' => $refused] + $form)->assertSessionHasErrors('admin_email');
         }
         $this->assertSame($schools, School::query()->count());
 
-        $response = $this->actingAs($operator)->post('/saas/schools', $form)->assertOk()->assertSee('already has a NavigateEd account');
+        $response = $this->signInAs($operator)->post('/saas/schools', $form)->assertOk()->assertSee('already has a NavigateEd account');
         $this->assertTrue($response->viewData('existingAccount'));
         $this->assertSame($users, User::acrossSchools()->count(), 'no second account');
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
@@ -461,7 +463,7 @@ class ExistingAccountInvitationsTest extends TestCase
         auth()->forgetGuards();
         app(CurrentSchool::class)->forget();
 
-        $this->actingAs($tara, 'web')->get($first)->assertNotFound();
+        $this->signInAs($tara)->get($first)->assertNotFound();
         $latest = SchoolJoinInvitation::acrossSchools()->where('school_id', $school->id)->latest('id')->firstOrFail();
         $this->get($this->pathOf($latest))->assertOk()->assertSee('Be the first administrator of Marula Primary');
         $this->post($this->pathOf($latest).'/accept')->assertRedirect(route('home'));
@@ -470,7 +472,7 @@ class ExistingAccountInvitationsTest extends TestCase
         $this->assertTrue(app(CurrentSchool::class)->run(1, fn () => $tara->fresh()->hasRole('Teacher')), 'still a teacher at her first school');
         auth()->forgetGuards();
 
-        $this->actingAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->signInAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
         $this->assertFalse(app(SchoolJoinInvitations::class)->resendAdministrator((int) $school->id, $operator));
     }
 
@@ -633,13 +635,13 @@ class ExistingAccountInvitationsTest extends TestCase
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
         app(CurrentSchool::class)->forget();
         $form = ['name' => 'Marula Primary', 'slug' => '', 'timezone' => 'Africa/Johannesburg', 'package_key' => 'core', 'admin_first_name' => 'Tara', 'admin_last_name' => 'Moving', 'admin_email' => $tara->email, 'admin_mobile' => ''];
-        $path = (string) parse_url($this->actingAs($operator)->post('/saas/schools', $form)->assertOk()->viewData('invitationUrl'), PHP_URL_PATH);
+        $path = (string) parse_url($this->signInAs($operator)->post('/saas/schools', $form)->assertOk()->viewData('invitationUrl'), PHP_URL_PATH);
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
         auth()->forgetGuards();
-        $this->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect();
+        $this->signInAs($tara)->post($path.'/decline')->assertRedirect();
         auth()->forgetGuards();
 
-        $this->actingAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->signInAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
         $this->assertFalse(app(SchoolJoinInvitations::class)->resendAdministrator((int) $school->id, $operator));
     }
 }

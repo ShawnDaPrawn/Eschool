@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-03
+
+- Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
+- Refresh the strict HQ route inventory while retaining every route authorization assertion.
+- Apply question-bank scope foreign keys after backfill and required-column conversion, preserving the final constraints on MySQL 8 and MariaDB.
+- Restore the "No child unseen" page at /risk-interventions/unseen; a merge had moved its routes, so the early warning panel returned an error.
+- Daily practice answers on platform library questions no longer fail when recording mastery evidence.
+- New pushes now cancel a branch's earlier CI run in full, so stale runs no longer hold up the queue.
+
 - Phase5: actual daily cash custody reports, retained physical count revisions,
   explained differences and private exports without automatic ledger adjustments.
 

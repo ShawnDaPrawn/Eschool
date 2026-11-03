@@ -19,6 +19,7 @@ use App\Services\Platform\Support\SchoolSupportTickets;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -28,6 +29,7 @@ use Tests\TestCase;
  */
 class SupportDeskTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const BODY = 'The timetable page shows an empty grid since this morning for Grade 7.';
@@ -72,7 +74,7 @@ class SupportDeskTest extends TestCase
     {
         $this->flushSession();
         app(CurrentSchool::class)->forget();
-        $this->actingAs($user);
+        $this->signInAs($user);
     }
 
     /** Opens a ticket as the signed-in school user and returns its id. */
