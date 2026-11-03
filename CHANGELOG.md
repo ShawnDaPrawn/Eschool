@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-04
+
+- Learners can take a short starting check for a subject when their school has the Navigate Ed library switched on (Action Plan 3.7). It asks a few questions per topic, one at a time, marked on the server: the app never receives the answers or explanations, and the learner is not told right or wrong. Each answer fills the mastery map as its own kind of evidence ("diagnostic"), never as a mark. Learners and guardians see a plain starting point; teachers see who has finished and the starting map per topic on the new Starting checks page. API: new `/api/v2/learning/diagnostics` endpoints in `openapi.yaml` (the Dart client needs regenerating). **Deploy:** run migrations (two new school tables).
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
