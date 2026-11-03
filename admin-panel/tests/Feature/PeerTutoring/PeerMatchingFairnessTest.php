@@ -64,7 +64,7 @@ class PeerMatchingFairnessTest extends TestCase
                 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'mark_rule' => 'catch_up']);
             foreach ($this->nodes as $topic) {
                 MasteryRecord::create(['subject_id' => $this->subject, 'learner_id' => $this->schoolA->ids[$learner], 'topic_id' => $topic,
-                    'audience' => 'staff', 'level' => 4, 'score_bp' => 9000, 'confidence_bp' => 6000, 'evidence_count' => 2, 'computed_at' => now()]);
+                    'audience' => 'staff', 'level' => 4, 'score_bp' => 9000, 'confidence_bp' => 6000, 'evidence_count' => 2, 'policy_version' => 'recent20-v1', 'computed_at' => now()]);
             }
         }
         foreach (['asha' => 'farid', 'ben' => 'gina', 'cara' => 'farid'] as $learner => $guardian) {
