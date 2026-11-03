@@ -304,6 +304,19 @@ rows may point into the library (`mastery_topics.library_topic_id`,
 `practice_memories.library_item_id`), never the other way
 ([content library](../learning/content-library.md)).
 
+### Reading library (Action Plan 4.4)
+
+The reading library catalogue (`reading_books`, `reading_rights_decisions`,
+`reading_shelves`, `reading_shelf_books`, `reading_questions`) is global:
+Navigate Ed's own public-domain books, written only from `/saas/reading`; their
+models refuse any write while a school is the current school.
+`reading_book_texts` is global too: the state of each book's one cached text,
+written only by the server's fetcher (also during a learner's first read of a
+book), holding no school or learner data. A school's hidden shelves and books
+(`reading_hidden_items`), badge switches (`reading_settings`) and its learners'
+`reading_progress`, `reading_days` and `reading_answers` are required
+school-owned ([reading library](../learning/reading-library.md)).
+
 ### Invitations to join another school
 
 `school_join_invitations` is required school-owned: the inviting school's
