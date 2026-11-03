@@ -22,8 +22,8 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Term;
-use App\Models\User;
 use App\Services\Academics\TermCalendar;
+use App\Services\People\Leavers\LeaverState;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -95,7 +95,9 @@ class SessionYearService
 
     /**
      * Promotions recorded for a year take effect when it becomes current: students
-     * move to the class they were promoted to, and those who left are deactivated.
+     * move to the class they were promoted to, and those who left become leavers,
+     * reading their records until 31 March instead of being deactivated
+     * (LeaverState, Action Plan 1.21).
      */
     protected function applyPromotions(int $sessionYearId): void
     {
@@ -106,7 +108,7 @@ class SessionYearService
 
         $leaving = $sessions->where('status', 0)->pluck('student_id');
         if ($leaving->isNotEmpty()) {
-            User::whereIn('id', Students::whereIn('id', $leaving)->select('user_id'))->update(['status' => 0]);
+            app(LeaverState::class)->begin($leaving, SessionYear::query()->findOrFail($sessionYearId));
         }
     }
 

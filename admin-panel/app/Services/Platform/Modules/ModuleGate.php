@@ -11,7 +11,9 @@ use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\RequestContext;
 use App\Services\Platform\Saas\PlatformPackages;
+use App\Services\Platform\Stages\SchoolStages;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -86,16 +88,43 @@ class ModuleGate
         return ['enabled' => $enabled || ($retainedReadOnly && ($definition['money'] ?? false)), 'read_only' => $readOnly || ! $entitled, 'in_package' => $entitled];
     }
 
+    /**
+     * On for this school and, when a learner is signed in, for that learner's
+     * stage (Action Plan 4.1): a module with `stages` in config/modules.php
+     * is refused to a learner whose grade is in another stage. Guardians,
+     * staff and jobs are never limited by stage.
+     */
     public function allows(string $key): bool
     {
-        return $this->state($key)['enabled'];
+        return $this->state($key)['enabled'] && $this->stageAllows($key);
     }
 
     public function writable(string $key, bool $locked = false): bool
     {
         $state = $this->state($key, [], $locked);
 
-        return $state['enabled'] && ! $state['read_only'];
+        return $state['enabled'] && ! $state['read_only'] && $this->stageAllows($key);
+    }
+
+    /** Whether a module's stages admit this person: only learners are limited. */
+    public function allowsStageOf(string $key, User $user): bool
+    {
+        if (! is_array(config('modules.'.$key.'.stages'))) {
+            return true;
+        }
+
+        return SchoolStages::moduleAllows($key, app(SchoolStages::class)->forUser($user));
+    }
+
+    private function stageAllows(string $key): bool
+    {
+        $school = app(CurrentSchool::class);
+        if (! is_array(config('modules.'.$key.'.stages')) || ! $school->isSet() || $school->isAcrossSchools()) {
+            return true;
+        }
+        $user = Auth::user();
+
+        return ! $user instanceof User || $this->allowsStageOf($key, $user);
     }
 
     /** @return list<array{key: string, read_only: bool}> */
@@ -104,7 +133,7 @@ class ModuleGate
         $answer = [];
         foreach (array_keys(config('modules', [])) as $key) {
             $state = $this->state($key);
-            if ($state['enabled']) {
+            if ($state['enabled'] && $this->stageAllows($key)) {
                 $answer[] = ['key' => $key, 'read_only' => $state['read_only']];
             }
         }

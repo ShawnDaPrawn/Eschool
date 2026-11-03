@@ -16,6 +16,7 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Teacher;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
@@ -23,6 +24,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * Parent app: leave requests for the parent's children.
@@ -232,10 +234,17 @@ class LeaveController extends Controller
             if (! $leave) {
                 return ResponseService::validationError('Leave not found or unauthorized.');
             }
+            // Nothing is written for a leaver (Action Plan 1.21).
+            $learner = Students::query()->where('user_id', $leave->user_id)->first();
+            if ($learner !== null) {
+                app(LeaverState::class)->guardFamilyWrite($learner);
+            }
 
             $leave->delete();
 
             return ResponseService::successResponse('Data Deleted Successfully');
+        } catch (HttpExceptionInterface $refused) {
+            throw $refused;
         } catch (\Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }

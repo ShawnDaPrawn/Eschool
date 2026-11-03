@@ -63,17 +63,7 @@ class PathwayReferences
             'expires_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:reviewed_on'],
             'guidance' => ['required', 'string', 'max:6000'], 'rules' => ['required', 'array'],
         ])->validate();
-        $url = parse_url($data['source_url']);
-        abort_unless(($url['scheme'] ?? '') === 'https' && ! isset($url['user']) && ! isset($url['pass'])
-            && isset($url['host']) && str_contains($url['host'], '.') && filter_var($url['host'], FILTER_VALIDATE_IP) === false, 422, 'Use the public HTTPS source address without credentials.');
-        foreach (['title', 'source_title', 'guidance'] as $key) {
-            $data[$key] = trim($data[$key]);
-            abort_unless($data[$key] !== '' && mb_check_encoding($data[$key], 'UTF-8') && ! str_contains($data[$key], "\0"), 422);
-        }
-        if ($data['status'] === 'published') {
-            abort_unless($data['expires_on'] >= $today && $data['expires_on'] <= CarbonImmutable::parse($data['reviewed_on'])->addDays(366)->toDateString(), 422, 'Review current sources at least annually.');
-            abort_unless($data['reviewed_on'] >= now(app(CurrentSchool::class)->school()->timezone)->subDays(366)->toDateString(), 422, 'Review the source before publishing it again.');
-        }
+        $data = $this->sourced($data, ['title', 'source_title', 'guidance']);
         $data['revision'] = (int) $data['revision'];
         $data['source_year'] = (int) $data['source_year'];
         $data['institution'] = isset($data['institution']) ? trim($data['institution']) : null;
@@ -85,6 +75,34 @@ class PathwayReferences
         }
 
         return $data;
+    }
+
+    /**
+     * The shared sourcing rule for every catalogue entry (programmes, guides and
+     * career profiles): a public HTTPS source without credentials, non-empty
+     * text, and a published review window of at most one year.
+     */
+    public function sourced(array $data, array $texts): array
+    {
+        $today = app(AcademicAuthority::class)->today();
+        $this->publicUrl($data['source_url']);
+        foreach ($texts as $key) {
+            $data[$key] = trim($data[$key]);
+            abort_unless($data[$key] !== '' && mb_check_encoding($data[$key], 'UTF-8') && ! str_contains($data[$key], "\0"), 422);
+        }
+        if ($data['status'] === 'published') {
+            abort_unless($data['expires_on'] >= $today && $data['expires_on'] <= CarbonImmutable::parse($data['reviewed_on'])->addDays(366)->toDateString(), 422, 'Review current sources at least annually.');
+            abort_unless($data['reviewed_on'] >= now(app(CurrentSchool::class)->school()->timezone)->subDays(366)->toDateString(), 422, 'Review the source before publishing it again.');
+        }
+
+        return $data;
+    }
+
+    public function publicUrl(string $address): void
+    {
+        $url = parse_url($address);
+        abort_unless(($url['scheme'] ?? '') === 'https' && ! isset($url['user']) && ! isset($url['pass'])
+            && isset($url['host']) && str_contains($url['host'], '.') && filter_var($url['host'], FILTER_VALIDATE_IP) === false, 422, 'Use the public HTTPS source address without credentials.');
     }
 
     private function subjects(array $ids, bool $archived = false): void

@@ -35,3 +35,11 @@ Seven additive v2 operations and 24 schemas live in
 pinned generated Dart SDK are updated together. Manager panel:
 `/weekly-digest-templates`. Parent home: **Weekly learning update**; notifications
 open the same selected-child reader.
+
+## Growth first (Action Plan 4.6)
+
+The update can lead with "This week {learner} grew in…" and a help-at-home line
+from the published curriculum, through the optional `{grew_in}` and
+`{help_at_home}` placeholders; a line is left out when it has nothing to show.
+Learners get their own in-app note. Rules, data and tests:
+[growth-digest.md](growth-digest.md).

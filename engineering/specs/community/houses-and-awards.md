@@ -44,3 +44,10 @@ Private recognition invalidations contain source references and go only to fresh
 family recipients. School counters retain aggregate-only events. App readers clear
 private content across account, school, child, capability and lifecycle changes;
 background resume requires fresh authorization.
+
+## Persistence badges (Action Plan 4.6)
+
+Schools can switch on automatic persistence badges in the awards settings. They
+are permanent presentations with source `badge`, idempotent per learner, kind
+and week, and use the existing family award notice. See
+[growth-digest.md](../growth/growth-digest.md).

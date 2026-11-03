@@ -10,6 +10,7 @@ use App\Models\Growth\RiskCaseload;
 use App\Models\Platform\School;
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Academics\AcademicAuthority;
 use App\Services\Pastoral\SensitiveRecordsAccess;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -86,7 +87,9 @@ class Interventions
         $authority->year($year, true);
         $grade = $authority->currentGrade($learner, $year);
         $authority->caseActor($actor, $learner, $year, $grade, true);
-        $data = Validator::make($input, ['owner_id' => ['required', 'integer', 'min:1'], 'owner_authority' => ['sometimes', 'in:academic,professional,leadership'], 'action' => ['required', 'string', 'max:20000'],
+        // A library action (Action Plan 4.11) gives the plan its steps; the author may still write the action text.
+        $data = Validator::make($input, ['owner_id' => ['required', 'integer', 'min:1'], 'owner_authority' => ['sometimes', 'in:academic,professional,leadership'],
+            'library_action_id' => ['sometimes', 'nullable', 'integer', 'min:1'], 'action' => ['required_without:library_action_id', 'nullable', 'string', 'max:20000'],
             'started_on' => ['required', 'date_format:Y-m-d'], 'review_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:started_on']])->validate();
         $schoolYear = SessionYear::findOrFail($year);
         abort_unless($data['started_on'] >= $schoolYear->start_date && $data['started_on'] <= $schoolYear->end_date, 422, 'Start the intervention within its school year.');
@@ -105,10 +108,51 @@ class Interventions
             }
             $authority->caseActor(User::findOrFail($data['owner_id']), $learner, $year, $grade, true, $kind);
             abort_unless($authority->currentGrade($learner, $year) === $grade, 409, 'The learner enrolment changed. Reload before saving.');
+            if (($data['library_action_id'] ?? null) !== null) {
+                $plan = app(InterventionLibrary::class)->plan((int) $data['library_action_id']);
+                $data['plan'] = $plan;
+                $data['action'] = is_string($data['action'] ?? null) && trim($data['action']) !== '' ? $data['action'] : app(InterventionLibrary::class)->actionText($plan);
+            }
             $row = Intervention::create($data + ['learner_id' => $learner, 'session_year_id' => $year, 'grade_level_id' => $grade,
                 'created_by' => $actor->id, 'owner_authority' => $kind, 'revision' => 1, 'state' => 'active']);
             $this->version($row, $actor);
             Audit::record('growth.intervention_created', $row, [], ['revision' => 1]);
+
+            return $this->metadata($row);
+        });
+    }
+
+    /**
+     * A referral from another workflow (an early years concern, Action Plan
+     * 4.3). The referrer's own authority belongs to the calling workflow,
+     * which passes it as $referrer to be rechecked under the lock. The owner
+     * must be a current grade head for the learner's grade, so the action is
+     * a leadership action from the start and only they open its body.
+     */
+    public function refer(User $actor, int $learner, int $year, int $owner, string $action, string $reviewOn, callable $referrer): array
+    {
+        $authority = app(RiskAuthority::class);
+        $authority->actor($actor);
+        $authority->year($year, true);
+        $referrer();
+        $grade = $authority->currentGrade($learner, $year);
+        $authority->caseActor(User::findOrFail($owner), $learner, $year, $grade, true, 'leadership');
+        $today = app(AcademicAuthority::class)->today();
+        $data = Validator::make(['action' => $action, 'review_on' => $reviewOn], ['action' => ['required', 'string', 'max:20000'],
+            'review_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$today]])->validate();
+        $schoolYear = SessionYear::findOrFail($year);
+        abort_unless($today >= $schoolYear->start_date && $today <= $schoolYear->end_date, 422, 'Start the intervention within its school year.');
+
+        return DB::transaction(function () use ($actor, $learner, $year, $owner, $grade, $data, $today, $authority, $referrer) {
+            School::lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
+            $authority->actor($actor);
+            $referrer();
+            $authority->caseActor(User::findOrFail($owner), $learner, $year, $grade, true, 'leadership');
+            abort_unless($authority->currentGrade($learner, $year) === $grade, 409, 'The learner enrolment changed. Reload before saving.');
+            $row = Intervention::create(['owner_id' => $owner, 'action' => $data['action'], 'started_on' => $today, 'review_on' => $data['review_on'], 'learner_id' => $learner,
+                'session_year_id' => $year, 'grade_level_id' => $grade, 'created_by' => $actor->id, 'owner_authority' => 'leadership', 'revision' => 1, 'state' => 'active']);
+            $this->version($row, $actor);
+            Audit::record('growth.intervention_referred', $row, [], ['revision' => 1, 'created_by' => (int) $actor->id]);
 
             return $this->metadata($row);
         });

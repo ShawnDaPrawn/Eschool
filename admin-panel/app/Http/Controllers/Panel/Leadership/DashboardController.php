@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Leadership\DashboardRequest;
 use App\Models\SessionYear;
 use App\Services\Leadership\LeadershipDashboard;
+use App\Services\Leadership\MasteryImpact;
 use Illuminate\Http\Response;
 
 class DashboardController extends Controller
@@ -17,6 +18,7 @@ class DashboardController extends Controller
         $year = (int) $r->validated('session_year_id', (int) schoolSetting('session_year'));
         $data = app(LeadershipDashboard::class)->read($r->user(), $year, (int) $r->validated('weeks', 8), $r->validated('through'));
 
-        return response()->view('leadership.dashboard', ['dashboard' => $data, 'years' => SessionYear::orderByDesc('start_date')->get(), 'weeks' => (int) $r->validated('weeks', 8)])->header('Cache-Control', 'private, no-store');
+        return response()->view('leadership.dashboard', ['dashboard' => $data, 'years' => SessionYear::orderByDesc('start_date')->get(), 'weeks' => (int) $r->validated('weeks', 8),
+            'masteryImpact' => app(MasteryImpact::class)->available($r->user())])->header('Cache-Control', 'private, no-store');
     }
 }

@@ -39,6 +39,7 @@ use App\Services\Transfers\TransferPackages;
 use App\Services\Transfers\TransferVault;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -121,6 +122,66 @@ class PrivateGalleryTest extends TestCase
         } catch (ValidationException $error) {
             $this->assertSame($status, $error->status);
         }
+    }
+
+    public function test_leaver_only_guardian_can_remove_tags_but_cannot_grant_new_photo_access(): void
+    {
+        // Mona has only Asha at this school: no active sibling keeps her Parent role writable.
+        $this->parent = User::findOrFail($this->schoolA->ids['mona_user']);
+        $this->parent->forceFill(['email_verified_at' => now()])->save();
+        GuardianLink::updateOrCreate(['learner_id' => $this->learner, 'guardian_user_id' => $this->parent->id], ['status' => 'active', 'relationship' => 'mother', 'can_approve' => true]);
+        $directPhoto = $this->upload();
+        $httpPhoto = $this->upload();
+        $directTag = PhotoTag::where('gallery_photo_id', $directPhoto->id)->sole();
+        $httpTag = PhotoTag::where('gallery_photo_id', $httpPhoto->id)->sole();
+        SchoolMembership::where('school_id', 1)->whereIn('user_id', [$this->parent->id, $this->student->id])
+            ->update(['status' => SchoolMembership::LEAVER, 'leaver_until' => '2026-03-31', 'ends_on' => '2026-03-31']);
+        $direct = $this->op(['revision' => $directTag->revision]);
+        $this->app->instance('request', Request::create('/api/v2/gallery/tags/'.$directTag->id.'/remove', 'POST'));
+        $service = app(GalleryTags::class);
+        $removed = $service->remove($this->parent, (int) $directTag->id, $direct);
+        $this->assertSame('removed', $removed->status);
+        $this->assertSame($removed->revision, $service->remove($this->parent, (int) $directTag->id, $direct)->revision);
+
+        $this->apiAs($this->parent);
+        $url = '/api/v2/gallery/tags/'.$httpTag->id.'/remove';
+        $input = $this->op(['revision' => $httpTag->revision]);
+        $this->postJson($url, $input)->assertOk();
+        $this->assertSame('removed', $httpTag->fresh()->status);
+        $this->postJson($url, $input)->assertOk();
+        $this->assertFalse($httpPhoto->fresh()->active);
+        $this->assertSame(2, GalleryEvent::where('kind', 'tag_removed')->count());
+        $this->postJson('/api/v2/gallery/tags/'.$httpTag->id.'/decision', $this->op(['revision' => 2, 'decision' => 'approve']))->assertForbidden();
+        $this->postJson('/api/v2/gallery/photos/'.$httpPhoto->id.'/tags', $this->op(['learner_id' => $this->learner]))->assertForbidden();
+
+        // Replays still require today's guardian link, not just an old receipt.
+        GuardianLink::where('learner_id', $this->learner)->where('guardian_user_id', $this->parent->id)->update(['status' => 'ended']);
+        $this->postJson($url, $input)->assertNotFound();
+        $this->assertSame(2, GalleryEvent::where('kind', 'tag_removed')->count());
+    }
+
+    public function test_leaver_tag_removal_rejects_foreign_families_and_expired_learner_access(): void
+    {
+        // Mona has only Asha at this school: no active sibling keeps her Parent role writable.
+        $this->parent = User::findOrFail($this->schoolA->ids['mona_user']);
+        $this->parent->forceFill(['email_verified_at' => now()])->save();
+        GuardianLink::updateOrCreate(['learner_id' => $this->learner, 'guardian_user_id' => $this->parent->id], ['status' => 'active', 'relationship' => 'mother', 'can_approve' => true]);
+        $photo = $this->upload();
+        $tag = PhotoTag::where('gallery_photo_id', $photo->id)->sole();
+        SchoolMembership::where('school_id', 1)->whereIn('user_id', [$this->parent->id, $this->student->id])
+            ->update(['status' => SchoolMembership::LEAVER, 'leaver_until' => '2026-03-31', 'ends_on' => '2026-03-31']);
+        $url = '/api/v2/gallery/tags/'.$tag->id.'/remove';
+        $input = $this->op(['revision' => $tag->revision]);
+        $other = User::findOrFail($this->schoolA->ids['gina_user']);
+        $other->forceFill(['email_verified_at' => now()])->save();
+        $this->apiAs($other);
+        $this->postJson($url, $input)->assertNotFound();
+        $this->apiAs($this->parent);
+        $this->withHeader('X-School-Id', '2')->postJson($url, $input)->assertForbidden();
+        $this->withHeader('X-School-Id', '1');
+        SchoolMembership::where('user_id', $this->student->id)->where('school_id', 1)->where('role', 'Student')->update(['leaver_until' => '2026-02-09']);
+        $this->postJson($url, $input)->assertNotFound();
+        $this->assertSame('approved', $tag->fresh()->status);
     }
 
     public function test_guardian_upload_is_private_scanned_encrypted_and_exact_retry_is_stable(): void

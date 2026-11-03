@@ -15,6 +15,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
@@ -25,6 +26,7 @@ use Tests\TestCase;
  */
 class HqFeatureFlagsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use RefreshDatabase, ValidatesOpenApiResponses;
 
     private string $token;
@@ -69,7 +71,7 @@ class HqFeatureFlagsTest extends TestCase
         $this->app['auth']->forgetGuards();
         $this->app['auth']->shouldUse('web');
         if ($this->operator !== null) {
-            $this->actingAs($this->operator, 'web');
+            $this->actingAsHq($this->operator);
         }
 
         return $flags;
@@ -80,7 +82,7 @@ class HqFeatureFlagsTest extends TestCase
     private function as(string $role): void
     {
         $this->operator = $this->staff($role);
-        $this->actingAs($this->operator);
+        $this->actingAsHq($this->operator);
     }
 
     private function flagId(string $key): int
@@ -167,7 +169,7 @@ class HqFeatureFlagsTest extends TestCase
 
     public function test_bad_input_and_stale_forms_are_refused(): void
     {
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
         foreach (['Parent-Home', 'ab', 'x'.str_repeat('y', 64), '1flag'] as $key) {
             $this->post('/saas/flags', ['key' => $key, 'description' => 'A bad key'])->assertSessionHasErrors('key');
         }
@@ -190,13 +192,13 @@ class HqFeatureFlagsTest extends TestCase
 
     public function test_only_owner_and_operations_manage_flags_and_no_school_account_reaches_them(): void
     {
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
         $this->post('/saas/flags', ['key' => 'parent_home', 'description' => 'Parent home across schools'])->assertRedirect();
         $id = $this->flagId('parent_home');
         $before = [DB::table('platform_feature_flags')->value('revision'), DB::table('platform_feature_flags')->value('rollout'), DB::table('platform_feature_flag_schools')->count(), DB::table('platform_feature_flags')->count()];
 
         foreach (['support', 'finance', 'content', 'sales'] as $role) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $this->get('/saas')->assertOk()->assertDontSee('Feature flags');
             $this->get('/saas/flags')->assertForbidden();
             $this->post('/saas/flags', ['key' => 'sneaky_flag', 'description' => 'Should never be created'])->assertForbidden();
@@ -204,7 +206,7 @@ class HqFeatureFlagsTest extends TestCase
             $this->post('/saas/flags/'.$id.'/schools', ['school_id' => 1, 'switch' => 'on'])->assertForbidden();
         }
         // A school's own Super Admin (Pieter at School 2) never reaches HQ.
-        $this->actingAs(User::query()->where('email', 'pieter@example.com')->firstOrFail());
+        $this->newBrowserSession()->actingAs(User::query()->where('email', 'pieter@example.com')->firstOrFail());
         $this->get('/saas/flags')->assertForbidden();
         $this->put('/saas/flags/'.$id, ['description' => 'Changed', 'rollout' => 'everyone', 'killed' => 0, 'revision' => 1])->assertForbidden();
         $this->post('/saas/flags/'.$id.'/schools', ['school_id' => 2, 'switch' => 'on'])->assertForbidden();
