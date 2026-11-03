@@ -1612,6 +1612,10 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::post('library/suggested', [InterventionLibraryController::class, 'adopt'])->name('library.adopt');
     Route::post('library/{action}', [InterventionLibraryController::class, 'update'])->whereNumber('action')->name('library.update');
     Route::post('library/{action}/archive', [InterventionLibraryController::class, 'archive'])->whereNumber('action')->name('library.archive');
+    // "No child unseen" (Action Plan 4.5).
+    Route::get('unseen', [UnseenLearnersController::class, 'index'])->name('unseen');
+    Route::post('unseen/learners/{learner}/adult', [UnseenLearnersController::class, 'assign'])->whereNumber('learner')->middleware('throttle:30,1')->name('unseen.assign');
+    Route::post('unseen/settings', [UnseenLearnersController::class, 'configure'])->name('unseen.configure');
 });
 
 // Short private wellbeing check-ins for authorised pastoral staff (Action Plan 4.11).
@@ -1620,10 +1624,6 @@ Route::middleware([PrivateWellbeing::class, 'auth', 'school.context', 'staff', '
     Route::post('/', [CheckInPanelController::class, 'schedule'])->name('schedule');
     Route::post('{checkIn}/answer', [CheckInPanelController::class, 'record'])->whereNumber('checkIn')->name('record');
     Route::post('{checkIn}/cancel', [CheckInPanelController::class, 'cancel'])->whereNumber('checkIn')->name('cancel');
-    // "No child unseen" (Action Plan 4.5).
-    Route::get('unseen', [UnseenLearnersController::class, 'index'])->name('unseen');
-    Route::post('unseen/learners/{learner}/adult', [UnseenLearnersController::class, 'assign'])->whereNumber('learner')->middleware('throttle:30,1')->name('unseen.assign');
-    Route::post('unseen/settings', [UnseenLearnersController::class, 'configure'])->name('unseen.configure');
 });
 
 Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'module:discipline', EnforceReadOnlyYears::class])->prefix('school-discipline')->name('discipline-panel.')->group(function () {
