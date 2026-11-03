@@ -38,6 +38,8 @@ class LearnerDiaryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Keep fixtures and requests on the same deterministic clock.
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC'));
         $this->setUpDemoSchool();
         SchoolModule::updateOrCreate(['module' => 'diary'], ['enabled' => true, 'in_package' => true]);
         $this->approve($this->school);
@@ -211,22 +213,17 @@ class LearnerDiaryTest extends TestCase
     {
         config(['app.timezone' => 'UTC']);
         Settings::updateOrCreate(['type' => 'time_zone'], ['message' => 'Africa/Johannesburg']);
-        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC'));
-        try {
-            // Sunday late evening is already overdue on Monday in this school.
-            SchoolTable::query('assignments')->where('id', $this->school->ids['assignment'])
-                ->update(['due_date' => '2026-11-01 23:30:00']);
-            $items = $this->as('ben')->getJson('/api/v2/diary?from=2026-11-02&to=2026-11-08')
-                ->assertOk()->json('data.school_items');
-            $homework = collect($items)->firstWhere('source', 'homework');
-            $this->assertNotNull($homework);
-            $this->assertSame('2026-11-02', $homework['date']);
-            $this->assertTrue($homework['homework']['overdue']);
-            $past = $this->as('ben')->getJson('/api/v2/diary?from=2026-10-26&to=2026-11-01')->assertOk();
-            $this->assertSame('2026-11-01', collect($past->json('data.school_items'))->firstWhere('source', 'homework')['date']);
-        } finally {
-            CarbonImmutable::setTestNow();
-        }
+        // Sunday late evening is already overdue on Monday in this school.
+        SchoolTable::query('assignments')->where('id', $this->school->ids['assignment'])
+            ->update(['due_date' => '2026-11-01 23:30:00']);
+        $items = $this->as('ben')->getJson('/api/v2/diary?from=2026-11-02&to=2026-11-08')
+            ->assertOk()->json('data.school_items');
+        $homework = collect($items)->firstWhere('source', 'homework');
+        $this->assertNotNull($homework);
+        $this->assertSame('2026-11-02', $homework['date']);
+        $this->assertTrue($homework['homework']['overdue']);
+        $past = $this->as('ben')->getJson('/api/v2/diary?from=2026-10-26&to=2026-11-01')->assertOk();
+        $this->assertSame('2026-11-01', collect($past->json('data.school_items'))->firstWhere('source', 'homework')['date']);
     }
 
     public function test_a_done_undated_to_do_stays_reachable_on_the_day_it_was_done(): void
