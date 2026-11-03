@@ -24,8 +24,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('practice_items', function (Blueprint $t) {
-            $t->foreignId('subject_id')->nullable()->after('teaching_group_id')->constrained('subjects')->restrictOnDelete();
-            $t->foreignId('grade_level_id')->nullable()->after('subject_id')->constrained('grade_levels')->restrictOnDelete();
+            $t->foreignId('subject_id')->nullable()->after('teaching_group_id');
+            $t->foreignId('grade_level_id')->nullable()->after('subject_id');
             $t->foreignId('author_id')->nullable()->after('grade_level_id')->constrained('users')->restrictOnDelete();
             $t->string('visibility', 16)->default('groups')->after('author_id');
         });
@@ -58,9 +58,13 @@ return new class extends Migration
         });
 
         Schema::table('practice_items', function (Blueprint $t) {
+            // MySQL requires these columns to reach their final nullability
+            // before their foreign keys are attached.
             $t->unsignedBigInteger('subject_id')->nullable(false)->change();
             $t->unsignedBigInteger('grade_level_id')->nullable(false)->change();
             $t->index(['school_id', 'subject_id', 'grade_level_id', 'active'], 'practice_items_bank');
+            $t->foreign('subject_id')->references('id')->on('subjects')->restrictOnDelete();
+            $t->foreign('grade_level_id')->references('id')->on('grade_levels')->restrictOnDelete();
         });
     }
 

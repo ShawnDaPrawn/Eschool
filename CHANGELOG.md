@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-03
+
+- Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
+- Refresh the strict HQ route inventory while retaining every route authorization assertion.
+- Apply question-bank scope foreign keys after backfill and required-column conversion, preserving the final constraints on MySQL 8 and MariaDB.
+
 - Phase5: actual daily cash custody reports, retained physical count revisions,
   explained differences and private exports without automatic ledger adjustments.
 
