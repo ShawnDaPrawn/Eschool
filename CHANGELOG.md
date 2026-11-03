@@ -8,6 +8,7 @@
 - Restore the "No child unseen" page at /risk-interventions/unseen; a merge had moved its routes, so the early warning panel returned an error.
 - Daily practice answers on platform library questions no longer fail when recording mastery evidence.
 - New pushes now cancel a branch's earlier CI run in full, so stale runs no longer hold up the queue.
+- Message workbench links are underlined so they read as links; the content library link migration rolls back on MySQL; more tests guard the school calendar in /me/context, check-in counts beyond 500 answers, and topics without evidence in the mastery impact report (from #394).
 
 - Phase5: actual daily cash custody reports, retained physical count revisions,
   explained differences and private exports without automatic ledger adjustments.

@@ -47,6 +47,10 @@ return new class extends Migration
             || DB::table('practice_set_entries')->whereNotNull('library_item_version_id')->exists() || DB::table('practice_memories')->whereNotNull('library_item_id')->exists()) {
             throw new RuntimeException('Practice or mastery rows use the content library: export them before rolling back.');
         }
+        // MySQL requires the existing FK to be detached before tightening nullability.
+        foreach (['practice_memories' => 'practice_item_id', 'practice_set_entries' => 'practice_item_version_id', 'mastery_topics' => 'curriculum_topic_id'] as $table => $column) {
+            Schema::table($table, fn (Blueprint $t) => $t->dropForeign([$column]));
+        }
         Schema::table('practice_memories', function (Blueprint $t) {
             $t->dropUnique('practice_memory_library_item');
             $t->dropConstrainedForeignId('library_item_id');
@@ -65,5 +69,8 @@ return new class extends Migration
             $t->dropConstrainedForeignId('library_topic_id');
             $t->unsignedBigInteger('curriculum_topic_id')->nullable(false)->change();
         });
+        foreach (['practice_memories' => ['practice_item_id', 'practice_items'], 'practice_set_entries' => ['practice_item_version_id', 'practice_item_versions'], 'mastery_topics' => ['curriculum_topic_id', 'curriculum_topics']] as $table => [$column, $parent]) {
+            Schema::table($table, fn (Blueprint $t) => $t->foreign($column)->references('id')->on($parent)->restrictOnDelete());
+        }
     }
 };

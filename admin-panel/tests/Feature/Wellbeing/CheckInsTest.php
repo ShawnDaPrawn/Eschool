@@ -307,4 +307,18 @@ class CheckInsTest extends TestCase
         $this->assertNull(CheckIn::findOrFail($id)->answer);
         $this->assertFalse(session()->has('_old_input'));
     }
+
+    public function test_context_counts_the_full_window_beyond_five_hundred_answers(): void
+    {
+        $id = $this->answered(2);
+        $answer = CheckIn::findOrFail($id);
+        for ($i = 0; $i < 500; $i++) {
+            $copy = $answer->replicate();
+            $copy->answered_at = now()->subDay();
+            $copy->save();
+        }
+        $context = app(CheckInContext::class)->forLearners($this->actor(), [$this->schoolA->ids['asha']]);
+        $this->assertSame(501, $context[$this->schoolA->ids['asha']]['answered']);
+        $this->assertSame(2, $context[$this->schoolA->ids['asha']]['latest_scale']);
+    }
 }

@@ -349,4 +349,14 @@ class MasteryImpactTest extends TestCase
         (new CaptureMasteryGrowth(1))->handle(app(CurrentSchool::class), app(MasteryGrowth::class));
         $this->assertSame(9, MasteryGrowthSnapshot::count());
     }
+
+    public function test_rostered_topics_without_any_evidence_are_visible(): void
+    {
+        $report = app(MasteryImpact::class)->read($this->superAdmin(), $this->term);
+        $this->assertCount(3, $report['grades'][0]['topics']);
+        foreach ($report['grades'][0]['topics'] as $topic) {
+            $this->assertSame(1, $topic['no_evidence']);
+            $this->assertSame(0, $topic['evidence_now']);
+        }
+    }
 }
