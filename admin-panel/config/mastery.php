@@ -23,6 +23,9 @@ return [
             'released_question_mark' => 1.0,
             'practice_review' => 0.5,
             'tutor_checkpoint' => 0.5,
+            // Guided learning path (Action Plan 3.9): self-study, like daily practice.
+            'path_practice' => 0.5,
+            'path_check' => 0.5,
         ],
         'default_source_weight' => 0.5,
 
