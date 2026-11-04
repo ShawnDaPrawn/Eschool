@@ -29341,8 +29341,9 @@ paths:
       tags:
       - Strengths mirror
       summary: listStrengthsShares
-      description: The signed-in learner's own shares, newest first, with whether each is open, revoked or expired and when it
-        was last viewed. Learner only.
+      description: The signed-in learner's own shares with whether each is open, revoked or expired and when it was last viewed.
+        Every open share comes first, in full and newest first, so it can always be found and ended; then up to 100 of the most
+        recent revoked or expired shares. Learner only.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'

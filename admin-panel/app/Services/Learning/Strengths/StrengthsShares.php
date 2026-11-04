@@ -45,11 +45,22 @@ class StrengthsShares
         return array_values($this->eligible(app(StrengthsAccess::class)->learner($actor)));
     }
 
-    /** The learner's own shares, newest first, with their state. */
+    /** How many ended (revoked or expired) shares the learner's list shows. */
+    public const HISTORY_LIMIT = 100;
+
+    /**
+     * The learner's own shares: every open share in full, newest first, so
+     * one can always be found and ended, then the most recent ended ones.
+     * Open shares are already bounded by max_open_shares.
+     */
     public function mine(User $actor): array
     {
         $learner = app(StrengthsAccess::class)->learner($actor);
-        $rows = StrengthsMirrorShare::query()->where('learner_id', $learner->id)->where('owner_user_id', $learner->user_id)->orderByDesc('id')->limit(100)->get();
+        $own = fn () => StrengthsMirrorShare::query()->where('learner_id', $learner->id)->where('owner_user_id', $learner->user_id);
+        $now = now();
+        $open = $own()->whereNull('revoked_at')->where('expires_at', '>', $now)->orderByDesc('id')->get();
+        $ended = $own()->where(fn ($q) => $q->whereNotNull('revoked_at')->orWhere('expires_at', '<=', $now))->orderByDesc('id')->limit(self::HISTORY_LIMIT)->get();
+        $rows = $open->concat($ended);
         $names = User::query()->whereIn('id', $rows->pluck('viewer_user_id')->unique())->get(['id', 'first_name', 'last_name'])->keyBy('id');
 
         return ['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $learner->user_id,

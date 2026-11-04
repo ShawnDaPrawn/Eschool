@@ -117,7 +117,7 @@ query string; only the share route takes a body. See `openapi.yaml` (tag
 | --- | --- | --- |
 | `GET strengths` | learner | The live mirror |
 | `GET strengths/recipients` | learner | Who they may share with |
-| `GET strengths/shares` | learner | Their shares with status and last viewed |
+| `GET strengths/shares` | learner | Their shares with status and last viewed: every open share in full first, then up to 100 recent ended ones |
 | `POST strengths/shares` | learner | Creates a share |
 | `POST strengths/shares/{share}/revoke` | learner | Ends a share |
 | `GET strengths/shared-with-me` | guardian or teacher | Open shares made to them |
@@ -172,6 +172,7 @@ only when `/me/context` lists `strengths_mirror`.
 | `test_guardians_teachers_leaders_and_hq_cannot_read_the_mirror_without_a_share` | Guardian, non-approving guardian, teacher, other teacher, school leader and HQ refused; the service refuses an account that is not the signed-in user, and a call with nobody signed in |
 | `test_a_share_to_an_approving_guardian_is_a_read_only_snapshot_and_audited` | Recipients list, idempotent share, 409 on a reused operation, chosen sections only, snapshot unchanged when live data moves on, last viewed, audit rows without content, viewer cannot revoke |
 | `test_a_share_to_a_teacher_who_teaches_the_learner_works_and_others_are_refused` | Teacher share works; other teacher, non-approving guardian, another learner and unknown ids refused with nothing written; nobody else reads the copy |
+| `test_an_open_share_stays_listed_and_revocable_behind_many_newer_ended_ones` | Over 100 newer revoked and expired shares never push an open share out of the learner's list; it stays first and revocable, and ended shares are a bounded history |
 | `test_a_revoked_or_expired_share_is_refused` | Revoked and expired shares are 404 and leave the list; at most 30 days; a guardian who loses the approving link loses the share |
 | `test_another_learner_never_reaches_this_learners_mirror_or_shares` | Another learner sees only their own, cannot revoke or read the share |
 | `test_school_b_never_reaches_school_a_and_a_teacher_at_another_school_cannot_be_named` | School B teacher refused as recipient; School B accounts refused in School A; School A share id not found in School B |

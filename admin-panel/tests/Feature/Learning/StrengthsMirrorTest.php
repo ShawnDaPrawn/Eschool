@@ -243,6 +243,8 @@ class StrengthsMirrorTest extends TestCase
     public function test_tutor_conversations_never_appear_only_the_topics_chosen(): void
     {
         $this->tutor(1);
+        // A minute later, so "most recent first" has one answer.
+        $this->travel(1)->minutes();
         $this->tutor(2);
         $mirror = $this->mirror()->assertOk();
         $json = $mirror->getContent();
@@ -345,6 +347,28 @@ class StrengthsMirrorTest extends TestCase
         foreach (['theo', 'farid', 'mona'] as $who) {
             $this->as($who)->getJson('/api/v2/strengths/shared-with-me/'.$share['id'])->assertNotFound();
         }
+    }
+
+    public function test_an_open_share_stays_listed_and_revocable_behind_many_newer_ended_ones(): void
+    {
+        $open = $this->share('farid', ['growing'])->assertOk()->json('data');
+        // More newer ended shares than the history shows: revoked and expired.
+        $source = StrengthsMirrorShare::query()->findOrFail($open['id']);
+        for ($i = 0; $i <= StrengthsShares::HISTORY_LIMIT + 5; $i++) {
+            $copy = $source->replicate();
+            $copy->operation_id = (string) Str::uuid();
+            $i % 2 === 0 ? $copy->revoked_at = now() : $copy->expires_at = now()->subMinute();
+            $copy->save();
+        }
+
+        $shares = $this->as('asha')->getJson('/api/v2/strengths/shares')->assertOk()->json('data.shares');
+        $this->assertSame($open['id'], $shares[0]['id'], 'Every open share is listed first.');
+        $this->assertSame('open', $shares[0]['status']);
+        $this->assertCount(1 + StrengthsShares::HISTORY_LIMIT, $shares, 'Ended shares are a bounded history.');
+        $this->assertSame([], array_values(array_filter(array_slice($shares, 1), fn ($row) => $row['status'] === 'open')));
+
+        $this->as('asha')->postJson('/api/v2/strengths/shares/'.$open['id'].'/revoke')->assertOk()->assertJsonPath('data.status', 'revoked');
+        $this->as('farid')->getJson('/api/v2/strengths/shared-with-me/'.$open['id'])->assertNotFound();
     }
 
     public function test_a_revoked_or_expired_share_is_refused(): void
