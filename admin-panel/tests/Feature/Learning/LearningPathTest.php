@@ -335,4 +335,18 @@ class LearningPathTest extends TestCase
         $this->switchLibrary(1, false);
         $this->assertSame(['gap', 'withdrawn', ['next']], array_values(array_intersect_key($this->read(), array_flip(['step', 'notice', 'actions']))));
     }
+
+    public function test_populated_paths_refuse_destructive_rollback(): void
+    {
+        $this->act('next', 0);
+        $migration = require database_path('migrations/2026_11_04_150000_create_learning_paths.php');
+        try {
+            $migration->down();
+            $this->fail('Populated learning paths must be retained.');
+        } catch (\RuntimeException $error) {
+            $this->assertStringContainsString('exported', $error->getMessage());
+        }
+        $this->assertSame(1, LearningPath::count());
+        $this->refuses(fn () => LearningPath::sole()->delete(), 409);
+    }
 }
