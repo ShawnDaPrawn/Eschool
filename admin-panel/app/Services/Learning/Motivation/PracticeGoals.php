@@ -37,7 +37,9 @@ class PracticeGoals
         $goal = PracticeGoal::where('learner_id', $learnerId)->first();
         $days = app(PracticeStreaks::class)->daysInWeek($learnerId, $monday, $today);
 
-        return ['days_per_week' => $goal?->days_per_week, 'practised_days_this_week' => $days, 'met' => $goal !== null && $days >= $goal->days_per_week,
+        $target = $goal?->days_per_week;
+
+        return ['days_per_week' => $target, 'practised_days_this_week' => $days, 'met' => $target !== null && $days >= $target,
             'week_start' => $monday, 'revision' => (int) ($goal->revision ?? 0)];
     }
 
@@ -53,15 +55,14 @@ class PracticeGoals
         return app(PracticeOperations::class)->run($actor, $data + ['learner_id' => $learnerId, 'kind' => 'practice_goal'], $authorize, function () use ($actor, $learnerId, $data): array {
             $goal = PracticeGoal::where('learner_id', $learnerId)->lockForUpdate()->first();
             abort_unless((int) ($goal->revision ?? 0) === (int) $data['revision'], 409, 'Your goal changed. Reload it before changing it again.');
-            if ($data['days_per_week'] === null) {
-                if ($goal !== null) {
-                    Audit::record('practice.goal_cleared', $goal, [], ['learner_id' => $learnerId]);
-                    $goal->delete();
-                }
-            } else {
-                $goal ??= new PracticeGoal(['learner_id' => $learnerId, 'revision' => 0]);
-                $goal->fill(['days_per_week' => (int) $data['days_per_week'], 'set_by' => (int) $actor->id, 'revision' => (int) $goal->revision + 1])->save();
-                Audit::record('practice.goal_set', $goal, [], ['learner_id' => $learnerId, 'days_per_week' => $goal->days_per_week, 'revision' => $goal->revision]);
+            // The row is kept when a goal is cleared (days_per_week null), so its
+            // revision only ever increases and a stale tab always gets 409.
+            // Every accepted write, clearing an already-cleared goal included, bumps it.
+            $goal ??= new PracticeGoal(['learner_id' => $learnerId, 'revision' => 0]);
+            $days = $data['days_per_week'] === null ? null : (int) $data['days_per_week'];
+            $goal->fill(['days_per_week' => $days, 'set_by' => (int) $actor->id, 'revision' => (int) $goal->revision + 1])->save();
+            Audit::record($days === null ? 'practice.goal_cleared' : 'practice.goal_set', $goal, [], ['learner_id' => $learnerId, 'days_per_week' => $days, 'revision' => $goal->revision]);
+            if ($days !== null) {
                 $this->celebrate(Students::findOrFail($learnerId));
             }
 
@@ -73,7 +74,8 @@ class PracticeGoals
     public function celebrate(Students $learner): ?PracticeGoalWeek
     {
         $goal = PracticeGoal::where('learner_id', $learner->id)->first();
-        if ($goal === null) {
+        // A cleared goal (days_per_week null) is no goal.
+        if ($goal === null || $goal->days_per_week === null) {
             return null;
         }
         $today = app(AcademicAuthority::class)->today();

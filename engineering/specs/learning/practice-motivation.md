@@ -64,6 +64,11 @@ that is not a holiday. Only the current school's terms and holidays are read.
 - Writes carry an operation ID (an exact retry replays) and the goal's
   revision (a stale one gets 409), and are audited (`practice.goal_set`,
   `practice.goal_cleared`).
+- **Clearing keeps the row.** A cleared goal stays as `days_per_week` null,
+  and every accepted write (clearing an already-cleared goal included) adds one
+  to the revision, so revisions only ever increase. A tab still holding an
+  older goal's revision always gets 409 and can neither overwrite nor clear a
+  newer goal. A cleared goal is "no goal": never met, never celebrated.
 - When this week's practice days first reach the goal, the learner gets one
   `practice.goal_met` note that week (`practice_goal_weeks`, unique per
   learner and week). Lowering the goal later that week never celebrates again.
@@ -170,7 +175,7 @@ reads School A's streaks, goals or notices.
 | --- | --- |
 | `recognition_badge_settings.streak_enabled` | Practice run badges on or off (off). |
 | `practice_motivation_settings` | One row per school: guardian and learner reminders (off), N school days, who changed it, revision. |
-| `practice_goals` | One goal per learner: days a week, who set it, revision. |
+| `practice_goals` | One goal per learner: days a week (null once cleared), who last set it, revision (only increases). |
 | `practice_goal_weeks` | Celebration ledger: once per learner per week, with its notice. |
 | `practice_nudges` | Nudge ledger: once per person per week, the learner it was about, its notice. |
 | `mastery_topic_gaps` | Open gaps: learner, topic, audience, model version, opened at. |
@@ -226,6 +231,7 @@ Pushes use the existing quiet hours (none is a safety notice) and opt-outs.
 | --- | --- |
 | `test_a_run_counts_practice_days_kindly_with_one_rest_day_a_week` | Weekend practice counts; one missed school day a week is a rest day, a second ends the run; holidays and term breaks never break it; today never breaks it. |
 | `test_learner_sets_a_weekly_goal_sees_progress_and_is_celebrated_once` | Happy path through the API; replay, stale revision 409, invalid 422; one celebration a week, never again after lowering the goal; the parent never sees the learner's note. |
+| `test_clearing_a_goal_keeps_its_revision_so_a_stale_write_is_refused` | Set (1), clear (2), set (3): a write with revision 1 gets 409 and changes nothing; clearing again bumps; a cleared goal is never met or celebrated; a guardian still cannot write; School B cannot read or write. |
 | `test_guardians_read_but_never_set_and_other_people_cannot_read_a_streak_or_goal` | Guardian reads but cannot set; teacher (wrong role), another family's guardian and another learner (wrong owner) refused; School B context refused; withdrawn approval hides it. |
 | `test_early_years_learners_get_no_goal_streak_or_nudge` | Stage rules: no summary, goal or nudge for an early years learner. |
 | `test_a_family_visible_gap_that_becomes_secure_is_celebrated_once_a_term` | Unknown is not a gap; level 2 is still a gap; one notice to learner and both guardians; rebuilds and dips never notify twice; plain-words summary; teacher and another guardian never see it; a new term may celebrate again. |

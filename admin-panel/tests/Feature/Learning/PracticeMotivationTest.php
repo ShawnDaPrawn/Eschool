@@ -237,8 +237,47 @@ class PracticeMotivationTest extends TestCase
         $this->assertSame(0, $this->inbox('farid', PracticeGoals::TYPE));
         $this->assertFalse(app(MotivationNotices::class)->allows($this->actor('farid'), PracticeGoals::TYPE, $notice->delivery_payload));
         // Clearing the goal is allowed; the celebration stays in the inbox.
-        $this->postJson($path, $this->operation(['revision' => 2, 'days_per_week' => null]))->assertOk()->assertJsonPath('data.goal.days_per_week', null);
-        $this->assertSame(0, PracticeGoal::count());
+        $this->postJson($path, $this->operation(['revision' => 2, 'days_per_week' => null]))->assertOk()->assertJsonPath('data.goal.days_per_week', null)
+            ->assertJsonPath('data.goal.met', false)->assertJsonPath('data.goal.revision', 3);
+        $this->assertSame([null, 3], [PracticeGoal::sole()->days_per_week, PracticeGoal::sole()->revision]);
+        $this->assertNull(app(PracticeGoals::class)->celebrate(Students::findOrFail($this->asha())), 'A cleared goal is no goal.');
+    }
+
+    /** Review fix: a cleared goal keeps its row, so revisions only increase and a stale tab always gets 409. */
+    public function test_clearing_a_goal_keeps_its_revision_so_a_stale_write_is_refused(): void
+    {
+        $this->signIn('asha');
+        $path = self::BASE.'/learners/'.$this->asha().'/practice-goal';
+        $this->postJson($path, $this->operation(['revision' => 0, 'days_per_week' => 2]))->assertOk()->assertJsonPath('data.goal.revision', 1);
+        $this->postJson($path, $this->operation(['revision' => 1, 'days_per_week' => null]))->assertOk()->assertJsonPath('data.goal.revision', 2)
+            ->assertJsonPath('data.goal.days_per_week', null)->assertJsonPath('data.goal.met', false);
+        $this->postJson($path, $this->operation(['revision' => 2, 'days_per_week' => 4]))->assertOk()->assertJsonPath('data.goal.revision', 3);
+        // A tab still holding revision 1 of the first goal can neither overwrite nor clear the new one.
+        foreach ([5, null] as $days) {
+            $this->postJson($path, $this->operation(['revision' => 1, 'days_per_week' => $days]))->assertConflict();
+        }
+        $this->assertSame([4, 3], [PracticeGoal::sole()->days_per_week, PracticeGoal::sole()->revision]);
+        // Clearing an already-cleared goal still bumps the revision consistently.
+        $this->postJson($path, $this->operation(['revision' => 3, 'days_per_week' => null]))->assertOk()->assertJsonPath('data.goal.revision', 4);
+        $this->postJson($path, $this->operation(['revision' => 4, 'days_per_week' => null]))->assertOk()->assertJsonPath('data.goal.revision', 5);
+        $this->postJson($path, $this->operation(['revision' => 2, 'days_per_week' => 3]))->assertConflict();
+        $this->assertSame([null, 5, 1], [PracticeGoal::sole()->days_per_week, PracticeGoal::sole()->revision, PracticeGoal::count()]);
+        // A cleared goal is never met or celebrated, however much the learner practises.
+        $this->practiseOn(['2026-02-09', '2026-02-10']);
+        $this->assertNull(app(PracticeGoals::class)->celebrate(Students::findOrFail($this->asha())));
+        $this->assertSame(0, PracticeGoalWeek::count());
+        // A guardian still cannot write, at the current revision or any other.
+        $this->signIn('farid');
+        $this->postJson($path, $this->operation(['revision' => 5, 'days_per_week' => 2]))->assertNotFound();
+        $this->getJson(self::BASE.'/learners/'.$this->asha().'/motivation')->assertOk()->assertJsonPath('data.goal.days_per_week', null)
+            ->assertJsonPath('data.goal.met', false)->assertJsonPath('data.can_set_goal', false);
+        $this->assertSame([null, 5], [PracticeGoal::sole()->days_per_week, PracticeGoal::sole()->revision]);
+        // School B can neither read nor write it.
+        $this->signIn('asha', '2');
+        $this->assertContains($this->getJson(self::BASE.'/learners/'.$this->asha().'/motivation')->status(), [403, 404]);
+        $this->assertContains($this->postJson($path, $this->operation(['revision' => 5, 'days_per_week' => 2]))->status(), [403, 404]);
+        app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => $this->assertSame(0, PracticeGoal::count()));
+        $this->assertSame(5, PracticeGoal::sole()->revision);
     }
 
     public function test_guardians_read_but_never_set_and_other_people_cannot_read_a_streak_or_goal(): void

@@ -35,7 +35,8 @@ return new class extends Migration
             $t->id();
             $t->foreignId('school_id')->constrained('schools');
             $t->foreignId('learner_id')->constrained('students');
-            $t->unsignedTinyInteger('days_per_week');
+            // Null once the learner clears the goal: the row stays so its revision only increases.
+            $t->unsignedTinyInteger('days_per_week')->nullable();
             $t->foreignId('set_by')->constrained('users');
             $t->unsignedInteger('revision')->default(1);
             $t->timestamps();
