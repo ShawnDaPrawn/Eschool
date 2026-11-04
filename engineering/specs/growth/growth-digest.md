@@ -165,7 +165,9 @@ Retention erases the topic-text copy in the associated notification before delet
   has them. Each school's managers write and approve their own language
   versions, as before.
 - **Practice streaks across weeks, goals and the `mastery.gap_closed`
-  notification** (Action Plan 3.13).
+  notification** (Action Plan 3.13): now in
+  [practice motivation](../learning/practice-motivation.md), which extends
+  this growth block with a reached-goal line and a practice-run line.
 - **Mastery model v2 (3.8).** When a new model version lands, it needs an
   "as of a date" score so its topics can be compared like with like. Until then
   its topics are left out of the growth block rather than compared across

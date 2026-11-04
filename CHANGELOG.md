@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-04
+
+- Practice runs are counted kindly: weekends, holidays, school closures and one missed school day a week no longer break a learner's run, and practising on a weekend still counts. The practice screen's day count follows the new rule.
+- Learners can set their own weekly practice goal (1 to 7 days) and get one short "well done" note the week they reach it. Guardians can see the goal; only the learner sets it.
+- When a topic that needed more practice becomes secure on the family-visible mastery map, the learner and their guardians get one short "something to celebrate" note, at most once per topic each term. It never shows a score, and staff-only marks are never used.
+- Schools can switch on gentle practice reminders for guardians and learners (both off by default) under Academics, Practice reminders: at most one a week, school-day afternoons only, never during quiet hours, and never naming a child or a count.
+- Awards managers can switch on practice run badges (off by default), presented with the other persistence badges once a school year for runs of 5, 10, 20 and 40 days.
+- The weekly parent update can now say when a child reached their weekly practice goal and how long their practice run is; it never says a goal was missed.
+- API: `GET /api/v2/learning/practice/learners/{learner}/motivation` and `POST /api/v2/learning/practice/learners/{learner}/practice-goal` (the Dart client needs regenerating).
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
