@@ -37,6 +37,11 @@ use RuntimeException;
  * module of the school's package version that has an add-on price and that
  * the school has switched on.
  *
+ * SMS and WhatsApp texts are passed through at cost (MessagingCharges): the
+ * invoice for a month has a line per channel for the texts the school sent in
+ * the month before it. Recomputing replaces the lines, and the month's slot is
+ * unique, so a month's texts are billed once.
+ *
  * Learners are counted on the day the draft is computed: active Student
  * memberships of that school, not learners who have left. VAT is a rate from
  * config/platform_billing.php kept on each invoice; each line's VAT is rounded
@@ -451,6 +456,12 @@ class PlatformBilling
         }
         foreach ($lines as $i => $line) {
             $lines[$i]['amount_cents'] = $line['learners'] * $line['unit_cents'];
+        }
+        // SMS and WhatsApp the school sent in the month before, at what Twilio charged (Action Plan 2.7).
+        $texts = app(MessagingCharges::class)->forInvoice((int) $school->id, $periodStart, (string) $draft->currency);
+        array_push($lines, ...$texts['lines']);
+        $blocked ??= $texts['blocked'];
+        foreach ($lines as $i => $line) {
             $lines[$i]['vat_cents'] = self::lineVat($lines[$i]['amount_cents'], $rate);
         }
         $draft->lines()->get()->each(fn (PlatformInvoiceLine $line) => $line->delete());
