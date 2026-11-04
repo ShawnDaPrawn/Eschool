@@ -67890,46 +67890,84 @@ components:
           type: boolean
           description: 'Whether AI-written comprehension checks are available. Always false for now.'
     ReadingBook:
-      allOf:
-      - $ref: '#/components/schemas/ReadingBookCard'
-      - type: object
-        required:
-        - author_birth_year
-        - author_death_year
-        - summary
-        - word_count
-        - checks
-        properties:
-          author_birth_year:
-            type:
-            - integer
-            - 'null'
-          author_death_year:
-            type:
-            - integer
-            - 'null'
-          summary:
-            type:
-            - string
-            - 'null'
-          word_count:
-            type:
-            - integer
-            - 'null'
-          checks:
-            type: object
-            additionalProperties: false
-            required:
-            - total
-            - open
-            - answered
-            properties:
-              total:
-                type: integer
-              open:
-                type: integer
-              answered:
-                type: integer
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - author
+      - language
+      - subjects
+      - reading_level
+      - reading_level_label
+      - page_count
+      - progress
+      - author_birth_year
+      - author_death_year
+      - summary
+      - word_count
+      - checks
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        language:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        reading_level:
+          type: string
+          enum:
+          - beginner
+          - developing
+          - confident
+          - fluent
+        reading_level_label:
+          type: string
+        page_count:
+          type:
+          - integer
+          - 'null'
+          description: 'Known once the text has been fetched.'
+        progress:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingProgress'
+          - type: 'null'
+        author_birth_year:
+          type:
+          - integer
+          - 'null'
+        author_death_year:
+          type:
+          - integer
+          - 'null'
+        summary:
+          type:
+          - string
+          - 'null'
+        word_count:
+          type:
+          - integer
+          - 'null'
+        checks:
+          type: object
+          additionalProperties: false
+          required:
+          - total
+          - open
+          - answered
+          properties:
+            total:
+              type: integer
+            open:
+              type: integer
+            answered:
+              type: integer
     ReadingPage:
       type: object
       additionalProperties: false
