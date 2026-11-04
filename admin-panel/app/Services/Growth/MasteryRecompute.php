@@ -220,6 +220,8 @@ class MasteryRecompute
                 }
             }
         }
+        // Action Plan 3.13: a family-visible gap that reached secure is celebrated once a term.
+        app(GapClosures::class)->observe($learnerId, $subjectId);
     }
 
     private function inputs(): MasteryV2Inputs
