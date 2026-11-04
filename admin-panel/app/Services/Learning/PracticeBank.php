@@ -20,7 +20,7 @@ class PracticeBank
         $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'expected_revision' => ['required', 'integer', 'min:0'],
             'topic_id' => ['required', 'integer', 'min:1'], 'content_version_id' => ['required', 'integer', 'min:1'],
             'estimated_seconds' => ['required', 'integer', 'between:60,300'], 'definition' => ['required', 'array'], 'active' => ['required', 'boolean']])->validate();
-        $data['definition'] = app(PracticeAnswers::class)->definition($data['definition']);
+        $data['definition'] = app(PracticeAnswers::class)->definition(app(PracticeMedia::class)->withSchoolDiagram($data['definition']));
         $authorize = function () use ($actor, $groupId, $data) {
             $group = app(PracticeAccess::class)->staff($actor, $groupId, true);
             app(PracticeAccess::class)->topic($group, $data['topic_id'], true);

@@ -9,6 +9,7 @@ use App\Models\Learning\PracticeDailySet;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Learning\DailyPractice;
+use App\Services\Learning\PracticeAnswers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -31,8 +32,10 @@ class ClassroomPractice
                 }
                 $practice = app(DailyPractice::class);
                 $result = match ($action) {
+                    // The shared tablet offers one-answer questions only; other kinds are answered in the learner's own app (3.11).
                     'issue' => $practice->issue($person, $learner, (int) $lease->teaching_group_id,
-                        app(ClassroomAuthority::class)->input($input, ['operation_id' => ['required', 'uuid']]) + ['practice_on' => app(AcademicAuthority::class)->today()]),
+                        app(ClassroomAuthority::class)->input($input, ['operation_id' => ['required', 'uuid']]) + ['practice_on' => app(AcademicAuthority::class)->today()],
+                        array_values(array_diff(PracticeAnswers::KINDS, PracticeAnswers::SINGLE))),
                     'read' => $practice->read($person, $learner, (int) $set),
                     'review' => $practice->review($person, $learner, (int) $set, (int) $entry,
                         app(ClassroomAuthority::class)->input($input, ['operation_id' => ['required', 'uuid'], 'answer' => ['required', 'string', 'max:100'], 'rating' => ['required', 'integer', 'between:2,4']])),

@@ -10,7 +10,9 @@ use App\Models\Library\LibraryReview;
 use App\Models\Library\LibrarySource;
 use App\Models\Library\LibraryTopic;
 use App\Models\User;
+use App\Services\Learning\PracticeMedia;
 use App\Services\Platform\Audit\Audit;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -68,7 +70,7 @@ class LibraryItems
         if ($data['kind'] === 'past_paper_question' && ! in_array($source->kind, LibraryContent::PAST_PAPER_SOURCES, true)) {
             throw ValidationException::withMessages(['library_source_id' => 'A past-paper question needs a DBE, IEB or licensed source.']);
         }
-        $content = app(LibraryContent::class)->normalise($data['kind'], $topic, $input);
+        $content = app(LibraryContent::class)->normalise($data['kind'], $topic, $this->diagram($actor, $data['kind'], $input));
 
         return DB::transaction(function () use ($actor, $topic, $source, $data, $content) {
             $item = LibraryItem::create(['library_topic_id' => $topic->id, 'library_source_id' => $source->id, 'kind' => $data['kind'],
@@ -90,6 +92,8 @@ class LibraryItems
     {
         $actor = app(LibraryAccess::class)->actor($actor, LibraryAccess::MANAGE);
         $data = Validator::make($input, self::draftRules())->validate();
+        $kind = (string) LibraryItem::query()->whereKey($itemId)->value('kind');
+        $input = $this->diagram($actor, $kind, $input);
 
         return DB::transaction(function () use ($actor, $itemId, $data, $input) {
             $item = $this->locked($itemId, (int) $data['revision']);
@@ -174,6 +178,23 @@ class LibraryItems
 
             return $version;
         });
+    }
+
+    /**
+     * A labelling question's new diagram picture (Action Plan 3.11) is
+     * checked and stored first; the content then names it by id. Without a
+     * new picture, a draft keeps the one it names.
+     */
+    private function diagram(User $actor, string $kind, array $input): array
+    {
+        $file = $input['diagram'] ?? null;
+        unset($input['diagram']);
+        if ($file instanceof UploadedFile && in_array($kind, LibraryContent::QUESTIONS, true) && ($input['question_kind'] ?? null) === 'diagram_label') {
+            Validator::make(['diagram' => $file], PracticeMedia::diagramRules('diagram'))->validate();
+            $input['diagram_id'] = (string) app(PracticeMedia::class)->storeLibraryDiagram($actor, $file)->id;
+        }
+
+        return $input;
     }
 
     public function latest(LibraryItem $item): LibraryItemVersion

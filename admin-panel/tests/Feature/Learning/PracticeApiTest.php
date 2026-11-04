@@ -65,12 +65,16 @@ class PracticeApiTest extends TestCase
         $input = ['operation_id' => (string) Str::uuid(), 'practice_on' => '2026-02-10'];
         $set = $this->postJson("$base/learners/$learner/groups/{$this->group}/daily-sets", $input)->assertOk()->json('data');
         $this->postJson("$base/learners/$learner/groups/{$this->group}/daily-sets", $input)->assertOk()->assertJsonPath('data.id', $set['id']);
-        $this->getJson("$base/learners/$learner/daily-sets/{$set['id']}")->assertOk()->assertJsonPath('data.items.0.definition.answers.0', '0.5');
+        // The downloaded set carries the question only (3.11); the result brings the answer and explanation.
+        $read = $this->getJson("$base/learners/$learner/daily-sets/{$set['id']}")->assertOk()->assertJsonPath('data.items.0.question.prompt', 'One half as a decimal?');
+        $this->assertStringNotContainsString('Divide one by two', $read->getContent());
+        $this->assertStringNotContainsString('"answers"', $read->getContent());
         $entry = $set['items'][0]['id'];
         $path = "$base/learners/$learner/daily-sets/{$set['id']}/entries/$entry/review";
         $review = ['operation_id' => (string) Str::uuid(), 'answer' => '.50', 'rating' => 3];
         $official = DB::table('question_marks')->count();
-        $first = $this->postJson($path, $review)->assertOk()->assertJsonPath('data.correct', true)->json('data');
+        $first = $this->postJson($path, $review)->assertOk()->assertJsonPath('data.correct', true)
+            ->assertJsonPath('data.solution.answers.0', '0.5')->assertJsonPath('data.solution.explanation', 'Divide one by two to get 0.5.')->json('data');
         $this->postJson($path, $review)->assertOk()->assertJsonPath('data', $first);
         $this->postJson($path, array_replace($review, ['answer' => '.25']))->assertConflict();
         $this->assertSame($official, DB::table('question_marks')->count());

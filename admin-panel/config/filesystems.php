@@ -47,6 +47,15 @@ return [
             'throw' => true,
         ],
 
+        // The platform content library's private files (Action Plan 3.11 diagrams); no school's data.
+        'library_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/library'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+        ],
+
         'wellbeing_private' => [
             'driver' => 'local',
             'root' => storage_path('app/private/wellbeing-media'),

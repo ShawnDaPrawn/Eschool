@@ -304,6 +304,16 @@ rows may point into the library (`mastery_topics.library_topic_id`,
 `practice_memories.library_item_id`), never the other way
 ([content library](../learning/content-library.md)).
 
+### Practice question types (Action Plan 3.11)
+
+`library_diagrams` (the library's diagram pictures for labelling questions) is
+global like the other library tables and written only from `/saas/library`.
+`practice_diagrams` (a school's own diagram pictures) and
+`practice_audio_answers` (learners' recorded spoken answers, encrypted in the
+school's private storage with a retention date) are required school-owned. A
+school reads a library diagram only through a published library question in a
+learner's own practice set ([question types](../learning/question-types.md)).
+
 ### Invitations to join another school
 
 `school_join_invitations` is required school-owned: the inviting school's

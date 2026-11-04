@@ -41,7 +41,7 @@
     <p class="saas-card">{{ __('The latest version is waiting for review. It can change again once a reviewer has decided.') }}</p>
 @else
 <h2>{{ $latest['state'] === 'draft' ? __('Change the draft') : __('Start a new draft') }}</h2>
-<form method="POST" action="{{ route('saas.library.items.draft', $item['id']) }}" class="saas-card" aria-label="{{ __('Draft') }}">
+<form method="POST" action="{{ route('saas.library.items.draft', $item['id']) }}" enctype="multipart/form-data" class="saas-card" aria-label="{{ __('Draft') }}">
     @csrf @method('PUT')
     <input type="hidden" name="revision" value="{{ $item['revision'] }}">
     @if ($latest['state'] !== 'draft')<p>{{ __('Published and reviewed versions never change: saving starts version :number as a new draft.', ['number' => $versions[0]['number'] + 1]) }}</p>@endif

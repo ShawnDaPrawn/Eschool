@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-04
+
+- Daily practice has four new question types: worked steps with a mark per step, short written answers, labelling a diagram, and spoken answers. Teachers write them on the new "Write a practice question" page or in the API, and HQ writes them in the content library (Action Plan 3.11).
+- Downloaded practice sets no longer carry the answers or worked explanations: answers are marked on the server when they sync, and the result and explanation appear only after the answer is saved. This applies to school and library questions and to the classroom tablet.
+- Short written answers that match no accepted answer, and spoken answers, wait for the learner's own teachers on the new practice marking page; their mark counts towards the learner's practice once. AI help with marking stays switched off until an AI provider is qualified.
+- Recorded answers are encrypted in the school's private storage, heard only by the learner's teachers, and deleted after 90 days (30 days after marking). **Deploy:** run migrations; the new daily `learning:prune-practice-audio` job runs at 03:55.
+- **Apps:** the practice set and review responses changed shape (`question` instead of `definition`, and a `solution` with each saved answer); the Dart client must be regenerated and the learner app updated before it can read new sets.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
