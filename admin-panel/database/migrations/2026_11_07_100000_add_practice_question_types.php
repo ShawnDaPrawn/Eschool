@@ -84,8 +84,16 @@ return new class extends Migration
         Schema::dropIfExists('library_diagrams');
         Schema::dropIfExists('practice_diagrams');
         Schema::dropIfExists('practice_audio_answers');
+        // MySQL silently drops the school_id foreign key's own index once the
+        // (school_id, state) index can serve it, and then refuses to drop that
+        // index while the key needs it. Detach the key, drop the index, and
+        // re-add the key, which recreates its own index on both MySQL and MariaDB.
+        Schema::table('practice_reviews', fn (Blueprint $t) => $t->dropForeign(['school_id']));
         Schema::table('practice_reviews', function (Blueprint $t) {
             $t->dropIndex('practice_reviews_waiting');
+            $t->foreign('school_id')->references('id')->on('schools')->restrictOnDelete();
+        });
+        Schema::table('practice_reviews', function (Blueprint $t) {
             $t->dropConstrainedForeignId('marked_by');
             $t->dropColumn(['state', 'achieved_units', 'maximum_units', 'parts', 'rating', 'marked_how', 'marked_at']);
         });
