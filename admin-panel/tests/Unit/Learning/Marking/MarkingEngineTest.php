@@ -104,6 +104,17 @@ class MarkingEngineTest extends TestCase
         $this->assertSame('awarded', $this->decision($this->point('answer', $this->value('300000000')), 'c = 3 × 10^8'));
     }
 
+    public function test_small_exact_values_keep_their_tolerance(): void
+    {
+        // PR #455 review: no absolute floating-point floor that swamps small values.
+        $point = $this->point('answer', $this->value('0.00000001'));
+        foreach ([new MathematicsProfile, new GenericProfile] as $profile) {
+            $this->assertSame('not_awarded', $this->decision($point, 'x = 0,0000000109', $profile));
+            $this->assertSame('awarded', $this->decision($point, 'x = 0,00000001', $profile));
+            $this->assertSame('awarded', $this->decision($point, 'x = 1 × 10^-8', $profile));
+        }
+    }
+
     public function test_method_values_count_anywhere_in_the_working(): void
     {
         $point = $this->point('method', $this->value('9.8'));
@@ -206,6 +217,42 @@ class MarkingEngineTest extends TestCase
         $this->assertSame('awarded', $this->decision($equation, 'y - 3 = 2x', new MathematicsProfile));
         $this->assertSame('not_awarded', $this->decision($equation, 'y = 3x + 2', new MathematicsProfile));
         $this->assertSame('needs_teacher', $this->decision($this->point('answer', ['kind' => 'expression', 'value' => '2x +']), 'y = 2x'), 'an unreadable memo expression');
+    }
+
+    public function test_written_forms_never_join_numbers(): void
+    {
+        // PR #455 review: 2*3 and 23 are different answers.
+        $point = $this->point('answer', ['kind' => 'expression', 'value' => '2*3']);
+        foreach ([new MathematicsProfile, new PhysicalSciencesProfile, new GenericProfile] as $profile) {
+            $this->assertSame('not_awarded', $this->decision($point, 'x = 23', $profile), $profile->key());
+            $this->assertSame('awarded', $this->decision($point, 'x = 2 × 3', $profile), $profile->key());
+        }
+        $this->assertSame('awarded', $this->decision($point, 'x = 6', new MathematicsProfile), 'equal by value');
+        $this->assertSame('not_awarded', $this->decision($point, 'x = 6', new GenericProfile), 'generic keeps the written form');
+        $this->assertSame('awarded', $this->decision($this->point('answer', ['kind' => 'expression', 'value' => '2*x']), 'y = 2x', new GenericProfile), 'implicit multiplication');
+        $this->assertSame('not_awarded', $this->decision($this->point('method', ['kind' => 'expression', 'value' => 'v = 2*3']), 'v = 23', new GenericProfile));
+    }
+
+    public function test_formula_first_needs_a_real_calculation_not_the_formulas_own_numbers(): void
+    {
+        // PR #455 review: coefficients and powers in a formula are not a calculation.
+        $ps = new PhysicalSciencesProfile;
+        $point = [$this->point('method', ['kind' => 'expression', 'value' => 'vf^2 = vi^2 + 2 a Δx'])];
+        $this->assertSame(['not_awarded'], $this->statuses($point, 'vf^2 = vi^2 + 2 a Δx', $ps));
+        $this->assertSame(['not_awarded'], $this->statuses($point, 'vf² = vi² + 2aΔx
+so vf is the final velocity', $ps));
+        $this->assertSame(['awarded'], $this->statuses($point, 'vf^2 = vi^2 + 2 a Δx
+vf^2 = 0^2 + 2(9,8)(5)', $ps), 'values substituted');
+        $this->assertSame(['awarded'], $this->statuses($point, 'vf^2 = vi^2 + 2 a Δx
+vf = 9,9 m/s', $ps), 'a numeric result');
+        $this->assertSame(['awarded'], $this->statuses($point, 'vf^2 = vi^2 + 2 a Δx
+Answer: 9,9 m/s down', $ps), 'a stated answer');
+        $energy = [$this->point('method', ['kind' => 'expression', 'value' => 'Ek = 0,5 m v^2'])];
+        $this->assertSame(['not_awarded'], $this->statuses($energy, 'Ek = 0,5 m v^2', $ps));
+        $this->assertSame(['awarded'], $this->statuses($energy, 'Ek = 0,5 m v^2
+Ek = 0,5 × 2 × 3^2 = 9 J', $ps));
+        $this->assertSame(['awarded'], $this->statuses($energy, 'Ek = 0,5 m v^2
+Ek = sqrt(81) J', $ps), 'functions are part of a calculation');
     }
 
     public function test_physical_sciences_formula_first(): void

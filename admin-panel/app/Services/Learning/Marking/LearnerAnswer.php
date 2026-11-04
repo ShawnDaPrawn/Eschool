@@ -166,8 +166,38 @@ final class LearnerAnswer
         return $numbers;
     }
 
-    public function hasNumbers(): bool
+    /**
+     * Whether the working shows a calculation, not just a formula with its own
+     * coefficients and powers (vf^2 = vi^2 + 2 a Δx): a side of an equation made
+     * only of numbers, operators, functions and a unit (2(9,8)(5); 9,9 m/s), or a
+     * line without an equals sign that states a value (Answer: 9,9 m/s down).
+     */
+    public function hasCalculation(): bool
     {
-        return $this->numbers() !== [];
+        foreach (array_keys($this->lines) as $line) {
+            $sides = $this->sides($line);
+            if (count($sides) === 1 && $this->values($line) !== []) {
+                return true;
+            }
+            foreach ($sides as $side) {
+                $numbers = Numbers::all($side);
+                if ($numbers === []) {
+                    continue;
+                }
+                $rest = $side;
+                foreach (array_reverse($numbers) as $number) {
+                    $rest = substr($rest, 0, $number['start']).' '.substr($rest, $number['end']);
+                }
+                $rest = (string) preg_replace('/\b(?:'.implode('|', [...Expression::FUNCTIONS, 'pi']).')\b|π/u', ' ', $rest);
+                // Operators, brackets and the powers left after the numbers (0^2) are part of a calculation.
+                $rest = trim((string) preg_replace('/(?:\^\s*\(?\s*[-+]?\d+\s*\)?|[-+*\/×·()\[\]\s])+/u', ' ', $rest));
+                $words = implode(' ', array_filter(explode(' ', $rest), fn ($word) => Directions::in($word) === []));
+                if ($words === '' || Units::readable($words)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

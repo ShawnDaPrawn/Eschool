@@ -95,7 +95,7 @@ class MarkingEngine
         $formulas = array_keys(array_filter($points, fn ($p) => $p['type'] === 'method' && ($p['rule']['kind'] ?? null) === 'expression' && str_contains((string) $p['rule']['value'], '=')));
         $otherFormula = $this->writesFormula($answer);
         foreach ($formulas as $i) {
-            if ($outcomes[$i]->status === Outcome::AWARDED && ! $answer->hasNumbers()) {
+            if ($outcomes[$i]->status === Outcome::AWARDED && ! $answer->hasCalculation()) {
                 $outcomes[$i] = Outcome::notAwarded(__('A formula mark needs a calculation with it (formula first).'), 0.8, $outcomes[$i]->line);
             }
             if ($outcomes[$i]->status !== Outcome::NOT_AWARDED || ! $otherFormula) {

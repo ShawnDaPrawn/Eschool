@@ -79,10 +79,14 @@ final class Numbers
             'decimals' => strlen($frac ?? '') - $exp, 'sig_min' => $min, 'sig_max' => $max, 'start' => $start, 'end' => $end];
     }
 
-    /** Whether two values agree within an absolute tolerance, allowing for binary rounding. */
+    /**
+     * Whether two values agree within an absolute tolerance. Binary rounding is
+     * allowed for relative to the values compared (one part in a billion), with
+     * no absolute floor, so a small exact value keeps its own precision.
+     */
     public static function within(float $value, float $expected, float $tolerance): bool
     {
-        return abs($value - $expected) <= $tolerance + 1e-9 * max(1.0, abs($expected));
+        return abs($value - $expected) <= $tolerance + 1e-9 * max(abs($value), abs($expected));
     }
 
     /** Whether a value is the expected value rounded to the given number of decimal places. */

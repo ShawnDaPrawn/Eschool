@@ -389,9 +389,10 @@ final class Expression
         return $sets;
     }
 
+    /** Agreement relative to the values compared, with no absolute floor, so tiny constants (6,63 × 10^-34) still count. */
     public static function close(float $a, float $b): bool
     {
-        return abs($a - $b) <= 1e-9 + 1e-7 * max(abs($a), abs($b));
+        return $a === $b || abs($a - $b) <= 1e-7 * max(abs($a), abs($b));
     }
 
     public static function equivalent(array $a, array $b): bool
@@ -494,9 +495,31 @@ final class Expression
         return $defined >= 4 && ! $alwaysTrue;
     }
 
-    /** The written form without spaces or multiplication signs, for subjects that do not accept equivalent forms. */
+    /**
+     * The written form, for subjects that do not accept equivalent forms: the
+     * tokens in order with explicit multiplication signs left out, so 2*x and
+     * 2x match but 2*3 and 23 never do (each number stays one token). Each side
+     * of an equation is read on its own. Text that cannot be read keeps its
+     * spacing, with multiplication signs unified.
+     */
     public static function written(string $text): string
     {
-        return str_replace(',', '.', (string) preg_replace('/[\s*×·]+/u', '', AnswerText::normalize($text)));
+        $sides = [];
+        foreach (preg_split('/(?<![<>!])=/', AnswerText::normalize($text)) ?: [] as $side) {
+            $tokens = (new self('letters'))->tokenize($side);
+            if ($tokens === null || $tokens === []) {
+                return 'text:'.trim((string) preg_replace(['/\s+/u', '/\s*[*×·]\s*/u'], [' ', '*'], AnswerText::normalize($text)));
+            }
+            $parts = [];
+            foreach ($tokens as $token) {
+                if ($token === ['o', '*']) {
+                    continue;
+                }
+                $parts[] = $token[0].':'.($token[0] === 'n' ? var_export((float) $token[1], true) : $token[1]);
+            }
+            $sides[] = implode(' ', $parts);
+        }
+
+        return implode(' = ', $sides);
     }
 }

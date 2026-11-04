@@ -28,6 +28,8 @@ class ExpressionTest extends TestCase
         ] as [$a, $b]) {
             $this->assertTrue($this->same($a, $b), "$a = $b");
         }
+        $this->assertFalse($this->same('6,63 × 10^-34 x', '6,64 × 10^-34 x'), 'tiny constants are compared relatively');
+        $this->assertTrue($this->same('6,63 × 10^-34 x', 'x × 6,63e-34'));
         foreach ([['(x+1)^2', 'x^2 + 1'], ['sqrt(x^2)', 'x'], ['x/y', 'y/x'], ['2x', 'x + 3'], ['xy', 'x + y'], ['abs(x)', 'x']] as [$a, $b]) {
             $this->assertFalse($this->same($a, $b), "$a ≠ $b");
         }
@@ -85,5 +87,13 @@ class ExpressionTest extends TestCase
         $this->assertSame(Expression::written('2 × (x + 3)'), Expression::written('2(x+3)'));
         $this->assertSame(Expression::written('0,5x'), Expression::written('0.5x'));
         $this->assertNotSame(Expression::written('2x + 6'), Expression::written('2(x+3)'));
+        // Removing a multiplication sign never joins two numbers (PR #455 review).
+        $this->assertNotSame(Expression::written('2*3'), Expression::written('23'));
+        $this->assertNotSame(Expression::written('2 × 3'), Expression::written('23'));
+        $this->assertNotSame(Expression::written('2(3)'), Expression::written('23'));
+        $this->assertSame(Expression::written('2*3'), Expression::written('2 × 3'));
+        $this->assertSame(Expression::written('2*x'), Expression::written('2x'));
+        $this->assertSame(Expression::written('v = d/t'), Expression::written('v=d / t'));
+        $this->assertNotSame(Expression::written('v = 2*3'), Expression::written('v = 23'));
     }
 }

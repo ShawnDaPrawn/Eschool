@@ -56,6 +56,14 @@ class NumbersAndUnitsTest extends TestCase
         $this->assertTrue(Numbers::within(12.54, 12.5, 0.05));
         $this->assertFalse(Numbers::within(12.56, 12.5, 0.05));
         $this->assertFalse(Numbers::within(-12.5, 12.5, 0.05));
+        // The floating-point allowance is relative to the values compared, never an absolute floor (PR #455 review).
+        $this->assertFalse(Numbers::within(0.0000000109, 0.00000001, 0.0), 'a 9% error on a small exact value');
+        $this->assertTrue(Numbers::within(0.00000001, 0.00000001, 0.0));
+        $this->assertTrue(Numbers::within(3 * 1.1e-9, 3.3e-9, 0.0), 'binary rounding on small values');
+        $this->assertFalse(Numbers::within(1.0e-12, 0.0, 0.0), 'zero is exact');
+        $this->assertTrue(Numbers::within(0.0, 0.0, 0.0));
+        $this->assertTrue(Numbers::within(6.63e-34, 6.63e-34, 0.0));
+        $this->assertFalse(Numbers::within(6.64e-34, 6.63e-34, 0.0));
         $this->assertTrue(Numbers::roundsTo(3.27, 3.2653, 2));
         $this->assertTrue(Numbers::roundsTo(2.5, 2.45, 1), 'half rounds up');
         $this->assertFalse(Numbers::roundsTo(3.26, 3.2653, 2));
