@@ -103,6 +103,7 @@ use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
 use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
 use App\Http\Controllers\Panel\Money\WalletPaymentPortalController;
 use App\Http\Controllers\Panel\Money\WalletWithdrawalPanelController;
+use App\Http\Controllers\Panel\Passport\PassportPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\CareerGuidancePanelController;
@@ -1697,6 +1698,12 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::post('careers', [$careers, 'save'])->middleware('module:pathway,write')->name('careers.store');
     Route::post('careers/{profile}', [$careers, 'save'])->whereUuid('profile')->middleware('module:pathway,write')->name('careers.update');
     Route::get('guidance', [CareerGuidancePanelController::class, 'show'])->name('guidance');
+});
+
+// The learner passport (Action Plan 4.10): engineering/specs/people/learner-passport.md.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:passport,read'])->prefix('learner-passports')->name('passport-panel.')->group(function () {
+    Route::get('/', [PassportPanelController::class, 'index'])->name('index');
+    Route::get('learners/{learner}', [PassportPanelController::class, 'show'])->whereNumber('learner')->name('show');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:ask_school,read', EnforceReadOnlyYears::class])->prefix('ask-school')->name('assistance-panel.')->group(function () {
