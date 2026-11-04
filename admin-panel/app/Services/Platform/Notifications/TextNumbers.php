@@ -43,11 +43,24 @@ class TextNumbers
             ->whereNotNull('verified_at')->exists();
     }
 
-    /** Whether a code for this number is waiting to be typed (checked again before the code is texted). */
-    public function pending(User $user, string $number): bool
+    /**
+     * Whether this code is still the one waiting to be typed for this number
+     * (checked again before the code is texted). $generation is the
+     * fingerprint the job was given when its code was made, so a delayed or
+     * retried job never texts a code a newer request has replaced.
+     */
+    public function pending(User $user, string $number, ?string $generation): bool
     {
-        return MessagingNumber::query()->where('user_id', $user->id)->where('number_hash', DeliveryLog::hash($number))
-            ->whereNotNull('code_hash')->where('code_expires_at', '>', now())->exists();
+        $hash = MessagingNumber::query()->where('user_id', $user->id)->where('number_hash', DeliveryLog::hash($number))
+            ->whereNotNull('code_hash')->where('code_expires_at', '>', now())->value('code_hash');
+
+        return is_string($hash) && is_string($generation) && $generation !== '' && hash_equals(self::generation($hash), $generation);
+    }
+
+    /** A code's generation: a fingerprint of its stored hash, carried by the job that texts it. */
+    public static function generation(string $codeHash): string
+    {
+        return hash('sha256', 'generation|'.$codeHash);
     }
 
     /**
@@ -103,7 +116,8 @@ class TextNumbers
         $number = $destination['number'];
         $hash = DeliveryLog::hash($number);
         $code = null;
-        $row = DB::transaction(function () use ($user, $destination, $hash, &$code): MessagingNumber {
+        $generation = null;
+        $row = DB::transaction(function () use ($user, $destination, $hash, &$code, &$generation): MessagingNumber {
             $row = $this->lock($user, $destination['source'], $hash);
             if ($row->verified_at !== null) {
                 return $row;
@@ -127,12 +141,13 @@ class TextNumbers
                 'code_hash' => $this->codeHash($row, $code), 'code_expires_at' => $now->addMinutes($this->setting('code_minutes', 10)),
                 'attempts' => 0, 'codes_sent' => $row->codes_sent + 1, 'last_code_sent_at' => $now,
             ])->save();
+            $generation = self::generation((string) $row->code_hash);
             Audit::record('messaging.verification_code_sent', $row, [], ['source' => $row->source, 'codes_sent' => $row->codes_sent]);
 
             return $row;
         });
-        if ($code !== null) {
-            $this->send($user, $number, $code);
+        if ($code !== null && $generation !== null) {
+            $this->send($user, $number, $code, $generation);
         }
 
         return $this->status($user);
@@ -242,13 +257,13 @@ class TextNumbers
         return $row;
     }
 
-    private function send(User $user, string $number, string $code): void
+    private function send(User $user, string $number, string $code, string $generation): void
     {
         $school = trim((string) app(CurrentSchool::class)->school()?->name) ?: 'your school';
         $minutes = $this->setting('code_minutes', 10);
         $body = __('Your NavigateEd code for :school is :code. It expires in :minutes minutes. Never share it.', ['school' => mb_substr($school, 0, 60), 'code' => $code, 'minutes' => $minutes]);
         $key = DeliveryLog::queued(DeliveryLog::SMS, DeliveryLog::SMS.'.'.self::TYPE, (int) $user->id, $number);
-        $job = new SendText(DeliveryLog::SMS, self::TYPE, $number, ['body' => $body], $key);
+        $job = new SendText(DeliveryLog::SMS, self::TYPE, $number, ['body' => $body], $key, ['code_generation' => $generation]);
 
         try {
             dispatch($job);

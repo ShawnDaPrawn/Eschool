@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Jobs\Platform\SendText;
 use App\Models\Notification;
 use App\Models\Parents;
 use App\Models\Platform\AuditLog;
@@ -16,6 +17,7 @@ use App\Models\User;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Notifications\TextNumbers;
+use App\Services\Platform\Notifications\TwilioClient;
 use App\Services\Platform\Notifications\UrgentMessaging;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
@@ -24,6 +26,7 @@ use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
 use Tests\Concerns\PassesPlatformTwoFactor;
@@ -234,6 +237,27 @@ class TextMessagingRecipientsTest extends TestCase
         // After the lockout a new code works.
         $this->travel(61)->minutes();
         $this->api($farid, 'POST', '/verification')->assertOk();
+        $this->api($farid, 'POST', '/verification/confirm', ['code' => $this->lastCode()])->assertOk()->assertJsonPath('data.number.verified', true);
+    }
+
+    public function test_a_delayed_code_from_an_earlier_request_is_never_delivered_after_a_newer_one(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-11-04 09:00', 'Africa/Johannesburg'));
+        $this->optIn(['comms.urgent']);
+        $farid = $this->person('farid');
+        Queue::fake();
+        $this->api($farid, 'POST', '/verification')->assertOk();
+        $this->travel(61)->seconds();
+        $this->api($farid, 'POST', '/verification')->assertOk();
+        [$older, $newer] = Queue::pushed(SendText::class)->values()->all();
+
+        // The first job was delayed: it runs after the second code was issued and must not send its stale code.
+        $older->handle(app(TwilioClient::class));
+        $this->assertSame([], $this->twilioRequests());
+        $this->assertSame('suppressed', NotificationDelivery::query()->where('delivery_key', $older->deliveryKey)->value('status'));
+
+        $newer->handle(app(TwilioClient::class));
+        $this->assertCount(1, $this->twilioRequests());
         $this->api($farid, 'POST', '/verification/confirm', ['code' => $this->lastCode()])->assertOk()->assertJsonPath('data.number.verified', true);
     }
 

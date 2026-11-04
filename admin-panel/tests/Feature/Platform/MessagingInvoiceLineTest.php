@@ -9,6 +9,7 @@ use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformInvoice;
 use App\Models\Platform\PlatformInvoiceLine;
 use App\Models\Platform\PlatformStaffIdentity;
+use App\Models\Platform\SchoolMessagingSetting;
 use App\Models\User;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Saas\MessagingCharges;
@@ -17,6 +18,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
@@ -145,6 +147,47 @@ class MessagingInvoiceLineTest extends TestCase
         app(PlatformBilling::class)->run(['period' => '2026-12'], $finance);
         $this->assertSame([['description' => 'SMS in November 2026: 1 message (segments: 1), USD 0.50 at R 18.5000 per USD', 'amount_cents' => 925, 'vat_cents' => 139]], $this->textLines(1, '2026-12'));
         $this->assertSame([], $this->textLines(2, '2026-12'));
+    }
+
+    public function test_next_months_invoice_prepared_early_cannot_be_issued_until_its_texting_month_has_closed_and_it_is_recomputed(): void
+    {
+        $finance = $this->finance();
+        config(['platform_billing.messaging.exchange_rates' => ['USD' => '18.50']]);
+        app(CurrentSchool::class)->run(1, fn () => DB::table('school_contracts')->insert(['school_id' => 1, 'starts_on' => '2026-01-01', 'contracted_learners' => 400,
+            'price_per_learner_cents' => 24500, 'signatory' => 'Synthetic signatory', 'operator_agreement_version' => 'v1', 'operator_agreement_signed_on' => '2026-01-01', 'created_at' => now(), 'updated_at' => now()]));
+        DB::table('platform_prices')->insert(['package_id' => DB::table('platform_packages')->where('package_key', 'legacy')->value('id'), 'kind' => 'base',
+            'product_module' => null, 'amount_cents' => 5000, 'effective_from' => '2026-01-01', 'created_at' => now(), 'updated_at' => now()]);
+        // School A texts (it has opted in); School B never has.
+        app(CurrentSchool::class)->run(1, fn () => SchoolMessagingSetting::query()->create(['sms_enabled' => true, 'sms_types' => ['comms.urgent'], 'whatsapp_enabled' => false, 'whatsapp_types' => [], 'revision' => 1]));
+        $this->text(1, '2026-11-02 09:00', 8);
+
+        // On 3 November Finance prepares December's invoices, whose texting month (November) is still running.
+        app(PlatformBilling::class)->run(['period' => '2026-12'], $finance);
+        $december = $this->invoice(1, '2026-12');
+        $this->assertStringContainsString('November 2026', (string) $december->blocked_reason);
+        $this->assertNotNull(app(PlatformBilling::class)->issueProblem($december));
+        $this->assertSame(['issued' => 1, 'left' => 1, 'skipped' => 0, 'changed' => 0], app(PlatformBilling::class)->issueMonth(['period' => '2026-12'], $finance));
+        $this->assertTrue($this->invoice(1, '2026-12')->isDraft(), 'A school that texts is left as a draft.');
+        $this->assertTrue($this->invoice(2, '2026-12')->isIssued(), 'A school that never texts is billed as before.');
+
+        // More texts later in November; a draft computed before the month closed is refused even without a stored reason.
+        $this->text(1, '2026-11-20 09:00', 16);
+        PlatformInvoice::acrossSchools()->whereKey($december->id)->update(['blocked_reason' => null]);
+        $this->travelTo(CarbonImmutable::parse('2026-12-01 08:00', 'Africa/Johannesburg'));
+        $this->assertNotNull(app(PlatformBilling::class)->issueProblem($this->invoice(1, '2026-12')));
+        try {
+            app(PlatformBilling::class)->issue(1, $december->id, $finance);
+            $this->fail('A draft computed before its texting month closed was issued.');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('Recompute', $e->errors()['invoice'][0]);
+        }
+
+        // Recomputed after the month closed, it carries every November text and can be issued.
+        app(PlatformBilling::class)->recompute(1, $december->id, $finance);
+        $this->assertNull($this->invoice(1, '2026-12')->blocked_reason);
+        $this->assertSame(444, array_sum(array_column($this->textLines(1, '2026-12'), 'amount_cents')));
+        app(PlatformBilling::class)->issue(1, $december->id, $finance);
+        $this->assertTrue($this->invoice(1, '2026-12')->isIssued());
     }
 
     public function test_rates_are_read_without_floating_point_and_a_bad_rate_is_refused(): void

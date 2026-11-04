@@ -36,8 +36,11 @@ class MessagingCharges
      */
     public function forInvoice(int $schoolId, string $periodStart, string $currency): array
     {
-        $usage = CarbonImmutable::createFromFormat('!Y-m-d', $periodStart, PlatformBilling::TIMEZONE)->startOfMonth()->subMonth();
+        $usage = self::usageMonth($periodStart);
         $label = $usage->format('F Y');
+        // Prepared before its texting month has ended (Finance may draft next month early): the
+        // lines so far are shown, but the draft cannot be issued until it is recomputed after.
+        $open = $this->unclosed($schoolId, $periodStart, CarbonImmutable::now());
         $zone = (string) config('app.timezone');
         $rows = DB::table('notification_deliveries')
             ->where('school_id', $schoolId)
@@ -54,7 +57,7 @@ class MessagingCharges
                 DB::raw('SUM(CASE WHEN price_cents IS NULL THEN 1 ELSE 0 END) as unpriced'),
             ]);
         if ($rows->isEmpty()) {
-            return ['lines' => [], 'blocked' => null];
+            return ['lines' => [], 'blocked' => $open];
         }
 
         $waiting = (int) DB::table('notification_deliveries')->where('school_id', $schoolId)
@@ -62,9 +65,9 @@ class MessagingCharges
             ->where('sent_at', '>=', $usage->setTimezone($zone))->where('sent_at', '<', $usage->addMonth()->setTimezone($zone))
             ->where('sent_at', '>=', now()->subDays((int) config('urgent_messaging.price_lookup.within_days', 7)))
             ->count();
-        $blocked = $waiting > 0
+        $blocked = $open ?? ($waiting > 0
             ? trans_choice(':count SMS or WhatsApp message sent in :month has no Twilio price yet. Recompute once the hourly price lookup has priced it.|:count SMS and WhatsApp messages sent in :month have no Twilio price yet. Recompute once the hourly price lookup has priced them.', $waiting, ['count' => $waiting, 'month' => $label])
-            : null;
+            : null);
 
         $lines = [];
         foreach ($rows->groupBy('channel') as $channel => $byCurrency) {
@@ -112,6 +115,44 @@ class MessagingCharges
         }
 
         return ['lines' => $lines, 'blocked' => $blocked];
+    }
+
+    /** The first moment of the month whose texts an invoice for $periodStart's month carries, in SA time. */
+    public static function usageMonth(string $periodStart): CarbonImmutable
+    {
+        return CarbonImmutable::createFromFormat('!Y-m-d', $periodStart, PlatformBilling::TIMEZONE)->startOfMonth()->subMonth();
+    }
+
+    /**
+     * Why a draft cannot be issued yet because of its texts, or null: its
+     * texting month had not ended (South African time) when it was last
+     * computed, so texts sent later in that month are missing. Checked again
+     * at issue time, so a school that switched texting on after the draft was
+     * made is caught too. A school that never opted in and sent nothing that
+     * month is not held back.
+     */
+    public function issueProblem(int $schoolId, string $periodStart, ?\DateTimeInterface $computedAt): ?string
+    {
+        return $this->unclosed($schoolId, $periodStart, $computedAt === null ? null : CarbonImmutable::instance($computedAt));
+    }
+
+    private function unclosed(int $schoolId, string $periodStart, ?CarbonImmutable $computedAt): ?string
+    {
+        $usage = self::usageMonth($periodStart);
+        $closes = $usage->addMonth();
+        if ($computedAt !== null && $computedAt->greaterThanOrEqualTo($closes)) {
+            return null;
+        }
+        $texts = DB::table('school_messaging_settings')->where('school_id', $schoolId)->exists()
+            || DB::table('notification_deliveries')->where('school_id', $schoolId)->whereIn('channel', [DeliveryLog::SMS, DeliveryLog::WHATSAPP])
+                ->where('sent_at', '>=', $usage->setTimezone((string) config('app.timezone')))->exists();
+        if (! $texts) {
+            return null;
+        }
+
+        return __('SMS and WhatsApp for :month are billed once the month has ended. Recompute this draft on or after :date, then issue it.', [
+            'month' => $usage->format('F Y'), 'date' => $closes->format('j F Y'),
+        ]);
     }
 
     /** Rands per unit of $currency in millionths, or null when no rate is set. */

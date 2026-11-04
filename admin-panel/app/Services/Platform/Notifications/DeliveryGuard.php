@@ -67,8 +67,10 @@ class DeliveryGuard
                     return false;
                 }
                 if ($type === TextNumbers::TYPE) {
-                    // A verification code: only while it is still the code waiting for this number.
-                    return $channel === DeliveryLog::SMS && app(TextNumbers::class)->pending($user, $address);
+                    // A verification code: only while it is still the latest code waiting for this number.
+                    $generation = $context['code_generation'] ?? null;
+
+                    return $channel === DeliveryLog::SMS && app(TextNumbers::class)->pending($user, $address, is_string($generation) ? $generation : null);
                 }
 
                 return $messaging->allows($user, $type, $channel) && app(TextNumbers::class)->verified($user, $address);

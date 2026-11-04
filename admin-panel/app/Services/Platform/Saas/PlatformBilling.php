@@ -406,6 +406,11 @@ class PlatformBilling
         if ($draft->blocked_reason !== null) {
             return (string) $draft->blocked_reason;
         }
+        // Texts are billed only from a draft computed after their month ended (Action Plan 2.7).
+        $texts = app(MessagingCharges::class)->issueProblem((int) $draft->getAttribute('school_id'), $draft->period_start->toDateString(), $draft->computed_at);
+        if ($texts !== null) {
+            return $texts;
+        }
         if ((int) $draft->total_cents <= 0) {
             return __('There is nothing to bill. Recompute it once the school has learners, or discard it.');
         }
