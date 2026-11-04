@@ -19,6 +19,7 @@ use App\Services\Ai\Inference\Capability;
 use App\Services\Ai\Inference\InferenceModerator;
 use App\Services\Ai\Inference\InferenceProvider;
 use App\Services\Ai\Inference\ModerationContext;
+use App\Services\Ai\Inference\PlatformInference;
 use App\Services\Ai\Inference\ProviderRequest;
 use App\Services\Ai\Inference\ProviderResponse;
 use App\Services\Learning\Library\LibraryDrafting;
@@ -314,7 +315,8 @@ class LibraryContentPipelineTest extends TestCase
         foreach ([1, 2] as $school) {
             app(CurrentSchool::class)->run($school, function () {
                 $this->refuses(fn () => app(LibraryDrafting::class)->request($this->libraryStaff('content'), $this->ask()), 403);
-                $this->refuses(fn () => app(LibraryQuality::class)->signals(), 403);
+                $this->refuses(fn () => app(LibraryQuality::class)->flagged(), 403);
+                $this->refuses(fn () => app(LibraryQuality::class)->signal(1), 403);
             });
         }
         $this->assertSame($before, $this->counts());
@@ -339,13 +341,18 @@ class LibraryContentPipelineTest extends TestCase
         $this->answers(null, [1 => [30, 0], 2 => [30, 0], 3 => [30, 0]]);
         $before = $this->libraryCounts() + ['reviews' => DB::table('practice_reviews')->count(), 'entries' => DB::table('practice_set_entries')->count()];
 
-        $signals = app(LibraryQuality::class)->signals();
-        $this->assertEqualsCanonicalizing([$hard->id, $easy->id, $fine->id], array_keys($signals));
+        $quality = app(LibraryQuality::class);
+        $signals = array_filter(array_combine([$hard->id, $easy->id, $fine->id, $twoSchools->id, $fewLearners->id],
+            array_map(fn (LibraryItem $item) => $quality->signal($item->id), [$hard, $easy, $fine, $twoSchools, $fewLearners])));
+        $this->assertEqualsCanonicalizing([$hard->id, $easy->id, $fine->id], array_keys($signals), 'small groups never leave the query');
         $this->assertSame([2000, 'hard', 25], [$signals[$hard->id]['facility_bp'], $signals[$hard->id]['signal'], $signals[$hard->id]['learners']]);
         $this->assertSame(['easy', null], [$signals[$easy->id]['signal'], $signals[$fine->id]['signal']]);
         foreach ($signals as $row) {
             $this->assertSame(['version_id', 'answers', 'learners', 'facility_bp', 'signal'], array_keys($row), 'counts and rates only');
         }
+        // Only flagged items come back from the flagged query, worst first.
+        $this->assertSame([$easy->id, $hard->id], array_column($quality->flagged()['rows'], 'item_id'), '100% is further from the middle than 20%');
+        $this->assertSame(2, $quality->flaggedCount());
 
         $this->signInAs($this->libraryStaff('content'));
         $page = $this->get('/saas/library/attention')->assertOk()->assertSee('Hard fractions')->assertSee('Easy fractions')->assertSee('20%')->assertSee('20 to 49')
@@ -389,6 +396,91 @@ class LibraryContentPipelineTest extends TestCase
             'model' => 'x', 'operation_id' => (string) Str::uuid(), 'request_hash' => str_repeat('a', 64), 'usage_date' => '2026-11-04', 'state' => 'reserved',
             'billing_currency' => 'USD', 'prompt_key' => 'library-drafting', 'prompt_version' => '1.0.0', 'prompt_sha256' => str_repeat('b', 64)]), 403));
         $this->assertSame(0, PlatformAiUsage::query()->count());
+    }
+
+    public function test_healthy_items_never_crowd_weak_ones_out_of_the_flagged_list(): void
+    {
+        School::query()->forceCreate(['id' => 3, 'name' => 'Cycad Primary', 'slug' => 'cycad-primary', 'timezone' => 'Africa/Johannesburg']);
+        // Healthy questions first (lower ids), then two weak ones: the band is applied in the query, before any page or limit.
+        $healthy = [];
+        foreach (range(1, 3) as $n) {
+            $healthy[] = $item = $this->publishedItem($this->fractions, ['title' => 'Healthy '.$n]);
+            $this->answers($item, [1 => [10, 6], 2 => [10, 6], 3 => [10, 6]]);
+        }
+        $hard = $this->publishedItem($this->fractions, ['title' => 'Hard fractions']);
+        $this->answers($hard, [1 => [10, 0], 2 => [10, 0], 3 => [10, 0]]);    // none right
+        $easy = $this->publishedItem($this->fractions, ['title' => 'Easy fractions']);
+        $this->answers($easy, [1 => [10, 10], 2 => [10, 10], 3 => [10, 10]]); // 100% right
+
+        $quality = app(LibraryQuality::class);
+        $this->assertSame(2, $quality->flaggedCount());
+        // A page of one still reaches both (equally far from the middle, so by id); healthy items take no place.
+        $this->assertSame([$hard->id], array_column($quality->flagged(1, 1)['rows'], 'item_id'));
+        $this->assertSame([$easy->id], array_column($quality->flagged(2, 1)['rows'], 'item_id'));
+        $this->assertSame([], $quality->flagged(3, 1)['rows']);
+        $this->assertSame(2, $quality->flagged(1, 1)['total']);
+        $this->assertSame([$hard->id], $quality->flaggedAmong([$healthy[0]->id, $hard->id]));
+        // One item's signal is looked up directly, whatever else exists.
+        $this->assertSame('easy', $quality->signal($easy->id)['signal']);
+        $this->assertNull($quality->signal($healthy[2]->id)['signal']);
+        // The review queue's filter uses the full flagged set as a subquery, before paging.
+        app(LibraryItems::class)->redraft($this->libraryStaff('content'), $easy->id, ['revision' => $easy->fresh()->revision]);
+        app(LibraryItems::class)->submit($this->libraryStaff('content'), $easy->id, ['revision' => $easy->fresh()->revision]);
+        app(LibraryItems::class)->redraft($this->libraryStaff('content'), $healthy[0]->id, ['revision' => $healthy[0]->fresh()->revision]);
+        app(LibraryItems::class)->submit($this->libraryStaff('content'), $healthy[0]->id, ['revision' => $healthy[0]->fresh()->revision]);
+        $queue = app(LibraryPages::class)->reviews($this->libraryStaff('reviewer'), 1, 'attention');
+        $this->assertSame(['Easy fractions'], array_column($queue['waiting'], 'title'));
+        $this->assertSame([true, false], array_column(app(LibraryPages::class)->reviews($this->libraryStaff('reviewer'))['waiting'], 'attention'));
+    }
+
+    public function test_two_submissions_of_one_form_racing_past_the_lookup_get_the_first_ones_outcome_or_409(): void
+    {
+        $this->switchOn();
+        $content = $this->libraryStaff('content');
+        $request = $this->ask();
+        $hash = hash('sha256', json_encode(['library_topic_id' => $this->fractions->id, 'library_source_id' => $this->source->id, 'kind' => 'practice_question',
+            'count' => 2, 'brief' => $request['brief']], JSON_THROW_ON_ERROR));
+        // The other submission's row lands between this one's lookup and its insert (the availability check runs in between).
+        $race = function (int $requester, string $requestHash) use ($request) {
+            $winner = fn () => DB::table('library_ai_drafts')->insert(['operation_id' => $request['operation_id'], 'request_hash' => $requestHash, 'requested_by' => $requester,
+                'library_topic_id' => $this->fractions->id, 'library_source_id' => $this->source->id, 'kind' => 'practice_question', 'count' => 2,
+                'brief' => $request['brief'], 'state' => 'pending', 'created_at' => now(), 'updated_at' => now()]);
+            $this->app->instance(PlatformInference::class, new class($winner) extends PlatformInference
+            {
+                public function __construct(private ?\Closure $winner) {}
+
+                public function unavailable(string $feature): ?string
+                {
+                    if ($this->winner !== null) {
+                        ($this->winner)();
+                        $this->winner = null;
+                    }
+
+                    return parent::unavailable($feature);
+                }
+            });
+        };
+
+        // The same person, the same form: the winner's outcome (still drafting), no second model call, nothing else written.
+        $race((int) $content->id, $hash);
+        $draft = app(LibraryDrafting::class)->request($content, $request);
+        $this->assertSame(['pending', 1], [$draft->state, LibraryAiDraft::query()->count()]);
+        $this->assertSame([0, 0, 0], [LibraryProbeProvider::$calls, PlatformAiUsage::query()->count(), LibraryItem::query()->count()]);
+        $this->assertSame(0, AuditLog::query()->where('action', 'library_ai_draft_requested')->count());
+        // Over HTTP that is a plain message, not a server error.
+        DB::table('library_ai_drafts')->delete();
+        $race((int) $content->id, $hash);
+        $this->signInAs($content)->post('/saas/library/drafts', $request)->assertRedirect()->assertSessionHasErrors(['drafting' => LibraryDrafting::MESSAGES['pending']]);
+        $this->assertSame(1, LibraryAiDraft::query()->count());
+
+        // Someone else, or a different request, under the same id: 409.
+        DB::table('library_ai_drafts')->delete();
+        $race((int) $this->libraryStaff('owner')->id, $hash);
+        $this->refuses(fn () => app(LibraryDrafting::class)->request($content, $request), 409);
+        DB::table('library_ai_drafts')->delete();
+        $race((int) $content->id, str_repeat('0', 64));
+        $this->refuses(fn () => app(LibraryDrafting::class)->request($content, $request), 409);
+        $this->assertSame([0, 0], [LibraryProbeProvider::$calls, LibraryItem::query()->count()]);
     }
 
     /**

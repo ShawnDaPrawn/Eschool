@@ -91,7 +91,10 @@ written.
   drafts.
 - **Idempotent.** The form carries an operation id. Sending it again returns
   the first request's outcome with no second model call; anyone else, or a
-  different request, with the same id is refused (409).
+  different request, with the same id is refused (409). Two submissions that
+  race past the lookup are settled by the unique key: the loser loads the
+  winner's row and gets the same answer (while the winner is still drafting,
+  HQ is told to reload in a moment), never a server error.
 - **Moderation.** Flagged input or output holds the request back (`held`): the
   usage row keeps the flag codes only, nothing is added to the library.
 - **Quality signals.** `LibraryQuality` counts, in the database, learners'
@@ -99,7 +102,11 @@ written.
   `practice_set_entries.library_item_version_id`) on each item's current
   published version, across schools. A group with fewer than 20 learners or
   fewer than 3 schools never leaves the query (`HAVING`). A question is
-  flagged when under 30% or over 95% of answers are right. HQ sees the item,
+  flagged when under 30% or over 95% of answers are right, decided in the same
+  query (`HAVING` on the band), so the flagged list is complete however many
+  healthy questions exist; it is paged (100 a page) only after that. The item
+  page looks up its one item's signal directly, and the queue's filter uses the
+  flagged set as a subquery before paging. HQ sees the item,
   its topic, the percentage right and a learner-count band (20 to 49, 50 to
   99, 100 to 999, 1000+): never a school's name or id, a learner, an answer or
   a date. Nothing is stored and nothing is copied into the library. Answers to
@@ -141,6 +148,8 @@ The provider and moderator are local probes and stray HTTP is refused.
 | Inference on | output flagged; the wrong number of items; a link in a question; HQ's daily cap; a person's daily cap; two lessons; a past-paper question | held with the flag code only; failed; failed (and the HTTP message); refused before the provider; validation errors; no item added (`test_moderation_a_bad_answer_and_hq_caps_add_nothing_to_the_library`) |
 | Finance, Sales, Support, Operations, Reviewer; a school Super Admin and teachers of both schools; Content inside each school | ask for drafts, open the attention page, open a new draft | 403 everywhere, nothing written, no call (`test_wrong_hq_roles_and_school_accounts_are_refused_and_nothing_is_written`) |
 | Answers in three schools: 25 learners at 20% right; 30 at 100%; 30 at 60%; 40 in two schools; 19 in three; 90 on a school's own question | read the signals and the page; open a new draft; again; submit it and filter the queue | only the first three counted, two flagged; the page shows the rate and band and no school name; nothing written; version 2 drafted from the published content, still live; 409; listed under Needs attention (`test_weak_items_are_flagged_only_for_large_groups_and_never_show_a_school_or_a_learner`) |
+| Three healthy questions (lower ids), then a weak and an easy one | read flagged pages of one; one item's signal; filter the queue | both flagged reached on pages 1 and 2, healthy ones take no place; the direct lookup works; only the flagged item in the filter (`test_healthy_items_never_crowd_weak_ones_out_of_the_flagged_list`) |
+| A second submission's row lands between this one's lookup and insert | the same person and form; over HTTP; another person; another payload | the winner's pending row, no model call, no audit; a plain message; 409; 409 (`test_two_submissions_of_one_form_racing_past_the_lookup_get_the_first_ones_outcome_or_409`) |
 | The schema | list the new tables; write HQ metering inside a school | no `school_id`, listed as global; 403 (`test_new_tables_belong_to_no_school`) |
 
 `SaasPanelTest` counts the 3 new `/saas` routes (126 in all).

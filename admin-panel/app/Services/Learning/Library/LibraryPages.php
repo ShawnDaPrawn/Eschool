@@ -55,7 +55,7 @@ class LibraryPages
             'canReview' => app(LibraryAccess::class)->can($actor, LibraryAccess::REVIEW),
             'drafting' => app(LibraryDrafting::class)->status(),
             'recentDrafts' => app(LibraryDrafting::class)->recent(),
-            'attention' => count(app(LibraryQuality::class)->flaggedItemIds()),
+            'attention' => app(LibraryQuality::class)->flaggedCount(),
         ] + app(LibrarySchools::class)->list($schoolPage);
     }
 
@@ -135,10 +135,9 @@ class LibraryPages
         $actor = app(LibraryAccess::class)->actor($actor, LibraryAccess::REVIEW);
         $filter = array_key_exists($filter, self::QUEUE_FILTERS) ? $filter : 'all';
         $assignments = LibraryReviewer::query()->where('user_id', $actor->id)->orderBy('library_framework_id')->orderBy('subject_code')->get();
-        $flagged = app(LibraryQuality::class)->flaggedItemIds();
         $paginator = LibraryItemVersion::query()->with('item.topic.framework', 'item.source')->where('state', 'in_review')
             ->when($filter === 'ai_draft', fn ($q) => $q->where('origin', 'ai_draft'))
-            ->when($filter === 'attention', fn ($q) => $q->whereIn('library_item_id', $flagged))
+            ->when($filter === 'attention', fn ($q) => $q->whereIn('library_item_id', app(LibraryQuality::class)->flaggedItemIdsQuery()))
             ->whereHas('item.topic', function ($topic) use ($assignments) {
                 $topic->where(function ($any) use ($assignments) {
                     $any->whereRaw('1 = 0');
@@ -150,6 +149,7 @@ class LibraryPages
             ->orderBy('submitted_at')->orderBy('id')
             ->paginate(self::QUEUE_PER_PAGE, ['*'], 'page', max(1, min(100000, $page)))->withPath(route('saas.library.reviews'))->appends($filter === 'all' ? [] : ['filter' => $filter]);
         $versions = collect($paginator->items());
+        $flagged = app(LibraryQuality::class)->flaggedAmong($versions->pluck('library_item_id')->map(fn ($id) => (int) $id)->unique()->values()->all());
         $names = $this->names($versions->pluck('submitted_by')->filter()->all());
         $grades = GradeLevel::query()->pluck('name', 'id');
         $subjects = $assignments->map(fn ($r) => LibraryFramework::query()->whereKey($r->library_framework_id)->value('code').' · '.$r->subject_code)->all();
@@ -205,7 +205,7 @@ class LibraryPages
     /** The item's learner-answer signal, as HQ may see it, or null. */
     private function signal(int $itemId): ?array
     {
-        $signal = app(LibraryQuality::class)->signals()[$itemId] ?? null;
+        $signal = app(LibraryQuality::class)->signal($itemId);
         if ($signal === null) {
             return null;
         }

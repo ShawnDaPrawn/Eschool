@@ -19,6 +19,7 @@ use App\Services\Ai\Inference\InferenceRequest;
 use App\Services\Ai\Inference\PlatformInference;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -62,6 +63,7 @@ class LibraryDrafting
         'inference_quarantined' => 'Moderation held this request back. Nothing was added to the library.',
         'library_output_invalid' => 'The drafts did not fit the library\'s format, so nothing was added. Try again with a clearer brief.',
         'budget_not_configured' => 'AI drafting has no price or budget set yet, so it cannot run.',
+        'pending' => 'This request is still being drafted. Reload the library page in a moment to see its outcome.',
     ];
 
     public static function rules(): array
@@ -108,22 +110,24 @@ class LibraryDrafting
         $hash = hash('sha256', json_encode($request, JSON_THROW_ON_ERROR));
         $old = LibraryAiDraft::query()->where('operation_id', $data['operation_id'])->first();
         if ($old !== null) {
-            // The same form sent twice: the first request's outcome, never a second model call.
-            abort_unless((int) $old->requested_by === (int) $actor->id && hash_equals($old->request_hash, $hash), 409, 'This request was already used for something else. Reload the page.');
-
-            return $old;
+            return $this->replay($old, $actor, $hash);
         }
         $reason = app(PlatformInference::class)->unavailable(self::FEATURE);
         if ($reason !== null) {
             throw ValidationException::withMessages(['drafting' => self::message($reason)]);
         }
-        $draft = DB::transaction(function () use ($actor, $data, $request, $hash) {
-            $row = LibraryAiDraft::query()->create(['operation_id' => $data['operation_id'], 'request_hash' => $hash, 'requested_by' => $actor->id, 'state' => 'pending'] + $request);
-            Audit::record('library_ai_draft_requested', $row, [], ['topic_id' => $row->library_topic_id, 'source_id' => $row->library_source_id, 'kind' => $row->kind,
-                'count' => $row->count, 'changed_by' => $actor->id]);
+        try {
+            $draft = DB::transaction(function () use ($actor, $data, $request, $hash) {
+                $row = LibraryAiDraft::query()->create(['operation_id' => $data['operation_id'], 'request_hash' => $hash, 'requested_by' => $actor->id, 'state' => 'pending'] + $request);
+                Audit::record('library_ai_draft_requested', $row, [], ['topic_id' => $row->library_topic_id, 'source_id' => $row->library_source_id, 'kind' => $row->kind,
+                    'count' => $row->count, 'changed_by' => $actor->id]);
 
-            return $row;
-        });
+                return $row;
+            });
+        } catch (UniqueConstraintViolationException) {
+            // A second submission of the same form raced the first past the lookup: the first one won, so answer as a replay of it.
+            return $this->replay(LibraryAiDraft::query()->where('operation_id', $data['operation_id'])->firstOrFail(), $actor, $hash);
+        }
         try {
             $result = app(AiGateway::class)->runPlatform($actor, Capability::Complete, new InferenceRequest(self::FEATURE, $draft->operation_id, self::PROMPT,
                 $this->input($draft, $topic, $source), ['library-topic:'.$topic->topic_key, 'library-source:'.$source->id]));
@@ -160,6 +164,18 @@ class LibraryDrafting
         }
 
         return $draft->fresh();
+    }
+
+    /**
+     * The same form sent again: the first request's outcome (still pending,
+     * completed, failed or held), never a second model call. Anyone else, or a
+     * different request under the same id, is refused.
+     */
+    private function replay(LibraryAiDraft $old, User $actor, string $hash): LibraryAiDraft
+    {
+        abort_unless((int) $old->requested_by === (int) $actor->id && hash_equals($old->request_hash, $hash), 409, 'This request was already used for something else. Reload the page.');
+
+        return $old;
     }
 
     /** What the model is given: library data and the brief only. */

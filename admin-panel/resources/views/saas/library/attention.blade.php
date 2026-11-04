@@ -38,4 +38,11 @@
     </table>
 </div>
 @endif
+@if ($lastPage > 1)
+    <nav aria-label="{{ __('Pages') }}">
+        @if ($page > 1)<a href="{{ route('saas.library.attention', ['page' => $page - 1]) }}">{{ __('Previous') }}</a>@endif
+        {{ __('Page :page of :last', ['page' => $page, 'last' => $lastPage]) }}
+        @if ($page < $lastPage)<a href="{{ route('saas.library.attention', ['page' => $page + 1]) }}">{{ __('Next') }}</a>@endif
+    </nav>
+@endif
 @endsection

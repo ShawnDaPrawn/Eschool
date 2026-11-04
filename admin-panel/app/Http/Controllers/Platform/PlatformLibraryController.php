@@ -101,7 +101,7 @@ class PlatformLibraryController extends Controller
     {
         $draft = $drafting->request($request->user(), $request->validated());
         if ($draft->state !== 'completed') {
-            return back()->withInput()->withErrors(['drafting' => LibraryDrafting::message($draft->failure_code)]);
+            return back()->withInput()->withErrors(['drafting' => LibraryDrafting::message($draft->state === 'pending' ? 'pending' : $draft->failure_code)]);
         }
         $ids = (array) $draft->item_ids;
 
@@ -111,7 +111,7 @@ class PlatformLibraryController extends Controller
     /** Library items learners' answers have flagged, as counts and rates only. */
     public function attention(Request $request, LibraryQuality $quality): View
     {
-        return view('saas.library.attention', $quality->attention($request->user()));
+        return view('saas.library.attention', $quality->attention($request->user(), (int) $request->query('page', 1)));
     }
 
     public function redraft(LibraryRequest $request, LibraryItems $items, int $item): RedirectResponse
