@@ -8,6 +8,8 @@ use App\Models\Growth\MasteryEvidence;
 use App\Models\Library\LibraryDiagram;
 use App\Services\Learning\DailyPractice;
 use App\Services\Learning\Library\LibraryContent;
+use App\Services\Learning\Library\LibraryPractice;
+use App\Services\Learning\PracticeContract;
 use App\Services\Learning\PracticeMedia;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -89,5 +91,21 @@ class LibraryQuestionTypesTest extends TestCase
         $this->assertSame('A spoken answer', LibraryContent::QUESTION_KINDS['audio']);
         app(CurrentSchool::class)->run(1, fn () => $this->refuses(fn () => app(PracticeMedia::class)->storeLibraryDiagram($this->actor(), UploadedFile::fake()->image('x.png', 10, 10)), 403));
         $this->assertSame(0, LibraryDiagram::count());
+    }
+
+    public function test_a_client_without_the_new_kinds_still_gets_library_questions_when_the_schools_own_are_all_new_kinds(): void
+    {
+        // Ten approved school questions reach LibraryPractice::MINIMUM_OWN, but all are short written answers.
+        for ($i = 0; $i < LibraryPractice::MINIMUM_OWN; $i++) {
+            $this->approve(['estimated_seconds' => 60, 'definition' => ['kind' => 'short_text', 'prompt' => "Name process $i.", 'explanation' => 'Plants use light.',
+                'options' => [], 'answers' => ['photosynthesis']]]);
+        }
+        $library = $this->publishedItem($this->libraryTopic('Fractions'));
+        $this->switchLibrary(1, true);
+        // The supported kinds are applied before the library top-up is decided, so a legacy client gets the library's number question, not a 409.
+        $set = app(DailyPractice::class)->issue($this->actor('asha'), $this->schoolA->ids['asha'], $this->group,
+            ['operation_id' => (string) Str::uuid(), 'practice_on' => '2026-02-10'], [], PracticeContract::LEGACY);
+        $this->assertSame([$library->id], array_column($set['items'], 'item_id'));
+        $this->assertSame('number', $set['items'][0]['definition']['kind']);
     }
 }

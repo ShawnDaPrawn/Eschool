@@ -27,11 +27,14 @@ for (const width of [390, 820, 1280]) {
     await page.context().addCookies([{ name: 'ordinary_session', value: 'synthetic-do-not-send', url: baseURL!, httpOnly: true }]);
     const expires = new Date(Date.now() + 10 * 60_000).toISOString();
     const context = { school_id: 1, learner_id: 11, name: 'PRIVATE classroom learner', teaching_group_id: 41, expires_at: expires, restricted: true, capabilities: ['daily_practice'] };
-    const review = { id: 91, entry_id: 81, correct: true, reviewed_on: '2026-10-26', schedule: { version: 'synthetic-browser', rating: 3, difficulty: 5, stability_days: 1, retrievability_before: null, interval_days: 1 } };
+    // The answer-free contract (Action Plan 3.11): the explanation arrives only with the recorded result.
+    const review = { id: 91, entry_id: 81, state: 'marked', correct: true, achieved_units: 1, maximum_units: 1, parts: null, marked_how: 'automatic', reviewed_on: '2026-10-26',
+      schedule: { version: 'synthetic-browser', rating: 3, difficulty: 5, stability_days: 1, retrievability_before: null, interval_days: 1 },
+      solution: { explanation: 'PRIVATE <script> must remain ordinary explanation text.', answers: ['a'], steps: [], mapping: [] } };
     let saved = false, attempts = 0, effects = 0;
     const reviews: string[] = [], outgoing: string[] = [];
     const set = () => ({ id: 71, school_id: 1, reader_id: 111, learner_id: 11, group_id: 41, practice_on: '2026-10-26', server_time: new Date().toISOString(), offline_until: expires, estimated_seconds: 60, completed: saved, streak_days: 0,
-      items: [{ id: 81, item_id: 61, topic_id: 51, source_version_id: 31, estimated_seconds: 60, definition: { kind: 'choice', prompt: 'PRIVATE choose one half as a decimal', explanation: 'PRIVATE <script> must remain ordinary explanation text.', options: [{ id: 'a', text: '0.5' }, { id: 'b', text: '2' }], answers: ['a'] }, review: saved ? review : null }] });
+      items: [{ id: 81, item_id: 61, topic_id: 51, source_version_id: 31, estimated_seconds: 60, question: { kind: 'choice', prompt: 'PRIVATE choose one half as a decimal', options: [{ id: 'a', text: '0.5' }, { id: 'b', text: '2' }] }, review: saved ? review : null }] });
     await page.route('**/api/v2/foundation-**', async route => {
       const request = route.request(), url = new URL(request.url()), headers = await request.allHeaders();
       outgoing.push(url.pathname);
@@ -46,6 +49,7 @@ for (const width of [390, 820, 1280]) {
         return answer({ ...context, classroom_session: learner });
       }
       expect(headers['authorization']).toBe(`Bearer ${learner}~${device}`);
+      expect(headers['x-practice-contract']).toBe('2');
       if (url.pathname === '/api/v2/foundation-learner/context') return answer(context);
       if (url.pathname === '/api/v2/foundation-learner/practice') { expect(Object.keys(request.postDataJSON())).toEqual(['operation_id']); return answer(set()); }
       if (url.pathname === '/api/v2/foundation-learner/practice/71') return answer(set());

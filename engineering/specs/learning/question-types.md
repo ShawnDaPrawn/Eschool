@@ -15,7 +15,7 @@ questions and platform library questions alike, through the learner API
 tablet (`foundation-learner/practice`). Tutor checkpoints already returned only
 `kind`, `prompt` and `options` before an answer.
 
-Now every set entry carries `question` (`PracticeAnswers::question`): the
+For a client on the answer-free contract (below), every set entry carries `question` (`PracticeAnswers::question`): the
 prompt, options, step prompts, diagram size, regions and labels, the recording
 limit. It never carries accepted answers, step answers, the label mapping or
 the explanation. They arrive in `review.solution`
@@ -29,6 +29,38 @@ and for tutor checkpoints (unchanged shape; they now take only `choice` and
 
 A learner who answers a question and later meets it again knows the answer:
 that is practice working as intended, not a leak.
+
+## The contract: opt in, with the legacy shape kept for installed apps
+
+The installed apps decode `items[].definition` (`eschool_api`
+`PracticeSetEntry`) and mark locally, so the answer-free shape is opt-in
+(`PracticeContract`):
+
+- A client that sends `X-Practice-Contract: 2` on the practice endpoints
+  (`issuePracticeDailySet`, `getPracticeDailySet`, `reviewPracticeEntry`,
+  `getPracticeBank` and the classroom tablet's `foundation-learner/practice`
+  routes) reads the answer-free contract described above, with every question
+  kind. The classroom tablet's web client sends it.
+- A client that sends no header (or `1`) reads the legacy contract exactly as
+  before 3.11: `definition` with its answers and explanation, the old review
+  result, and `choice` and `number` questions only. A legacy issue only picks
+  those kinds; a legacy read of a set issued to an updated app shows only its
+  choice and number questions (and refuses with 426 when there are none); a
+  legacy review of any other kind is not found, and a recording is refused.
+  The teacher bank list shows a legacy client only choice and number
+  questions. Legacy review receipts hash exactly what they did before, so
+  retried pre-update operations replay.
+- The legacy contract keeps the old offline answer loophole for un-updated
+  clients only. It is one switch: `practice.legacy_set_contract`
+  (`PRACTICE_LEGACY_SET_CONTRACT`, default on). Switched off, every legacy
+  set request (issue, read, review) is refused with 426 "Update the app"
+  rather than served a shape the old app cannot decode. Retire it once the
+  apps send the header.
+
+The kinds a client can answer are applied when candidates are chosen, before
+the school's own count decides the library top-up
+(`LibraryPractice::MINIMUM_OWN`), so a client limited to choice and number
+questions still gets library ones when the school's own are all new kinds.
 
 ## Question kinds (`PracticeAnswers`)
 
@@ -122,16 +154,18 @@ wrong learner and parent for the queue, recordings and diagram pictures.
 
 ## Client change
 
-The set payload changed shape: `items[].definition` is replaced by
-`items[].question`, and `review` gains `state`, unit counts, `parts`,
-`marked_how` and `solution` (`correct` and `schedule` may be `null` while an
-answer waits). The Dart client (`packages/eschool_api`) must be regenerated
-from `openapi.yaml`, and the learner app must stop marking locally, show "saved,
-marked when it syncs", fetch diagram pictures, record audio and show the
-solution from the review. Until then the installed app cannot read new sets.
-The classroom tablet's web client in this repository is already updated; it
-offers `choice` and `number` questions, and sets issued from it contain only
-those.
+In the answer-free contract `items[].question` replaces `items[].definition`,
+and `review` gains `state`, unit counts, `parts`, `marked_how` and `solution`
+(`correct` and `schedule` may be `null` while an answer waits). In
+`openapi.yaml` these are `PracticeDailySetV2`, `PracticeSetEntryV2` and
+`PracticeReviewV2`; the legacy `PracticeDailySet`, `PracticeSetEntry` and
+`PracticeReview` are unchanged, and the responses accept either. The Dart
+client (`packages/eschool_api`) must be regenerated, and the learner app must
+send the header, stop marking locally, show "saved, marked when it syncs",
+fetch diagram pictures, record audio and show the solution from the review.
+Until it does, it keeps working on the legacy contract. The classroom tablet's
+web client in this repository already opts in; it offers `choice` and
+`number` questions, and sets issued from it contain only those.
 
 ## Not in this step
 

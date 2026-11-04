@@ -97,7 +97,8 @@
       const response = await fetch(safeUrl(path), {
         method: serialized === null ? 'GET' : 'POST', credentials: 'omit', redirect: 'error', cache: 'no-store',
         mode: 'same-origin', referrerPolicy: 'no-referrer', signal: controller.signal,
-        headers: {Accept: 'application/json', Authorization: `Bearer ${learnerRequest ? `${learner}~` : ''}${device}`,
+        // The tablet reads the answer-free practice contract: questions only, results after each answer.
+        headers: {Accept: 'application/json', 'X-Practice-Contract': '2', Authorization: `Bearer ${learnerRequest ? `${learner}~` : ''}${device}`,
           ...(serialized === null ? {} : {'Content-Type': 'application/json'})},
         ...(serialized === null ? {} : {body: serialized}),
       });

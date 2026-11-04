@@ -16962,8 +16962,9 @@ paths:
       summary: getPracticeAccess
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -17003,8 +17004,9 @@ paths:
       summary: getPracticeBankChoices
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -17050,10 +17052,12 @@ paths:
       summary: getPracticeBank
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -17102,8 +17106,9 @@ paths:
       summary: approvePracticeQuestion
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -17155,8 +17160,9 @@ paths:
       summary: revisePracticeQuestion
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -17214,10 +17220,12 @@ paths:
       summary: issuePracticeDailySet
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -17233,6 +17241,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly scoped private practice result.
           content:
@@ -17273,10 +17287,12 @@ paths:
       summary: getPracticeDailySet
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -17292,6 +17308,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly scoped private practice result.
           content:
@@ -17326,10 +17348,12 @@ paths:
       summary: reviewPracticeEntry
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Sets carry questions only; answers are marked on the server on sync, and the result
-        and explanation follow the recorded answer (Action Plan 3.11). Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -17351,6 +17375,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly scoped private practice result.
           content:
@@ -26499,8 +26529,15 @@ paths:
         writable daily practice; new registration and Teacher grants still require writable card inventory.
       security:
       - foundationLearnerAuth: []
-      parameters: []
+      parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly authorized private classroom result.
           content:
@@ -26541,6 +26578,7 @@ paths:
       security:
       - foundationLearnerAuth: []
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - name: set
         in: path
         required: true
@@ -26548,6 +26586,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly authorized private classroom result.
           content:
@@ -26582,6 +26626,7 @@ paths:
       security:
       - foundationLearnerAuth: []
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - name: set
         in: path
         required: true
@@ -26595,6 +26640,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly authorized private classroom result.
           content:
@@ -29611,6 +29662,19 @@ components:
       schema:
         type: integer
         minimum: 1
+    PracticeContract:
+      name: X-Practice-Contract
+      in: header
+      required: false
+      description: "2 opts in to the answer-free practice contract (Action Plan 3.11): sets carry questions only, of every kind, and
+        answers and explanations arrive in review.solution once the answer is recorded. Without it (or 1) the legacy contract
+        applies, exactly as before: choice and number questions only, approved answers included. The legacy contract is
+        retired with practice.legacy_set_contract; legacy requests are then refused with 426."
+      schema:
+        type: string
+        enum:
+        - '1'
+        - '2'
     SchoolId:
       name: X-School-Id
       in: header
@@ -52167,6 +52231,33 @@ components:
     PracticeReview:
       type: object
       additionalProperties: false
+      required:
+      - id
+      - entry_id
+      - correct
+      - schedule
+      - reviewed_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        entry_id:
+          type: integer
+          minimum: 1
+        correct:
+          type: boolean
+        schedule:
+          $ref: '#/components/schemas/PracticeSchedule'
+        reviewed_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+    PracticeReviewV2:
+      type: object
+      additionalProperties: false
       description: "A recorded answer. state is awaiting_teacher for a short written answer that matched no accepted answer,
         and for a spoken answer, until one of the group's current teachers marks it; correct, the unit counts and the
         schedule of a marked answer are then filled once. solution is present because the answer is recorded."
@@ -52243,6 +52334,40 @@ components:
       - topic_id
       - source_version_id
       - estimated_seconds
+      - definition
+      - review
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        item_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        source_version_id:
+          type: integer
+          minimum: 1
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 300
+        definition:
+          $ref: '#/components/schemas/PracticeQuestion'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReview'
+          - type: 'null'
+    PracticeSetEntryV2:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - item_id
+      - topic_id
+      - source_version_id
+      - estimated_seconds
       - question
       - review
       properties:
@@ -52266,11 +52391,12 @@ components:
           $ref: '#/components/schemas/PracticeSetQuestion'
         review:
           anyOf:
-          - $ref: '#/components/schemas/PracticeReview'
+          - $ref: '#/components/schemas/PracticeReviewV2'
           - type: 'null'
     PracticeDailySet:
       type: object
       additionalProperties: false
+      description: "The legacy set contract, for a client that sends no X-Practice-Contract header: choice and number questions only, with approved answers and explanations included for offline self-study. Switched off by practice.legacy_set_contract (then 426)."
       required:
       - id
       - school_id
@@ -52321,6 +52447,64 @@ components:
           maxItems: 10
           items:
             $ref: '#/components/schemas/PracticeSetEntry'
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+    PracticeDailySetV2:
+      type: object
+      additionalProperties: false
+      description: "The answer-free set contract (X-Practice-Contract: 2, Action Plan 3.11): questions only, every kind; results and solutions follow each recorded answer."
+      required:
+      - id
+      - school_id
+      - reader_id
+      - learner_id
+      - group_id
+      - practice_on
+      - server_time
+      - offline_until
+      - estimated_seconds
+      - completed
+      - items
+      - streak_days
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        practice_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        server_time:
+          type: string
+          format: date-time
+        offline_until:
+          type: string
+          format: date-time
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 600
+        completed:
+          type: boolean
+        items:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PracticeSetEntryV2'
         streak_days:
           type: integer
           minimum: 0
@@ -52698,7 +52882,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     GetPracticeDailySetResponse:
@@ -52715,7 +52901,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     ReviewPracticeEntryResponse:
@@ -52732,7 +52920,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeReview'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReview'
+          - $ref: '#/components/schemas/PracticeReviewV2'
         code:
           type: integer
     UploadPracticeDiagramResponse:
@@ -62478,7 +62668,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     GetFoundationPracticeResponse:
@@ -62495,7 +62687,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     ReviewFoundationPracticeResponse:
@@ -62512,7 +62706,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeReview'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReview'
+          - $ref: '#/components/schemas/PracticeReviewV2'
         code:
           type: integer
     LeaveFoundationLearnerResponse:

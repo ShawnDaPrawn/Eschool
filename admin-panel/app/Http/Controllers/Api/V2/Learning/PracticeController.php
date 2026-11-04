@@ -10,6 +10,7 @@ use App\Services\Learning\DailyPractice;
 use App\Services\Learning\PracticeAccess;
 use App\Services\Learning\PracticeBank;
 use App\Services\Learning\PracticeChoices;
+use App\Services\Learning\PracticeContract;
 use App\Services\Learning\PracticeMarking;
 use App\Services\Learning\PracticeMedia;
 use App\Services\ResponseService;
@@ -41,7 +42,7 @@ class PracticeController extends Controller
 
     public function bank(PracticeRequest $r, int $group): JsonResponse
     {
-        return $this->result(fn () => app(PracticeBank::class)->catalogue($r->user(), $group, (int) $r->validated('page', 1)));
+        return $this->result(fn () => app(PracticeBank::class)->catalogue($r->user(), $group, (int) $r->validated('page', 1), $this->contract($r)));
     }
 
     public function approve(PracticeRequest $r, int $group, ?int $item = null): JsonResponse
@@ -51,17 +52,17 @@ class PracticeController extends Controller
 
     public function issue(PracticeRequest $r, int $learner, int $group): JsonResponse
     {
-        return $this->result(fn () => app(DailyPractice::class)->issue($r->user(), $learner, $group, $r->all()));
+        return $this->result(fn () => app(DailyPractice::class)->issue($r->user(), $learner, $group, $r->all(), [], $this->contract($r)));
     }
 
     public function read(PracticeRequest $r, int $learner, int $set): JsonResponse
     {
-        return $this->result(fn () => app(DailyPractice::class)->read($r->user(), $learner, $set));
+        return $this->result(fn () => app(DailyPractice::class)->read($r->user(), $learner, $set, $this->contract($r)));
     }
 
     public function review(PracticeRequest $r, int $learner, int $set, int $entry): JsonResponse
     {
-        return $this->result(fn () => app(DailyPractice::class)->review($r->user(), $learner, $set, $entry, $r->except('audio'), $r->file('audio')));
+        return $this->result(fn () => app(DailyPractice::class)->review($r->user(), $learner, $set, $entry, $r->except('audio'), $r->file('audio'), $this->contract($r)));
     }
 
     /** A labelling question's diagram picture, for the learner whose set it is (Action Plan 3.11). */
@@ -98,6 +99,12 @@ class PracticeController extends Controller
     public function mark(PracticeRequest $r, int $group, int $review): JsonResponse
     {
         return $this->result(fn () => app(PracticeMarking::class)->mark($r->user(), $group, $review, $r->all()));
+    }
+
+    /** `X-Practice-Contract: 2` opts in to answer-free sets (Action Plan 3.11); no header is the legacy contract. */
+    private function contract(PracticeRequest $r): int
+    {
+        return app(PracticeContract::class)->fromRequest($r);
     }
 
     private function bytes(string $bytes, string $mime): Response

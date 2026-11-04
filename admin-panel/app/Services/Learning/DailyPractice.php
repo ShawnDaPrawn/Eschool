@@ -28,21 +28,26 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class DailyPractice
 {
-    /** @param  list<string>  $without  question kinds this client cannot answer (a classroom tablet records no audio) */
-    public function issue(User $actor, int $learner, int $groupId, array $input, array $without = []): array
+    /**
+     * @param  list<string>  $without  question kinds this client cannot answer (a classroom tablet records no audio)
+     * @param  int  $contract  PracticeContract::ANSWER_FREE, or LEGACY for an app that has not opted in (choice and number only)
+     */
+    public function issue(User $actor, int $learner, int $groupId, array $input, array $without = [], int $contract = PracticeContract::ANSWER_FREE): array
     {
+        app(PracticeContract::class)->allow($contract);
+        $kinds = array_values(array_diff(app(PracticeContract::class)->kinds($contract), $without));
         $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'practice_on' => ['required', 'date_format:Y-m-d']])->validate();
         $authorize = function () use ($actor, $learner, $groupId, $data) {
             app(PracticeAccess::class)->learner($actor, $learner, $groupId, true);
             abort_unless($data['practice_on'] === app(AcademicAuthority::class)->today(), 409, 'Request the current school day’s practice.');
         };
 
-        $receipt = app(PracticeOperations::class)->run($actor, $data + ['learner_id' => $learner, 'group_id' => $groupId], $authorize, function () use ($actor, $learner, $groupId, $data, $without) {
+        $receipt = app(PracticeOperations::class)->run($actor, $data + ['learner_id' => $learner, 'group_id' => $groupId], $authorize, function () use ($actor, $learner, $groupId, $data, $kinds) {
             $group = app(PracticeAccess::class)->learner($actor, $learner, $groupId, true);
             $set = PracticeDailySet::where('learner_id', $learner)->where('teaching_group_id', $groupId)->where('practice_on', $data['practice_on'])->first();
             if ($set === null) {
-                $choices = array_values(array_filter($this->candidates($actor, $learner, $group),
-                    fn ($version) => ! in_array($version instanceof LibraryItemVersion ? ($version->practiceDefinition()['kind'] ?? null) : ($version->definition['kind'] ?? null), $without, true)));
+                // Only kinds this client can answer, chosen before the library top-up is decided.
+                $choices = $this->candidates($actor, $learner, $group, $kinds);
                 abort_if($choices === [], 409, 'Your teacher has not approved available practice for this subject yet.');
                 $zone = app(CurrentSchool::class)->school()->timezone;
                 $set = PracticeDailySet::create(['learner_id' => $learner, 'teaching_group_id' => $groupId, 'practice_on' => $data['practice_on'],
@@ -66,7 +71,7 @@ class DailyPractice
             return ['set_id' => (int) $set->id];
         });
 
-        return $this->read($actor, $learner, $receipt['set_id']);
+        return $this->read($actor, $learner, $receipt['set_id'], $contract);
     }
 
     /**
@@ -76,7 +81,7 @@ class DailyPractice
      *
      * @return list<PracticeItemVersion|LibraryItemVersion>
      */
-    private function candidates(User $actor, int $learner, TeachingGroup $group): array
+    private function candidates(User $actor, int $learner, TeachingGroup $group, array $kinds): array
     {
         $items = PracticeItem::usedIn((int) $group->id)->where('active', true)->orderBy('id')->limit(1001)->get();
         abort_if($items->count() > 1000, 422, 'The subject practice bank exceeds its bounded catalogue.');
@@ -93,7 +98,7 @@ class DailyPractice
         $available = [];
         foreach ($versions as $version) {
             $item = $byId[$version->practice_item_id];
-            if (! in_array((int) $version->content_version_id, $readable, true)) {
+            if (! in_array((int) $version->content_version_id, $readable, true) || ! in_array($version->definition['kind'] ?? null, $kinds, true)) {
                 continue;
             }
             try {
@@ -111,7 +116,7 @@ class DailyPractice
             return $own;
         }
 
-        return [...$own, ...app(LibraryPractice::class)->candidates($learner, $group, $weakness, $today)];
+        return [...$own, ...app(LibraryPractice::class)->candidates($learner, $group, $weakness, $today, $kinds)];
     }
 
     private function authorized(User $actor, int $learner, int $setId, bool $write = false): array
@@ -171,15 +176,28 @@ class DailyPractice
         return [$set, $group, $entries];
     }
 
-    public function read(User $actor, int $learner, int $setId): array
+    public function read(User $actor, int $learner, int $setId, int $contract = PracticeContract::ANSWER_FREE): array
     {
+        app(PracticeContract::class)->allow($contract);
         $school = app(CurrentSchool::class)->id();
         [$set, $group, $entries] = $this->authorized($actor, $learner, $setId);
+        $legacy = $contract === PracticeContract::LEGACY;
+        if ($legacy) {
+            // A legacy client reads choice and number questions only; a set holding nothing else for it asks for the update.
+            $entries = $entries->filter(fn ($entry) => in_array($this->definitionOf($entry)['kind'] ?? null, PracticeAnswers::SINGLE, true))->values();
+            abort_if($entries->isEmpty(), 426, 'Update the app to open this practice.');
+        }
         $reviews = PracticeReview::whereIn('practice_set_entry_id', $entries->pluck('id'))->get()->keyBy('practice_set_entry_id');
         $seconds = 0;
-        $rows = $entries->map(function ($entry) use ($reviews, &$seconds) {
+        $rows = $entries->map(function ($entry) use ($reviews, &$seconds, $legacy) {
             $version = $entry->approvedVersion;
             $seconds += $version->estimated_seconds;
+            if ($legacy) {
+                // The legacy contract, exactly as before 3.11: approved answers are included for offline self-study.
+                return ['id' => (int) $entry->id, 'item_id' => (int) $entry->approvedItem->id, 'topic_id' => $this->topicOf($entry),
+                    'source_version_id' => $this->library($entry) ? (int) $version->id : (int) $version->content_version_id, 'estimated_seconds' => (int) $version->estimated_seconds,
+                    'definition' => $this->definitionOf($entry), 'review' => $reviews->has($entry->id) ? $this->legacyReviewData($reviews[$entry->id]) : null];
+            }
 
             // The device gets the question only (Action Plan 3.11): accepted answers, step answers, the label
             // mapping and the explanation arrive with the result, after the server has recorded an answer.
@@ -205,23 +223,30 @@ class DailyPractice
      * only now that the answer is recorded, and memory and mastery evidence
      * are written once, when the answer is marked.
      */
-    public function review(User $actor, int $learner, int $setId, int $entryId, array $input, ?UploadedFile $audio = null): array
+    public function review(User $actor, int $learner, int $setId, int $entryId, array $input, ?UploadedFile $audio = null, int $contract = PracticeContract::ANSWER_FREE): array
     {
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'answer' => ['nullable', 'string', 'max:'.PracticeAnswers::SHORT_TEXT_MAX],
-            'parts' => ['nullable', 'array', 'max:16'], 'parts.*' => ['required', 'string', 'max:100'], 'rating' => ['required', 'integer', 'between:2,4']])->validate();
+        app(PracticeContract::class)->allow($contract);
+        $legacy = $contract === PracticeContract::LEGACY;
+        abort_if($legacy && $audio !== null, 422, 'Update the app to record a spoken answer.');
+        $data = Validator::make($input, $legacy
+            ? ['operation_id' => ['required', 'uuid'], 'answer' => ['required', 'string', 'max:100'], 'rating' => ['required', 'integer', 'between:2,4']]
+            : ['operation_id' => ['required', 'uuid'], 'answer' => ['nullable', 'string', 'max:'.PracticeAnswers::SHORT_TEXT_MAX],
+                'parts' => ['nullable', 'array', 'max:16'], 'parts.*' => ['required', 'string', 'max:100'], 'rating' => ['required', 'integer', 'between:2,4']])->validate();
         $authorize = fn () => $this->authorized($actor, $learner, $setId, true);
         $recording = null;
         if ($audio !== null) {
             $authorize();
             $recording = app(PracticeMedia::class)->inspectAudio($audio);
         }
-        $operation = array_intersect_key($data, array_flip(['operation_id', 'answer', 'parts', 'rating'])) + ['learner_id' => $learner, 'set_id' => $setId, 'entry_id' => $entryId]
-            + ($recording === null ? [] : ['audio_sha256' => $recording['sha256']]);
+        // A legacy receipt hashes exactly what it did before 3.11, so retried pre-update operations still replay.
+        $operation = $legacy ? $data + ['learner_id' => $learner, 'set_id' => $setId, 'entry_id' => $entryId]
+            : array_intersect_key($data, array_flip(['operation_id', 'answer', 'parts', 'rating'])) + ['learner_id' => $learner, 'set_id' => $setId, 'entry_id' => $entryId, 'contract' => $contract]
+                + ($recording === null ? [] : ['audio_sha256' => $recording['sha256']]);
 
-        return app(PracticeOperations::class)->run($actor, $operation, $authorize, function () use ($actor, $learner, $setId, $entryId, $data, $recording) {
+        return app(PracticeOperations::class)->run($actor, $operation, $authorize, function () use ($actor, $learner, $setId, $entryId, $data, $recording, $legacy) {
             [$set, $group, $entries] = $this->authorized($actor, $learner, $setId, true);
             $entry = $entries->firstWhere('id', $entryId);
-            abort_if($entry === null, 404);
+            abort_if($entry === null || ($legacy && ! in_array($this->definitionOf($entry)['kind'] ?? null, PracticeAnswers::SINGLE, true)), 404);
             abort_if(PracticeReview::where('practice_set_entry_id', $entryId)->exists(), 409, 'This question was already reviewed. Reload the saved result.');
             $today = app(AcademicAuthority::class)->today();
             abort_if($set->practice_on->toDateString() > $today || CarbonImmutable::parse($set->practice_on->toDateString(), 'UTC')->diffInDays(CarbonImmutable::parse($today, 'UTC')) > 7, 409, 'This offline set is too old to synchronize. Start today’s practice.');
@@ -240,7 +265,7 @@ class DailyPractice
                 $set->update(['completed_at' => now()->utc(), 'completed_on' => $today]);
             }
 
-            return $this->reviewData($review->refresh(), $entry) + ['streak_days' => $this->streak($learner)];
+            return ($legacy ? $this->legacyReviewData($review->refresh()) : $this->reviewData($review->refresh(), $entry)) + ['streak_days' => $this->streak($learner)];
         });
     }
 
@@ -307,6 +332,13 @@ class DailyPractice
     private function definitionOf(PracticeSetEntry $entry): array
     {
         return $this->library($entry) ? (array) $entry->approvedVersion->practiceDefinition() : $entry->approvedVersion->definition;
+    }
+
+    /** The legacy contract's result, exactly as before 3.11 (choice and number answers, always marked at once). */
+    private function legacyReviewData(PracticeReview $review): array
+    {
+        return ['id' => (int) $review->id, 'entry_id' => (int) $review->practice_set_entry_id, 'correct' => (bool) $review->correct,
+            'schedule' => $review->schedule, 'reviewed_on' => $review->reviewed_on->toDateString()];
     }
 
     /** The recorded result: only ever returned once the answer is recorded, so it may carry the solution. */

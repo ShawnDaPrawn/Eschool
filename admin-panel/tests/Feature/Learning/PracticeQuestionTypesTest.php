@@ -9,7 +9,9 @@ use App\Models\Learning\PracticeAudioAnswer;
 use App\Models\Learning\PracticeDiagram;
 use App\Models\Learning\PracticeMemory;
 use App\Models\Learning\PracticeReview;
+use App\Models\Learning\PracticeSetEntry;
 use App\Services\Learning\DailyPractice;
+use App\Services\Learning\PracticeContract;
 use App\Services\Learning\PracticeMarking;
 use App\Services\Learning\PracticeMedia;
 use App\Services\Platform\Files\UploadScanner;
@@ -50,8 +52,12 @@ class PracticeQuestionTypesTest extends TestCase
     {
         $this->app['auth']->forgetGuards();
         $this->flushHeaders();
-        $this->withToken($this->schoolA->tokens[$name])->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->actor($name)->id]);
+        $this->withToken($this->schoolA->tokens[$name])->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->actor($name)->id,
+            'X-Practice-Contract' => (string) $this->contract]);
     }
+
+    /** These tests read the answer-free contract unless a test says otherwise. */
+    private int $contract = PracticeContract::ANSWER_FREE;
 
     private function base(string $kind, string $marker): array
     {
@@ -300,5 +306,69 @@ class PracticeQuestionTypesTest extends TestCase
         $this->assertSame(['marked', false, 'teacher'], [$review->fresh()->state, $review->fresh()->correct, $review->fresh()->marked_how]);
         $this->actingAs($this->actor('theo'));
         $this->get(route('question-banks.marking', ['group' => $this->group]))->assertNotFound();
+    }
+
+    public function test_a_legacy_client_gets_todays_exact_set_shape_with_only_choice_and_number_questions(): void
+    {
+        $this->everyType();
+        $learner = $this->schoolA->ids['asha'];
+        // The set was issued to an updated app with every kind; an app that has not opted in sees only the number question, as before.
+        $this->contract = PracticeContract::LEGACY;
+        $this->signIn('asha');
+        $legacy = $this->getJson(self::BASE."/learners/$learner/daily-sets/{$this->set['id']}")->assertOk()->json('data');
+        $this->assertCount(1, $legacy['items']);
+        $this->assertSame(['id', 'item_id', 'topic_id', 'source_version_id', 'estimated_seconds', 'definition', 'review'], array_keys($legacy['items'][0]));
+        $this->assertSame(['kind' => 'number', 'prompt' => 'QUESTION-number', 'explanation' => 'EXPLAIN-number', 'answers' => ['7311'], 'options' => []],
+            array_intersect_key($legacy['items'][0]['definition'], array_flip(['kind', 'prompt', 'explanation', 'options', 'answers'])));
+        $this->assertSame(60, $legacy['estimated_seconds']);
+        $path = self::BASE."/learners/$learner/daily-sets/{$this->set['id']}/entries";
+        $result = $this->postJson("$path/{$this->entries['number']}/review", ['operation_id' => (string) Str::uuid(), 'answer' => '7311', 'rating' => 3])->assertOk()->json('data');
+        $this->assertSame(['id', 'entry_id', 'correct', 'schedule', 'reviewed_on', 'streak_days'], array_keys($result));
+        $this->assertTrue($result['correct']);
+        // New kinds are not there for a legacy client, even by id.
+        $this->postJson("$path/{$this->entries['matched']}/review", ['operation_id' => (string) Str::uuid(), 'answer' => 'Photosynthesis secret', 'rating' => 3])->assertNotFound();
+        $this->post("$path/{$this->entries['audio']}/review", ['operation_id' => (string) Str::uuid(), 'rating' => 3, 'audio' => $this->audioFile()], ['Accept' => 'application/json'])
+            ->assertUnprocessable();
+        $this->assertSame(1, PracticeReview::count());
+    }
+
+    public function test_a_legacy_client_is_issued_only_choice_and_number_questions(): void
+    {
+        $this->approve();
+        $this->signIn('tara');
+        $this->postJson(self::BASE."/groups/{$this->group}/bank", ['operation_id' => (string) Str::uuid(), 'expected_revision' => 0, 'topic_id' => $this->nodes[$this->keys[1]],
+            'content_version_id' => $this->source, 'estimated_seconds' => 60, 'active' => true, 'definition' => ['answers' => ['sun']] + $this->base('short_text', 'text')])->assertOk();
+        // The teacher app on the legacy contract sees the questions it can edit; an updated one sees every kind.
+        $this->contract = PracticeContract::LEGACY;
+        $this->signIn('tara');
+        $this->assertSame(['number'], array_column(array_column($this->getJson(self::BASE."/groups/{$this->group}/bank")->assertOk()->json('data.items'), 'definition'), 'kind'));
+        $this->signIn('asha');
+        $learner = $this->schoolA->ids['asha'];
+        $set = $this->postJson(self::BASE."/learners/$learner/groups/{$this->group}/daily-sets", ['operation_id' => (string) Str::uuid(), 'practice_on' => '2026-02-10'])->assertOk()->json('data');
+        $this->assertSame(['number'], array_column(array_column($set['items'], 'definition'), 'kind'));
+        $this->assertSame(1, PracticeSetEntry::count(), 'the short written question is not even in the stored set');
+        $this->contract = PracticeContract::ANSWER_FREE;
+        $this->signIn('tara');
+        $this->assertSame(['short_text', 'number'], array_column(array_column($this->getJson(self::BASE."/groups/{$this->group}/bank")->assertOk()->json('data.items'), 'definition'), 'kind'));
+    }
+
+    public function test_switching_off_the_legacy_contract_refuses_legacy_practice_requests(): void
+    {
+        $this->approve();
+        config(['practice.legacy_set_contract' => false]);
+        $learner = $this->schoolA->ids['asha'];
+        $this->contract = PracticeContract::LEGACY;
+        $this->signIn('asha');
+        $issue = ['operation_id' => (string) Str::uuid(), 'practice_on' => '2026-02-10'];
+        $this->postJson(self::BASE."/learners/$learner/groups/{$this->group}/daily-sets", $issue)->assertStatus(426);
+        $this->contract = PracticeContract::ANSWER_FREE;
+        $this->signIn('asha');
+        $set = $this->postJson(self::BASE."/learners/$learner/groups/{$this->group}/daily-sets", $issue)->assertOk()->json('data');
+        $this->contract = PracticeContract::LEGACY;
+        $this->signIn('asha');
+        $this->getJson(self::BASE."/learners/$learner/daily-sets/{$set['id']}")->assertStatus(426);
+        $this->postJson(self::BASE."/learners/$learner/daily-sets/{$set['id']}/entries/{$set['items'][0]['id']}/review", ['operation_id' => (string) Str::uuid(), 'answer' => '0.5', 'rating' => 3])
+            ->assertStatus(426);
+        $this->assertSame(0, PracticeReview::count());
     }
 }
