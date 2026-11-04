@@ -481,6 +481,57 @@ class ReadingLibraryTest extends TestCase
         Http::assertSent(fn ($request) => $request->url() === self::MIRROR.'/cache/epub/90001/pg90001.txt');
     }
 
+    public function test_a_reader_waiting_on_the_lock_respects_a_failure_recorded_meanwhile(): void
+    {
+        ['book' => $book] = $this->catalogue();
+        $this->fakeMirror('Server error', 500);
+        ReadingBookText::query()->create(['reading_book_id' => $book->id, 'state' => 'missing']);
+        // Another reader's fetch fails between this reader's first look (no failure yet) and its turn inside the lock.
+        $failedMeanwhile = false;
+        ReadingBookText::retrieved(function (ReadingBookText $row) use (&$failedMeanwhile) {
+            if (! $failedMeanwhile) {
+                $failedMeanwhile = true;
+                DB::table('reading_book_texts')->where('id', $row->id)->update(['state' => 'failed', 'last_error' => 'http_error', 'last_failed_at' => now()]);
+            }
+        });
+
+        $this->as('asha')->getJson('/api/v2/reading/books/'.$book->id.'/pages/1')->assertStatus(503)->assertHeader('Retry-After', '300');
+        $this->assertTrue($failedMeanwhile);
+        $this->assertSame(0, $this->mirrorCalls(), 'The waiting reader does not ask the failing mirror again.');
+
+        // HQ can still force a fetch at once.
+        $this->fakeMirror();
+        $this->asHq(fn () => app(ReadingCatalogue::class)->fetchNow($this->hqStaff(), $book->id));
+        $this->assertSame(1, $this->mirrorCalls());
+        $this->assertSame('ready', ReadingBookText::query()->sole()->state);
+    }
+
+    public function test_a_new_gutenberg_number_drops_the_cached_text_of_the_old_one(): void
+    {
+        ['book' => $book] = $this->catalogue();
+        $this->fakeMirror($this->gutenbergFile(3));
+        $this->assertStringStartsWith('Paragraph 1.', $this->as('asha')->getJson('/api/v2/reading/books/'.$book->id.'/pages/1')->assertOk()->json('data.text'));
+        $oldFiles = Storage::disk(ReadingFetcher::DISK)->allFiles();
+        $this->assertCount(3, $oldFiles);
+
+        $this->asHq(function () use ($book) {
+            $catalogue = app(ReadingCatalogue::class);
+            $changed = $catalogue->updateBook($this->hqStaff(), $book->id, ['gutenberg_id' => 90077, 'title' => 'Another Garden', 'author' => 'Ada Example', 'author_birth_year' => 1850,
+                'author_death_year' => 1900, 'language' => 'en', 'subjects' => 'Gardens', 'reading_level' => 'developing', 'revision' => $book->fresh()->revision]);
+            $this->assertSame('undecided', $changed->rights_status);
+            $catalogue->decideRights($this->hqStaff(), $book->id, ['decision' => ReadingBook::CLEARED, 'basis' => 'Author died in 1900; the new edition has no translator.',
+                'translator_checked' => true, 'revision' => $changed->revision]);
+        });
+        $this->assertSame('missing', ReadingBookText::query()->sole()->state);
+        $this->assertSame([], Storage::disk(ReadingFetcher::DISK)->allFiles(), 'The old text, pages and header are deleted.');
+
+        $other = str_replace('Paragraph', 'Section', $this->gutenbergFile(3, 'ANOTHER GARDEN'));
+        $this->fakeMirror($other);
+        $this->assertStringStartsWith('Section 1.', $this->as('asha')->getJson('/api/v2/reading/books/'.$book->id.'/pages/1')->assertOk()->json('data.text'));
+        $this->assertSame(2, $this->mirrorCalls());
+        Http::assertSent(fn ($request) => $request->url() === self::MIRROR.'/cache/epub/90077/pg90077.txt');
+    }
+
     public function test_reading_badges_are_awarded_once_through_recognition(): void
     {
         $this->fakeMirror();

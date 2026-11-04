@@ -162,8 +162,12 @@ configured template and the book's number only; redirects are not followed; a
 non-2xx answer, another content type, a declared or actual size over the limit,
 invalid UTF-8 or missing start/end lines each fail with a short reason stored
 on `reading_book_texts`. After a failure the mirror is not asked again for that
-book for `retry_after_seconds`, and learners get 503 with `Retry-After`. HQ can
-fetch again at any time ("Fetch the text again"). The learner's device never
+book for `retry_after_seconds`, and learners get 503 with `Retry-After`; a
+reader who was waiting for the lock checks this wait again inside it, so readers
+queued behind a failed fetch do not each ask the mirror. HQ can fetch again at
+any time ("Fetch the text again"). Changing a book's Gutenberg number drops its
+cached text, pages and header (files deleted, state back to not fetched), so the
+next read fetches the new number's text, never the old book's. The learner's device never
 contacts the mirror. The network is blocked in development; every test uses
 `Http::fake`.
 

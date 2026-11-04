@@ -37,20 +37,53 @@ class ReadingFetcher
         if (! $force && $this->ready($row)) {
             return $row;
         }
-        if (! $force && $row->last_failed_at !== null && $row->last_failed_at->gt(now()->subSeconds((int) config('reading.retry_after_seconds')))) {
-            throw new ReadingFetchFailed((string) ($row->last_error ?? 'unreachable'));
+        if (! $force) {
+            $this->backOff($row);
         }
         try {
             return Cache::lock('reading.fetch.'.$book->id, 90)->block(35, function () use ($book, $force): ReadingBookText {
+                // Another reader may have fetched the book, or failed to, while this one waited for the lock.
                 $row = $this->row($book);
                 if (! $force && $this->ready($row)) {
                     return $row;
+                }
+                if (! $force) {
+                    $this->backOff($row);
                 }
 
                 return $this->fetch($book, $row);
             });
         } catch (LockTimeoutException) {
             throw new ReadingFetchFailed('unreachable');
+        }
+    }
+
+    /**
+     * Drop a book's cached text, pages and header, so the next read fetches it
+     * again (when its Gutenberg number changes, the old text is another book).
+     */
+    public function forget(ReadingBook $book): void
+    {
+        Cache::lock('reading.fetch.'.$book->id, 90)->block(35, function () use ($book): void {
+            $row = ReadingBookText::query()->where('reading_book_id', $book->id)->first();
+            if ($row === null) {
+                return;
+            }
+            $old = $row->path;
+            $row->fill(['state' => 'missing', 'path' => null, 'sha256' => null, 'bytes' => null, 'page_count' => null, 'word_count' => null, 'removed_lines' => 0,
+                'fetched_at' => null, 'last_error' => null, 'last_failed_at' => null])->save();
+            if ($old !== null) {
+                $base = substr($old, 0, -strlen('-text.txt'));
+                Storage::disk(self::DISK)->delete([$old, $base.'-pages.json', $base.'-header.txt']);
+            }
+        });
+    }
+
+    /** After a failure, the mirror is not asked again for this book until the wait is over. */
+    private function backOff(ReadingBookText $row): void
+    {
+        if ($row->last_failed_at !== null && $row->last_failed_at->gt(now()->subSeconds((int) config('reading.retry_after_seconds')))) {
+            throw new ReadingFetchFailed((string) ($row->last_error ?? 'unreachable'));
         }
     }
 

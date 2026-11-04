@@ -111,10 +111,12 @@ class ReadingCatalogue
         $actor = app(ReadingAccess::class)->hq($actor);
         $data = Validator::make($input, self::updateRules($id))->validate();
 
-        return DB::transaction(function () use ($actor, $id, $data): ReadingBook {
+        $replaced = false;
+        $book = DB::transaction(function () use ($actor, $id, $data, &$replaced): ReadingBook {
             $book = ReadingBook::query()->lockForUpdate()->findOrFail($id);
             abort_unless((int) $data['revision'] === $book->revision, 409, 'This book changed. Reload it and try again.');
             $fields = $this->bookData($data);
+            $replaced = $fields['gutenberg_id'] !== $book->gutenberg_id;
             if ($fields['gutenberg_id'] !== $book->gutenberg_id || ($book->rights_status !== 'undecided' && $fields['author_death_year'] !== $book->author_death_year)) {
                 // A different text or a different death year needs a new rights decision.
                 $fields += ['rights_status' => 'undecided', 'rights_decision_id' => null];
@@ -125,6 +127,12 @@ class ReadingCatalogue
 
             return $book;
         });
+        // The cached text belongs to the old Gutenberg number: drop it, so the next read fetches the new one.
+        if ($replaced) {
+            app(ReadingFetcher::class)->forget($book);
+        }
+
+        return $book;
     }
 
     /**
