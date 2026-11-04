@@ -440,7 +440,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::put('/schools/{school}', [PlatformLibraryController::class, 'switch'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.switch');
         });
         // A labelling question's diagram picture (3.11), for library writers and reviewers alike.
-        Route::get('/diagrams/{diagram}', [PlatformLibraryController::class, 'diagram'])->whereUuid('diagram')->name('diagrams.show');
+        Route::get('/diagrams/{diagram}', [PlatformLibraryController::class, 'diagram'])->middleware('platform.can:library.manage,library.review')->whereUuid('diagram')->name('diagrams.show');
         Route::middleware('platform.can:library.review')->group(function () {
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
