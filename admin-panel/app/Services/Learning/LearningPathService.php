@@ -173,7 +173,8 @@ class LearningPathService
         $reviews = $path->exists ? LearningPathReview::where('learning_path_id', $path->id)->whereIn('topic_id', $practisable)->get() : collect();
         $fresh = ['failed_checks' => 0, 'notice' => null, 'tutor_session_id' => null];
         $due = $reviews->filter(fn ($review) => $review->due_on->toDateString() <= $today)
-            ->sort(fn ($a, $b) => [$a->due_on->toDateString(), $a->id] <=> [$b->due_on->toDateString(), $b->id])->first();
+            ->sort(fn ($a, $b) => [$a->due_on->toDateString(), $a->id] <=> [$b->due_on->toDateString(), $b->id])
+            ->first(fn ($review) => $this->usable($actor, $learner, $group, $teachable->get($review->topic_id)));
         if ($due !== null) {
             $path->fill(['topic_id' => $due->topic_id, 'step' => 'check', 'mode' => 'review', 'reason' => 'review_due', 'cycle' => $path->cycle + 1] + $fresh);
             $path->revision++;
@@ -188,19 +189,32 @@ class LearningPathService
             $excluded[] = $resting;
         }
         $eligible = array_values(array_diff($practisable, $excluded));
-        $roots = [];
+        $target = null;
         if ($eligible !== []) {
             $view = app(MasteryService::class)->view($actor, $learner, (int) $group->subject_id);
-            $topics = array_values(array_filter($view['topics'], fn ($topic) => in_array((int) $topic['id'], $eligible, true)));
             $links = TopicLink::query()->where('subject_id', $group->subject_id)->limit(10001)->get(['topic_id', 'prerequisite_id'])
                 ->map(fn ($link) => ['topic_id' => (int) $link->topic_id, 'prerequisite_id' => (int) $link->prerequisite_id])->all();
-            $roots = $topics === [] ? [] : app(MasteryService::class)->roots($topics, $links, array_column($topics, 'id'));
+            // practisable() is a cheap filter; a root whose questions are all unreadable now is set aside and the gaps found again.
+            for ($round = 0; $target === null && $eligible !== [] && $round < 20; $round++) {
+                $topics = array_values(array_filter($view['topics'], fn ($topic) => in_array((int) $topic['id'], $eligible, true)));
+                $roots = $topics === [] ? [] : app(MasteryService::class)->roots($topics, $links, array_column($topics, 'id'));
+                if ($roots === []) {
+                    break;
+                }
+                foreach ($roots as $root) {
+                    if ($this->usable($actor, $learner, $group, $teachable->get($root['topic_id']))) {
+                        $target = $root;
+                        break;
+                    }
+                    $eligible = array_values(array_diff($eligible, [(int) $root['topic_id']]));
+                }
+            }
         }
-        if ($roots === []) {
+        if ($target === null) {
             $path->fill(['topic_id' => null, 'step' => 'gap', 'mode' => 'learn', 'reason' => null] + $fresh);
-            $path->notice = $practisable === [] ? 'nothing_ready' : (in_array($resting, $practisable, true) ? 'rest' : 'caught_up');
+            $path->notice = $practisable === [] || ($excluded === [] && $eligible === []) ? 'nothing_ready' : (in_array($resting, $practisable, true) ? 'rest' : 'caught_up');
         } else {
-            $path->fill(['topic_id' => $roots[0]['topic_id'], 'step' => 'teach', 'mode' => 'learn', 'reason' => $roots[0]['reason']] + $fresh);
+            $path->fill(['topic_id' => $target['topic_id'], 'step' => 'teach', 'mode' => 'learn', 'reason' => $target['reason']] + $fresh);
         }
         $path->revision++;
         $path->save();
@@ -313,7 +327,11 @@ class LearningPathService
                 ['state' => $schedule, 'reviewed_on' => $today, 'due_on' => CarbonImmutable::parse($today)->addDays($schedule['interval_days'])->toDateString()]);
         }
         if ($passed) {
-            $path->fill(['step' => 'review', 'notice' => 'passed', 'failed_checks' => 0, 'rest_topic_id' => null, 'rest_until' => null]);
+            $path->fill(['step' => 'review', 'notice' => 'passed', 'failed_checks' => 0]);
+            // Another topic resting until tomorrow keeps resting; only this topic's rest, or an expired one, ends.
+            if ($path->rest_topic_id === $topic->id || $path->rest_until === null || $path->rest_until->toDateString() <= $today) {
+                $path->fill(['rest_topic_id' => null, 'rest_until' => null]);
+            }
 
             return;
         }
@@ -342,11 +360,17 @@ class LearningPathService
             return true;
         }
         if ($path->step === 'teach') {
-            return false;
+            return ! $this->usable($actor, $learner, $group, $topic);
         }
         $rows = $this->available($actor, $learner, $group, $path, $topic, $path->step === 'check' ? 'check' : 'practice');
 
         return $rows === [] || ($path->step === 'check' && ! collect($rows)->contains(fn ($row) => $row[0]->answered_at === null));
+    }
+
+    /** Whether a topic has at least one question the learner can be given now (approved, active, readable or published). */
+    private function usable(User $actor, int $learner, TeachingGroup $group, MasteryTopic $topic): bool
+    {
+        return app(LearningPathSources::class)->candidates($actor, $learner, $group, $topic) !== [];
     }
 
     public static function needed(int $total): int

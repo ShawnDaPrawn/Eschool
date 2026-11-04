@@ -49,9 +49,11 @@ the revision it last saw.
 | `check` | last answer | `gap` | the third failed check in a row: notice `rest`; the topic rests until tomorrow |
 
 A stalled step lets the learner choose again (`next`) instead of being stuck:
-the topic is no longer taught in the group, or every question of the current
-step was withdrawn (deactivated, its material unpublished, or the library
-switched off), or in a check every remaining question is answered. The read
+the topic is no longer taught in the group; in teach, the topic has no
+question left that could be given (all deactivated, their material archived
+or unreadable, or the library switched off); in practise or check, every
+question of the step was withdrawn, or in a check every remaining question is
+answered. The read
 then shows `step: gap` with notice `withdrawn`.
 
 **Finding the gap.** The candidates are the group's current topics
@@ -62,7 +64,10 @@ minus topics with a scheduled review that is not yet due and the topic
 resting until tomorrow. `MasteryService::view` gives each its level and
 confidence from the learner's own family-or-practice record (never staff-only
 marks), and `MasteryService::roots` walks the prerequisite links to the
-deepest weak topic. The first root is the target; its `reason` is
+deepest weak topic. The first root with at least one question that can be given now (approved,
+active, material readable, or library version published) is the target;
+roots without one are set aside and the gaps found again. A due review whose
+topic has no question to give is skipped the same way. The target's `reason` is
 `prerequisite_gap`, `topic_gap` or `not_yet_assessed`. Prerequisites the
 group does not teach (an earlier grade) are outside the candidates in this
 step: the path works within what the learner's group teaches now.
@@ -117,6 +122,11 @@ writes self-study mastery evidence on the path's topic (`source_type`
 `path_practice` or `path_check`, audience `practice`, `content_source` school or
 library, weight 0.5 in mastery v2 like other practice). No official mark is
 written.
+
+**Resting.** A topic rests until tomorrow after its third failed check in a
+row. Passing a different topic in the meantime does not end that rest; only
+passing the resting topic itself, or the rest expiring, clears it, so the
+teacher's view keeps showing the resting topic.
 
 **Review later.** Passing a check reviews the topic's own FSRS memory
 (`learning_path_reviews`, one row per path and topic): all right is "good",

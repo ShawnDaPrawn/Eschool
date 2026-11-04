@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Learning;
 
+use App\Models\Academics\ContentItem;
+use App\Models\Academics\ContentItemGroup;
+use App\Models\Academics\ContentSource;
+use App\Models\Academics\ContentVersion;
+use App\Models\Academics\TeachingGroup;
 use App\Models\Growth\MasteryEvidence;
 use App\Models\Learning\LearningPath;
 use App\Models\Learning\LearningPathItem;
@@ -348,5 +353,78 @@ class LearningPathTest extends TestCase
         }
         $this->assertSame(1, LearningPath::count());
         $this->refuses(fn () => LearningPath::sole()->delete(), 409);
+    }
+
+    /** A second published material for the group, with $count approved Decimals questions behind it. */
+    private function decimalsMaterial(int $count = 3): ContentItem
+    {
+        $group = TeachingGroup::findOrFail($this->group);
+        $content = ContentItem::create(['author_id' => $this->actor()->id, 'subject_id' => $this->subject, 'grade_level_id' => $group->grade_level_id,
+            'session_year_id' => $this->year, 'operation_id' => (string) Str::uuid(), 'request_hash' => str_repeat('c', 64), 'active' => true]);
+        $source = ContentSource::create(['content_item_id' => $content->id, 'uploaded_by' => $this->actor()->id, 'name' => 'Synthetic decimals.md', 'path' => 'synthetic/no-file.md',
+            'mime' => 'text/markdown', 'extension' => 'md', 'bytes' => 1, 'sha256' => str_repeat('d', 64), 'scan_state' => 'clean']);
+        $version = ContentVersion::create(['content_item_id' => $content->id, 'content_source_id' => $source->id, 'created_by' => $this->actor()->id, 'number' => 1,
+            'state' => 'published', 'metadata' => ['group_ids' => [$this->group], 'title' => 'Synthetic decimals'], 'markdown' => '# Decimals', 'generation_id' => (string) Str::uuid(), 'published_at' => now()]);
+        $content->update(['published_version_id' => $version->id]);
+        ContentItemGroup::create(['content_item_id' => $content->id, 'teaching_group_id' => $this->group]);
+        for ($i = 1; $i <= $count; $i++) {
+            $this->approve(['topic_id' => $this->nodes[$this->keys[2]], 'content_version_id' => $version->id,
+                'definition' => ['kind' => 'number', 'prompt' => "Decimal question $i: five tenths as a decimal?", 'explanation' => 'Five divided by ten.', 'options' => [], 'answers' => ['0.5']]]);
+        }
+
+        return $content;
+    }
+
+    private function failThreeChecks(): array
+    {
+        $state = [];
+        for ($try = 1; $try <= LearningPathService::MAX_CHECKS; $try++) {
+            $this->answerAll($this->act('practise'));
+            $state = $this->answerAll($this->act('check'), '0.25');
+        }
+
+        return $state;
+    }
+
+    public function test_passing_another_topic_keeps_a_topic_resting_until_tomorrow(): void
+    {
+        $this->decimalsMaterial();
+        // Two topics with questions (both answered 0.5): the first gap rests, the second is passed.
+        $first = $this->act('next', 0)['topic'];
+        $this->assertSame('rest', $this->failThreeChecks()['notice']);
+        $second = $this->act('next')['topic'];
+        $this->assertNotSame($first['id'], $second['id']);
+        $this->answerAll($this->act('practise'));
+        $passed = $this->answerAll($this->act('check'));
+        $this->assertSame('review', $passed['step']);
+        $this->assertSame($first['id'], LearningPath::sole()->rest_topic_id, 'Passing another topic does not end the first topic\'s rest.');
+        $row = collect(app(LearningPathQueries::class)->group($this->actor('tara'), $this->group)['learners'])->firstWhere('learner_id', $this->learner());
+        $this->assertSame([$first['name'], true], [$row['resting_topic'], $row['needs_support']]);
+        // One topic rests and the other waits for its review: nothing else today.
+        $today = $this->act('next');
+        $this->assertSame(['gap', 'rest', null], [$today['step'], $today['notice'], $today['topic']]);
+        $this->travelTo(now()->addDay());
+        $this->assertSame($first['id'], $this->act('next')['topic']['id']);
+    }
+
+    public function test_a_teach_step_whose_questions_were_withdrawn_lets_the_learner_choose_again(): void
+    {
+        $this->act('next', 0);
+        PracticeItem::query()->update(['active' => false]);
+        $read = $this->read();
+        $this->assertSame(['gap', 'withdrawn', ['next']], [$read['step'], $read['notice'], $read['actions']]);
+        $this->refuses(fn () => $this->act('practise'), 409);
+        $this->assertSame(['gap', 'nothing_ready'], array_values(array_intersect_key($this->act('next'), array_flip(['step', 'notice']))));
+    }
+
+    public function test_next_skips_a_gap_whose_material_is_no_longer_readable(): void
+    {
+        $decimals = $this->decimalsMaterial();
+        // The topic that would be the first gap (the lower node id) keeps active questions, but its material is archived: they cannot be given.
+        [$archived, $expected] = $this->nodes[$this->keys[2]] < $this->nodes[$this->keys[1]] ? [$decimals, 'Fractions'] : [$this->content, 'Decimals'];
+        $archived->update(['active' => false]);
+        $teach = $this->act('next', 0);
+        $this->assertSame(['teach', $expected, ['practise']], [$teach['step'], $teach['topic']['name'], $teach['actions']]);
+        $this->assertNotEmpty($this->act('practise')['items']);
     }
 }
