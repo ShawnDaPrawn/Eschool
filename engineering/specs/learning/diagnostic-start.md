@@ -40,7 +40,8 @@ as mastery evidence of its own kind, so every learner starts with a filled map.
 - **Short, fixed, not exhaustive.** The questions are the diagnostic's published
   practice questions (any grade of the same framework and subject, so an
   earlier grade's prerequisite can be checked). Topics are asked in prerequisite
-  order (the library graph), then in the order the diagnostic lists them. At most
+  order (depths over the framework and subject's whole library graph, so a chain
+  through a topic the check has no question for still counts), then in the order the diagnostic lists them. At most
   three questions per topic (two when the check has 7 to 10 topics, one when it
   has more), and at most 20 questions in all. **Stop rule:** a topic stops as soon
   as two of its answers agree (both right or both not yet); its remaining
@@ -149,6 +150,7 @@ first):
 | Given | When | Then |
 | --- | --- | --- |
 | The switch on | Asha starts, answers right, right; right, wrong, wrong; wrong, wrong | Whole numbers first; its third question skipped; Fractions' third asked; 7 diagnostic evidence rows (practice audience, library, item keys, versions) on mirror nodes, the Grade 6 topic mirrored too; records in staff, family and practice; teacher sees bands Secure, Partly there, Start here and learners by name (Asha finished, Ben not started); Asha and her father see "Fractions, Decimals" and no score; library tables unchanged (`test_a_learner_takes_the_starting_check_and_fills_the_mastery_map`) |
+| A ← B ← C, the check lists C first and has no B question | start | A is asked before C (`test_a_prerequisite_chain_through_a_topic_with_no_question_still_orders_the_check`) |
 | An attempt | read and answer | no answers, explanations or right/wrong in any payload; the stored answer is encrypted (`test_the_device_never_receives_answers_or_explanations_and_is_not_told_right_or_wrong`) |
 | An answered question | send it again, a different answer, out of order, malformed; start again after finishing; a skipped question | unchanged; 409; 409; 422; same attempt, nothing new; 409 (`test_submissions_are_idempotent_and_a_retake_never_double_counts`) |
 | Recorded marks | take the check; rebuild from marks | mark evidence and `question_marks` unchanged; diagnostic evidence kept, practice audience only, on its own topics (`test_diagnostic_evidence_never_overwrites_or_masquerades_as_assessment_marks`) |

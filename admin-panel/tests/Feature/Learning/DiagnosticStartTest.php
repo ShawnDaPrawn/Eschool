@@ -211,6 +211,29 @@ class DiagnosticStartTest extends TestCase
         $this->assertSame($before, $this->libraryCounts());
     }
 
+    public function test_a_prerequisite_chain_through_a_topic_with_no_question_still_orders_the_check(): void
+    {
+        // A ← B ← C, where the check lists C first and has no question for B.
+        $a = $this->libraryTopic('Chain A');
+        $b = $this->libraryTopic('Chain B');
+        $c = $this->libraryTopic('Chain C');
+        $this->asHq(function () use ($a, $b, $c) {
+            $catalogue = app(LibraryCatalogue::class);
+            $catalogue->setPrerequisites($this->libraryStaff('content'), $b->id, ['prerequisite_ids' => [$a->id]]);
+            $catalogue->setPrerequisites($this->libraryStaff('content'), $c->id, ['prerequisite_ids' => [$b->id]]);
+        });
+        $c1 = $this->publishedItem($c, ['title' => 'Chain C question', 'prompt' => 'Chain question C?', 'answers' => '3']);
+        $a1 = $this->publishedItem($a, ['title' => 'Chain A question', 'prompt' => 'Chain question A?', 'answers' => '1']);
+        $earlier = $this->diagnostic->id;
+        $this->diagnostic = $this->publishedDiagnostic([$c1->id, $a1->id]);
+        // The group takes the earliest published check: unpublish setUp's (a fixture shortcut; HQ has no unpublish yet).
+        DB::table('library_items')->where('id', $earlier)->update(['published_version_id' => null]);
+        $this->switchLibrary(1, true);
+        $attempt = $this->start();
+        $this->assertSame('Chain question A?', $attempt['question']['prompt'], 'A is asked before C');
+        $this->assertSame([$a->id, $c->id], DiagnosticAttemptItem::query()->orderBy('position')->pluck('library_topic_id')->all());
+    }
+
     public function test_the_device_never_receives_answers_or_explanations_and_is_not_told_right_or_wrong(): void
     {
         $this->switchLibrary(1, true);

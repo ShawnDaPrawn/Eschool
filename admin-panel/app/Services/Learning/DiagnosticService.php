@@ -283,8 +283,14 @@ class DiagnosticService
             return [];
         }
         $topicIds = array_map('intval', array_keys($topics));
-        $edges = array_fill_keys($topicIds, []);
-        foreach (LibraryTopicPrerequisite::query()->whereIn('library_topic_id', $topicIds)->whereIn('prerequisite_id', $topicIds)->get() as $edge) {
+        // Depths over the whole framework-and-subject graph, so a prerequisite
+        // chain through a topic the check has no question for still orders the
+        // topics it does ask (A ← B ← C asks A before C without a B question).
+        $subjectTopics = LibraryTopic::query()->where('library_framework_id', $home->library_framework_id)->where('subject_code', $home->subject_code)
+            ->limit(5001)->pluck('id')->map(fn ($id) => (int) $id)->all();
+        abort_if(count($subjectTopics) > 5000, 422, 'The library subject exceeds its bounded catalogue.');
+        $edges = array_fill_keys(array_values(array_unique([...$subjectTopics, ...$topicIds])), []);
+        foreach (LibraryTopicPrerequisite::query()->whereIn('library_topic_id', $subjectTopics)->whereIn('prerequisite_id', $subjectTopics)->get() as $edge) {
             $edges[(int) $edge->library_topic_id][(int) $edge->prerequisite_id] = true;
         }
         $depth = app(LibraryCatalogue::class)->depths($edges);
