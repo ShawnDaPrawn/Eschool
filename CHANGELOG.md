@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-04
+
+- Exam coach memos can now be marked against (Action Plan 3.16). A new marking engine checks a typed answer, step by step, against a memo's mark points: values with their tolerance, units (converting between SI units such as km/h and m/s), equivalent algebra, formulas, key terms, significant figures and consistent-accuracy follow-through. Mathematics and Physical Sciences have their own conventions (for example, Physical Sciences needs the unit and the direction); other subjects use only the memo's rules. Every mark gets a reason and a confidence; method and explanation marks that no rule decides always go to a teacher, as automatic judgement stays off.
+- Teachers can try it from a memo with "Try marking an answer against this memo". Nothing is saved and learners do not see it.
+- Memo mark points gain three rules: an expression or formula, terms, and significant figures.
+- Learner marking stays off for every subject until it passes the accuracy check against teacher marking (`config/marking.php`).
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
