@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-04
+
+- School groups: one owner, many schools (Action Plan 5.7, SA.18).
+  - HQ creates a group, invites schools and names the group's administrators.
+  - A school joins only when its own Super Admin agrees on the new School groups page. The page shows exactly what the group will see. The school can leave at any time, and the group stops seeing it at once.
+  - Group administrators sign in to a group page with each school's learners, weekly active families, guardian reach, learners active in the app and recorded attendance, plus the group's totals. Numbers under 10 are hidden, as is any total that would reveal one. The role gives no access inside any school, and no learner record is ever shown.
+  - HQ Finance can bill a school through its group. One invoice a month then rolls up the schools' own monthly lines, and a school's month is never billed both on its own and through the group.
+  - **Deploy:** run the migrations.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.

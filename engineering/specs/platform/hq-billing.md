@@ -198,6 +198,16 @@ The credit-note retry and snapshot tests are described under "Retry and concurre
 `Platform/PackageEditorTest`, `Platform/HqIncidentsTest`,
 `Platform/HqSchoolAccountsTest`, `Platform/HqOnboardingTest`.
 
+## School groups (Action Plan 5.7, SA.18)
+
+A school in a school group may be billed through the group instead of on its
+own ([school groups](school-groups.md)). Such a school's monthly draft is not
+issued alone (`issueProblem` says why, and the month's issue run leaves it). A
+group draft holds it, and when the group invoice is issued the school's draft
+becomes `grouped`: frozen like an issued invoice, never issued alone, with no
+reference of its own, and absent from the school's statement. The billing page
+lists the month's grouped schools.
+
 ## Not in this step
 
 - A school-facing "your invoices" page, and emailing the invoice PDF itself: schools do not read these tables yet.
