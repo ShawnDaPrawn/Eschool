@@ -64,7 +64,7 @@ class Bursaries
                 'award_value' => ['required_if:outcome,award', 'prohibited_if:outcome,decline', 'integer', 'min:1', 'max:100000000000'],
                 'currency' => ['required_if:outcome,award', 'prohibited_if:outcome,decline', 'regex:/\A[A-Z]{3}\z/D']],
             'discount' => ['operation_id' => ['required', 'uuid']],
-            'queue' => ['state' => ['sometimes', 'in:submitted,awarded,declined,withdrawn'], 'page' => ['sometimes', 'integer', 'between:1,100000']],
+            'queue' => ['state' => ['sometimes', 'in:submitted,awarded,declined,withdrawn,expired'], 'page' => ['sometimes', 'integer', 'between:1,100000']],
             default => throw new \InvalidArgumentException('Unknown action.'),
         };
     }
@@ -145,6 +145,7 @@ class Bursaries
 
         return app(BusinessOperations::class)->once($actor, 'bursary.update', $data, fn () => $this->owned($actor, $publicId, true), function () use ($actor, $publicId, $data): array {
             $application = $this->owned($actor, $publicId, true);
+            abort_if($application->erased_at !== null, 409, 'This application has expired. Start a new application.');
             abort_unless($application->state === 'draft' && $application->revision === (int) $data['revision'], 409, 'This application changed. Refresh it first.');
             $application->update(['household' => $data['household'], 'revision' => $application->revision + 1]);
             $this->event($application, $actor, 'updated');
@@ -170,6 +171,7 @@ class Bursaries
 
         return app(BusinessOperations::class)->once($actor, 'bursary.'.$action, $data, fn () => $this->owned($actor, $publicId, true), function () use ($actor, $publicId, $data, $action): array {
             $application = $this->owned($actor, $publicId, true);
+            abort_if($application->erased_at !== null, 409, 'This application has expired. Start a new application.');
             abort_unless($application->revision === (int) $data['revision'], 409, 'This application changed. Refresh it first.');
             if ($action === 'submit') {
                 abort_unless($application->state === 'draft', 409, 'This application was already sent.');

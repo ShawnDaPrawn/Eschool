@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\DB;
  * The bursary retention rule. Household details, committee reasons and
  * documents are erased bursary_keep_days after a decision or withdrawal,
  * and bursary_draft_days after an unsent draft last changed. A submitted
- * application waiting for the committee is kept. The stub row (state,
- * award and its fee discount) and the reason-free audit trail remain.
+ * application waiting for the committee is kept. An erased draft becomes
+ * expired: it cannot be changed or sent, and the guardian can start a new
+ * application for the child and year. The stub row (state, award and its
+ * fee discount) and the reason-free audit trail remain.
  * Runs whether or not the module is on or the school is active.
  */
 class BursaryRetention
@@ -52,7 +54,9 @@ class BursaryRetention
             }
             app(BursaryDocuments::class)->erase($row);
             BursaryEvent::where('application_id', $row->id)->whereNotNull('reasons')->update(['reasons' => null]);
-            $row->forceFill(['household' => null, 'erased_at' => now('UTC')])->save();
+            // An unsent draft cannot be completed without its details: it
+            // expires, which also frees the child's year for a new application.
+            $row->forceFill(['household' => null, 'erased_at' => now('UTC'), 'state' => $row->state === 'draft' ? 'expired' : $row->state])->save();
             Audit::record('bursary.erased', $row, [], ['state' => $row->state]);
 
             return true;

@@ -257,6 +257,11 @@ class ReenrolmentContracts
      * guardians are asked first; other approving guardians are asked only
      * under the any_guardian rule when no fee-responsible guardian can act.
      * One generic notice per guardian, contract and day: no child's name.
+     *
+     * Only outstanding learners are considered, and a request sends at most
+     * reminder_batch notices. Guardians already reminded today are skipped,
+     * so the next request moves on to the learners after this batch; `more`
+     * says whether anyone is still waiting for today's reminder.
      */
     public function remind(User $actor, int $id, array $input): array
     {
@@ -267,51 +272,69 @@ class ReenrolmentContracts
             $contract = ReenrolmentContract::lockForUpdate()->findOrFail($id);
             abort_unless($contract->state === 'open', 409, 'Only an open contract can be sent as a reminder.');
             $confirmed = ReenrolmentConfirmation::where('contract_id', $contract->id)->pluck('learner_id')->map(fn ($v) => (int) $v)->flip();
-            $recipients = [];
-            $learners = 0;
-            foreach (array_slice($this->audience(), 0, (int) config('school_business.reminder_batch', 500)) as $learnerId) {
-                if ($confirmed->has($learnerId)) {
-                    continue;
-                }
-                $learner = Students::findOrFail($learnerId);
-                $accepted = ReenrolmentAcceptance::where('contract_id', $contract->id)->where('learner_id', $learnerId)->pluck('guardian_user_id')->map(fn ($v) => (int) $v)->all();
-                $asked = [];
-                foreach (array_diff($this->feeResponsible($learnerId, $contract), $accepted) as $userId) {
-                    $person = User::find($userId);
-                    if ($person !== null && $this->auth()->approving($person, $learner)) {
-                        $asked[] = (int) $userId;
-                    }
-                }
-                if ($asked === [] && $contract->acceptance_rule === 'any_guardian') {
-                    foreach (app(GuardianService::class)->guardianUserIds($learner) as $userId) {
-                        $person = User::find($userId);
-                        if ($person !== null && ! in_array((int) $userId, $accepted, true) && $this->auth()->approving($person, $learner)) {
-                            $asked[] = (int) $userId;
-                        }
-                    }
-                }
-                $learners += $asked === [] ? 0 : 1;
-                foreach ($asked as $userId) {
-                    $recipients[$userId] = true;
-                }
-            }
+            $outstanding = array_values(array_filter($this->audience(), fn (int $learner) => ! $confirmed->has($learner)));
+            $cap = max(1, (int) config('school_business.reminder_batch', 500));
             $day = app(AcademicAuthority::class)->today();
+            $done = [];
             $sent = 0;
-            foreach (array_keys($recipients) as $userId) {
-                $key = 'reenrolment:'.$contract->id.':'.$userId.':'.$day;
-                if (Notification::withTrashed()->where('source_key', $key)->exists()) {
-                    continue;
+            $learners = 0;
+            $more = false;
+            foreach ($outstanding as $learnerId) {
+                $due = [];
+                foreach ($this->asked($contract, $learnerId) as $userId) {
+                    if (! isset($done[$userId]) && ! Notification::withTrashed()->where('source_key', $this->noticeKey($contract, $userId, $day))->exists()) {
+                        $due[] = $userId;
+                    }
                 }
-                $notice = app(Notifier::class)->makeNotice(self::NOTICE, __('Re-enrolment for next year'), __('Open Re-enrolment to read and accept the contract for next year.'), self::LINK);
-                $notice->source_key = $key;
-                $notice->save();
-                app(Notifier::class)->assign($notice, [$userId]);
-                $sent++;
+                $notified = false;
+                foreach ($due as $userId) {
+                    if ($sent >= $cap) {
+                        $more = true;
+                        break 2;
+                    }
+                    $notice = app(Notifier::class)->makeNotice(self::NOTICE, __('Re-enrolment for next year'), __('Open Re-enrolment to read and accept the contract for next year.'), self::LINK);
+                    $notice->source_key = $this->noticeKey($contract, $userId, $day);
+                    $notice->save();
+                    app(Notifier::class)->assign($notice, [$userId]);
+                    $done[$userId] = true;
+                    $notified = true;
+                    $sent++;
+                }
+                $learners += $notified ? 1 : 0;
             }
-            Audit::record('reenrolment.reminded', $contract, [], ['notices' => $sent, 'learners' => $learners]);
+            Audit::record('reenrolment.reminded', $contract, [], ['notices' => $sent, 'learners' => $learners, 'more' => $more]);
 
-            return ['contract_id' => (int) $contract->id, 'learners' => $learners, 'notices' => $sent];
+            return ['contract_id' => (int) $contract->id, 'learners' => $learners, 'notices' => $sent, 'more' => $more];
         });
+    }
+
+    private function noticeKey(ReenrolmentContract $contract, int $userId, string $day): string
+    {
+        return 'reenrolment:'.$contract->id.':'.$userId.':'.$day;
+    }
+
+    /** @return list<int> the guardians a reminder for this child goes to */
+    private function asked(ReenrolmentContract $contract, int $learnerId): array
+    {
+        $learner = Students::findOrFail($learnerId);
+        $accepted = ReenrolmentAcceptance::where('contract_id', $contract->id)->where('learner_id', $learnerId)->pluck('guardian_user_id')->map(fn ($v) => (int) $v)->all();
+        $asked = [];
+        foreach (array_diff($this->feeResponsible($learnerId, $contract), $accepted) as $userId) {
+            $person = User::find($userId);
+            if ($person !== null && $this->auth()->approving($person, $learner)) {
+                $asked[] = (int) $userId;
+            }
+        }
+        if ($asked === [] && $contract->acceptance_rule === 'any_guardian') {
+            foreach (app(GuardianService::class)->guardianUserIds($learner) as $userId) {
+                $person = User::find($userId);
+                if ($person !== null && ! in_array((int) $userId, $accepted, true) && $this->auth()->approving($person, $learner)) {
+                    $asked[] = (int) $userId;
+                }
+            }
+        }
+
+        return $asked;
     }
 
     /**

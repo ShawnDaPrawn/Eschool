@@ -51,7 +51,11 @@ stores the id, a keyed request hash and a receipt of identifiers only.
   through the existing notifier as `reenrolment.requested` (notice only, no
   child name): fee-responsible guardians first; under `any_guardian`, other
   approving guardians only when no fee-responsible guardian can act. At most
-  one notice per guardian, contract and school day.
+  one notice per guardian, contract and school day. Only outstanding learners
+  are considered and one request sends at most `reminder_batch` notices;
+  guardians already reminded today are skipped, so repeating the request moves
+  on through the rest of the school, and `more` says whether anyone is still
+  waiting for today's reminder.
 - **Year-end rollover.** `GradePromotion::plan()` reads
   `ReenrolmentContracts::statuses()` and adds `reenrolment` (confirmed or
   awaiting) to each learner and a count to the plan. It is not part of the
@@ -87,9 +91,12 @@ stores the id, a keyed request hash and a receipt of identifiers only.
 - **Retention.** `bursaries:prune` (daily, every school, module on or off)
   erases household details, committee reasons and documents
   `bursary_keep_days` (730) after a decision or withdrawal and
-  `bursary_draft_days` (90) after an unsent draft last changed. The row keeps
-  its state, award and fee discount; the database refuses restoring erased
-  details and deleting the row.
+  `bursary_draft_days` (90) after an unsent draft last changed. An erased
+  draft becomes `expired`: it cannot be changed, sent or withdrawn, it never
+  reopens, and the guardian can start a new application for the child and
+  year. The row keeps its state, award and fee discount; the database refuses
+  restoring erased details, reopening an expired or withdrawn application and
+  deleting the row.
 
 ## Alumni giving
 

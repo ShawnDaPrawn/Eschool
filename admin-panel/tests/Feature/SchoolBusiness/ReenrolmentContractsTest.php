@@ -225,6 +225,25 @@ class ReenrolmentContractsTest extends TestCase
         $this->assertSame(1, app(ReenrolmentContracts::class)->outstanding($this->admin, $contract['id'])['confirmed']);
     }
 
+    public function test_reminder_batches_move_past_the_first_learners_and_keep_the_daily_rule(): void
+    {
+        config(['school_business.reminder_batch' => 1]);
+        $contract = $this->publish('fee_payer');
+        $remind = fn () => app(ReenrolmentContracts::class)->remind($this->admin, $contract['id'], ['operation_id' => (string) Str::uuid()]);
+        $key = fn (string $who) => 'reenrolment:'.$contract['id'].':'.$this->schoolA->ids[$who.'_user'].':2026-06-15';
+        $first = $remind();
+        $this->assertSame(1, $first['notices']);
+        $this->assertTrue(Notification::where('source_key', $key('farid'))->exists());
+        // The next request reaches Ben's fee payer, past the first batch.
+        $second = $remind();
+        $this->assertTrue(Notification::where('source_key', $key('gina'))->exists(), 'Learners past the first batch are reminded');
+        $this->assertSame(1, $second['notices']);
+        $this->assertTrue($first['more']);
+        $third = $remind();
+        $this->assertSame([0, false], [$third['notices'], $third['more']]);
+        $this->assertSame(2, Notification::where('type', ReenrolmentContracts::NOTICE)->count(), 'Still one notice per guardian, contract and day');
+    }
+
     public function test_grade_promotion_reads_reenrolment_without_changing_its_fingerprint(): void
     {
         $from = SessionYear::findOrFail($this->schoolA->ids['session_year']);

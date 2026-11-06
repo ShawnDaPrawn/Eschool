@@ -261,6 +261,31 @@ class BursaryApplicationsTest extends TestCase
         $this->artisan('bursaries:prune')->assertSuccessful();
     }
 
+    public function test_an_erased_draft_expires_cannot_be_changed_or_sent_and_frees_a_new_application(): void
+    {
+        $draft = $this->apply();
+        $this->upload($draft);
+        $this->travel(91)->days();
+        $this->assertSame(1, app(BursaryRetention::class)->run());
+        $row = BursaryApplication::where('public_id', $draft['id'])->firstOrFail();
+        $this->assertSame(['expired', null, 0], [$row->state, $row->household, BursaryDocument::count()]);
+        $this->refuses(fn () => $this->submit($draft), 409);
+        $this->refuses(fn () => app(Bursaries::class)->update($this->user('farid'), $draft['id'], ['operation_id' => (string) Str::uuid(), 'revision' => $row->revision, 'household' => $this->household()]), 409);
+        $this->refuses(fn () => app(Bursaries::class)->withdraw($this->user('farid'), $draft['id'], ['operation_id' => (string) Str::uuid(), 'revision' => $row->revision, 'confirmed' => true]), 409);
+        $this->assertSame('expired', $row->fresh()->state);
+        try {
+            DB::table('bursary_applications')->where('id', $row->id)->update(['state' => 'draft']);
+            $this->fail('An expired application cannot reopen');
+        } catch (QueryException) {
+            $this->assertSame('expired', $row->fresh()->state);
+        }
+        // The guardian can start again for the same child and year.
+        $fresh = $this->apply();
+        $this->assertSame('draft', $fresh['state']);
+        $this->assertNotSame($draft['id'], $fresh['id']);
+        $this->assertSame('expired', collect(app(Bursaries::class)->mine($this->user('farid'))['items'])->firstWhere('id', $draft['id'])['state']);
+    }
+
     public function test_api_application_journey_matches_the_contract(): void
     {
         $farid = $this->user('farid');

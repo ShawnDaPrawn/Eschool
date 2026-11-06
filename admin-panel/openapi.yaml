@@ -29554,8 +29554,9 @@ paths:
       tags:
       - Reenrolment
       summary: Send reminders
-      description: Staff with reenrolment-manage. Fee-responsible guardians are asked first; at most one generic notice per
-        guardian, contract and day.
+      description: 'Staff with reenrolment-manage. Outstanding learners only, in batches: guardians already reminded today are
+        skipped, so repeating the request moves on. Fee-responsible guardians are asked first; at most one generic notice per
+        guardian, contract and day.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -30336,6 +30337,7 @@ paths:
           - awarded
           - declined
           - withdrawn
+          - expired
       - name: page
         in: query
         required: false
@@ -31782,6 +31784,7 @@ components:
       - contract_id
       - learners
       - notices
+      - more
       properties:
         contract_id:
           type: integer
@@ -31790,6 +31793,9 @@ components:
           type: integer
         notices:
           type: integer
+        more:
+          type: boolean
+          description: More guardians still wait for today's reminder; send again to continue.
     ReenrolmentRemindedResponse:
       type: object
       additionalProperties: false
@@ -32063,6 +32069,7 @@ components:
                 - awarded
                 - declined
                 - withdrawn
+                - expired
               revision:
                 type: integer
                 minimum: 1
@@ -32167,6 +32174,7 @@ components:
                 - awarded
                 - declined
                 - withdrawn
+                - expired
               revision:
                 type: integer
                 minimum: 1
@@ -32257,6 +32265,7 @@ components:
           - awarded
           - declined
           - withdrawn
+          - expired
         revision:
           type: integer
           minimum: 1
@@ -32402,6 +32411,7 @@ components:
           - awarded
           - declined
           - withdrawn
+          - expired
         revision:
           type: integer
           minimum: 1
