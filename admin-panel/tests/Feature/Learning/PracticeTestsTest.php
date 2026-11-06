@@ -8,10 +8,12 @@ use App\Models\Growth\MasteryEvidence;
 use App\Models\Learning\Tests\PracticeTest;
 use App\Models\Learning\Tests\PracticeTestBlueprint;
 use App\Models\Learning\Tests\PracticeTestQuestion;
+use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\SchoolModule;
 use App\Models\User;
+use App\Services\Academics\TeachingGroups;
 use App\Services\Learning\PastPaperLibrary;
 use App\Services\Learning\Tests\TestKinds;
 use App\Services\Platform\Modules\ModuleGate;
@@ -188,6 +190,35 @@ class PracticeTestsTest extends TestCase
         $this->getJson(self::BASE."/learners/{$this->learner}/tests/{$sitting['id']}")->assertOk()->assertJsonPath('data.result.memo_available', true)
             ->assertSee(self::EXPLANATION)->assertJsonPath('data.questions.1.correct', true);
         $this->getJson(self::BASE."/learners/{$this->learner}/tests")->assertOk()->assertJsonPath('data.tests.0.window', 'closed')->assertJsonPath('data.tests.0.test.state', 'handed_in');
+    }
+
+    public function test_the_teachers_topic_results_count_every_right_answer_across_sittings(): void
+    {
+        // Ben joins the group, so two sittings of one cycle test add up per topic.
+        $ben = $this->approveLearner($this->schoolA, 'ben', 'gina');
+        Enrolment::create(['learner_id' => $ben, 'class_section_id' => $this->schoolA->ids['section_a'], 'session_year_id' => $this->year,
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic practice test fixture']);
+        app(TeachingGroups::class)->dated($this->superAdmin(), 'memberships', ['learner_id' => $ben, 'mark_rule' => 'catch_up',
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Enrolled subject'], $this->group);
+        $blueprint = $this->setCycleTest();
+        foreach (['asha' => $this->learner, 'ben' => $ben] as $name => $learner) {
+            $this->signIn($name);
+            $sitting = $this->postJson(self::BASE."/learners/$learner/blueprints/{$blueprint['id']}/start", ['operation_id' => (string) Str::uuid()])->assertOk()->json('data');
+            $answers = array_map(fn ($q) => ['question_id' => $q['id'], 'answer' => $this->correctAnswer($q)], $sitting['questions']);
+            $this->postJson(self::BASE."/learners/$learner/tests/{$sitting['id']}/submit", ['operation_id' => (string) Str::uuid(), 'answers' => $answers])->assertOk()
+                ->assertJsonPath('data.result.correct_count', 6);
+        }
+
+        $this->signIn('tara');
+        $results = $this->getJson(self::BASE."/groups/{$this->group}/blueprints/{$blueprint['id']}/results")->assertOk()->json('data');
+        $this->assertSame([6, 6], array_column($results['learners'], 'correct_count'));
+        $this->assertEquals([$this->fractions() => ['correct' => 6, 'answered' => 6], $this->decimals() => ['correct' => 6, 'answered' => 6]],
+            collect($results['topics'])->mapWithKeys(fn ($t) => [$t['topic_id'] => ['correct' => $t['correct'], 'answered' => $t['answered']]])->all());
+        // The panel page shows the same sums (a web session, not the API token).
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $this->actingAs($this->actor(), 'web')->get(route('practice-tests.show', ['group' => $this->group, 'blueprint' => $blueprint['id']]))->assertOk()
+            ->assertSee('6 of 6 answers right');
     }
 
     public function test_a_quick_quiz_hand_in_is_idempotent_shows_the_memo_and_hands_a_review_to_the_tutor(): void

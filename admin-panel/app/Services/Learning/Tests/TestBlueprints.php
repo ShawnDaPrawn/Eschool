@@ -198,10 +198,11 @@ class TestBlueprints
         $topics = app(TestQuestionPool::class)->topics($group);
         $summary = [];
         $marked = PracticeTestQuestion::whereIn('practice_test_id', $sittings->filter(fn ($s) => $s->submitted_at !== null)->pluck('id'))->where('marking', 'auto')
-            ->selectRaw('topic_id, SUM(correct) AS correct, COUNT(*) AS answered')->groupBy('topic_id')->get();
+            // Uncast aliases: the model casts `correct` to boolean, which would collapse a sum to 0 or 1.
+            ->toBase()->selectRaw('topic_id, SUM(CASE WHEN correct THEN 1 ELSE 0 END) AS correct_total, COUNT(*) AS answered_total')->groupBy('topic_id')->get();
         foreach ($marked as $topic) {
             $summary[] = ['topic_id' => (int) $topic->topic_id, 'name' => $topics[(int) $topic->topic_id]['name'] ?? __('Earlier topic'),
-                'correct' => (int) $topic->correct, 'answered' => (int) $topic->answered];
+                'correct' => (int) $topic->correct_total, 'answered' => (int) $topic->answered_total];
         }
         usort($summary, fn ($a, $b) => $a['topic_id'] <=> $b['topic_id']);
         app(PracticeAccess::class)->staff($actor, $groupId);
