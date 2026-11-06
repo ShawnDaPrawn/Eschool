@@ -43,6 +43,12 @@
 - Awards managers can switch on practice run badges (off by default), presented with the other persistence badges once a school year for runs of 5, 10, 20 and 40 days.
 - The weekly parent update can now say when a child reached their weekly practice goal and how long their practice run is; it never says a goal was missed.
 - API: `GET /api/v2/learning/practice/learners/{learner}/motivation` and `POST /api/v2/learning/practice/learners/{learner}/practice-goal` (the Dart client needs regenerating).
+- School groups: one owner, many schools (Action Plan 5.7, SA.18).
+  - HQ creates a group, invites schools and names the group's administrators.
+  - A school joins only when its own Super Admin agrees on the new School groups page. The page shows exactly what the group will see. The school can leave at any time, and the group stops seeing it at once.
+  - Group administrators sign in to a group page with each school's learners, weekly active families, guardian reach, learners active in the app and recorded attendance, plus the group's totals. Numbers under 10 are hidden, as is any total that would reveal one. The role gives no access inside any school, and no learner record is ever shown.
+  - HQ Finance can bill a school through its group. One invoice a month then rolls up the schools' own monthly lines, and a school's month is never billed both on its own and through the group.
+  - **Deploy:** run the migrations.
 
 ## 2026-11-03
 
