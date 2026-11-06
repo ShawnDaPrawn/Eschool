@@ -50,6 +50,9 @@
   - Group administrators sign in to a group page with each school's learners, weekly active families, guardian reach, learners active in the app and recorded attendance, plus the group's totals. Numbers under 10 are hidden, as is any total that would reveal one. The role gives no access inside any school, and no learner record is ever shown.
   - HQ Finance can bill a school through its group. One invoice a month then rolls up the schools' own monthly lines, and a school's month is never billed both on its own and through the group.
   - **Deploy:** run the migrations.
+- Tutor teaching quality (Action Plan 3.10): a second tutor prompt (v2) that explains at the learner's stage and grade, shows worked examples of similar problems and common mistakes, lets a learner "explain it back" in their own words, and answers more warmly in the same structured form. The first prompt stays selectable.
+- The tutor now remembers which topics a learner practised in earlier sessions (topics and counts only, never the chat, and never anything flagged for safeguarding). The learner and their guardians can see and clear it; it only uses the last 90 days of the current school year.
+- The tutor can read the section of a document that answers the question, chosen with embeddings through the AI gateway; when that is off or unavailable it reads the opening, as before. Explanations in Afrikaans or isiZulu are built but stay off until each language's safeguarding phrases are reviewed. **Deploy:** `AI_TUTOR_PROMPT` (default `tutor-v2`), `AI_TUTOR_EMBEDDING_MODEL`, `AI_TUTOR_HOME_LANGUAGES`; new migration.
 
 ## 2026-11-03
 
