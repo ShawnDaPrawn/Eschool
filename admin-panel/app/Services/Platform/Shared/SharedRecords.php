@@ -162,12 +162,17 @@ class SharedRecords
      * already checked the schools concerned accepted. Only models and columns
      * declared in config/shared_records.php 'published' can be read.
      *
+     * Pass $current inside a write that holds the shared row's lock: the read
+     * then takes a shared lock and sees the latest committed rows, not the
+     * transaction's REPEATABLE READ snapshot (fixed by its first plain read,
+     * before it waited for the lock).
+     *
      * @param  class-string<Model>  $model
      * @param  list<string>  $columns
      * @param  callable(Builder): void  $where
      * @return Collection<int, Model>
      */
-    public function published(string $model, int $schoolId, array $columns, callable $where): Collection
+    public function published(string $model, int $schoolId, array $columns, callable $where, bool $current = false): Collection
     {
         $this->ownStaff();
         $allowed = (array) (config('shared_records.published')[$model] ?? []);
@@ -180,6 +185,9 @@ class SharedRecords
             $query = $model::acrossSchools()->where('school_id', $schoolId);
         }
         $where($query);
+        if ($current) {
+            $query->sharedLock();
+        }
 
         return $query->get($columns);
     }

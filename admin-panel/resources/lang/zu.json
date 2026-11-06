@@ -6973,5 +6973,7 @@
     "That school cannot take part.": "Leso sikole asikwazi ukubamba iqhaza.",
     "That school is already invited.": "Leso sikole sesivele simenyiwe.",
     "This invitation was already answered.": "Lesi simemo sesivele siphenduliwe.",
-    "This operation already contains a different change.": "Lo msebenzi usuvele unoshintsho oluhlukile."
+    "This operation already contains a different change.": "Lo msebenzi usuvele unoshintsho oluhlukile.",
+    "Some learners on your team sheet are not in the group on the new date. Update the team sheet first.": "Abanye abafundi ohlwini lweqembu lakho abekho eqenjini ngosuku olusha. Buyekeza uhlu lweqembu kuqala.",
+    "The new date does not suit the other school's team. Agree another date with them, or ask them to update their team sheet first.": "Usuku olusha alulungele iqembu lesinye isikole. Vumelanani ngolunye usuku, noma ubacele ukuthi babuyekeze uhlu lweqembu labo kuqala."
 }

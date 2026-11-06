@@ -21,13 +21,13 @@ Until now every record belonged to one school. A fixture between two schools bel
    - `participants()` reads every participant row of one record, and only its school, role and state (to show names);
    - `published()` reads the columns a feature declared in `config/shared_records.php` `published`, and refuses any other column or model. The feature calls it only once the schools concerned have accepted.
    Learner ids, groups, notes and the person who reported are never declared (`InterSchoolFixturesTest::test_shared_records_are_only_reached_through_the_shared_records_boundary` checks the list and that no other code names the shared models or tables).
-5. **Work for another school runs inside that school.** `inSchool()` runs a callback in a participant's own school context (its scope, settings and roles), for example notifying that school's own families of a confirmed result. It is never used to read that school's private rows.
+5. **Work for another school runs inside that school.** `inSchool()` runs a callback in a participant's own school context (its scope, settings and roles), for example notifying that school's own families of a confirmed result, or asking a yes-or-no question of its own rows (does a new fixture date suit its team?). Only that answer comes back; its private rows are never returned to the asking school.
 
 Accepting is the consent: until every school taking part has accepted, each school sees only the other's name (and the invited school sees the shared facts it needs to decide). Platform staff working inside a school (impersonation or a support session) cannot make, answer or read shared records (403): a support session never reads across schools.
 
 ## Writes
 
-`SharedRecords::once()` gives every write an operation id: the school row is locked, authority is checked fresh, the same operation returns its stored (encrypted) receipt, and the same id with a different request is refused (409). Receipts are school-owned (`shared_record_operations`). A write that changes the shared row locks it (`lockForUpdate`) so two schools' writes are applied one after the other. Every write is audited in the acting school, without learner ids or note text.
+`SharedRecords::once()` gives every write an operation id: the school row is locked, authority is checked fresh, the same operation returns its stored (encrypted) receipt, and the same id with a different request is refused (409). Receipts are school-owned (`shared_record_operations`). A write that changes the shared row locks it (`lockForUpdate`) so two schools' writes are applied one after the other. Under REPEATABLE READ a transaction's snapshot is fixed by its first plain read (the authority checks), before it waits for that lock, so anything it reads from the other school after the lock and acts on is read with a locking read (`published(..., current: true)`, a shared lock), which sees the latest committed rows. Every write is audited in the acting school, without learner ids or note text.
 
 ## Acceptance tests (`Activities/InterSchoolFixturesTest`)
 

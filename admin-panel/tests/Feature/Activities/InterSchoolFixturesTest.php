@@ -530,8 +530,8 @@ class InterSchoolFixturesTest extends TestCase
         $api($tokenC, 3)->postJson("/api/v2/activities/fixtures/$id/result", $this->op(['host_score' => 9, 'guest_score' => 0]))->assertNotFound();
         $faridToken = $this->farid->createToken('test')->plainTextToken;
         $api($faridToken, 1)->getJson("/api/v2/activities/fixtures/$id")->assertForbidden();
-        $api($faridToken, 1)->getJson("/api/v2/activities/fixtures/learners/{$this->asha}")->assertOk()->assertJsonPath('data.items.0.result.our_score', 1);
-        $api($faridToken, 1)->getJson("/api/v2/activities/fixtures/learners/{$this->ben}")->assertNotFound();
+        $api($faridToken, 1)->getJson("/api/v2/activities/learners/{$this->asha}/fixtures")->assertOk()->assertJsonPath('data.items.0.result.our_score', 1);
+        $api($faridToken, 1)->getJson("/api/v2/activities/learners/{$this->ben}/fixtures")->assertNotFound();
 
         $competition = $api($tokenA, 1)->postJson('/api/v2/activities/competitions', $this->op(['name' => 'Highveld Hockey League', 'kind' => 'sport', 'discipline' => 'Hockey', 'season' => '2026', 'points_win' => 3, 'points_draw' => 1, 'points_loss' => 0]))
             ->assertOk()->json('data.id');
@@ -572,6 +572,123 @@ class InterSchoolFixturesTest extends TestCase
         $this->post("/activity-fixtures/$id/result", $this->op(['host_score' => '9', 'guest_score' => '0']))->assertForbidden();
         $this->actingAs($this->adminC);
         $this->get("/activity-fixtures/$id")->assertNotFound();
+    }
+
+    /**
+     * Both schools report at once: the second transaction waits on the fixture
+     * lock, but its first plain read (the authority checks in once()) already
+     * fixed its REPEATABLE READ snapshot. The other school's report must be
+     * read with a locking read after the fixture lock, which reads the latest
+     * committed row, or matching scores stay "awaiting" for good.
+     */
+    public function test_the_other_schools_report_is_read_from_current_locked_state(): void
+    {
+        $id = $this->fixture()['id'];
+        $this->accept($id);
+        $this->report($this->adminB, 2, $id, 2, 1);
+        $queries = [];
+        DB::listen(function ($query) use (&$queries) {
+            $queries[] = ['sql' => strtolower($query->sql), 'bindings' => $query->bindings];
+        });
+
+        $this->assertSame('confirmed', $this->report($this->adminA, 1, $id, 2, 1)['result']['state']);
+
+        $lock = collect($queries)->search(fn ($q) => str_contains($q['sql'], 'from `shared_fixtures`') && str_contains($q['sql'], 'for update'));
+        $read = collect($queries)->search(fn ($q) => str_starts_with($q['sql'], 'select `reported_host_score`, `reported_guest_score` from `shared_fixture_sides`') && in_array(2, $q['bindings'], true));
+        $this->assertIsInt($lock, 'the fixture row is locked');
+        $this->assertIsInt($read, 'Baobab\'s report is read');
+        $this->assertGreaterThan($lock, $read, 'the report is read after the fixture lock');
+        $this->assertMatchesRegularExpression('/lock in share mode|for share|for update/', $queries[$read]['sql'], 'with a locking read');
+    }
+
+    /**
+     * The same race, simulated with two connections: a report committed after
+     * the transaction's first read is invisible to a plain read, and visible
+     * to the locking read report() uses.
+     */
+    public function test_a_locking_read_sees_a_report_committed_after_the_transactions_snapshot(): void
+    {
+        $connection = config('database.connections.'.config('database.default'));
+        config(['database.connections.fixtures_reader' => $connection, 'database.connections.fixtures_writer' => $connection]);
+        $writer = DB::connection('fixtures_writer');
+        $reader = DB::connection('fixtures_reader');
+        $writer->statement('SET FOREIGN_KEY_CHECKS=0');
+        $sideId = $writer->table('shared_fixture_sides')->insertGetId(['school_id' => 2, 'shared_fixture_id' => 990001, 'activity_group_id' => 990001, 'team_label' => 'Baobab U14',
+            'sheet_shared' => 0, 'revision' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $default = DB::getDefaultConnection();
+        try {
+            DB::setDefaultConnection('fixtures_reader');
+            $reader->beginTransaction();
+            try {
+                // The transaction's first plain read fixes its snapshot.
+                $this->assertNull($reader->table('shared_fixture_sides')->where('id', $sideId)->value('reported_host_score'));
+                // Baobab's own transaction commits its report meanwhile.
+                $writer->table('shared_fixture_sides')->where('id', $sideId)->update(['reported_host_score' => 2, 'reported_guest_score' => 1]);
+                $read = fn (bool $current) => $this->inA(fn () => app(SharedRecords::class)->published(FixtureSide::class, 2, ['reported_host_score', 'reported_guest_score'],
+                    fn ($q) => $q->where('shared_fixture_id', 990001), $current)->first());
+                $this->assertNull($read(false)->reported_host_score, 'a plain read still sees the snapshot');
+                $this->assertSame([2, 1], [$read(true)->reported_host_score, $read(true)->reported_guest_score], 'the locking read sees the committed report');
+            } finally {
+                $reader->rollBack();
+            }
+        } finally {
+            DB::setDefaultConnection($default);
+            $writer->table('shared_fixture_sides')->where('id', $sideId)->delete();
+            $writer->statement('SET FOREIGN_KEY_CHECKS=1');
+            DB::purge('fixtures_reader');
+            DB::purge('fixtures_writer');
+        }
+    }
+
+    public function test_a_new_date_must_suit_both_teams_and_their_team_sheets(): void
+    {
+        $id = $this->fixture()['id'];
+        $this->accept($id);
+        $this->sideA($id, true);
+        $this->sideB($id, true);
+        $move = fn (string $date, string $status = 'scheduled') => $this->as($this->adminA, 1, fn () => app(Fixtures::class)->schedule($this->adminA, $id, $this->op([
+            'revision' => $this->see($this->adminA, 1, $id)['revision'], 'on_date' => $date, 'starts_at' => null, 'venue' => 'Jacaranda fields', 'field' => null, 'host_is_home' => true, 'status' => $status])));
+        $refusal = function (callable $fn): string {
+            try {
+                $fn();
+                $this->fail('The new date was accepted');
+            } catch (HttpException $e) {
+                $this->assertSame(422, $e->getStatusCode());
+
+                return $e->getMessage();
+            }
+        };
+
+        // Baobab's group season ends before the new date.
+        $this->inB(fn () => ActivityGroup::query()->whereKey($this->groupB)->update(['ends_on' => '2026-03-31']));
+        $message = $refusal(fn () => $move('2026-04-15'));
+        $this->assertStringNotContainsString('Baobab', $message);
+        $this->inB(fn () => ActivityGroup::query()->whereKey($this->groupB)->update(['ends_on' => '2026-12-31']));
+
+        // A learner on our own sheet leaves the group before the new date.
+        $this->inA(fn () => ActivityMembership::query()->where('learner_id', $this->asha)->update(['ends_on' => '2026-04-10']));
+        $refusal(fn () => $move('2026-04-15'));
+        $this->inA(fn () => ActivityMembership::query()->where('learner_id', $this->asha)->update(['ends_on' => '2026-12-31']));
+
+        // A learner on Baobab's sheet leaves its group: refused, naming nobody.
+        $this->inB(fn () => ActivityMembership::query()->where('learner_id', $this->ashaB)->update(['ends_on' => '2026-04-10']));
+        $message = $refusal(fn () => $move('2026-04-15'));
+        $this->assertStringNotContainsString('Asha', $message);
+        $this->assertStringNotContainsString('Baobab', $message);
+        $this->assertSame(self::TODAY, SharedFixture::findOrFail($id)->on_date->toDateString(), 'nothing moved');
+
+        // Cancelling never needs the teams to fit.
+        $cancelled = $move(self::TODAY, 'cancelled');
+        $this->assertSame('cancelled', $cancelled['status']);
+        $this->inB(fn () => ActivityMembership::query()->where('learner_id', $this->ashaB)->update(['ends_on' => '2026-12-31']));
+
+        // A date that suits both teams and both sheets moves, sheets intact.
+        $other = $this->fixture()['id'];
+        $this->accept($other);
+        $this->sideA($other, true);
+        $moved = $this->as($this->adminA, 1, fn () => app(Fixtures::class)->schedule($this->adminA, $other, $this->op([
+            'revision' => 1, 'on_date' => '2026-04-15', 'starts_at' => '10:00', 'venue' => 'Jacaranda fields', 'field' => null, 'host_is_home' => true, 'status' => 'scheduled'])));
+        $this->assertSame(['2026-04-15', 1], [$moved['on_date'], count($moved['side']['selections'])]);
     }
 
     public function test_shared_records_are_only_reached_through_the_shared_records_boundary(): void

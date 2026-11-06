@@ -135,8 +135,8 @@ class Fixtures
             abort_if($fixture->status === 'cancelled', 409, 'This fixture was cancelled.');
             abort_if($fixture->result_state !== 'none' && $fixture->on_date->toDateString() !== $data['on_date'], 409, 'A fixture with a reported score keeps its date.');
             $side = FixtureSide::query()->where('shared_fixture_id', $id)->firstOrFail();
-            if ($data['status'] === 'scheduled') {
-                $this->group((int) $side->activity_group_id, $data['on_date']);
+            if ($data['status'] === 'scheduled' && $data['on_date'] !== $fixture->on_date->toDateString()) {
+                $this->suitsBothTeams($id, $data['on_date']);
             }
             $before = $fixture->only(['on_date', 'starts_at', 'venue', 'field', 'host_is_home', 'status', 'revision']);
             $fixture->forceFill(['on_date' => $data['on_date'], 'starts_at' => $this->time($data['starts_at'] ?? null), 'venue' => trim($data['venue']), 'field' => $this->blank($data['field'] ?? null),
@@ -145,6 +145,48 @@ class Fixtures
 
             return $this->view($actor, $id);
         });
+    }
+
+    /**
+     * A new date must suit every accepted school's team: its group's season
+     * covers it and everyone on its team sheet is still in the group that
+     * day. Otherwise the change is refused, nothing is cleared, and the coach
+     * updates the sheet or the schools agree another date. Each school is
+     * asked inside its own school, with locking reads; only a yes or no comes
+     * back, never its group, learners or sheet.
+     */
+    private function suitsBothTeams(int $id, string $date): void
+    {
+        $me = app(CurrentSchool::class)->id();
+        foreach ($this->shared->participants(self::TYPE, $id) as $part) {
+            if ($part['state'] !== SharedParticipant::ACCEPTED) {
+                continue;
+            }
+            $problem = $this->shared->inSchool($part['school_id'], fn () => $this->teamProblem($id, $date));
+            if ($problem !== null) {
+                abort(422, $part['school_id'] === $me
+                    ? ($problem === 'season' ? 'The fixture date must be within the group\'s season.' : 'Some learners on your team sheet are not in the group on the new date. Update the team sheet first.')
+                    : 'The new date does not suit the other school\'s team. Agree another date with them, or ask them to update their team sheet first.');
+            }
+        }
+    }
+
+    /** In the side's own school: null when the date suits its team, else why not. */
+    private function teamProblem(int $id, string $date): ?string
+    {
+        $side = FixtureSide::query()->where('shared_fixture_id', $id)->sharedLock()->first();
+        if ($side === null) {
+            return null;
+        }
+        $group = ActivityGroup::query()->where('active', true)->sharedLock()->find($side->activity_group_id);
+        if ($group === null || $date < $group->starts_on->toDateString() || $date > $group->ends_on->toDateString()) {
+            return 'season';
+        }
+        $picked = FixtureSelection::query()->where('shared_fixture_side_id', $side->id)->sharedLock()->pluck('learner_id')->map(fn ($v) => (int) $v)->all();
+        $members = ActivityMembership::query()->where('activity_group_id', $group->id)->where('active', true)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)
+            ->sharedLock()->pluck('learner_id')->map(fn ($v) => (int) $v)->all();
+
+        return array_diff($picked, $members) === [] ? null : 'sheet';
     }
 
     /** The invited school accepts (with its own group and team label) or declines. */
@@ -244,7 +286,9 @@ class Fixtures
             $reports = [[$host, $guest]];
             $other = $everyone->first(fn ($row) => $row['school_id'] !== app(CurrentSchool::class)->id());
             if ($other !== null) {
-                $theirs = $this->shared->published(FixtureSide::class, $other['school_id'], ['reported_host_score', 'reported_guest_score'], fn ($q) => $q->where('shared_fixture_id', $id))->first();
+                // A locking read after the fixture lock: a report the other school committed
+                // while this write waited for the lock is seen, so agreeing scores confirm.
+                $theirs = $this->shared->published(FixtureSide::class, $other['school_id'], ['reported_host_score', 'reported_guest_score'], fn ($q) => $q->where('shared_fixture_id', $id), true)->first();
                 $reports[] = $theirs?->reported_host_score === null ? null : [(int) $theirs->reported_host_score, (int) $theirs->reported_guest_score];
             }
             $this->settle($fixture, $reports, $everyone->pluck('school_id')->all());

@@ -8594,7 +8594,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
-  /activities/fixtures/learners/{learner}:
+  /activities/learners/{learner}/fixtures:
     get:
       operationId: listLearnerFixtures
       tags:

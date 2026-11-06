@@ -263,7 +263,7 @@ Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role
     Route::get('fixtures', [$c, 'index'])->name('index');
     Route::post('fixtures', [$c, 'create'])->name('create');
     Route::get('fixture-schools', [$c, 'schools'])->name('schools');
-    Route::get('fixtures/learners/{learner}', [$c, 'learner'])->whereNumber('learner')->name('learner');
+    Route::get('learners/{learner}/fixtures', [$c, 'learner'])->whereNumber('learner')->name('learner');
     Route::get('fixtures/{fixture}', [$c, 'show'])->whereNumber('fixture')->name('show');
     Route::put('fixtures/{fixture}', [$c, 'schedule'])->whereNumber('fixture')->name('schedule');
     Route::post('fixtures/{fixture}/decision', [$c, 'decision'])->whereNumber('fixture')->name('decision');

@@ -5900,5 +5900,7 @@
     "That school cannot take part.": "That school cannot take part.",
     "That school is already invited.": "That school is already invited.",
     "This invitation was already answered.": "This invitation was already answered.",
-    "This operation already contains a different change.": "This operation already contains a different change."
+    "This operation already contains a different change.": "This operation already contains a different change.",
+    "Some learners on your team sheet are not in the group on the new date. Update the team sheet first.": "Some learners on your team sheet are not in the group on the new date. Update the team sheet first.",
+    "The new date does not suit the other school's team. Agree another date with them, or ask them to update their team sheet first.": "The new date does not suit the other school's team. Agree another date with them, or ask them to update their team sheet first."
 }
