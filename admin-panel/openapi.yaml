@@ -2745,6 +2745,119 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /me/family-summary/preferences:
+    get:
+      operationId: getMyFamilySummaryPreferences
+      tags:
+      - Platform
+      summary: Read your daily family summary choice
+      description: Whether you get the daily family summary and at what time, one setting for every school. Only a guardian at the current school may read it; your quiet hours are included so the time can be chosen outside them.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilySummaryPreferencesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateMyFamilySummaryPreferences
+      tags:
+      - Platform
+      summary: Choose whether and when you get the daily family summary
+      description: One summary a day across all your children and schools, sent at the chosen time on your local day. The time must be outside your quiet hours. Without a timezone, the current school's is used.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - enabled
+              - send_at
+              properties:
+                enabled:
+                  type: boolean
+                send_at:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                timezone:
+                  type:
+                  - string
+                  - 'null'
+                  description: An IANA time zone such as Africa/Johannesburg.
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilySummaryPreferencesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/family-summaries/{summary}:
+    get:
+      operationId: getMyFamilySummary
+      tags:
+      - Platform
+      summary: Read one of your daily family summaries
+      description: Your summary for one day, one section per school. A school's section is shown only while you are still that school's guardian of every child it is about. Another person's summary, an expired one and one with nothing left to show are all not found.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: summary
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilySummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile:
     get:
       operationId: getMyProfile
@@ -36286,6 +36399,125 @@ components:
               $ref: '#/components/schemas/NotificationChannelPreference'
             in_app:
               $ref: '#/components/schemas/NotificationChannelPreference'
+    FamilySummaryPreferencesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - enabled
+          - send_at
+          - timezone
+          - revision
+          - quiet_hours
+          properties:
+            enabled:
+              type: boolean
+            send_at:
+              type: string
+              pattern: ^([01]\d|2[0-3]):[0-5]\d$
+            timezone:
+              type: string
+            revision:
+              type: integer
+              minimum: 0
+            quiet_hours:
+              type: object
+              additionalProperties: false
+              required:
+              - enabled
+              - starts_at
+              - ends_at
+              properties:
+                enabled:
+                  type: boolean
+                starts_at:
+                  type: string
+                ends_at:
+                  type: string
+    FamilySummaryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - date
+          - title
+          - sections
+          - private_updates
+          - notifications_target
+          properties:
+            id:
+              type: integer
+            date:
+              type: string
+              format: date
+            title:
+              type: string
+            sections:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - school_id
+                - school_name
+                - text
+                - wording
+                - unread_messages
+                - private_updates
+                properties:
+                  school_id:
+                    type: integer
+                  school_name:
+                    type: string
+                  text:
+                    type: string
+                    description: Plain text; private updates are only counted, never described.
+                  wording:
+                    type: string
+                    enum:
+                    - ai
+                    - template
+                  unread_messages:
+                    type: integer
+                    minimum: 0
+                  private_updates:
+                    type: integer
+                    minimum: 0
+            private_updates:
+              type: integer
+              minimum: 0
+            notifications_target:
+              type: string
+              description: The app path where private updates are read.
     QuietHoursResponse:
       type: object
       additionalProperties: false
