@@ -20,7 +20,7 @@ class TutorMemoryController extends Controller
 
     public function clearOwn(TutorMemoryRequest $r): JsonResponse
     {
-        return ResponseService::successResponse(data: app(TutorMemory::class)->clearOwn($r->user()));
+        return ResponseService::successResponse(data: app(TutorMemory::class)->clearOwn($r->user(), (string) $r->validated('operation_id')));
     }
 
     public function guardian(TutorMemoryRequest $r, int $learner): JsonResponse
@@ -30,6 +30,6 @@ class TutorMemoryController extends Controller
 
     public function clearGuardian(TutorMemoryRequest $r, int $learner): JsonResponse
     {
-        return ResponseService::successResponse(data: app(TutorMemory::class)->clearForGuardian($r->user(), $learner));
+        return ResponseService::successResponse(data: app(TutorMemory::class)->clearForGuardian($r->user(), $learner, (string) $r->validated('operation_id')));
     }
 }

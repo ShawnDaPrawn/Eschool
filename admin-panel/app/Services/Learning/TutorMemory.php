@@ -7,6 +7,7 @@ namespace App\Services\Learning;
 use App\Models\Ai\AiUsage;
 use App\Models\Growth\MasteryTopic;
 use App\Models\Learning\TutorMemory as MemoryMark;
+use App\Models\Learning\TutorMemoryClear;
 use App\Models\Learning\TutorMessage;
 use App\Models\Learning\TutorSession;
 use App\Models\Platform\School;
@@ -20,6 +21,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * The tutor's memory of one learner across sessions (Action Plan 3.10). It is
@@ -56,14 +58,14 @@ class TutorMemory
         return $this->data($actor, $this->guardianLearner($actor, $learnerId));
     }
 
-    public function clearOwn(User $actor): array
+    public function clearOwn(User $actor, string $operation): array
     {
-        return $this->clear($actor, fn () => app(TutorAccess::class)->learner($actor, false, false), 'learner');
+        return $this->clear($actor, fn () => app(TutorAccess::class)->learner($actor, false, false), 'learner', $operation);
     }
 
-    public function clearForGuardian(User $actor, int $learnerId): array
+    public function clearForGuardian(User $actor, int $learnerId, string $operation): array
     {
-        return $this->clear($actor, fn () => $this->guardianLearner($actor, $learnerId), 'guardian');
+        return $this->clear($actor, fn () => $this->guardianLearner($actor, $learnerId), 'guardian', $operation);
     }
 
     /** Only an active guardian of the learner at this school; approval is not needed to see or clear. */
@@ -77,15 +79,32 @@ class TutorMemory
         return $learner;
     }
 
-    private function clear(User $actor, callable $learner, string $role): array
+    /**
+     * Clears once per operation UUID. Replaying the same operation (a retried
+     * request) changes nothing and writes no audit entry, so turns made since
+     * the original clear stay in the memory. An operation recorded for another
+     * person, learner or route is refused with 409.
+     */
+    private function clear(User $actor, callable $learner, string $role, string $operation): array
     {
-        return DB::transaction(function () use ($actor, $learner, $role) {
+        abort_unless(Str::isUuid($operation), 422);
+
+        return DB::transaction(function () use ($actor, $learner, $role, $operation) {
             School::lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
             $person = $learner();
+            $prior = TutorMemoryClear::where('operation_id', $operation)->lockForUpdate()->first();
+            if ($prior !== null) {
+                abort_unless((int) $prior->cleared_by === (int) $actor->id && (int) $prior->learner_id === (int) $person->id && $prior->cleared_by_role === $role,
+                    409, __('This clear request was already used for something else.'));
+
+                return $this->data($actor, $learner());
+            }
+            $now = now();
+            TutorMemoryClear::create(['learner_id' => $person->id, 'cleared_by' => $actor->id, 'cleared_by_role' => $role, 'operation_id' => $operation, 'cleared_at' => $now]);
             $mark = MemoryMark::firstOrNew(['learner_id' => $person->id]);
             $before = $mark->cleared_at?->toIso8601String();
-            $mark->fill(['cleared_at' => now(), 'cleared_by' => $actor->id, 'cleared_by_role' => $role])->save();
-            Audit::record('tutor.memory_cleared', $mark, ['cleared_at' => $before], ['cleared_at' => $mark->cleared_at->toIso8601String(), 'by' => $role]);
+            $mark->fill(['cleared_at' => $now, 'cleared_by' => $actor->id, 'cleared_by_role' => $role])->save();
+            Audit::record('tutor.memory_cleared', $mark, ['cleared_at' => $before], ['cleared_at' => $mark->cleared_at->toIso8601String(), 'by' => $role, 'operation_id' => $operation]);
 
             return $this->data($actor, $learner());
         });

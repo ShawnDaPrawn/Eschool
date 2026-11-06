@@ -19663,7 +19663,8 @@ paths:
       - Tutor
       summary: getTutorMemory
       description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
-        their active guardians can see and clear it, also while the tutor module is off; nobody else can.
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19693,7 +19694,8 @@ paths:
       - Tutor
       summary: clearTutorMemory
       description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
-        their active guardians can see and clear it, also while the tutor module is off; nobody else can.
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19710,6 +19712,12 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: This operation UUID was already used to clear for another person, learner or route.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
@@ -19729,7 +19737,8 @@ paths:
       - Tutor
       summary: getTutorLearnerMemory
       description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
-        their active guardians can see and clear it, also while the tutor module is off; nobody else can.
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19765,7 +19774,8 @@ paths:
       - Tutor
       summary: clearTutorLearnerMemory
       description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
-        their active guardians can see and clear it, also while the tutor module is off; nobody else can.
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19788,6 +19798,12 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: This operation UUID was already used to clear for another person, learner or route.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':

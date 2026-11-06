@@ -276,7 +276,7 @@ class TutorTeachingQualityTest extends TestCase
     public function test_learner_and_guardian_can_clear_memory_and_retention_drops_old_turns(): void
     {
         $this->turn($this->open());
-        $cleared = app(TutorMemory::class)->clearOwn($this->actor('asha'));
+        $cleared = app(TutorMemory::class)->clearOwn($this->actor('asha'), (string) Str::uuid());
         $this->assertSame([], $cleared['subjects']);
         $this->assertNotNull($cleared['cleared_at']);
         $this->assertSame('learner', MemoryMark::sole()->cleared_by_role);
@@ -284,7 +284,7 @@ class TutorTeachingQualityTest extends TestCase
         $this->travel(1)->minutes();
         $this->turn($this->open());
         $this->assertSame(1, app(TutorMemory::class)->own($this->actor('asha'))['subjects'][0]['learning_steps']);
-        $this->assertSame([], app(TutorMemory::class)->clearForGuardian($this->actor('farid'), $this->schoolA->ids['asha'])['subjects']);
+        $this->assertSame([], app(TutorMemory::class)->clearForGuardian($this->actor('farid'), $this->schoolA->ids['asha'], (string) Str::uuid())['subjects']);
         $this->assertSame('guardian', MemoryMark::sole()->cleared_by_role);
         $this->travel(1)->minutes();
         $this->turn($this->open());
@@ -301,7 +301,7 @@ class TutorTeachingQualityTest extends TestCase
         // Wrong role: a teacher has no memory of their own and no guardian view.
         $this->refuses(fn () => $memory->own($this->actor('tara')), 404);
         $this->refuses(fn () => $memory->forGuardian($this->actor('tara'), $asha), 404);
-        $this->refuses(fn () => $memory->clearForGuardian($this->actor('tara'), $asha), 404);
+        $this->refuses(fn () => $memory->clearForGuardian($this->actor('tara'), $asha, (string) Str::uuid()), 404);
         // Wrong owner: another learner and another learner's guardian.
         $ben = $this->actor('ben');
         $ben->forceFill(['password_change_required' => false, 'status' => 1])->save();
@@ -310,18 +310,18 @@ class TutorTeachingQualityTest extends TestCase
             'consent_version' => config('identity.consent_version'), 'consented_at' => now()]);
         $this->assertSame([], $memory->own($ben)['subjects']);
         $this->refuses(fn () => $memory->forGuardian($ben, $asha), 404);
-        $this->refuses(fn () => $memory->clearForGuardian($ben, $asha), 404);
-        $memory->clearOwn($ben);
+        $this->refuses(fn () => $memory->clearForGuardian($ben, $asha, (string) Str::uuid()), 404);
+        $memory->clearOwn($ben, (string) Str::uuid());
         $this->refuses(fn () => $memory->forGuardian($this->actor('gina'), $asha), 404);
-        $this->refuses(fn () => $memory->clearForGuardian($this->actor('gina'), $asha), 404);
+        $this->refuses(fn () => $memory->clearForGuardian($this->actor('gina'), $asha, (string) Str::uuid()), 404);
         $this->assertCount(1, $memory->own($this->actor('asha'))['subjects']);
         $this->assertSame(0, MemoryMark::where('learner_id', $asha)->count());
         // Wrong school: School B cannot reach School A's learner or memory.
         $baobabParent = app(CurrentSchool::class)->run(2, fn () => User::findOrFail($this->schoolB->ids['farid_user']));
         $this->refuses(fn () => app(CurrentSchool::class)->run(2, fn () => $memory->forGuardian($baobabParent, $asha)), 404);
-        $this->refuses(fn () => app(CurrentSchool::class)->run(2, fn () => $memory->clearForGuardian($baobabParent, $asha)), 404);
+        $this->refuses(fn () => app(CurrentSchool::class)->run(2, fn () => $memory->clearForGuardian($baobabParent, $asha, (string) Str::uuid())), 404);
         $this->refuses(fn () => app(CurrentSchool::class)->run(2, fn () => $memory->own($this->actor('asha'))), 404);
-        $memory->clearOwn($this->actor('asha'));
+        $memory->clearOwn($this->actor('asha'), (string) Str::uuid());
         $this->assertSame(0, app(CurrentSchool::class)->run(2, fn () => MemoryMark::count()));
     }
 
@@ -349,5 +349,60 @@ class TutorTeachingQualityTest extends TestCase
         $this->flushHeaders()->withToken($this->schoolA->tokens['gina'])->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->actor('gina')->id]);
         $this->getJson($path)->assertNotFound();
         $this->postJson($path.'/clear', ['operation_id' => (string) Str::uuid()])->assertNotFound();
+    }
+
+    public function test_identical_sections_get_their_own_vectors_and_still_use_embeddings(): void
+    {
+        $version = ContentVersion::findOrFail($this->source);
+        $version->markdown = "# Practice\nSame practice line.\n\n# Decimals\nDECIMALS-SECTION-CANARY A decimal point separates wholes from tenths.\n\n# Practice\nSame practice line.";
+        $version->saveQuietly();
+        $this->retrieval();
+        $this->assertSame('completed', $this->turn($this->open(), 'How do I compare decimals?')['state']);
+        $section = TutorMessage::sole()->source_manifest['versions'][0]['section'];
+        $this->assertSame(['embeddings', 1, 3], [$section['method'], $section['index'], $section['count']]);
+        $this->assertSame(4, $this->embeddings);
+        $usage = AiUsage::where('feature', 'tutor_retrieval')->get();
+        $this->assertSame([4, ['completed']], [$usage->pluck('operation_id')->unique()->count(), $usage->pluck('state')->unique()->values()->all()]);
+    }
+
+    private function signInAs(string $name): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->withToken($this->schoolA->tokens[$name])->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->actor($name)->id]);
+    }
+
+    public function test_a_retried_clear_replays_without_erasing_newer_turns_on_learner_and_guardian_routes(): void
+    {
+        $audits = fn () => AuditLog::where('action', 'tutor.memory_cleared')->count();
+        $this->turn($this->open());
+        $own = ['operation_id' => (string) Str::uuid()];
+        $this->signInAs('asha');
+        $first = $this->postJson('/api/v2/tutor/memory/clear', $own)->assertOk()->json('data');
+        $this->assertSame([], $first['subjects']);
+        $this->travel(1)->minutes();
+        $this->turn($this->open());
+        $this->signInAs('asha');
+        $replay = $this->postJson('/api/v2/tutor/memory/clear', $own)->assertOk()->json('data');
+        $this->assertSame($first['cleared_at'], $replay['cleared_at']);
+        $this->assertSame(1, $replay['subjects'][0]['learning_steps']);
+        $this->assertSame(1, $audits());
+        $path = '/api/v2/tutor/parent/learners/'.$this->schoolA->ids['asha'].'/memory/clear';
+        $this->signInAs('farid');
+        // Another person's clear operation is never replayed or reused.
+        $this->postJson($path, $own)->assertStatus(409);
+        $guardian = ['operation_id' => (string) Str::uuid()];
+        $cleared = $this->postJson($path, $guardian)->assertOk()->json('data');
+        $this->assertSame([], $cleared['subjects']);
+        $this->assertNotSame($first['cleared_at'], $cleared['cleared_at']);
+        $this->travel(1)->minutes();
+        $this->turn($this->open());
+        $this->signInAs('farid');
+        $again = $this->postJson($path, $guardian)->assertOk()->json('data');
+        $this->assertSame($cleared['cleared_at'], $again['cleared_at']);
+        $this->assertSame(1, $again['subjects'][0]['learning_steps']);
+        // Replaying the learner's older clear does not move the guardian's later one back or forward.
+        $this->signInAs('asha');
+        $this->assertSame($cleared['cleared_at'], $this->postJson('/api/v2/tutor/memory/clear', $own)->assertOk()->json('data.cleared_at'));
+        $this->assertSame(2, $audits());
     }
 }

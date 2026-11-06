@@ -42,6 +42,7 @@ The first tutor prompt gives a short hint, a question and a correction, the same
 - Per subject: earlier sessions, learning steps, explain-back turns, the published topics practised (up to 10) and the last active day.
 - **Learner-owned and school-scoped.** Only the learner's own sessions at the current school; `tutor_memories` (school-owned) holds only the learner's clear mark (`cleared_at`, `cleared_by`, `cleared_by_role`).
 - **Who can see and clear it:** the learner (`GET /api/v2/tutor/memory`, `POST /api/v2/tutor/memory/clear`) and each active guardian of the learner (`GET|POST /api/v2/tutor/parent/learners/{learner}/memory[/clear]`). Nobody else: teachers, other learners, other guardians and other schools get 404. These routes stay open while the school has the tutor module off, and a guardian does not need a current approval to clear. Each clear is audited (`tutor.memory_cleared`).
+- **Clears are idempotent by operation.** Each clear's `operation_id` is kept in `tutor_memory_clears` (school-owned, unique per school and operation). Replaying it (a retried request) changes nothing and writes no audit entry, so turns made since the original clear stay in the memory; the same operation used by another person, for another learner or on the other route is refused with 409.
 - **Retention rule:** only turns from the current school year and the last `ai.tutor.memory_days` days (90) count; older turns are never shown or used. After a clear only newer turns count. Earlier chat is not deleted by a clear; it keeps its own tutor retention.
 - **Never quarantined content:** only `completed` turns with a `hint`, `question` or `correction` answer count; quarantined, purged and failed turns never do, nor does any turn whose usage receipt is quarantined or purged, even if the message row still says completed.
 - In a v2 turn, `approved_context.memory` holds the current subject's counts and up to five topic names (minimized); its digest is in the turn's manifest and source references. Memory is not a source to reauthorize: clearing it never hides earlier turns.
@@ -49,7 +50,7 @@ The first tutor prompt gives a short hint, a question and a correction, the same
 ## Relevant section through embeddings
 
 - `TutorSections` splits each content version at its Markdown headings into sections of at most 3,000 bytes (at most 8 per version).
-- For a new v2 turn, `TutorRetrieval` embeds the learner's minimized question and each section through the gateway as the separate registered feature `tutor_retrieval` (`TutorRetrievalFeaturePolicy`, capability `embed`, prompt `tutor-retrieval`), and gives the tutor the section with the highest cosine similarity. A section's vector is replayed from its completed receipt for the rest of the session; at most 16 section vectors are requested per turn.
+- For a new v2 turn, `TutorRetrieval` embeds the learner's minimized question and each section through the gateway as the separate registered feature `tutor_retrieval` (`TutorRetrievalFeaturePolicy`, capability `embed`, prompt `tutor-retrieval`), and gives the tutor the section with the highest cosine similarity. A section's vector is replayed from its completed receipt for the rest of the session; its operation identity includes the section's index and hash, so identical sections are separate requests. At most 16 section vectors are requested per turn.
 - The policy accepts only the learner's own open session and either their question for that turn or a section of a version the session already selected; it rebuilds the input and the operation identity itself.
 - Gateway rules apply unchanged: inference and provider switches, school pause, HQ and school caps, moderation (the tutor's local safeguarding guard and provider moderation of each input), metering and quarantine. `tutor_retrieval` is a personal feature, so its spend joins the tutor's pool and stays out of the school's daily total.
 - **Clean fallback:** when `tutor_retrieval` is off (the default), unconfigured, capped, paused, failing or flagged, or a section changed, the tutor reads the first 3,000 characters exactly as v1 does. The manifest records the method (`embeddings`, `opening` or `single_section`). A content version with one section needs no vector. A safeguarding disclosure goes to the local guard with no network call, so it is never embedded.
@@ -67,7 +68,8 @@ Migration `2026_11_08_310000_add_tutor_teaching_quality`:
 
 - `tutor_messages.prompt_key` (nullable), `turn_type` (default `ask`), `explain_language` (nullable).
 - `tutor_memories` (school-owned, listed in `SchoolOwnedTables`): `school_id`, `learner_id`, `cleared_at`, `cleared_by`, `cleared_by_role`; unique per school and learner.
-- `down()` refuses while any memory mark or any turn using the new columns exists.
+- `tutor_memory_clears` (school-owned): each clear by `operation_id` (unique per school), with learner, person, role and time.
+- `down()` refuses while any memory mark, recorded clear or turn using the new columns exists.
 
 ## Endpoints
 
@@ -96,6 +98,8 @@ Migration `2026_11_08_310000_add_tutor_teaching_quality`:
 | `test_learner_and_guardian_can_clear_memory_and_retention_drops_old_turns` | Clearing by either is audited and only newer turns count; after 90 days nothing counts |
 | `test_wrong_role_wrong_owner_and_wrong_school_cannot_read_or_clear_memory` | Teacher, another learner, another learner's guardian and School B are refused; nothing of theirs changes |
 | `test_memory_and_teaching_options_over_http_match_the_typed_contract` | HTTP routes match `openapi.yaml`; expected-school and guardian checks |
+| `test_identical_sections_get_their_own_vectors_and_still_use_embeddings` | Two identical sections get separate vector operations (the index is in the identity), so retrieval still works |
+| `test_a_retried_clear_replays_without_erasing_newer_turns_on_learner_and_guardian_routes` | On both routes a retried clear changes nothing and writes no audit; another person's operation gets 409 |
 
 The existing tutor suites run on v2 by default and still pass; `HqAiControlsTest` counts 19 tutor cases.
 
