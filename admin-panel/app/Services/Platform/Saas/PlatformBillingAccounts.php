@@ -9,6 +9,8 @@ use App\Models\Platform\PlatformInvoice;
 use App\Models\Platform\PlatformPayment;
 use App\Models\Platform\PlatformPaymentAllocation;
 use App\Models\Platform\School;
+use App\Models\Platform\SchoolGroupInvoice;
+use App\Models\Platform\SchoolGroupPayment;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Services\MailService;
@@ -454,6 +456,11 @@ class PlatformBillingAccounts
                 ->where('c.status', PlatformInvoice::ISSUED)->where('o.slot', $month)->sum('c.subtotal_cents');
             $overdue = $this->overdue();
             $balances = $this->balances();
+            // A school billed through its group (school-groups.md) is on the group's invoice: its own
+            // month is "grouped", never issued, so it is not counted twice. The group's invoice and
+            // the group's payments count instead.
+            $groupInvoices = SchoolGroupInvoice::query()->where('slot', $month)->where('status', SchoolGroupInvoice::ISSUED)->get(['id', 'schools', 'subtotal_cents', 'total_cents']);
+            $groupCollected = (int) SchoolGroupPayment::query()->whereNull('reversed_at')->whereBetween('received_on', [$start, $end])->sum('amount_cents');
 
             return [
                 'month' => $month,
@@ -462,13 +469,14 @@ class PlatformBillingAccounts
                 'discarded' => $invoices->where('status', PlatformInvoice::DISCARDED)->map($present)->values()->all(),
                 'grouped' => $invoices->where('status', PlatformInvoice::GROUPED)->map($present)->values()->all(),
                 'summary' => [
-                    'invoiced_cents' => (int) $issued->sum('total_cents'),
+                    'invoiced_cents' => (int) $issued->sum('total_cents') + (int) $groupInvoices->sum('total_cents'),
                     'credited_cents' => -$credited,
-                    'collected_cents' => (int) PlatformPayment::acrossSchools()->whereNull('reversed_at')->whereBetween('received_on', [$start, $end])->sum('amount_cents'),
+                    'collected_cents' => (int) PlatformPayment::acrossSchools()->whereNull('reversed_at')->whereBetween('received_on', [$start, $end])->sum('amount_cents') + $groupCollected,
                     'overdue_cents' => array_sum(array_column($overdue, 'overdue_cents')),
                     // Simple monthly recurring revenue: the month's invoiced amounts excluding VAT, less credit notes against them.
-                    'mrr_cents' => (int) $issued->sum('subtotal_cents') + $creditedForMonth,
-                    'schools_invoiced' => $issued->count(),
+                    'mrr_cents' => (int) $issued->sum('subtotal_cents') + $creditedForMonth + (int) $groupInvoices->sum('subtotal_cents'),
+                    'schools_invoiced' => $issued->count() + (int) $groupInvoices->sum('schools'),
+                    'group_invoices' => $groupInvoices->count(),
                 ],
                 'overdue' => $overdue,
                 'schools' => $names->map(fn (object $s): array => ['id' => (int) $s->id, 'name' => (string) $s->name, 'status' => (string) $s->status] + ($balances[(int) $s->id] ?? ['balance_cents' => 0]))->all(),

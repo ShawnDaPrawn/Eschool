@@ -24,7 +24,7 @@
 
 <h2>{{ __('Revenue for :month', ['month' => $monthLabel]) }}</h2>
 <div class="saas-grid">
-    <div class="saas-card"><p>{{ __('Invoiced (including VAT)') }}</p><p class="saas-figure">{{ $rands($summary['invoiced_cents']) }}</p><p>{{ trans_choice('{0} No school invoiced|{1} One school invoiced|[2,*] :count schools invoiced', $summary['schools_invoiced']) }}</p></div>
+    <div class="saas-card"><p>{{ __('Invoiced (including VAT)') }}</p><p class="saas-figure">{{ $rands($summary['invoiced_cents']) }}</p><p>{{ trans_choice('{0} No school invoiced|{1} One school invoiced|[2,*] :count schools invoiced', $summary['schools_invoiced']) }}</p>@if (($summary['group_invoices'] ?? 0) > 0)<p>{{ trans_choice('{1} Includes 1 school group invoice|[2,*] Includes :count school group invoices', $summary['group_invoices']) }}</p>@endif</div>
     <div class="saas-card"><p>{{ __('Collected (EFT received this month)') }}</p><p class="saas-figure">{{ $rands($summary['collected_cents']) }}</p></div>
     <div class="saas-card"><p>{{ __('Overdue now, all months') }}</p><p class="saas-figure">{{ $rands($summary['overdue_cents']) }}</p></div>
     <div class="saas-card"><p>{{ __('Monthly recurring revenue (excluding VAT, less credit notes)') }}</p><p class="saas-figure">{{ $rands($summary['mrr_cents']) }}</p>@if ($summary['credited_cents'] > 0)<p>{{ __('Credit notes issued this month: :amount', ['amount' => $rands($summary['credited_cents'])]) }}</p>@endif</div>
