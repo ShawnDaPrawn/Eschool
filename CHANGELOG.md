@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-04
+
+- Leadership dashboard: a school can choose to take part in anonymous benchmarking and then see its own attendance, results movement (learner-topics that rose a mastery level this term) and guardian reach next to the median and quartiles of comparable schools (same sector, same mix of school stages, similar number of learners). Only schools that take part are compared and only they see the comparison; a group of fewer than five schools shows nothing; no school is ever named. Figures are worked out weekly (Mondays) into a platform snapshot, and a group's figures are kept unchanged until at least three schools have joined or left, so one school's value cannot be worked out from week-to-week changes. HQ sees the same published figures under School health, Benchmarks. **Deploy:** run migrations; the weekly `benchmarking:snapshot` schedule entry is added.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
