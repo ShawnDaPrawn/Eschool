@@ -416,8 +416,8 @@ class ActivityGroups
         return $result;
     }
 
-    /** The capture and read paths share exactly the same dated eligibility. */
-    private function sessionLearnerIds(ActivitySession $session): array
+    /** The capture and read paths (and pool bookings) share exactly the same dated eligibility. */
+    public function sessionLearnerIds(ActivitySession $session): array
     {
         $date = $session->on_date->toDateString();
         $group = ActivityGroup::findOrFail($session->activity_group_id);

@@ -189,6 +189,15 @@ return [
             'abilities' => [],
         ],
 
+        'people_pool' => [
+            'view' => [],
+            'contribute' => [],
+            'manage' => ['people-pool-manage'],
+            'abilities' => [
+                'pool_vet' => ['label' => 'Vet pool members (record safety checks and their expiry)', 'permissions' => ['people-pool-vet'], 'sensitive' => true],
+            ],
+        ],
+
         'wellbeing' => [
             'view' => [],
             'contribute' => [],

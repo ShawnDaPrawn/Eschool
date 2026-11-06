@@ -54,6 +54,7 @@ final class SchoolOwnedTables
         'school_knowledge_documents', 'school_support_threads', 'school_support_messages', 'school_assistance_operations', 'school_assistance_turns',
         'admission_requirements', 'admission_requirement_versions', 'pathway_operations',
         'career_profiles', 'career_profile_versions',
+        'people_pool_members', 'people_pool_vettings', 'people_pool_bookings', 'people_pool_operations',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'diary_entries', 'diary_item_states',
         'early_years_development_areas', 'early_years_diary_entries', 'early_years_observations', 'early_years_concerns',

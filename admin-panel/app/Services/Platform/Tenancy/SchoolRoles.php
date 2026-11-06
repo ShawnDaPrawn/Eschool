@@ -47,7 +47,7 @@ class SchoolRoles
     private const SUPER_ADMIN_PERMISSIONS = [
         'money-cashup-manage', 'vendors-manage', 'wallet-desk-process', 'wallet-transfer-policy-manage', 'wallet-desk-policy-manage', 'wallet-finance-manage', 'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage', 'fee-credits-manage', 'fee-items-manage',
         'fee-plans-manage',
-        'pathways-manage',
+        'pathways-manage', 'people-pool-manage', 'people-pool-vet',
         'family-visits-manage', 'family-forms-manage', 'family-health-read', 'family-health-manage',
         'ai-settings-manage',
         'cards-manage', 'cards-readers-manage', 'cards-encode',

@@ -35,6 +35,7 @@ return [
     'wellbeing' => ['name' => 'Incident reporting and counsellor support', 'default' => false],
     'support_plans' => ['name' => 'Support plans', 'default' => false, 'dependencies' => ['people', 'academics']],
     'relief_cover' => ['name' => 'Relief cover', 'default' => false, 'dependencies' => ['academics']],
+    'people_pool' => ['name' => 'Alumni and volunteer pool', 'default' => false, 'dependencies' => ['groups']],
     'mastery' => ['name' => 'Mastery map', 'default' => false, 'dependencies' => ['academics']],
     'school' => ['name' => 'School setup and branding', 'always_on' => true],
     'people' => ['name' => 'People and guardian approval', 'always_on' => true],
