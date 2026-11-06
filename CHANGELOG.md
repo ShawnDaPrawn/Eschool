@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-06
+
+- Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
+- Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
