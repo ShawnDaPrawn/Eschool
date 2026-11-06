@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-08
+
+- Schools on NavigateEd can now arrange fixtures with each other. An activity manager invites another school (found by name) or types the name of a team that is not on NavigateEd, sets the date, venue and field, and the invited school accepts for one of its own groups or declines. Until a school accepts, the other sees only its name.
+- Each school keeps its own team sheet and private notes. The other school sees the team name and, only if the school chooses to share it, each player's label and position, never learners' names or anything else.
+- Both schools report the score; the result counts once the two reports agree, and each school sees the other's report while they differ. Against a team not on NavigateEd, the host's report is the result. Guardians of the learners on the team sheet get a private notice that a result is ready and can see their child's team's results.
+- Leagues and competitions between schools, with a running table from confirmed results for every school that joined. New panel page: Fixtures between schools, next to Activity groups. New API: /api/v2/activities/fixtures and /competitions.
+- Developers: records shared between schools follow a new pattern (engineering/specs/platform/shared-records.md): a shared row that names no school, each school's own participant row, and one service that reads only the columns a school chose to share.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
