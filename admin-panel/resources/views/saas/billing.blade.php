@@ -99,6 +99,9 @@
     </table>
 </div>
 @endif
+@if (($grouped ?? []) !== [])
+<p>{{ __('Billed through a school group this month:') }} {{ implode(', ', array_column($grouped, 'school')) }}</p>
+@endif
 @if ($discarded !== [])
 <p>{{ __('Not billed this month (draft discarded):') }} {{ implode(', ', array_column($discarded, 'school')) }}</p>
 @endif
