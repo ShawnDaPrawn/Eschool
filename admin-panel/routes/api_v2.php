@@ -733,6 +733,9 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::get('groups/{group}/marking', [$c, 'marking'])->whereNumber('group')->name('marking');
     Route::get('groups/{group}/marking/{review}/audio', [$c, 'markingAudio'])->whereNumber('group')->whereNumber('review')->name('marking-audio');
     Route::post('groups/{group}/marking/{review}', [$c, 'mark'])->whereNumber('group')->whereNumber('review')->name('mark');
+    // Action Plan 3.13: the learner's own streak, weekly goal and recently secure topics.
+    Route::get('learners/{learner}/motivation', [$c, 'motivation'])->whereNumber('learner')->name('motivation');
+    Route::post('learners/{learner}/practice-goal', [$c, 'goal'])->whereNumber('learner')->name('goal');
 });
 
 // The starting check (Action Plan 3.7): library diagnostics marked on the server, written as mastery evidence.

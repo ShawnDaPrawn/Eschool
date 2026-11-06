@@ -368,6 +368,8 @@ class OpenApiContractTest extends TestCase
             'getPracticeMarking requires auth' => [null, 'GET', 'api/v2/learning/practice/groups/1/marking', [], 401],
             'getPracticeMarkingAudio requires auth' => [null, 'GET', 'api/v2/learning/practice/groups/1/marking/1/audio', [], 401],
             'markPracticeAnswer requires auth' => [null, 'POST', 'api/v2/learning/practice/groups/1/marking/1', [], 401],
+            'getPracticeMotivation requires auth' => [null, 'GET', 'api/v2/learning/practice/learners/1/motivation', [], 401],
+            'setPracticeGoal requires auth' => [null, 'POST', 'api/v2/learning/practice/learners/1/practice-goal', [], 401],
             'listStaffPrivateNotices requires auth' => [null, 'GET', 'api/v2/staff/private-notices', [], 401],
             'readStaffPrivateNotice requires auth' => [null, 'POST', 'api/v2/staff/private-notices/1/read', [], 401],
             'getConsultationAccess requires auth' => [null, 'GET', 'api/v2/consultations/access', [], 401],

@@ -75,6 +75,7 @@ final class SchoolOwnedTables
         'diagnostic_attempts', 'diagnostic_attempt_items',
         'learning_paths', 'learning_path_items', 'learning_path_reviews',
         'practice_audio_answers', 'practice_diagrams',
+        'practice_motivation_settings', 'practice_goals', 'practice_goal_weeks', 'practice_nudges', 'mastery_topic_gaps', 'mastery_gap_closures',
         'intakes', 'intake_grades', 'applications', 'application_documents', 'application_links', 'application_events', 'offers', 'admission_operations',
         'consultations', 'consultation_questions', 'consultation_options', 'consultation_candidates', 'consultation_participation', 'consultation_responses', 'consultation_configuration_events', 'consultation_operations',
         'discipline_operations', 'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',
