@@ -6852,5 +6852,7 @@
     "The current school year has ended.": "The current school year has ended.",
     "This learner has no leaver access to end.": "This learner has no leaver access to end.",
     "The learner is back as a returning learner.": "The learner is back as a returning learner.",
-    "Leaver access ended today for the learner and any guardian with no other child here.": "Leaver access ended today for the learner and any guardian with no other child here."
+    "Leaver access ended today for the learner and any guardian with no other child here.": "Leaver access ended today for the learner and any guardian with no other child here.",
+    "The tutor remembers which topics were practised in the last :days days, not what was said. It can be cleared at any time.": "The tutor remembers which topics were practised in the last :days days, not what was said. It can be cleared at any time.",
+    "This tutor version offers only ordinary questions in English.": "This tutor version offers only ordinary questions in English."
 }

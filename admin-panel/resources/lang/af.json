@@ -6852,5 +6852,7 @@
     "The current school year has ended.": "Die huidige skooljaar het geëindig.",
     "This learner has no leaver access to end.": "Hierdie leerder het geen skoolverlatertoegang om te beëindig nie.",
     "The learner is back as a returning learner.": "Die leerder is terug as 'n terugkerende leerder.",
-    "Leaver access ended today for the learner and any guardian with no other child here.": "Skoolverlatertoegang het vandag geëindig vir die leerder en enige voog wat geen ander kind hier het nie."
+    "Leaver access ended today for the learner and any guardian with no other child here.": "Skoolverlatertoegang het vandag geëindig vir die leerder en enige voog wat geen ander kind hier het nie.",
+    "The tutor remembers which topics were practised in the last :days days, not what was said. It can be cleared at any time.": "Die tutor onthou watter onderwerpe in die afgelope :days dae geoefen is, nie wat gesê is nie. Dit kan enige tyd uitgevee word.",
+    "This tutor version offers only ordinary questions in English.": "Hierdie weergawe van die tutor bied slegs gewone vrae in Engels."
 }
