@@ -34,7 +34,11 @@ class TutorRetrieval
             && is_string($model) && $model !== '';
     }
 
-    /** A stable operation UUID for one retrieval vector. */
+    /**
+     * A stable operation UUID for one retrieval vector. A section's identity
+     * includes its index as well as its hash, so identical sections in one
+     * document are separate requests rather than an operation conflict.
+     */
     public static function operation(array $parts): string
     {
         $hash = hash_hmac('sha256', implode('|', array_merge(['tutor_retrieval'], $parts)), (string) config('app.key'));
@@ -74,7 +78,7 @@ class TutorRetrieval
                     }
                     $sha = hash('sha256', $section);
                     $vector = $this->vector($actor, ['kind' => 'section', 'session_id' => $session->id, 'version_id' => $id, 'index' => $index, 'sha256' => $sha],
-                        self::operation(['section', (string) app(CurrentSchool::class)->id(), (string) $session->learner_id, $session->id, (string) $id, $sha,
+                        self::operation(['section', (string) app(CurrentSchool::class)->id(), (string) $session->learner_id, $session->id, (string) $id, (string) $index, $sha,
                             (string) config('ai.inference.features.tutor_retrieval.model')]));
                     $score = $this->cosine($query, $vector);
                     if ($best === null || $score > $best[0]) {

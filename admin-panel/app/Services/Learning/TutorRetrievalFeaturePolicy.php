@@ -85,7 +85,7 @@ class TutorRetrievalFeaturePolicy implements InferenceFeaturePolicy
         $section = $sections[$payload['index']] ?? null;
         abort_unless(is_string($section) && hash_equals($payload['sha256'], hash('sha256', $section)), 409);
         $references[] = 'content-section:'.$payload['version_id'].':'.$payload['index'].':'.$payload['sha256'];
-        $operation = TutorRetrieval::operation(['section', $school, (string) $session->learner_id, $session->id, (string) $payload['version_id'], $payload['sha256'],
+        $operation = TutorRetrieval::operation(['section', $school, (string) $session->learner_id, $session->id, (string) $payload['version_id'], (string) $payload['index'], $payload['sha256'],
             (string) config('ai.inference.features.tutor_retrieval.model')]);
 
         return [$session, app(TutorContext::class)->minimize($actor, $section), $references, $operation];
