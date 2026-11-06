@@ -2779,7 +2779,7 @@ paths:
       tags:
       - Platform
       summary: Choose whether and when you get the daily family summary
-      description: One summary a day across all your children and schools, sent at the chosen time on your local day. The time must be outside your quiet hours. Without a timezone, the current school's is used.
+      description: One summary a day across all your children and schools, sent at the chosen time on your local day. The time must be a quarter hour (the job runs every 15 minutes) and outside your quiet hours, compared in the quiet hours' own time zone. Without a timezone, the current school's is used.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -2798,7 +2798,8 @@ paths:
                   type: boolean
                 send_at:
                   type: string
-                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                  pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
+                  description: A quarter hour on your local day (the summary job runs every 15 minutes), outside your quiet hours as they fall in their own time zone.
                 timezone:
                   type:
                   - string
@@ -36428,7 +36429,7 @@ components:
               type: boolean
             send_at:
               type: string
-              pattern: ^([01]\d|2[0-3]):[0-5]\d$
+              pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
             timezone:
               type: string
             revision:
@@ -36441,6 +36442,7 @@ components:
               - enabled
               - starts_at
               - ends_at
+              - timezone
               properties:
                 enabled:
                   type: boolean
@@ -36448,6 +36450,9 @@ components:
                   type: string
                 ends_at:
                   type: string
+                timezone:
+                  type: string
+                  description: The zone the quiet hours are kept in; the chosen time is checked against them there.
     FamilySummaryResponse:
       type: object
       additionalProperties: false

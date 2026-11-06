@@ -6873,5 +6873,7 @@
     "Your family summary is ready. Open NavigateEd to read it.": "Your family summary is ready. Open NavigateEd to read it.",
     "a lesson": "a lesson",
     "short day": "short day",
-    "Daily family summary": "Daily family summary"
+    "Daily family summary": "Daily family summary",
+    "Choose a time on the quarter hour, such as 17:30.": "Choose a time on the quarter hour, such as 17:30.",
+    "Choose a time outside your quiet hours (:start to :end, :zone).": "Choose a time outside your quiet hours (:start to :end, :zone)."
 }

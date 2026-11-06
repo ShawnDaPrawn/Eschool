@@ -18,8 +18,14 @@ class FamilySummaryRequest extends FormRequest
     {
         return $this->isMethod('PUT') ? [
             'enabled' => ['required', 'boolean'],
-            'send_at' => ['required', 'date_format:H:i'],
+            // Quarter hours only: the job runs every 15 minutes (FamilySummaryPreferences::SLOTS).
+            'send_at' => ['required', 'date_format:H:i', 'regex:/^([01]\d|2[0-3]):(00|15|30|45)$/'],
             'timezone' => ['sometimes', 'nullable', 'timezone:all'],
         ] : [];
+    }
+
+    public function messages(): array
+    {
+        return ['send_at.regex' => __('Choose a time on the quarter hour, such as 17:30.')];
     }
 }

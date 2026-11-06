@@ -12,9 +12,13 @@ private updates are waiting.
 `family-daily-summaries`). For each enabled row of `family_summary_preferences`:
 
 1. Not before the chosen `send_at` on the guardian's local day (their
-   `timezone`), and not while their quiet hours run. The time itself must be
-   outside quiet hours when it is saved; if quiet hours later move over it, the
-   summary waits for them to end, on the same day only.
+   `timezone`), and not while their quiet hours run. `send_at` must be a
+   quarter hour (:00, :15, :30, :45): the job's own runs, so even 23:45 is
+   reached before the day ends (every real UTC offset is a multiple of 15
+   minutes). It must also be outside quiet hours when it is saved, compared in
+   the quiet hours' own time zone (20:00 UTC is 22:00 in Johannesburg). If
+   quiet hours later move over it, the summary waits for them to end, on the
+   same day only.
 2. Claim the day: one `family_daily_summaries` row per guardian per local date
    (unique `user_id, summary_date`). A finished day (`sent` or `empty`) is
    never composed again; an interrupted one (`composing`) is finished on the
@@ -72,7 +76,7 @@ or notice-only type, plus marks, reports and fees (`private_types`).
 ## API
 
 - `GET /api/v2/me/family-summary/preferences`, `PUT` the same path
-  (`enabled`, `send_at` HH:MM, optional `timezone`): the guardian's own choice,
+  (`enabled`, `send_at` HH:MM on a quarter hour, optional `timezone`): the guardian's own choice,
   for every school. Only a guardian at the current school (403 otherwise).
 - `GET /api/v2/me/family-summaries/{summary}`: one summary, a section per
   school.

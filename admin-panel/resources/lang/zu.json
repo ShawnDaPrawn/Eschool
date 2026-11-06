@@ -6873,5 +6873,7 @@
     "Your family summary is ready. Open NavigateEd to read it.": "Isifinyezo sakho somndeni silungile. Vula i-NavigateEd ukuze usifunde.",
     "a lesson": "isifundo",
     "short day": "usuku olufushane",
-    "Daily family summary": "Isifinyezo somndeni sansuku zonke"
+    "Daily family summary": "Isifinyezo somndeni sansuku zonke",
+    "Choose a time on the quarter hour, such as 17:30.": "Khetha isikhathi esiphela ngekota yehora, njengo-17:30.",
+    "Choose a time outside your quiet hours (:start to :end, :zone).": "Khetha isikhathi esingaphandle kwamahora akho okuthula (:start kuya ku-:end, :zone)."
 }

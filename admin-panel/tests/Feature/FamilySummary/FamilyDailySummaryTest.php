@@ -332,6 +332,52 @@ class FamilyDailySummaryTest extends TestCase
             ->assertJsonPath('data.send_at', '18:15')->assertJsonPath('data.quiet_hours.starts_at', '13:00');
     }
 
+    /**
+     * Review 4495631348: quiet hours are compared in their own time zone. 20:00 UTC
+     * is 22:00 in Johannesburg, inside 21:00 to 06:30 there, so it would be held
+     * every evening and then never be due again that day.
+     */
+    public function test_the_chosen_time_is_checked_against_quiet_hours_in_their_own_time_zone(): void
+    {
+        app(QuietHours::class)->save($this->farid, ['enabled' => true, 'starts_at' => '21:00', 'ends_at' => '06:30', 'timezone' => 'Africa/Johannesburg']);
+        try {
+            app(FamilySummaryPreferences::class)->save($this->farid, ['enabled' => true, 'send_at' => '20:00', 'timezone' => 'UTC']);
+            $this->fail('20:00 UTC (22:00 in the quiet hours\' zone) was accepted.');
+        } catch (ValidationException $error) {
+            $this->assertSame(['Choose a time outside your quiet hours (21:00 to 06:30, Africa/Johannesburg).'], $error->errors()['send_at']);
+        }
+        $this->asA('farid')->putJson('/api/v2/me/family-summary/preferences', ['enabled' => true, 'send_at' => '05:00', 'timezone' => 'Asia/Kolkata'])->assertStatus(422);
+
+        // 18:00 UTC is 20:00 there: accepted, and actually sent that day.
+        $this->asA('farid')->putJson('/api/v2/me/family-summary/preferences', ['enabled' => true, 'send_at' => '18:00', 'timezone' => 'UTC'])->assertOk()
+            ->assertJsonPath('data.timezone', 'UTC')->assertJsonPath('data.quiet_hours.timezone', 'Africa/Johannesburg');
+        $this->assertSame(1, $this->summarise(CarbonImmutable::parse('2026-02-10 17:45:00', 'UTC'))['not_due']);
+        $this->assertSame(1, $this->summarise(CarbonImmutable::parse('2026-02-10 18:00:00', 'UTC'))['sent']);
+    }
+
+    /**
+     * Review 4495631338: the job runs every 15 minutes, so a time between two runs
+     * after the day's last run (23:50) would never be due. Only quarter hours are
+     * offered, and the last one is sent by the day's last run.
+     */
+    public function test_only_quarter_hour_times_are_offered_and_the_last_one_of_the_day_is_sent(): void
+    {
+        foreach (['23:50', '07:10', '17:59'] as $time) {
+            try {
+                app(FamilySummaryPreferences::class)->save($this->farid, ['enabled' => true, 'send_at' => $time]);
+                $this->fail("$time is between two runs of the job and was accepted.");
+            } catch (ValidationException $error) {
+                $this->assertSame(['Choose a time on the quarter hour, such as 17:30.'], $error->errors()['send_at']);
+            }
+        }
+        $this->asA('farid')->putJson('/api/v2/me/family-summary/preferences', ['enabled' => true, 'send_at' => '23:50'])->assertStatus(422);
+        $this->asA('farid')->putJson('/api/v2/me/family-summary/preferences', ['enabled' => true, 'send_at' => '23:45'])->assertOk()->assertJsonPath('data.send_at', '23:45');
+
+        // The day's last scheduled run (23:45 in Johannesburg) sends it.
+        $this->assertSame(1, $this->summarise(CarbonImmutable::parse('2026-02-10 21:30:00', 'UTC'))['not_due']);
+        $this->assertSame(1, $this->summarise(CarbonImmutable::parse('2026-02-10 21:45:00', 'UTC'))['sent']);
+    }
+
     public function test_a_summary_is_sent_once_per_guardian_per_day(): void
     {
         $this->optIn($this->farid, '15:00');
