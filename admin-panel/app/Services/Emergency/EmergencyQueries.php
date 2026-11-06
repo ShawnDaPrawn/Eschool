@@ -94,15 +94,18 @@ class EmergencyQueries
      * approved collectors. Worked out in a few queries for the whole school;
      * the release itself checks the guardian or collector again, one by one.
      *
-     * @return array{guardians: array<int, string>, passes: array<string, string>}
+     * @return array{learners: array<int, string>, guardians: array<int, string>, passes: array<string, string>}
      */
     private function releaseOptions(array $rollCall): array
     {
+        // Keyed by the learner's own id, which is the value the form posts.
         $learners = [];
+        $labels = [];
         foreach ($rollCall['classes'] as $class) {
             foreach ($class['learners'] as $learner) {
                 if ($learner['status'] !== 'released') {
                     $learners[$learner['learner_id']] = $learner['name'];
+                    $labels[$learner['learner_id']] = $learner['name'].' · '.$class['name'];
                 }
             }
         }
@@ -142,6 +145,6 @@ class EmergencyQueries
         asort($guardians);
         asort($passes);
 
-        return ['guardians' => $guardians, 'passes' => $passes];
+        return ['learners' => $labels, 'guardians' => $guardians, 'passes' => $passes];
     }
 }

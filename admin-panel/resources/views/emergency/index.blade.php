@@ -91,7 +91,7 @@
 <form method="POST" action="{{ route('emergency-panel.write', ['operation' => 'release']) }}">@include('emergency.scope')
 <input type="hidden" name="source_id" value="{{ $page['roll_call']['alert_id'] }}">
 <x-page.field id="emergency-release-learner" name="learner_id" type="select" :label="__('Learner')" :required="true" :restore-old-input="false"
-    :options="collect($page['roll_call']['classes'])->flatMap(fn ($c) => collect($c['learners'])->where('status', '!=', 'released')->mapWithKeys(fn ($l) => [$l['learner_id'] => $l['name'].' · '.$c['name']]))->all()" />
+    :options="$page['release_options']['learners'] ?? []" />
 <x-page.field id="emergency-release-to" name="released_to" type="select" :label="__('Released to')" :options="['guardian' => __('A guardian'), 'collector' => __('An authorised collector')]" :required="true" :restore-old-input="false" />
 <x-page.field id="emergency-release-guardian" name="guardian_user_id" type="select" :label="__('Guardian (for a guardian)')" :placeholder="__('None')" :options="$page['release_options']['guardians'] ?? []" :restore-old-input="false" />
 <x-page.field id="emergency-release-pass" name="gate_pass_id" type="select" :label="__('Collector approved for today (for a collector)')" :placeholder="__('None')" :options="$page['release_options']['passes'] ?? []" :restore-old-input="false" />

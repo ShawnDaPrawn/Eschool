@@ -53,7 +53,7 @@ class EmergencyVisitors
         $data = EmergencyOperations::input($input, self::rules('sign_in'));
         $authorize = fn () => app(EmergencyAccess::class)->responder($actor);
 
-        return app(EmergencyOperations::class)->once($actor, 'visitor.sign_in', $data, $authorize, function () use ($actor, $data) {
+        $receipt = app(EmergencyOperations::class)->once($actor, 'visitor.sign_in', $data, $authorize, function () use ($actor, $data) {
             $person = null;
             if ($data['method'] === 'card') {
                 [$scan, , $person] = app(EmergencyScans::class)->guardianCard((string) $data['scan_id']);
@@ -66,8 +66,10 @@ class EmergencyVisitors
             ]);
             EmergencyOperations::event($actor, 'visitor.signed_in', null, $visitor->id, ['method' => $visitor->method]);
 
-            return $this->summary($visitor);
+            return $this->receipt($visitor);
         });
+
+        return $this->current($receipt);
     }
 
     public function signOut(User $actor, string $id, array $input): array
@@ -78,14 +80,31 @@ class EmergencyVisitors
             EmergencyVisitor::findOrFail($id);
         };
 
-        return app(EmergencyOperations::class)->once($actor, 'visitor.sign_out', ['visitor_id' => $id] + $data, $authorize, function () use ($actor, $id, $data) {
+        $receipt = app(EmergencyOperations::class)->once($actor, 'visitor.sign_out', ['visitor_id' => $id] + $data, $authorize, function () use ($actor, $id, $data) {
             $visitor = EmergencyVisitor::findOrFail($id);
             abort_unless($visitor->revision === $data['revision'] && $visitor->signed_out_at === null && $visitor->redacted_at === null, 409, 'This visitor has already signed out.');
             $visitor->forceFill(['signed_out_at' => now()->utc(), 'signed_out_by' => $actor->id, 'revision' => $visitor->revision + 1])->save();
             EmergencyOperations::event($actor, 'visitor.signed_out', null, $visitor->id);
 
-            return $this->summary($visitor);
+            return $this->receipt($visitor);
         });
+
+        return $this->current($receipt);
+    }
+
+    /**
+     * What an operation keeps as its receipt: the visitor's id and state, never
+     * their details, so a replay after the purge cannot bring them back.
+     */
+    private function receipt(EmergencyVisitor $visitor): array
+    {
+        return ['id' => $visitor->id, 'revision' => $visitor->revision, 'signed_out' => $visitor->signed_out_at !== null];
+    }
+
+    /** The visitor as they are now: after the purge their details are gone. */
+    private function current(array $receipt): array
+    {
+        return $this->summary(EmergencyVisitor::findOrFail($receipt['id']));
     }
 
     /** Everyone signed in today and not yet signed out: who to account for in a roll call. */

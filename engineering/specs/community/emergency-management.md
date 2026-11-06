@@ -95,6 +95,9 @@ impersonation, and refuses while the module is off.
   name comes from the card's account. A scan signs in one visit only.
 - **By hand** otherwise (or when the cards module is off): name, reason, and
   optionally phone, organisation and who they are visiting.
+- Operation receipts for sign-in and sign-out keep only the visitor's id and
+  state, never their details; a replayed operation answers with the visitor
+  as they are now, so after the purge it returns no personal details.
 - **On site:** everyone signed in today (school day) and not signed out. The
   roll call shows the count to staff who see every class.
 - **Retention rule.** Name, phone, organisation, reason, host and the linked
@@ -105,8 +108,10 @@ impersonation, and refuses while the module is off.
 
 ## Roll call and reunification
 
-- **Roll call per class** for an alert that was sent in the last 24 hours
-  (also after its all-clear): each current learner enrolled today is
+- **Roll call per class** while an alert is active, however long that is,
+  and for 24 hours after its all-clear. An active alert stays on the panel
+  page and in the status call, with its all-clear form, until someone clears
+  it. Each current learner enrolled today is
   accounted, not yet accounted (no mark) or released. Class teachers see and
   mark only their own classes; responders see every class.
 - **Release** (responders, not in a drill) needs one of:
@@ -193,7 +198,12 @@ checked against `openapi.yaml`):
   notice, and a re-run fanout tells nobody twice; the API all-clear likewise;
 - roll call per class and class teacher limits; visitor sign-in by card and by
   hand, encryption, on-site list, and erasure after the retention period;
-- the panel's two-step send.
+- the panel's two-step send; the release form's options are each learner's own
+  id, and releasing the chosen option releases that child;
+- an active alert older than 24 hours stays shown with its all-clear; the roll
+  call closes 24 hours after the all-clear;
+- a replayed visitor operation after the purge returns no personal details, and
+  no receipt holds them.
 
 ## Not in this step
 

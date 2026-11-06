@@ -11,6 +11,7 @@ use App\Models\Cards\CardScanLog;
 use App\Models\Emergency\EmergencyAlert;
 use App\Models\Emergency\EmergencyDrill;
 use App\Models\Emergency\EmergencyEvent;
+use App\Models\Emergency\EmergencyOperation;
 use App\Models\Emergency\EmergencyRelease;
 use App\Models\Emergency\EmergencyVisitor;
 use App\Models\FamilyVisits\GatePass;
@@ -524,6 +525,81 @@ class EmergencyManagementTest extends TestCase
     private function guardianCardScanId(): string
     {
         return (string) Str::uuid();
+    }
+
+    /** @return list<string> the option values of one select on the emergency page */
+    private function optionValues(string $html, string $name): array
+    {
+        $this->assertSame(1, preg_match('/<select[^>]*name="'.preg_quote($name, '/').'"[^>]*>(.*?)<\/select>/s', $html, $select), "the page has a {$name} select");
+        preg_match_all('/<option value="([^"]*)"/', $select[1], $values);
+
+        return array_values(array_filter($values[1], fn ($value) => $value !== ''));
+    }
+
+    public function test_the_panel_release_form_offers_each_learner_by_their_own_id(): void
+    {
+        $alert = $this->send();
+        $ids = [$this->schoolA->ids['asha'], $this->schoolA->ids['ben'], $this->schoolA->ids['cara']];
+        $html = $this->panel($this->admin)->get('/emergency')->assertOk()->getContent();
+        $this->assertEqualsCanonicalizing(array_map('strval', $ids), $this->optionValues($html, 'learner_id'), 'each option is the learner\'s own id');
+        $this->assertMatchesRegularExpression('/<option value="'.$this->schoolA->ids['cara'].'"[^>]*>\\s*'.preg_quote(e(Students::with('user')->findOrFail($this->schoolA->ids['cara'])->user->full_name), '/').'/', $html, 'the option names the same learner');
+
+        // Releasing the option chosen for Cara releases Cara, not a sibling in another position.
+        $this->post('/emergency/release', $this->op(['expected_account_id' => (string) $this->admin->id, 'expected_school_id' => '1', 'source_id' => $alert['id'],
+            'learner_id' => (string) $this->schoolA->ids['cara'], 'released_to' => 'guardian', 'guardian_user_id' => (string) $this->farid->id,
+            'verification' => 'id_document', 'identity_checked' => '1']))->assertRedirect('/emergency');
+        $this->assertSame($this->schoolA->ids['cara'], (int) EmergencyRelease::query()->sole()->learner_id);
+        $after = $this->get('/emergency')->assertOk()->getContent();
+        $this->assertEqualsCanonicalizing([(string) $this->schoolA->ids['asha'], (string) $this->schoolA->ids['ben']], $this->optionValues($after, 'learner_id'), 'a released child is no longer offered');
+    }
+
+    public function test_an_active_alert_stays_visible_with_its_all_clear_until_it_is_cleared(): void
+    {
+        $alert = $this->send();
+        $this->travel(30)->hours();
+        $this->assertSame($alert['id'], app(EmergencyReunification::class)->currentAlert()?->id, 'an active alert never ages out');
+        $this->assertSame($alert['id'], app(EmergencyQueries::class)->status($this->farid)['alert']['id']);
+        $this->panel($this->admin)->get('/emergency')->assertOk()->assertSee(__('Send the all-clear'))->assertSee(__('Roll call'));
+        $this->assertSame(409, $this->refused(fn () => $this->send()), 'still the one active alert');
+        app(EmergencyReunification::class)->mark($this->admin, $alert['id'], $this->op(['learner_ids' => [$this->schoolA->ids['asha']], 'status' => 'accounted']));
+        $cleared = app(EmergencyAlerts::class)->allClear($this->admin, $alert['id'], $this->op(['revision' => $alert['revision']]));
+        $this->assertSame('all_clear', $cleared['status']);
+
+        // Reunification stays open for a day after the all-clear, then closes.
+        $this->travel(23)->hours();
+        $this->assertSame($alert['id'], app(EmergencyReunification::class)->currentAlert()?->id);
+        $this->assertSame(1, app(EmergencyReunification::class)->rollCall($this->admin, $alert['id'])['totals']['accounted']);
+        $this->travel(2)->hours();
+        $this->assertNull(app(EmergencyReunification::class)->currentAlert());
+        $this->assertSame(409, $this->refused(fn () => app(EmergencyReunification::class)->rollCall($this->admin, $alert['id'])));
+        $this->panel($this->admin)->get('/emergency')->assertOk()->assertSee(__('There is no alert now.'));
+    }
+
+    public function test_a_replayed_visitor_operation_after_the_purge_returns_no_personal_details(): void
+    {
+        $body = $this->op(['method' => 'manual', 'name' => 'Synthetic Replay Visitor', 'phone' => '0821112222', 'organisation' => 'Synthetic Plumbing Ltd', 'reason' => 'Synthetic boiler repair', 'host' => 'Synthetic Bursar']);
+        $signedIn = app(EmergencyVisitors::class)->signIn($this->admin, $body);
+        $this->assertSame('Synthetic Replay Visitor', $signedIn['name']);
+        $out = $this->op(['revision' => 1]);
+        app(EmergencyVisitors::class)->signOut($this->admin, $signedIn['id'], $out);
+        $personal = ['Synthetic Replay Visitor', '0821112222', 'Synthetic Plumbing', 'Synthetic boiler', 'Synthetic Bursar'];
+        // Receipts keep only the visitor id and state, never the details.
+        foreach (EmergencyOperation::query()->get() as $operation) {
+            foreach ($personal as $detail) {
+                $this->assertStringNotContainsString($detail, json_encode($operation->receipt), 'an operation receipt holds no visitor details');
+            }
+        }
+
+        $this->travel(31)->days();
+        $this->artisan('emergency:purge-visitors')->assertSuccessful();
+        foreach ([app(EmergencyVisitors::class)->signIn($this->admin, $body), app(EmergencyVisitors::class)->signOut($this->admin, $signedIn['id'], $out)] as $replay) {
+            $this->assertSame($signedIn['id'], $replay['id'], 'the replay is the same operation');
+            foreach ($personal as $detail) {
+                $this->assertStringNotContainsString($detail, json_encode($replay), 'a replay after the purge returns no personal details');
+            }
+            $this->assertNull($replay['name']);
+        }
+        $this->assertSame(1, EmergencyVisitor::query()->count(), 'the replay signed nobody in again');
     }
 
     public function test_the_panel_sends_an_alert_in_two_steps(): void

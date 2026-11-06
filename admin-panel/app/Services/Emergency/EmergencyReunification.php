@@ -37,7 +37,10 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
  */
 class EmergencyReunification
 {
-    /** Roll call and releases stay open this long after an alert was sent, also after the all-clear. */
+    /**
+     * Roll call and releases stay open while an alert is active, however long
+     * that is, and for this long after its all-clear.
+     */
     public const OPEN_HOURS = 24;
 
     public static function rules(string $action): array
@@ -55,21 +58,28 @@ class EmergencyReunification
         };
     }
 
-    /** The alert whose roll call is open: sent, and not longer ago than OPEN_HOURS. */
+    /** The alert whose roll call is open: active, or cleared less than OPEN_HOURS ago. */
     public function openAlert(string $id): EmergencyAlert
     {
         $alert = EmergencyAlert::findOrFail($id);
-        abort_unless(in_array($alert->status, ['active', 'all_clear'], true) && $alert->activated_at !== null
-            && $alert->activated_at->gte(now()->subHours(self::OPEN_HOURS)), 409, 'The roll call for this alert is closed.');
+        abort_unless($alert->status === 'active' || ($alert->status === 'all_clear' && $alert->all_clear_at !== null
+            && $alert->all_clear_at->gte(now()->subHours(self::OPEN_HOURS))), 409, 'The roll call for this alert is closed.');
 
         return $alert;
     }
 
-    /** The most recent sent alert that is still open, or null. Guardians only see alerts sent to families. */
+    /**
+     * The active alert, however long ago it was sent (it stays shown, with its
+     * all-clear, until someone clears it); otherwise the most recently cleared
+     * one still open for reunification; otherwise null. Guardians only see
+     * alerts sent to families.
+     */
     public function currentAlert(bool $families = false): ?EmergencyAlert
     {
-        return EmergencyAlert::whereIn('status', ['active', 'all_clear'])->where('activated_at', '>=', now()->utc()->subHours(self::OPEN_HOURS))
-            ->when($families, fn ($q) => $q->where('audience', 'everyone'))->orderByDesc('activated_at')->first();
+        $scope = fn ($q) => $q->when($families, fn ($q) => $q->where('audience', 'everyone'));
+
+        return EmergencyAlert::where('status', 'active')->tap($scope)->orderByDesc('activated_at')->first()
+            ?? EmergencyAlert::where('status', 'all_clear')->where('all_clear_at', '>=', now()->utc()->subHours(self::OPEN_HOURS))->tap($scope)->orderByDesc('all_clear_at')->first();
     }
 
     public function rollCall(User $actor, string $alertId, ?int $section = null): array
