@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-04
+
+- Practice tests (Action Plan 3.17): teachers set timed cycle tests for a group from their question bank (and the Navigate Ed library where it is on) on the new Practice tests page, sharing the questions between topics evenly or like chosen past papers; learners start quick quizzes and cycle tests through the v2 API. The server holds the deadline and the answers: nothing about the right answers reaches the device before hand-in, late saves are refused and a late hand-in counts only answers saved in time. Results count as practice evidence on the mastery map (labelled practice test), point to the topics to look at next and can hand a review to the tutor. Typed and photographed answers, mock exams and the app screens follow.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.

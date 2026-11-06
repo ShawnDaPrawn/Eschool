@@ -159,7 +159,7 @@ rows `i` (rank `i = 0` for the newest):
 | `t_i` | whole days from `observed_at` to `asOf` | its age |
 | `S` | `(Σ own stabilities + n0 · S0) / (count + n0)` | the topic's memory stability: the learner's FSRS `stability_days` on the topic's practice items, blended with the default |
 | `a_i` | `1 / (1 + t_i / (9 · S))` | freshness: the FSRS forgetting curve `FsrsScheduler` already uses. It enters only `E`, never `w_i` |
-| `c_i` | source weight | marks 1, practice and tutor checkpoints 0.5 |
+| `c_i` | source weight | marks 1, practice tests 0.75, practice and tutor checkpoints 0.5 |
 | `r_i` | `recency_ratio ^ i` | recency |
 | `d_i` | `1 + strength · (1 − 2 · f_i)` | difficulty; `f_i` is the item's success rate, 1 when unknown |
 | `w_i` | `c_i · r_i · d_i` | the row's weight: source, recency and difficulty |
@@ -197,6 +197,7 @@ learner's topics in the subject, so decay is applied then.
 | `window` | 40 | Twice v1's 20. The recency weight already makes older rows count less, so a longer window adds stability without letting old work dominate. |
 | `recency_ratio` | 0.95 | The 14th-newest answer still counts half. A term's work stays in view; the latest answers lead. Recency is by rank, not by age, so the balance between answers never shifts as time passes. |
 | `source_weights` | marks 1.0, practice 0.5, tutor 0.5 | Marks are teacher-set and teacher-marked. Practice is self-study with the answer available offline, and tutor checkpoints are first attempts after help. Both are real evidence but weaker, so two practice answers carry one mark's weight. v1 summed units, so a 1-unit practice answer beside a 1000-unit question barely registered. |
+| `source_weights.practice_test` | 0.75 | A practice test answer (Action Plan 3.17) is timed and its answers never reach the device before hand-in, so it says more than daily practice; it is still practice the learner chose or a teacher set for practice, not a teacher's mark. See [practice tests](../learning/practice-tests.md). |
 | `default_source_weight` | 0.5 | Any future source (for example 3.7 diagnostics) counts as practice until configured. |
 | `difficulty_strength` | 0.5 | Item weights between 0.5 (everyone gets it right) and 1.5 (nobody does). Harder items say more, but no single item can dominate. |
 | `difficulty_min_responses` | 5 | Fewer different learners give a noisy rate, and the rate would reflect one or two named classmates. |
