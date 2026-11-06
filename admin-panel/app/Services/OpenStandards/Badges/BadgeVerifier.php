@@ -39,8 +39,12 @@ class BadgeVerifier
 
         return app(CurrentSchool::class)->run((int) $row->school_id, function () use ($row, $document, $recipientName, $fail): array {
             $school = app(CurrentSchool::class)->school();
-            $proof = $this->proof->verify($document, $this->keys->trusted((int) $row->school_id));
-            $issuer = $school !== null && is_object($document->issuer ?? null) && ($document->issuer->id ?? null) === BadgeDocuments::issuerId($school);
+            // Only the key recorded when this credential was issued may have signed it.
+            $trusted = array_filter($this->keys->trusted((int) $row->school_id), fn (string $public): bool => hash_equals((string) $row->key_id, $this->keys->keyId($public)));
+            $proof = $this->proof->verify($document, $trusted);
+            // The issuer as recorded when the credential was issued, so a later school change cannot break it.
+            $issued = json_decode((string) $row->document, false);
+            $issuer = $school !== null && is_object($document->issuer ?? null) && is_object($issued->issuer ?? null) && ($document->issuer->id ?? null) === ($issued->issuer->id ?? false);
             if (! $proof || ! $issuer) {
                 return array_replace_recursive($fail, ['checks' => ['proof' => $proof, 'issuer' => $issuer]]);
             }

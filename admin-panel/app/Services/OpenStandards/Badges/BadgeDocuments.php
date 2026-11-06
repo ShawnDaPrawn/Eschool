@@ -26,6 +26,8 @@ class BadgeDocuments
     public function signed(OpenBadgeCredential $row, AchievementClaim $claim, School $school): array
     {
         $key = $this->keys->signing((int) $school->id);
+        // The row records the key that signs it; verification trusts only that key.
+        abort_unless(hash_equals((string) $row->key_id, $key['key_id']), 409);
         try {
             return $this->proof->sign($this->unsigned($row, $claim, $school), $key['secret'], $key['verification_method'], $this->instant($row->issued_at));
         } finally {

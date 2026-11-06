@@ -43,6 +43,11 @@ new v2 endpoints in a later step).
   `ONEROSTER_DOWNLOAD_LINK_MINUTES` (10). The stored copy is checked against
   both hashes before it is sent. Requested, ready, failed and each download are
   audited (`open_standards.oneroster_export_*`).
+- **Retention.** The daily `open-standards:prune-exports` command (03:40)
+  visits each school in its own context and deletes the stored file of every
+  export whose window (`ONEROSTER_KEEP_DAYS`, 2) has ended. The row stays,
+  marked `purged` with `purged_at`, its fingerprint and audit trail kept
+  (`open_standards.oneroster_export_purged`); a download is then refused (410).
 - **School apart.** Every read goes through school-scoped models
   (BelongsToSchool) in the job's school; LURITS numbers come from
   `LuritsNumbers::forLearners`, which refuses any learner of another school. The
@@ -99,10 +104,11 @@ marks, attendance, health, wellbeing, discipline, and anything of another school
   (active guardian link or legacy parent, or the learner with guardian
   approval), plus the stage rule for the learner. Another guardian, a teacher,
   or a learner or award of another school gets 403 or 404.
-- The credential row (`open_badge_credentials`) is created on the first
-  download; the document is rebuilt from the row and the award, so every later
-  download is byte-for-byte the same signed document. Issue and every download
-  are audited.
+- The credential is signed once, on the first download, and the signed JSON
+  is stored encrypted in `open_badge_credentials.document` with the `key_id`
+  that signed it. Every later download returns those stored bytes unchanged, so
+  renaming the learner or the school, or rotating the key, never changes what a
+  credential id says. Issue and every download are audited.
 - Document: `@context` VC 2.0 and OB 3.0.3; `type`
   `VerifiableCredential, OpenBadgeCredential`; `id` `urn:uuid:...`; `issuer`
   a Profile at `/open-badges/issuers/{school slug}`; `validFrom` the issue time;
@@ -135,7 +141,8 @@ Outside the web and api middleware (no session or cookie), throttled
   `{credential, recipient_name}`) of at most 64 KB. It finds the row by the
   credential's own id, checks the proof against the school's trusted keys, the
   issuer, the dates and revocation, and, when a name is given, the recipient
-  hash. The answer is `verified`, `status` (valid, revoked, not_verified), the
+  hash. Only the key recorded for that credential (`key_id`) is trusted, and
+  the issuer must match the one stored at issue. The answer is `verified`, `status` (valid, revoked, not_verified), the
   checks, and a summary of fields copied from the submitted credential. It
   never adds anything the credential does not already say.
 - `GET /open-badges/status/{uuid}` is the 1EdTech revocation list for that one

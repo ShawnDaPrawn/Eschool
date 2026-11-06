@@ -185,6 +185,40 @@ class OneRosterExports
         });
     }
 
+    /**
+     * Retention (open_standards.oneroster.keep_days): delete the stored file of
+     * every export of the current school whose download window has ended. The
+     * row and its audit trail stay, marked purged. Runs inside one school
+     * (the daily open-standards:prune-exports command visits each in turn).
+     *
+     * @return int how many files were deleted
+     */
+    public function prune(): int
+    {
+        abort_unless($this->currentSchool->isSet() && ! $this->currentSchool->isAcrossSchools(), 403);
+        $purged = 0;
+        $due = OneRosterExport::where('state', OneRosterExport::READY)->whereNull('purged_at')->where('expires_at', '<=', now())->orderBy('id')->pluck('id');
+        foreach ($due as $id) {
+            $purged += (int) DB::transaction(function () use ($id): bool {
+                // Re-read under the lock: a download that started first finishes before the file goes.
+                $row = OneRosterExport::where('state', OneRosterExport::READY)->whereNull('purged_at')->where('expires_at', '<=', now())->lockForUpdate()->find($id);
+                if ($row === null) {
+                    return false;
+                }
+                $path = (string) $row->artifact_path;
+                if ($this->validPath($row)) {
+                    Storage::disk(self::DISK)->delete($path);
+                }
+                $row->forceFill(['state' => OneRosterExport::PURGED, 'artifact_path' => null, 'purged_at' => now()])->save();
+                Audit::record('open_standards.oneroster_export_purged', $row, [], ['export_id' => (int) $row->id, 'sha256' => $row->artifact_sha256]);
+
+                return true;
+            });
+        }
+
+        return $purged;
+    }
+
     public function available(OneRosterExport $row): bool
     {
         return $row->state === OneRosterExport::READY && $row->artifact_path !== null && $row->expires_at !== null && $row->expires_at->isFuture();
@@ -192,9 +226,8 @@ class OneRosterExports
 
     private function read(OneRosterExport $row): string
     {
-        $prefix = $this->currentSchool->storagePath('oneroster/'.$row->id).'/';
         $path = (string) $row->artifact_path;
-        abort_unless(str_starts_with($path, $prefix) && str_ends_with($path, '.enc') && Str::isUuid(substr($path, strlen($prefix), -4)), 409);
+        abort_unless($this->validPath($row), 409);
         $disk = Storage::disk(self::DISK);
         abort_unless($disk->exists($path), 410, __('This export is no longer available to download.'));
         $cipher = (string) $disk->get($path);
@@ -203,6 +236,15 @@ class OneRosterExports
         abort_unless(str_starts_with($bytes, "PK\x03\x04") && hash_equals((string) $row->artifact_sha256, hash('sha256', $bytes)), 409, __('This export copy is damaged. Prepare a new one.'));
 
         return $bytes;
+    }
+
+    /** Only this export's own file inside this school's folder is ever read or deleted. */
+    private function validPath(OneRosterExport $row): bool
+    {
+        $prefix = 'schools/'.$this->currentSchool->id().'/oneroster/'.$row->id.'/';
+        $path = (string) $row->artifact_path;
+
+        return (int) $row->school_id === $this->currentSchool->id() && str_starts_with($path, $prefix) && str_ends_with($path, '.enc') && Str::isUuid(substr($path, strlen($prefix), -4));
     }
 
     /** @return array{bytes: string, sha256: string, counts: array<string, int>}|null */

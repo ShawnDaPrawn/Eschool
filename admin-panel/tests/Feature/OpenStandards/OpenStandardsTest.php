@@ -17,6 +17,7 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\AuditLog;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\Role;
+use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Recognition\AwardPresentation;
 use App\Models\SessionYear;
@@ -208,6 +209,38 @@ class OpenStandardsTest extends TestCase
         $this->refuse(410, fn () => app(OneRosterExports::class)->download($this->admin, (int) OneRosterExport::firstOrFail()->id, (int) $this->admin->id));
     }
 
+    public function test_expired_export_files_are_deleted_in_their_own_school_keeping_row_and_audit(): void
+    {
+        $expired = $this->prepare(['reason' => 'Sharing classes with our reading platform']);
+        $expiredPath = (string) $expired->fresh()->artifact_path;
+        $fresh = $this->storedExport(1, now()->addDays(5));
+        $other = $this->storedExport(self::SCHOOL_B_ID, now()->subDay());
+        $disk = Storage::disk('academic_private');
+        $this->travel(3)->days();
+
+        $this->assertSame(1, app(CurrentSchool::class)->run(1, fn () => app(OneRosterExports::class)->prune()));
+        $this->assertFalse($disk->exists($expiredPath), 'The expired file is deleted');
+        $this->assertTrue($disk->exists($fresh['path']), 'An export still in its window is kept');
+        $this->assertTrue($disk->exists($other['path']), "Pruning school A never touches school B's files");
+        $row = $expired->fresh();
+        $this->assertSame(OneRosterExport::PURGED, $row->state);
+        $this->assertNotNull($row->purged_at);
+        $this->assertNull($row->artifact_path);
+        $this->assertNotNull($row->artifact_sha256, 'The row and its fingerprint stay');
+        foreach (['open_standards.oneroster_export_requested', 'open_standards.oneroster_export_ready', 'open_standards.oneroster_export_purged'] as $action) {
+            $this->assertTrue(AuditLog::where('action', $action)->where('subject_id', $row->id)->exists(), $action);
+        }
+        $this->refuse(410, fn () => app(OneRosterExports::class)->download($this->admin, (int) $row->id, (int) $this->admin->id));
+        $this->actingAs($this->admin)->get('/open-standards')->assertOk()->assertDontSee('oneroster/'.$row->id.'/download', false)->assertSee('oneroster/'.$fresh['id'].'/download', false);
+
+        // The daily command visits every school in its own context.
+        $this->artisan('open-standards:prune-exports')->assertSuccessful();
+        $this->assertFalse($disk->exists($other['path']));
+        $this->assertTrue($disk->exists($fresh['path']));
+        $this->assertSame(OneRosterExport::PURGED, app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => OneRosterExport::findOrFail($other['id'])->state));
+        $this->assertSame(OneRosterExport::READY, OneRosterExport::findOrFail($fresh['id'])->state);
+    }
+
     // ---- Open Badges --------------------------------------------------------
 
     public function test_a_guardian_downloads_a_signed_badge_credential_that_verifies(): void
@@ -269,6 +302,39 @@ class OpenStandardsTest extends TestCase
         config(['open_standards.open_badges.retired_signing_keys' => []]);
         $this->assertFalse($this->verify($credential)->json('verified'));
         $this->assertSame('{"a":{},"b":[1,"\u0001"]}', Jcs::encode(json_decode('{"b":[1,"\u0001"],"a":{}}')));
+    }
+
+    public function test_a_credential_stays_byte_identical_after_a_rename_and_key_rotation(): void
+    {
+        $award = $this->award();
+        $farid = $this->guardian('farid_user');
+        $path = "/api/v2/open-badges/learners/{$this->learner}/credentials/{$award->id}";
+        $first = (string) $this->api($farid)->getJson($path)->assertOk()->getContent();
+
+        User::findOrFail($this->schoolA->ids['asha_user'])->forceFill(['first_name' => 'Renamed', 'last_name' => 'Learner'])->save();
+        School::findOrFail(1)->forceFill(['name' => 'Renamed Primary'])->save();
+        $old = config('open_standards.open_badges.signing_key');
+        config(['open_standards.open_badges.signing_key' => base64_encode(random_bytes(32)), 'open_standards.open_badges.retired_signing_keys' => [$old]]);
+
+        $again = (string) $this->api($farid)->getJson($path)->assertOk()->getContent();
+        $this->assertSame($first, $again, 'The same credential id always returns the bytes it was issued with');
+        $this->assertSame(1, OpenBadgeCredential::count());
+        $this->assertTrue($this->verify(json_decode($again, true))->json('verified'));
+        $this->assertNotSame($first, DB::table('open_badge_credentials')->value('document'), 'The stored document is encrypted at rest');
+    }
+
+    public function test_verification_trusts_only_the_key_recorded_when_the_credential_was_issued(): void
+    {
+        $credential = $this->credential($this->guardian('farid_user'), $this->award());
+        $old = config('open_standards.open_badges.signing_key');
+        config(['open_standards.open_badges.signing_key' => base64_encode(random_bytes(32)), 'open_standards.open_badges.retired_signing_keys' => [$old]]);
+        // The same claims re-signed with today's key, which the school trusts for new credentials.
+        $unsigned = $credential;
+        unset($unsigned['proof']);
+        $key = app(BadgeSigningKeys::class)->signing(1);
+        $forged = app(DataIntegrityProof::class)->sign($unsigned, $key['secret'], $key['verification_method'], $credential['proof']['created']);
+        $this->assertFalse($this->verify($forged)->json('checks.proof'));
+        $this->assertTrue($this->verify($credential)->json('verified'));
     }
 
     public function test_a_withdrawn_award_revokes_its_credential(): void
@@ -352,6 +418,22 @@ class OpenStandardsTest extends TestCase
             'class_section_id' => $this->schoolA->ids['section_a'], 'name' => 'Grade 5 maths', 'active' => true]);
         TeachingGroupMembership::create(['teaching_group_id' => $group->id, 'learner_id' => $this->learner, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic membership']);
         TeachingAllocation::create(['teaching_group_id' => $group->id, 'teacher_id' => $teacher, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic allocation']);
+    }
+
+    /** @return array{id: int, path: string} a ready export with a stored file, made directly in a school */
+    private function storedExport(int $school, CarbonImmutable|\DateTimeInterface $expires): array
+    {
+        return app(CurrentSchool::class)->run($school, function () use ($expires): array {
+            $requester = $this->admin->id;
+            $year = (int) SessionYear::query()->value('id');
+            $row = OneRosterExport::create(['requested_by' => $requester, 'session_year_id' => $year, 'reason' => 'Synthetic stored export', 'include_demographics' => false,
+                'state' => OneRosterExport::READY, 'generation_id' => (string) Str::uuid(), 'ready_at' => now(), 'expires_at' => $expires]);
+            $path = app(CurrentSchool::class)->storagePath('oneroster/'.$row->id).'/'.Str::uuid().'.enc';
+            Storage::disk('academic_private')->put($path, 'synthetic cipher');
+            $row->forceFill(['artifact_path' => $path, 'artifact_sha256' => hash('sha256', 'x'), 'cipher_sha256' => hash('sha256', 'synthetic cipher')])->save();
+
+            return ['id' => (int) $row->id, 'path' => $path];
+        });
     }
 
     private function prepare(array $input): OneRosterExport

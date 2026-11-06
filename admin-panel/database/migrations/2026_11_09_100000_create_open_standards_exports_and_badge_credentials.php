@@ -39,6 +39,8 @@ return new class extends Migration
             $t->timestamp('expires_at')->nullable();
             $t->unsignedInteger('download_count')->default(0);
             $t->timestamp('last_downloaded_at')->nullable();
+            // When the stored file was deleted at the end of its retention; the row and its audit stay.
+            $t->timestamp('purged_at')->nullable();
             $t->timestamps();
             $t->index(['school_id', 'state'], 'oneroster_exports_state');
         });
@@ -52,6 +54,8 @@ return new class extends Migration
             $t->char('key_id', 64);
             // Salts the hashed recipient name in the credential, so the document carries no plain name.
             $t->char('recipient_salt', 32);
+            // The signed credential exactly as issued (encrypted JSON): every download returns these bytes.
+            $t->longText('document');
             $t->timestamp('issued_at');
             $t->timestamp('revoked_at')->nullable();
             $t->foreignId('revoked_by')->nullable()->constrained('users');

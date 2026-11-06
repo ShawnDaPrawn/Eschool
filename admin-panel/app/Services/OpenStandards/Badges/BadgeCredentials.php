@@ -23,7 +23,8 @@ use Ramsey\Uuid\Uuid;
  * learner's guardians, and the learner themself once their age stage allows
  * it (config open_standards.open_badges.learner_stages), download the signed
  * credential of each of the learner's current awards. The credential is
- * issued on its first download and is the same document on every later one.
+ * signed and stored on its first download; every later download returns the
+ * stored bytes.
  * Withdrawing the award revokes it. engineering/specs/platform/open-standards.md.
  */
 class BadgeCredentials
@@ -50,20 +51,23 @@ class BadgeCredentials
     }
 
     /**
-     * The signed credential for one of the learner's current awards.
+     * The signed credential for one of the learner's current awards, exactly as
+     * it was issued: a later name change, school rename or key rotation never
+     * changes what this credential id says.
      *
-     * @return array{document: array<string, mixed>, filename: string}
+     * @return array{json: string, filename: string}
      */
     public function download(User $actor, int $learner, int $presentation): array
     {
         $child = $this->authorise($actor, $learner);
-        abort_unless($this->keys->configured(), 503, __(BadgeSigningKeys::UNAVAILABLE));
         $row = AwardPresentation::where('learner_id', $child->id)->where('state', 'active')->findOrFail($presentation);
-        $credential = $this->issue($row);
-        $document = $this->documents->signed($credential, $this->claim($row), app(CurrentSchool::class)->school());
+        $existing = OpenBadgeCredential::where('award_presentation_id', $row->id)->first();
+        abort_unless($existing !== null || $this->keys->configured(), 503, __(BadgeSigningKeys::UNAVAILABLE));
+        $credential = $existing ?? $this->issue($row);
+        abort_if($credential->revoked_at !== null, 410, __('This badge was withdrawn.'));
         Audit::record('open_badges.credential_downloaded', $credential, [], ['credential_id' => $credential->credential_id, 'learner_id' => (int) $child->id, 'award_presentation_id' => (int) $row->id]);
 
-        return ['document' => $document, 'filename' => 'badge-'.Str::slug((string) $row->title).'-'.$row->presented_on->toDateString().'.json'];
+        return ['json' => (string) $credential->document, 'filename' => 'badge-'.Str::slug((string) $row->title).'-'.$row->presented_on->toDateString().'.json'];
     }
 
     /** The credential row of a current award, made on its first download. */
@@ -81,8 +85,12 @@ class BadgeCredentials
             }
             $key = $this->keys->signing(app(CurrentSchool::class)->id());
             sodium_memzero($key['secret']);
-            $row = OpenBadgeCredential::create(['award_presentation_id' => $award->id, 'learner_id' => $award->learner_id, 'credential_id' => (string) Str::uuid(),
+            $row = new OpenBadgeCredential(['award_presentation_id' => $award->id, 'learner_id' => $award->learner_id, 'credential_id' => (string) Str::uuid(),
                 'key_id' => $key['key_id'], 'recipient_salt' => bin2hex(random_bytes(16)), 'issued_at' => now()->startOfSecond()]);
+            // Signed once, here, and stored: downloads return these bytes unchanged.
+            $document = $this->documents->signed($row, $this->claim($award), app(CurrentSchool::class)->school());
+            $row->document = json_encode($document, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $row->save();
             Audit::record('open_badges.credential_issued', $row, [], ['credential_id' => $row->credential_id, 'learner_id' => (int) $award->learner_id, 'award_presentation_id' => (int) $award->id, 'key_id' => $key['key_id']]);
 
             return $row;

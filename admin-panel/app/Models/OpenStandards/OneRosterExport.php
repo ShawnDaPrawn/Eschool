@@ -18,6 +18,9 @@ class OneRosterExport extends Model
 
     public const FAILED = 'failed';
 
+    /** The stored file was deleted when its retention ended. */
+    public const PURGED = 'purged';
+
     protected $table = 'oneroster_exports';
 
     protected $guarded = ['id', 'school_id'];
@@ -27,6 +30,6 @@ class OneRosterExport extends Model
     protected function casts(): array
     {
         return ['reason' => 'encrypted', 'include_demographics' => 'boolean', 'row_counts' => 'array', 'artifact_bytes' => 'integer',
-            'download_count' => 'integer', 'ready_at' => 'immutable_datetime', 'expires_at' => 'immutable_datetime', 'last_downloaded_at' => 'immutable_datetime'];
+            'download_count' => 'integer', 'ready_at' => 'immutable_datetime', 'expires_at' => 'immutable_datetime', 'last_downloaded_at' => 'immutable_datetime', 'purged_at' => 'immutable_datetime'];
     }
 }

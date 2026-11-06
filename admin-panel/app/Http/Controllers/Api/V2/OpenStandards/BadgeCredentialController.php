@@ -9,6 +9,7 @@ use App\Services\OpenStandards\Badges\BadgeCredentials;
 use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
  * A learner's Open Badges 3.0 credentials (Action Plan 5.9), for their
@@ -23,13 +24,14 @@ class BadgeCredentialController extends Controller
         return ResponseService::successResponse('data_fetch_successfully', $this->credentials->forLearner($request->user(), $learner));
     }
 
-    public function show(Request $request, int $learner, int $presentation): JsonResponse
+    /** The stored signed credential, byte for byte as issued. */
+    public function show(Request $request, int $learner, int $presentation): Response
     {
         $file = $this->credentials->download($request->user(), $learner, $presentation);
 
-        return response()->json($file['document'], 200, [
+        return response($file['json'], 200, [
             'Content-Type' => 'application/ld+json',
             'Content-Disposition' => 'attachment; filename="'.$file['filename'].'"',
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        ]);
     }
 }

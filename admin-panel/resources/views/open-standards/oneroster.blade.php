@@ -44,7 +44,7 @@
                     @foreach ($exports as $export)
                         <tr>
                             <td>{{ $export['requested_at'] }}{{ $export['demographics'] ? ' · '.__('with birth dates and sex') : '' }}</td>
-                            <td>{{ match ($export['state']) { 'ready' => __('Ready'), 'failed' => __('Could not be prepared'), default => __('Being prepared') } }}</td>
+                            <td>{{ match ($export['state']) { 'ready' => __('Ready'), 'failed' => __('Could not be prepared'), 'purged' => __('No longer available'), default => __('Being prepared') } }}</td>
                             <td>{{ array_sum($export['counts']) }}</td>
                             <td>
                                 @if ($export['download_url'])
