@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-04
+
+- Schools can build an alumni and volunteer pool for career talks and job shadows (API only for now; the module "Alumni and volunteer pool" is off by default). The office invites former learners from its own adult leaver records, and outside volunteers; each person consents when they first sign in, and can withdraw at any time with immediate effect. The school records each person's safety checks, who checked and when the clearance ends, and can book only cleared people, only into staffed group sessions of at least two learners. Pool members get their own sign-in that never reaches learner records, marks or contact details; they see a session's attendance list on the day of the session only.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
