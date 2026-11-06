@@ -12,8 +12,10 @@
 <h1>{{ __('Benchmarks') }}</h1>
 <p class="saas-lead">{{ __('The same medians and quartiles that schools taking part see, for each comparison group. No school is named or counted here, and groups with fewer than :count schools are not shown.', ['count' => $minimum_group_size]) }}</p>
 
-@if ($period_end === null || $groups === [])
+@if ($period_end === null)
     <p class="saas-card">{{ __('No benchmarks published yet: they are worked out every week once enough comparable schools take part.') }}</p>
+@elseif ($groups === [])
+    <p class="saas-card">{{ __('No comparison group had enough comparable schools in the week ending :date, so nothing is shown.', ['date' => $period_end]) }}</p>
 @else
 <p>{{ __('Week ending :date', ['date' => $period_end]) }}</p>
 <div class="saas-card saas-table-wrap" role="region" aria-label="{{ __('Benchmarks') }}" tabindex="0">

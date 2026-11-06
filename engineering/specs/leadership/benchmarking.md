@@ -30,7 +30,9 @@ identifying another school and without any learner data leaving a school.
   else is refused (403); a disabled module is 404. Authority is checked again
   after reading.
 - **HQ:** `GET /saas/benchmarks` (`saas.benchmarks`, ability `health.view`),
-  linked from School health. The service checks the ability itself.
+  linked from School health. The service checks the ability itself. It shows
+  the latest completed week (`benchmark_runs`); when that week published
+  nothing, it shows no groups, as schools see none, never an older week.
 
 ## Comparable schools
 
@@ -64,6 +66,7 @@ and the school is then not counted for that figure.
 | `benchmark_participations` | required school-owned | One row per school: `opted_in`, who changed it and when, when it last left. |
 | `benchmark_school_values` | required school-owned | Per school, period end and figure: the group key, the school's own value (basis points or null) and whether it was counted in that group's published figures (`contributed`). School-level numbers only. |
 | `benchmark_releases` | **global** (in `SchoolOwnedTables::GLOBAL` with its reason) | Per period end, group and figure: `released` or `held`, the period whose schools produced the figures (`basis_period_end`), and the lower quartile, median and upper quartile. **No school column, no school's own value, no count.** |
+| `benchmark_runs` | **global** | One row per completed weekly snapshot (period end, completed at), so the latest week is known even when every group was too small to publish. Names no school. |
 
 Migration `2026_11_09_150000_create_benchmarking_tables`; `down()` refuses to
 drop the tables while they hold rows.
@@ -75,9 +78,15 @@ after the nightly health and mastery figures) for the week that ended on the
 Sunday before (Africa/Johannesburg). It is the only writer.
 
 1. The schools that take part (`opted_in`, school not archived) are listed.
-   The period's rows are deleted first, so a second run gives the same result.
-   A `--period` must be a past Sunday no earlier than the latest published
+   A `--period` must be a past Sunday no earlier than the latest completed
    week (history is never rewritten behind a later week).
+   **A published week is final.** Running a week again (to pick up a school
+   that failed, say) never changes or replaces a group's published figures
+   for that week, and keeps the rows of the schools counted in them
+   (`contributed`), so the guard below still compares later weeks against
+   the members that were actually published. Only rows that were not
+   counted are recomputed, and only groups with nothing published for the
+   week yet are worked out again (against the latest earlier publication).
 2. Each school's group and figures are worked out **inside that school**
    (`CurrentSchool::run`, `BenchmarkMetrics`) and kept as its own rows. A
    school that fails is logged by id and skipped (and so is not counted).
@@ -92,6 +101,7 @@ Sunday before (Africa/Johannesburg). It is the only writer.
      are copied unchanged (`held`, with their original `basis_period_end`).
      Otherwise new figures are published from the current members, and those
      members are marked `contributed`.
+4. The week is recorded in `benchmark_runs` once it completes.
    - Quartiles are interpolated between the two nearest values ("type 7"),
      in whole numbers, then rounded half up to `round_bp` (whole percentage
      points).
@@ -120,6 +130,9 @@ lies halfway between two known order statistics). The guard removes that
   published: never a count, a mean, a minimum or maximum, or a list. The
   school's own value is shown to the same precision.
 - The figures are per group and figure; groups never overlap.
+- A week is published at most once per group and figure: a rerun after a
+  school joined or left cannot publish the same week again with one school
+  more or less.
 
 We chose a minimum-change rule over random noise: noise on small groups either
 has to be large enough to make the figures useless or small enough to be
@@ -158,6 +171,8 @@ until the group has changed enough; no new figure uses its values.
 | `test_a_group_smaller_than_k_shows_nothing_rather_than_a_smaller_group` | Four schools publish nothing (school and HQ); k below 3 is not used; another group never fills this one; a group that shrinks below k shows nothing, not its older figures. |
 | `test_no_other_school_can_be_identified_from_what_is_published` | The global table has no school column and only aggregates; figures are rounded to whole percentage points; no other school's exact value, count, id or name in the data, the page or HQ; School A reads only its own rows. |
 | `test_the_differencing_guard_keeps_the_last_figures_until_enough_schools_have_changed` | One join: held; one leave as well (two changes since the published week): held; two more joins: new figures from every current school; same members with new values: published; m below 2 is not used. |
+| `test_rerunning_a_published_week_keeps_its_figures_and_the_membership_the_guard_compares_against` | A sixth school joins and the published week is run again: its figures and counted members are unchanged, the newcomer is not counted, and the next week is held against the five published members. |
+| `test_hq_shows_no_groups_when_the_latest_week_withheld_every_group` | A week where every group fell below k: HQ shows that week with no groups, not the previous week's figures; the school sees none either. |
 | `test_each_school_decides_and_reads_only_its_own_and_another_schools_context_is_refused` | School B's choice is its own; its figures are worked out in its own school; School A leaving changes only School A; School A's principal is refused in School B's context and across schools. |
 
 ## Not in this step

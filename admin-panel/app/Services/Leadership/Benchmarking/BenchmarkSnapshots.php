@@ -6,6 +6,7 @@ namespace App\Services\Leadership\Benchmarking;
 
 use App\Models\Leadership\BenchmarkParticipation;
 use App\Models\Leadership\BenchmarkRelease;
+use App\Models\Leadership\BenchmarkRun;
 use App\Models\Leadership\BenchmarkSchoolValue;
 use App\Models\Platform\School;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -26,6 +27,9 @@ use Throwable;
  *    min_membership_change since its last published figures, those figures
  *    are kept unchanged ("held") instead of publishing new ones, so nobody
  *    can work out one school's value from the difference between two weeks.
+ * 4. A published week is final: running it again never changes or replaces
+ *    its figures, nor the members they came from, so a rerun cannot be used
+ *    to publish the same week twice with one school more or less.
  *
  * No query here returns a learner; the published rows name no school.
  * engineering/specs/leadership/benchmarking.md.
@@ -64,10 +68,10 @@ class BenchmarkSnapshots
             ->where('benchmark_participations.opted_in', true)->where('schools.status', '!=', School::ARCHIVED)
             ->orderBy('benchmark_participations.school_id')->pluck('benchmark_participations.school_id')
             ->map(fn ($id) => (int) $id)->all());
-        // The period starts afresh, so running it again gives the same result.
+        // Running a week again recomputes only what was not published: the week's
+        // figures and the rows of the schools counted in them stay as they were.
         $this->currentSchool->acrossSchools(function () use ($period): void {
-            BenchmarkRelease::query()->whereDate('period_end', $period)->delete();
-            BenchmarkSchoolValue::acrossSchools()->whereDate('period_end', $period)->delete();
+            BenchmarkSchoolValue::acrossSchools()->whereDate('period_end', $period)->where('contributed', false)->delete();
         });
         $failed = 0;
         $now = now();
@@ -81,7 +85,8 @@ class BenchmarkSnapshots
                 continue;
             }
             $this->currentSchool->run($id, function () use ($figures, $period, $now): void {
-                foreach (BenchmarkMetrics::METRICS as $metric) {
+                $kept = BenchmarkSchoolValue::query()->whereDate('period_end', $period)->pluck('metric')->all();
+                foreach (array_diff(BenchmarkMetrics::METRICS, $kept) as $metric) {
                     $value = $figures['values'][$metric] ?? null;
                     BenchmarkSchoolValue::query()->create(['period_end' => $period, 'metric' => $metric, 'group_key' => $figures['group_key'],
                         'value_bp' => $value === null ? null : max(0, min(10000, (int) $value)), 'contributed' => false, 'computed_at' => $now]);
@@ -89,6 +94,7 @@ class BenchmarkSnapshots
             });
         }
         $counts = $this->currentSchool->acrossSchools(fn () => DB::transaction(fn () => $this->release($period, $now)));
+        BenchmarkRun::query()->updateOrCreate(['period_end' => $period], ['completed_at' => $now]);
 
         return ['period_end' => $period, 'schools' => count($participants) - $failed, 'failed' => $failed] + $counts;
     }
@@ -101,9 +107,18 @@ class BenchmarkSnapshots
         $counts = ['released' => 0, 'held' => 0, 'withheld' => 0];
         $rows = BenchmarkSchoolValue::acrossSchools()->whereDate('period_end', $period)->whereNotNull('group_key')->whereNotNull('value_bp')
             ->orderBy('group_key')->orderBy('metric')->get(['school_id', 'metric', 'group_key', 'value_bp']);
-        foreach ($rows->groupBy(fn (BenchmarkSchoolValue $row) => $row->group_key.'|'.$row->metric) as $set) {
+        $published = BenchmarkRelease::query()->whereDate('period_end', $period)->lockForUpdate()->get()
+            ->keyBy(fn (BenchmarkRelease $release) => $release->group_key.'|'.$release->metric);
+        foreach ($rows->groupBy(fn (BenchmarkSchoolValue $row) => $row->group_key.'|'.$row->metric) as $key => $set) {
             $group = (string) $set->first()->group_key;
             $metric = (string) $set->first()->metric;
+            $existing = $published->get($key);
+            if ($existing !== null) {
+                // Already published for this week: final, whoever joined or left since.
+                $counts[$existing->status === BenchmarkRelease::HELD ? 'held' : 'released']++;
+
+                continue;
+            }
             $members = $set->map(fn (BenchmarkSchoolValue $row) => (int) $row->getAttribute('school_id'))->unique()->sort()->values()->all();
             if (count($members) < $k) {
                 // Too few schools: nothing is published, and nothing older is shown either.
@@ -172,7 +187,7 @@ class BenchmarkSnapshots
             return self::defaultPeriod();
         }
         $date = CarbonImmutable::createFromFormat('!Y-m-d', $periodEnd, self::TIMEZONE);
-        $latest = BenchmarkRelease::query()->max('period_end');
+        $latest = BenchmarkRun::query()->max('period_end') ?? BenchmarkRelease::query()->max('period_end');
         if ($date === false || $date->format('Y-m-d') !== $periodEnd || ! $date->isSunday() || $periodEnd > self::defaultPeriod()
             || ($latest !== null && $periodEnd < substr((string) $latest, 0, 10))) {
             // Periods end on a Sunday that has passed, and history is never rewritten behind a later week.

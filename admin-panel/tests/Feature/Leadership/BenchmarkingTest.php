@@ -382,6 +382,63 @@ class BenchmarkingTest extends TestCase
         $this->assertSame(2, BenchmarkSnapshots::minimumChange());
     }
 
+    public function test_rerunning_a_published_week_keeps_its_figures_and_the_membership_the_guard_compares_against(): void
+    {
+        app(SchoolBenchmarks::class)->choose($this->principal, true);
+        $this->figures[1] = ['group_key' => self::GROUP, 'values' => ['attendance' => 5000, 'results_movement' => null, 'reach' => 7000]];
+        foreach ([3 => 8000, 4 => 8200, 5 => 8400, 6 => 8600] as $school => $attendance) {
+            $this->other($school, $attendance, 7000);
+        }
+        $this->travelTo(CarbonImmutable::parse('2026-02-10 11:00:00', 'Africa/Johannesburg'));
+        $this->snapshot();
+        $published = fn (string $period) => (fn (BenchmarkRelease $r) => [$r->status, $r->basis_period_end->toDateString(), [$r->lower_quartile_bp, $r->median_bp, $r->upper_quartile_bp]])($this->release('attendance', $period));
+        $this->assertSame(['released', '2026-02-08', [8000, 8200, 8400]], $published('2026-02-08'));
+
+        // A sixth school joins with an extreme figure and the same week is run again:
+        // one change must not produce a second, different publication of that week.
+        $this->other(7, 10000, 7000);
+        $this->snapshot();
+        $this->assertSame(['released', '2026-02-08', [8000, 8200, 8400]], $published('2026-02-08'));
+        $contributed = BenchmarkSchoolValue::acrossSchools()->whereDate('period_end', '2026-02-08')->where('metric', 'attendance')->where('contributed', true)
+            ->pluck('school_id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+        $this->assertSame([1, 3, 4, 5, 6], $contributed);
+        $this->assertFalse(app(CurrentSchool::class)->run(7, fn () => BenchmarkSchoolValue::query()->whereDate('period_end', '2026-02-08')->where('metric', 'attendance')->sole()->contributed));
+
+        // The next week still compares against the five published members: one change, so held.
+        $this->travelTo(CarbonImmutable::parse('2026-02-17 10:00:00', 'Africa/Johannesburg'));
+        $this->snapshot('2026-02-15');
+        $this->assertSame(['held', '2026-02-08', [8000, 8200, 8400]], $published('2026-02-15'));
+    }
+
+    public function test_hq_shows_no_groups_when_the_latest_week_withheld_every_group(): void
+    {
+        $this->figures[1] = ['group_key' => self::GROUP, 'values' => ['attendance' => 5000, 'results_movement' => null, 'reach' => 7000]];
+        app(SchoolBenchmarks::class)->choose($this->principal, true);
+        foreach (range(3, 6) as $school) {
+            $this->other($school, 9000, 8000);
+        }
+        $this->travelTo(CarbonImmutable::parse('2026-02-10 11:00:00', 'Africa/Johannesburg'));
+        $this->snapshot();
+        $owner = $this->hq('owner');
+        $this->actingAsHq($owner);
+        $this->assertSame('2026-02-08', app(PlatformBenchmarks::class)->overview($owner)['period_end']);
+        $this->assertNotSame([], app(PlatformBenchmarks::class)->overview($owner)['groups']);
+
+        // Two schools leave: the next week has too few schools in every group.
+        $this->leave(5);
+        $this->leave(6);
+        $this->travelTo(CarbonImmutable::parse('2026-02-17 10:00:00', 'Africa/Johannesburg'));
+        $this->snapshot('2026-02-15');
+        $this->assertNull($this->read()['metrics']['attendance']['comparison']);
+        // A fresh HQ sign-in: the first one's grant has expired by now.
+        $owner = $this->hq('operations');
+        $this->newBrowserSession()->actingAsHq($owner);
+        $overview = app(PlatformBenchmarks::class)->overview($owner);
+        $this->assertSame('2026-02-15', $overview['period_end']);
+        $this->assertSame([], $overview['groups']);
+        $this->get('/saas/benchmarks')->assertOk()->assertSee('2026-02-15')->assertDontSee('90%');
+    }
+
     public function test_each_school_decides_and_reads_only_its_own_and_another_schools_context_is_refused(): void
     {
         $this->schoolARecords();

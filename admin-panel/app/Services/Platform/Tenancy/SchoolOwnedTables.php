@@ -165,6 +165,7 @@ final class SchoolOwnedTables
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'platform_staff_two_factor' => 'a platform staff member\'s own authenticator app (encrypted secret, hashed recovery codes) for signing in to /saas; platform staff belong to no school',
         'benchmark_releases' => 'anonymous benchmarking (5.5): the published lower quartile, median and upper quartile of each comparison group, written only by the weekly platform snapshot from at least k schools\' school-level figures; names no school, holds no school\'s own value and no learner data',
+        'benchmark_runs' => 'anonymous benchmarking (5.5): the period end and completion time of each weekly platform snapshot, so the latest week is known even when it published nothing; names no school',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',

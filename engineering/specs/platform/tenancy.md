@@ -370,7 +370,9 @@ group and whether it was counted), never a learner. A school reads only its own
 rows; the weekly platform snapshot reads them across schools explicitly.
 `benchmark_releases` is global: each row is the published lower quartile, median
 and upper quartile of one comparison group, written only from at least k schools'
-figures. It names no school and holds no school's own value
+figures. It names no school and holds no school's own value.
+`benchmark_runs` is global too: the period end and completion time of each
+weekly snapshot, naming no school
 ([anonymous benchmarking](../leadership/benchmarking.md)).
 ### Packages and prices
 

@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Schema;
  *   counted in that group's published figures. Never a learner.
  * - benchmark_releases (platform-owned, no school): the published median and
  *   quartiles of each comparison group, period and figure. Names no school.
+ * - benchmark_runs (platform-owned, no school): the weekly snapshots that
+ *   completed, so the latest week is known even when it published nothing.
  *
  * engineering/specs/leadership/benchmarking.md.
  */
@@ -62,15 +64,22 @@ return new class extends Migration
             $t->unique(['period_end', 'group_key', 'metric'], 'benchmark_release_identity');
             $t->index(['group_key', 'metric', 'period_end'], 'benchmark_release_history');
         });
+        Schema::create('benchmark_runs', function (Blueprint $t) {
+            $t->id();
+            $t->date('period_end')->unique();
+            $t->timestamp('completed_at');
+            $t->timestamps();
+        });
     }
 
     public function down(): void
     {
-        foreach (['benchmark_releases', 'benchmark_school_values', 'benchmark_participations'] as $table) {
+        foreach (['benchmark_runs', 'benchmark_releases', 'benchmark_school_values', 'benchmark_participations'] as $table) {
             if (Schema::hasTable($table) && DB::table($table)->exists()) {
                 throw new RuntimeException('Restore a tested backup to retain benchmarking records.');
             }
         }
+        Schema::dropIfExists('benchmark_runs');
         Schema::dropIfExists('benchmark_releases');
         Schema::dropIfExists('benchmark_school_values');
         Schema::dropIfExists('benchmark_participations');

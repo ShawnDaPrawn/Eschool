@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Leadership\Benchmarking;
 
 use App\Models\Leadership\BenchmarkRelease;
+use App\Models\Leadership\BenchmarkRun;
 use App\Models\User;
 use App\Services\Platform\Saas\PlatformSchoolHealth;
 use App\Services\Platform\Saas\PlatformStaffAccess;
@@ -21,7 +22,9 @@ class PlatformBenchmarks
     public function overview(?User $actor): array
     {
         $this->authorise($actor);
-        $period = BenchmarkRelease::query()->max('period_end');
+        // The latest completed week, even when it published nothing (every group too small):
+        // HQ then shows no groups, as schools do, never an older week's figures.
+        $period = BenchmarkRun::query()->max('period_end');
         $period = $period === null ? null : substr((string) $period, 0, 10);
         $groups = [];
         if ($period !== null) {
