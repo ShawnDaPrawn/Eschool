@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Saas\LibraryRequest;
 use App\Services\Learning\Library\LibraryAccess;
 use App\Services\Learning\Library\LibraryCatalogue;
+use App\Services\Learning\Library\LibraryDrafting;
 use App\Services\Learning\Library\LibraryItems;
 use App\Services\Learning\Library\LibraryPages;
+use App\Services\Learning\Library\LibraryQuality;
 use App\Services\Learning\Library\LibraryReviewers;
 use App\Services\Learning\Library\LibrarySchools;
 use App\Services\Learning\PracticeMedia;
@@ -103,7 +105,32 @@ class PlatformLibraryController extends Controller
 
     public function reviews(Request $request, LibraryPages $pages): View
     {
-        return view('saas.library.reviews', $pages->reviews($request->user(), (int) $request->query('page', 1)));
+        return view('saas.library.reviews', $pages->reviews($request->user(), (int) $request->query('page', 1), (string) $request->query('filter', 'all')));
+    }
+
+    /** Ask for AI drafts of library items (Action Plan 3.4): they arrive as drafts for review, never published. */
+    public function storeDrafts(LibraryRequest $request, LibraryDrafting $drafting): RedirectResponse
+    {
+        $draft = $drafting->request($request->user(), $request->validated());
+        if ($draft->state !== 'completed') {
+            return back()->withInput()->withErrors(['drafting' => LibraryDrafting::message($draft->state === 'pending' ? 'pending' : $draft->failure_code)]);
+        }
+        $ids = (array) $draft->item_ids;
+
+        return redirect()->route('saas.library.items.show', $ids[0])->with('success', trans_choice('{1} 1 AI draft is ready. Check it, change it as needed and send it for review.|[2,*] :count AI drafts are ready. Check each one, change it as needed and send it for review.', count($ids), ['count' => count($ids)]));
+    }
+
+    /** Library items learners' answers have flagged, as counts and rates only. */
+    public function attention(Request $request, LibraryQuality $quality): View
+    {
+        return view('saas.library.attention', $quality->attention($request->user(), (int) $request->query('page', 1)));
+    }
+
+    public function redraft(LibraryRequest $request, LibraryItems $items, int $item): RedirectResponse
+    {
+        $version = $items->redraft($request->user(), $item, $request->validated());
+
+        return redirect()->route('saas.library.items.show', $item)->with('success', __('Version :number started as a new draft.', ['number' => $version->number]));
     }
 
     public function review(LibraryRequest $request, LibraryItems $items, int $version): RedirectResponse

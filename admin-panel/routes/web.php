@@ -439,6 +439,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::put('/items/{item}/draft', [PlatformLibraryController::class, 'draft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.draft');
             Route::post('/items/{item}/submit', [PlatformLibraryController::class, 'submit'])->middleware('throttle:60,1')->whereNumber('item')->name('items.submit');
             Route::post('/items/{item}/publish', [PlatformLibraryController::class, 'publish'])->middleware('throttle:60,1')->whereNumber('item')->name('items.publish');
+            // The content production pipeline (3.4): AI drafts into review, and items learners' answers flag (counts and rates only).
+            Route::post('/drafts', [PlatformLibraryController::class, 'storeDrafts'])->middleware('throttle:10,1')->name('drafts.store');
+            Route::get('/attention', [PlatformLibraryController::class, 'attention'])->name('attention');
+            Route::post('/items/{item}/redraft', [PlatformLibraryController::class, 'redraft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.redraft');
             Route::post('/reviewers', [PlatformLibraryController::class, 'storeReviewer'])->middleware('throttle:30,1')->name('reviewers.store');
             Route::delete('/reviewers/{assignment}', [PlatformLibraryController::class, 'removeReviewer'])->whereNumber('assignment')->name('reviewers.destroy');
             Route::put('/schools/{school}', [PlatformLibraryController::class, 'switch'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.switch');
