@@ -19,6 +19,8 @@ return [
     'approval.handle_requested' => ['label' => 'Handle approval request', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent'], 'notice_only' => true],
     'consent.requested' => ['label' => 'Consent request', 'module' => 'people', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'notice_only' => true, 'push_actions' => ['consent_yes', 'consent_no']],
     'safeguarding.alert' => ['label' => 'Safeguarding alert', 'module' => 'wellbeing', 'portals' => ['admin', 'teacher'], 'channels' => $required, 'locked' => ['admin', 'teacher'], 'permission' => 'safeguarding-alerts', 'notice_only' => true, 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
+    // Emergency alerts and lockdowns (Action Plan 5.8): sent only by roles the school named, never to learners, every channel, through quiet hours.
+    'safety.critical' => ['label' => 'Emergency alert', 'module' => 'communication', 'portals' => ['parent', 'teacher', 'admin'], 'channels' => $required, 'locked' => ['parent', 'teacher', 'admin'], 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
     'comms.notice' => ['label' => 'School notice', 'module' => 'communication', 'portals' => $all, 'channels' => $on],
     'comms.urgent' => ['label' => 'Urgent school notice', 'module' => 'communication', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
     'communication.message' => ['label' => 'School message', 'module' => 'communication', 'portals' => $all, 'channels' => $on, 'full_content' => true, 'push_actions' => ['reply']],

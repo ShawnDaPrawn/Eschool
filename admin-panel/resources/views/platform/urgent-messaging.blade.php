@@ -5,6 +5,7 @@
     <x-page.header :title="__('SMS and WhatsApp')" />
     <p>{{ __('Urgent notices and absence alerts can also go to guardians by SMS or WhatsApp. Each message is charged to the school at the price NavigateEd pays for it. Both are off until you switch them on here.') }}</p>
     <p>{{ __('Messages go to the mobile number on the guardian\'s parent record at this school. An SMS never contains a child\'s name or details: it says there is an urgent message and asks the guardian to open the NavigateEd app. Only a notice sent to the whole school includes its title and message.') }}</p>
+    <p>{{ __('Emergency alerts and lockdowns always go by every channel switched on here, with their message, so you do not choose them below.') }}</p>
     @if ($errors->any())<div role="alert">{{ $errors->first() }}</div>@endif
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     @if (! $configured['sms'])
