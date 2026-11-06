@@ -70,6 +70,7 @@ use App\Http\Controllers\Api\V2\Platform\NotificationInboxController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
 use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
+use App\Http\Controllers\Api\V2\Reading\ReadingController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Controllers\Api\V2\Transfers\TransferController;
@@ -816,6 +817,17 @@ Route::prefix('diary')->middleware([PrivateDomainResponse::class, 'auth:sanctum'
     Route::put('entries/{entry}', [$c, 'update'])->whereNumber('entry')->middleware('throttle:60,1')->name('entries.update');
     Route::delete('entries/{entry}', [$c, 'destroy'])->whereNumber('entry')->middleware('throttle:60,1')->name('entries.destroy');
     Route::put('items/{source}/{item}/state', [$c, 'state'])->whereIn('source', ['homework', 'holiday', 'event'])->whereNumber('item')->middleware('throttle:60,1')->name('items.state');
+});
+
+// The reading library (Action Plan 4.4): the signed-in learner's shelves, books, own progress and comprehension checks.
+Route::prefix('reading')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:reading', 'cache.headers:private;no_store'])->name('api.v2.reading.')->group(function () {
+    $c = ReadingController::class;
+    Route::get('shelves', [$c, 'shelves'])->name('shelves');
+    Route::get('books/{book}', [$c, 'book'])->whereNumber('book')->name('books.show');
+    Route::get('books/{book}/pages/{page}', [$c, 'page'])->whereNumber(['book', 'page'])->middleware('throttle:120,1')->name('books.page');
+    Route::put('books/{book}/progress', [$c, 'progress'])->whereNumber('book')->middleware('throttle:60,1')->name('books.progress');
+    Route::get('books/{book}/questions', [$c, 'questions'])->whereNumber('book')->name('books.questions');
+    Route::post('questions/{question}/answer', [$c, 'answer'])->whereNumber('question')->middleware('throttle:60,1')->name('questions.answer');
 });
 
 Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:tutor'])->name('api.v2.tutor.')->group(function () {
