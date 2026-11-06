@@ -3,6 +3,7 @@
 ## 2026-11-06
 
 - The homework reuse test now reads the clock once, so it no longer fails when a minute ticks over between the copy request and the due-date check.
+- The wellbeing check-in context test now spreads its answers from a fixed time of day, so it no longer fails when run in the last minutes before midnight.
 
 ## 2026-11-03
 
