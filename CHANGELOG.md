@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-06
+
+- The homework reuse test now reads the clock once, so it no longer fails when a minute ticks over between the copy request and the due-date check.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
