@@ -98,7 +98,7 @@ unchanged. No billing or entitlement is added here.
 session the path opened, and the manifest records the path id and step; a
 later reauthorization checks the path is still this learner's in this group,
 not that the step is unchanged, so earlier turns stay readable. The tutor
-prompt (v1.2.0) gains one instruction: when `lead` is true, teach the topic in
+prompt (v1.2.0, and v2 from 2.1.0, the default since tutor teaching quality) gains one instruction: when `lead` is true, teach the topic in
 small steps (one idea, one short worked example, one question) instead of
 waiting; otherwise support the step with hints only, and never give the
 path's question answers. No safety rule changed.

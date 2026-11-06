@@ -21,6 +21,7 @@ use App\Services\Learning\LearningPathQueries;
 use App\Services\Learning\LearningPathService;
 use App\Services\Learning\TutorAccess;
 use App\Services\Learning\TutorContext;
+use App\Services\Learning\TutorPrompts;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Stages\SchoolStages;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -306,6 +307,12 @@ class LearningPathTest extends TestCase
         $context = app(TutorContext::class)->capture($this->actor('asha'), $row);
         $this->assertSame(['step' => 'teach', 'lead' => true, 'attempt' => 1], json_decode($context['text'], true)['learning_path']);
         $this->assertSame(LearningPath::sole()->id, $context['manifest']['path']['id']);
+        // v2, the default prompt since tutor teaching quality, gets the same path context, and both prompts say what to do with it.
+        $v2 = app(TutorContext::class)->capture($this->actor('asha'), $row, TutorPrompts::V2);
+        $this->assertSame(['step' => 'teach', 'lead' => true, 'attempt' => 1], json_decode($v2['text'], true)['learning_path']);
+        foreach ([TutorPrompts::V1, TutorPrompts::V2] as $prompt) {
+            $this->assertStringContainsString('learning_path', json_decode((string) file_get_contents(resource_path('ai/prompts/'.$prompt.'.json')), true, 8, JSON_THROW_ON_ERROR)['system']);
+        }
         // The step moves on; the session's earlier context still reauthorizes.
         $this->act('practise');
         app(TutorContext::class)->reauthorize($this->actor('asha'), $row, $context['manifest']);

@@ -19,8 +19,8 @@ The first tutor prompt gives a short hint, a question and a correction, the same
 
 ## Prompt versions
 
-- `resources/ai/prompts/tutor.json` (key `tutor`, version 1.1.0) is unchanged: v1.
-- `resources/ai/prompts/tutor-v2.json` (key `tutor-v2`, version 2.0.0): v2.
+- `resources/ai/prompts/tutor.json` (key `tutor`, version 1.2.0): v1. Unchanged by this step; the guided learning path ([learning path](../learning/learning-path.md)) added its one `learning_path` instruction (1.1.0 to 1.2.0).
+- `resources/ai/prompts/tutor-v2.json` (key `tutor-v2`, version 2.1.0): v2. 2.1.0 carries the same guided learning path instruction as v1 1.2.0: when `approved_context.learning_path` has `lead` true (the teach step) the tutor leads the lesson in small steps; on any other step it gives hints only, and it never gives the path's practice or check answers.
 - `ai.inference.features.tutor.prompt` selects the version (`AI_TUTOR_PROMPT`, default `tutor-v2`). `TutorPrompts` allows only these two keys; anything else is refused as `prompt_not_allowed`.
 - Each turn stores the prompt key it was built for (`tutor_messages.prompt_key`; older rows are v1). The feature policy sends that key, and the gateway refuses it if the configuration has since changed, so a turn is never answered by a prompt it was not built for. Usage receipts record the prompt key, version and hash as before.
 - v1 keeps its exact original input and context (first 3,000 characters, no stage, memory, section or language). v1 refuses `explain_back` turns and home-language requests with 422.

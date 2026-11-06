@@ -2,6 +2,7 @@
 
 ## 2026-11-06
 
+- The tutor's new default prompt (v2) now leads a guided learning path's teaching step and never gives the path's practice or check answers, as the original prompt already did (tutor-v2 2.1.0; from the integration of #450 and #460).
 - The homework reuse test now reads the clock once, so it no longer fails when a minute ticks over between the copy request and the due-date check.
 - The wellbeing check-in context test now spreads its answers from a fixed time of day, so it no longer fails when run in the last minutes before midnight.
 
