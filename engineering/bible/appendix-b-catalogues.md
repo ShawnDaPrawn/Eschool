@@ -520,6 +520,15 @@ permanent awards with source `badge` and use the existing
 `recognition.award_presented` notice. No new outbox event type.
 
 
+## Daily family summary (Action Plan 5.11)
+
+`family.daily_summary` (communication module, parent portal, push/email/in-app
+on by default, notice-only) tells a guardian who opted in that their one daily
+summary across all their children and schools is ready. It names no one and
+carries only an opaque `summary_id`; the inbox and delivery recheck the owner,
+the school it was filed in and the summary's expiry. The summary is read
+through `GET /api/v2/me/family-summaries/{summary}`. No new outbox event type.
+
 ## School offboarding
 
 School data export ready: `school.offboarding_export` (people module, admin
