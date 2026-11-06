@@ -72,6 +72,25 @@ class LeadershipDashboard
         return ['school_id' => $school, 'session_year_id' => $yearId, 'starts_on' => $start, 'ends_on' => $end, 'activity_observed_since' => $observedSince, 'periods' => $periods];
     }
 
+    /**
+     * The school's recorded attendance over a window, with no grade split:
+     * learners enrolled in it, recorded learner days and present half-days,
+     * counted as read() counts them. Runs in the current school; the caller
+     * authorises (school groups, school-groups.md, show it as a rate with
+     * small numbers suppressed).
+     *
+     * @return array{learners: int, recorded_days: int, present_half_days: int}
+     */
+    public function attendanceTotals(int $yearId, string $start, string $end): array
+    {
+        $enrolments = Enrolment::with('homeroom.class')->where('session_year_id', $yearId)->whereDate('starts_on', '<=', $end)
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $start))->orderBy('id')->get();
+        $events = $this->attendance($yearId, $start, $end, $enrolments);
+
+        return ['learners' => $enrolments->pluck('learner_id')->unique()->count(),
+            'recorded_days' => array_sum(array_column($events, 'recorded_days')), 'present_half_days' => array_sum(array_column($events, 'present_half_days'))];
+    }
+
     private function metric(?int $value): array
     {
         return ['status' => $value === null ? 'unavailable' : 'available', 'value' => $value];

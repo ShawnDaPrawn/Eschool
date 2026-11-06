@@ -460,6 +460,7 @@ class PlatformBillingAccounts
                 'drafts' => $invoices->where('status', PlatformInvoice::DRAFT)->map(fn (PlatformInvoice $i): array => $present($i) + ['problem' => $this->billing->issueProblem($i)])->values()->all(),
                 'issued' => $issued->map(fn (PlatformInvoice $i): array => $present($i) + ['outstanding_cents' => $this->outstanding($i)])->values()->all(),
                 'discarded' => $invoices->where('status', PlatformInvoice::DISCARDED)->map($present)->values()->all(),
+                'grouped' => $invoices->where('status', PlatformInvoice::GROUPED)->map($present)->values()->all(),
                 'summary' => [
                     'invoiced_cents' => (int) $issued->sum('total_cents'),
                     'credited_cents' => -$credited,

@@ -12,6 +12,7 @@ use App\Models\Platform\SchoolContract;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Groups\SchoolGroupBilling;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -168,30 +169,42 @@ class PlatformBilling
 
                 continue;
             }
-            $created = $this->currentSchool->run((int) $school->id, function () use ($period, $slot, $actor): bool {
-                if (PlatformInvoice::query()->where('slot', $slot)->exists()) {
-                    return false;
-                }
-                try {
-                    return DB::transaction(function () use ($period, $slot, $actor): bool {
-                        $draft = PlatformInvoice::query()->create([
-                            'kind' => PlatformInvoice::INVOICE, 'status' => PlatformInvoice::DRAFT, 'slot' => $slot,
-                            'period_start' => $period->toDateString(), 'period_end' => $period->endOfMonth()->toDateString(),
-                            'currency' => (string) config('platform_billing.currency', 'ZAR'), 'vat_rate_bp' => self::vatRateBp(),
-                        ]);
-                        $this->compute($draft, $actor);
-
-                        return true;
-                    }, 3);
-                } catch (UniqueConstraintViolationException) {
-                    return false;
-                }
-            });
+            $created = $this->draftSchool((int) $school->id, $period, $actor);
             $result[$created ? 'created' : 'existing']++;
         }
         Audit::record('platform_billing_run', null, [], ['period' => $slot] + $result + ['changed_by' => $actor->id]);
 
         return $result;
+    }
+
+    /**
+     * The month's draft for one school, when it has no invoice for the month
+     * yet (a run, or a school group's draft, school-groups.md). False when
+     * the month's slot is taken.
+     */
+    public function draftSchool(int $schoolId, CarbonImmutable $period, User $actor): bool
+    {
+        $slot = $period->format('Y-m');
+
+        return $this->currentSchool->run($schoolId, function () use ($period, $slot, $actor): bool {
+            if (PlatformInvoice::query()->where('slot', $slot)->exists()) {
+                return false;
+            }
+            try {
+                return DB::transaction(function () use ($period, $slot, $actor): bool {
+                    $draft = PlatformInvoice::query()->create([
+                        'kind' => PlatformInvoice::INVOICE, 'status' => PlatformInvoice::DRAFT, 'slot' => $slot,
+                        'period_start' => $period->toDateString(), 'period_end' => $period->endOfMonth()->toDateString(),
+                        'currency' => (string) config('platform_billing.currency', 'ZAR'), 'vat_rate_bp' => self::vatRateBp(),
+                    ]);
+                    $this->compute($draft, $actor);
+
+                    return true;
+                }, 3);
+            } catch (UniqueConstraintViolationException) {
+                return false;
+            }
+        });
     }
 
     /** Count again and price again, while it is a draft. */
@@ -239,7 +252,7 @@ class PlatformBilling
                 if ($locked === null || ! $locked->isDraft()) {
                     return 'changed';
                 }
-                if ($this->issueProblem($locked) !== null) {
+                if ($this->issueProblem($locked, true) !== null) {
                     return 'left';
                 }
                 $this->issueDraft($locked, $actor);
@@ -396,8 +409,13 @@ class PlatformBilling
     }
 
     /** Why a draft cannot be issued, or null when it can. */
-    public function issueProblem(PlatformInvoice $draft): ?string
+    public function issueProblem(PlatformInvoice $draft, bool $locking = false): ?string
     {
+        // Billed alone or through its school group, never both (school-groups.md).
+        $group = app(SchoolGroupBilling::class)->billedThroughGroup($draft, $locking);
+        if ($group !== null) {
+            return $group;
+        }
         if ($draft->blocked_reason !== null) {
             return (string) $draft->blocked_reason;
         }
@@ -508,7 +526,7 @@ class PlatformBilling
 
     private function issueDraft(PlatformInvoice $draft, User $actor): string
     {
-        $problem = $this->issueProblem($draft);
+        $problem = $this->issueProblem($draft, true);
         if ($problem !== null) {
             throw ValidationException::withMessages(['invoice' => $problem]);
         }
@@ -532,7 +550,7 @@ class PlatformBilling
      * The next reference of the year, NE-2026-0001, under a row lock on the
      * year's counter: issued references never repeat or skip.
      */
-    private function nextReference(int $year): string
+    public function nextReference(int $year): string
     {
         $name = 'platform_invoice_reference:'.$year;
         DB::table('platform_counters')->insertOrIgnore(['name' => $name, 'value' => 0]);
@@ -547,15 +565,18 @@ class PlatformBilling
         $invoice = PlatformInvoice::query()->whereKey($invoiceId)->lockForUpdate()->first();
         abort_if($invoice === null, 404);
         if (! $invoice->isDraft()) {
-            throw ValidationException::withMessages(['invoice' => $invoice->isIssued()
-                ? __('An issued invoice never changes. Issue a credit note to correct it.')
-                : __('This draft was discarded.')]);
+            throw ValidationException::withMessages(['invoice' => match (true) {
+                $invoice->isIssued() => __('An issued invoice never changes. Issue a credit note to correct it.'),
+                $invoice->status === PlatformInvoice::GROUPED => __('This month was billed through the school\'s group. The group invoice never changes.'),
+                default => __('This draft was discarded.'),
+            }]);
         }
 
         return $invoice;
     }
 
-    private function period(string $value): CarbonImmutable
+    /** A month a run or a group draft may bill: from MONTHS_BACK months back to next month. */
+    public function period(string $value): CarbonImmutable
     {
         $period = CarbonImmutable::createFromFormat('!Y-m-d', $value.'-01', self::TIMEZONE);
         $thisMonth = CarbonImmutable::now(self::TIMEZONE)->startOfMonth();
