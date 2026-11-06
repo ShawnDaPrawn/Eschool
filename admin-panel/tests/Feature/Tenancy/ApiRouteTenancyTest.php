@@ -9,6 +9,7 @@ use App\Http\Middleware\CardEncoderContext;
 use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckStudent;
 use App\Http\Middleware\FoundationCredentialContext;
+use App\Http\Middleware\PoolMemberContext;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PublicReportingBoundary;
 use App\Models\Parents;
@@ -62,6 +63,7 @@ class ApiRouteTenancyTest extends TestCase
         'POST api/v2/wellbeing/public/{schoolSlug}/photos/download' => 'school-scoped code and photo authority in POST body, no public file URL',
         'POST api/v2/vendor/sign-in' => 'credentials and bound Vendor identity verified before selecting school',
         'POST api/v2/facilitator/sign-in' => 'credentials verified before a fresh eligible membership school is selected',
+        'POST api/v2/pool/sign-in' => 'credentials and the pool row of the named school verified before any session is issued',
         'GET api/v2/guardian/invitations/{token}' => 'private expiring invitation token, no unscoped list',
         'POST api/v2/guardian/invitations/{token}/accept' => 'one-use emailed token verifies the guardian mailbox',
         'POST api/student/login' => 'sign-in',
@@ -167,9 +169,26 @@ class ApiRouteTenancyTest extends TestCase
             return;
         }
 
+        if (in_array(PoolMemberContext::class, $route->middleware, true)) {
+            // The pool member profile (Action Plan 5.6): its own school-bound
+            // token, never school.context. Staff and family tokens are refused.
+            $this->assertContains($label, [
+                'GET api/v2/pool/session', 'GET api/v2/pool/bookings', 'GET api/v2/pool/bookings/{booking}/attendance',
+                'POST api/v2/pool/consent/withdraw', 'POST api/v2/pool/sign-out',
+            ], 'The pool member token must not escape its five isolated operations');
+            $this->assertContains(PrivateDomainResponse::class, $route->middleware);
+            $this->assertTrue($route->requiresAuthentication());
+            $this->assertFalse($this->hasMiddleware($route, ['school.context', 'school.context:optional']), 'Pool accounts have no membership; PoolMemberContext chooses the school');
+            $this->json($method, $route->path())->assertUnauthorized();
+            $this->asA('tara')->json($method, $route->path())->assertForbidden();
+            $this->asB('tara')->json($method, $route->path())->assertForbidden();
+
+            return;
+        }
+
         if (array_key_exists($label, self::PUBLIC)) {
             $this->assertFalse($route->requiresAuthentication(), "$label is on the public list but needs a token: take it off the list");
-            if (in_array($label, ['POST api/v2/facilitator/sign-in', 'POST api/v2/vendor/sign-in'], true)) {
+            if (in_array($label, ['POST api/v2/facilitator/sign-in', 'POST api/v2/vendor/sign-in', 'POST api/v2/pool/sign-in'], true)) {
                 // This credential entry point chooses school only after proof;
                 // its owned sign-in tests cover actual membership selection.
                 $this->assertContains('portal.sign-in', $route->middleware);
