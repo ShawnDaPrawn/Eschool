@@ -184,7 +184,8 @@ class HqAiControlsTest extends TestCase
         $this->assertSame(['enabled' => false], $first->before);
         // Ids, states and the reason only: the reason is the one free-text value.
         // MySQL may reorder JSON object keys; retain exact fields, values and types.
-        $expected = ['module' => 'tutor', 'features' => ['tutor'], 'enabled' => true, 'reason' => self::REASON, 'changed_by' => auth()->id()];
+        // The tutor module runs the tutor and its section-choosing embeddings (Action Plan 3.10).
+        $expected = ['module' => 'tutor', 'features' => ['tutor', 'tutor_retrieval'], 'enabled' => true, 'reason' => self::REASON, 'changed_by' => auth()->id()];
         $after = $first->after;
         ksort($expected);
         ksort($after);
