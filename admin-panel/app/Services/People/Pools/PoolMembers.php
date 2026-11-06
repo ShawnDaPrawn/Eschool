@@ -190,10 +190,17 @@ final class PoolMembers
         return ['items' => $rows->getCollection()->map(fn (PoolMember $member) => $this->present($member))->all(), 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'total' => $rows->total()];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * One pool member, for those who manage the pool or vet it: a vetter
+     * needs the current revision and history to record a decision, and the
+     * vetting answer is this same view, so it is never refused after the
+     * decision was saved.
+     *
+     * @return array<string, mixed>
+     */
     public function detail(User $actor, int $memberId): array
     {
-        $fresh = $this->access->manager($actor);
+        $fresh = $this->access->manager($actor, false, [PoolAccess::MANAGE, PoolAccess::VET]);
         $member = PoolMember::findOrFail($memberId);
         $notes = $this->access->mayVet($fresh);
 
@@ -216,6 +223,6 @@ final class PoolMembers
             'offers_career_talk' => $member->offers_career_talk, 'offers_job_shadow' => $member->offers_job_shadow,
             'consent_status' => $member->consent_status, 'consented_at' => $member->consented_at?->toIso8601String(), 'withdrawn_at' => $member->withdrawn_at?->toIso8601String(),
             'vetting_status' => $member->vetting_status, 'vetted_on' => $member->vetted_on?->toDateString(), 'vetting_expires_on' => $member->vetting_expires_on?->toDateString(),
-            'bookable_today' => $member->consent_status === PoolMember::GIVEN && $member->vettedOn($this->access->today()), 'revision' => $member->revision];
+            'bookable_today' => $member->consentCurrent() && $member->vettedOn($this->access->today()), 'revision' => $member->revision];
     }
 }

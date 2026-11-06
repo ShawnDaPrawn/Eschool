@@ -7,7 +7,7 @@ namespace App\Services\People\Pools;
 use App\Models\People\Pools\PoolMember;
 use Illuminate\Validation\ValidationException;
 
-/** The school's own pool: consented, vetted on the session date and today, and offering this kind of session. */
+/** The school's own pool: consented to the current wording, vetted on the session date and today, and offering this kind of session. */
 final class SchoolPoolPeople implements BookablePeople
 {
     public function __construct(private readonly PoolAccess $access) {}
@@ -15,7 +15,7 @@ final class SchoolPoolPeople implements BookablePeople
     public function bookable(int $memberId, string $kind, string $date): PoolMember
     {
         $member = PoolMember::lockForUpdate()->findOrFail($memberId);
-        if ($member->consent_status !== PoolMember::GIVEN) {
+        if (! $member->consentCurrent()) {
             throw ValidationException::withMessages(['pool_member_id' => __('pool_not_consented')]);
         }
         if (! $member->vettedOn($this->access->today()) || ! $member->vettedOn($date)) {

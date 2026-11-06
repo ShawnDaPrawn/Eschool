@@ -318,6 +318,49 @@ class PeoplePoolsTest extends TestCase
         $this->admin()->getJson('/api/v2/people-pool/members')->assertNotFound();
     }
 
+    public function test_a_vet_only_role_records_vetting_and_gets_its_answer(): void
+    {
+        [$member] = $this->consented();
+        $this->vet($member)->assertOk();
+        $booking = $this->book($member)->assertOk()->json('data.id');
+        $vetter = User::findOrFail($this->schoolA->ids['tara_user']);
+        $vetter->givePermissionTo(PoolAccess::VET);
+        // Vetting is not managing: no list, no invitations, no bookings.
+        $this->api($vetter)->getJson('/api/v2/people-pool/members')->assertForbidden();
+        $this->api($vetter)->postJson('/api/v2/people-pool/bookings', ['operation_id' => (string) Str::uuid(), 'pool_member_id' => $member->id, 'activity_session_id' => $this->session, 'kind' => 'career_talk'])->assertForbidden();
+        $revision = $this->api($vetter)->getJson('/api/v2/people-pool/members/'.$member->id)->assertOk()->assertJsonPath('data.vettings.0.note', 'Synthetic register checks')->json('data.revision');
+        // The decision and its answer use the same authority: the request that
+        // revokes (and cancels the booking) is never reported as refused.
+        $this->api($vetter)->postJson('/api/v2/people-pool/members/'.$member->id.'/vetting', ['operation_id' => (string) Str::uuid(), 'revision' => $revision, 'outcome' => 'revoked', 'checks' => [], 'checked_on' => '2026-02-09'])
+            ->assertOk()->assertJsonPath('data.vetting_status', 'revoked')->assertJsonPath('data.vettings.0.checked_by', (int) $vetter->id);
+        $this->assertSame('cancelled', PoolBooking::findOrFail($booking)->status);
+        $this->assertSame(2, PoolVetting::where('pool_member_id', $member->id)->count());
+        $this->assertSame(1, PoolBooking::count());
+    }
+
+    public function test_changed_consent_wording_must_be_accepted_again_before_booking(): void
+    {
+        [$member, $token] = $this->consented();
+        $this->vet($member)->assertOk();
+        $old = PoolAccess::consentVersion();
+        // Load the English lines, then change the consent wording.
+        trans('pool_consent_text', [], 'en');
+        app('translator')->addLines(['*.pool_consent_text' => 'Updated synthetic pool consent wording for this test.'], 'en');
+        $this->assertNotSame($old, PoolAccess::consentVersion());
+        $this->assertSame('given', $member->fresh()->consent_status);
+
+        $this->book($member)->assertUnprocessable()->assertJsonValidationErrors('pool_member_id', 'data.errors');
+        $this->assertSame(0, PoolBooking::count());
+        $this->admin()->getJson('/api/v2/people-pool/members/'.$member->id)->assertOk()->assertJsonPath('data.bookable_today', false);
+        $this->api(token: $token)->getJson('/api/v2/pool/bookings')->assertForbidden();
+
+        // The member reads and accepts the new wording; then they can be booked.
+        $this->signIn('vusi.volunteer@example.test', '', self::CHOSEN)->assertOk()->assertJsonPath('data.authenticated', true);
+        $this->assertSame(PoolAccess::consentVersion(), $member->fresh()->consent_version);
+        $this->admin()->getJson('/api/v2/people-pool/members/'.$member->id)->assertOk()->assertJsonPath('data.bookable_today', true);
+        $this->book($member)->assertOk()->assertJsonPath('data.status', 'booked');
+    }
+
     public function test_withdrawn_consent_removes_access_immediately(): void
     {
         [$member, $token] = $this->consented();

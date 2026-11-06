@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\People\Pools;
 
+use App\Services\People\Pools\PoolAccess;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -48,6 +49,16 @@ class PoolMember extends Model
     {
         return ['offers_career_talk' => 'boolean', 'offers_job_shadow' => 'boolean', 'consented_at' => 'datetime', 'withdrawn_at' => 'datetime',
             'vetted_on' => 'date', 'vetting_expires_on' => 'date', 'revision' => 'integer'];
+    }
+
+    /**
+     * Consent given to the current wording. After the consent text changes,
+     * an earlier consent no longer counts: the person signs in and accepts
+     * again before they can be booked or use the pool.
+     */
+    public function consentCurrent(): bool
+    {
+        return $this->consent_status === self::GIVEN && hash_equals(PoolAccess::consentVersion(), (string) $this->consent_version);
     }
 
     /** Cleared by the school, and the clearance still runs on $date. */

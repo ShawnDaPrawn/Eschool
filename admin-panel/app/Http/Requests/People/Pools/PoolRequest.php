@@ -22,7 +22,12 @@ class PoolRequest extends FormRequest
     public function authorize(): bool
     {
         $action = $this->action();
-        app(PoolAccess::class)->manager($this->user(), in_array($action, ['invite', 'vet', 'book', 'cancel'], true), $action === 'vet' ? PoolAccess::VET : PoolAccess::MANAGE);
+        $permission = match ($action) {
+            'vet' => PoolAccess::VET,
+            'detail' => [PoolAccess::MANAGE, PoolAccess::VET],
+            default => PoolAccess::MANAGE,
+        };
+        app(PoolAccess::class)->manager($this->user(), in_array($action, ['invite', 'vet', 'book', 'cancel'], true), $permission);
 
         return true;
     }

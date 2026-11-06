@@ -57,7 +57,7 @@ final class PoolSignIn
                     'text' => $key === 'navigateed' ? $document['body'] : $this->text($document['privacy_policy']."\n\n".$document['terms'])];
             }
         }
-        if ($member->consent_status !== PoolMember::GIVEN || ! hash_equals(PoolAccess::consentVersion(), (string) $member->consent_version)) {
+        if (! $member->consentCurrent()) {
             $documents[] = ['document' => self::CONSENT, 'version' => PoolAccess::consentVersion(), 'title' => (string) __('pool_consent_title'), 'text' => PoolAccess::consentText()];
         }
 

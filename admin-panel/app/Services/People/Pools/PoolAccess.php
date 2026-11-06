@@ -46,7 +46,8 @@ final class PoolAccess
         return now(app(CurrentSchool::class)->school()?->timezone ?? 'Africa/Johannesburg')->toDateString();
     }
 
-    public function manager(User $actor, bool $write = false, string $permission = self::MANAGE): User
+    /** @param  string|list<string>  $permission  one permission, or a list of which any one will do */
+    public function manager(User $actor, bool $write = false, string|array $permission = self::MANAGE): User
     {
         abort_unless(app(CurrentSchool::class)->school()?->isActive(), 404);
         app(ModuleGate::class)->forget();
@@ -55,7 +56,11 @@ final class PoolAccess
         $fresh = $policy->actor($actor);
         app(ApprovalService::class)->assertAccess($fresh);
         abort_if(array_diff($policy->roles($fresh), ['Parent', 'Student']) === [], 403);
-        abort_unless($policy->permission($fresh, $permission), 403);
+        $held = false;
+        foreach ((array) $permission as $one) {
+            $held = $held || $policy->permission($fresh, $one);
+        }
+        abort_unless($held, 403);
 
         return $fresh;
     }
@@ -115,7 +120,7 @@ final class PoolAccess
         $fresh = User::acrossSchools()->whereKey($user->id)->where('status', 1)->firstOrFail();
         abort_if(DB::table('platform_staff_identities')->where('user_id', $fresh->id)->where('active', true)->exists(), 403);
         $member = PoolMember::where('user_id', $fresh->id)->first();
-        abort_unless($member !== null && $member->consent_status === PoolMember::GIVEN && hash_equals(self::consentVersion(), (string) $member->consent_version), 403, __('pool_consent_needed'));
+        abort_unless($member !== null && $member->consentCurrent(), 403, __('pool_consent_needed'));
         abort_if($fresh->password_change_required || app(ParentPolicyService::class)->needsAcceptance($fresh), 403, __('pool_setup_needed'));
 
         return $member;
