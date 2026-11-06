@@ -68,6 +68,7 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Leadership\MasteryImpactController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Learning\ExamMemoPanelController;
+use App\Http\Controllers\Panel\Learning\PracticeTestPanelController;
 use App\Http\Controllers\Panel\Learning\QuestionBankController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
@@ -681,6 +682,14 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('items/{item}', [$c, 'update'])->whereNumber('item')->middleware('throttle:60,1')->name('update');
             Route::post('items/{item}/use', [$c, 'use'])->whereNumber('item')->middleware('throttle:60,1')->name('use');
             Route::post('items/{item}/stop', [$c, 'stop'])->whereNumber('item')->middleware('throttle:60,1')->name('stop');
+        });
+        // Cycle tests teachers set for their groups (Action Plan 3.17).
+        Route::prefix('practice-tests')->name('practice-tests.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
+            $c = PracticeTestPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('groups/{group}', [$c, 'create'])->whereNumber('group')->middleware('throttle:30,1')->name('create');
+            Route::get('groups/{group}/tests/{blueprint}', [$c, 'show'])->whereNumber(['group', 'blueprint'])->name('show');
+            Route::post('groups/{group}/tests/{blueprint}/withdraw', [$c, 'withdraw'])->whereNumber(['group', 'blueprint'])->middleware('throttle:30,1')->name('withdraw');
         });
         Route::prefix('fee-items')->name('fee-items.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             Route::get('{item}/rules', [FeeItemRulePanelController::class, 'form'])->whereNumber('item')->name('rules');
