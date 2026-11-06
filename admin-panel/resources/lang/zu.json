@@ -6852,5 +6852,18 @@
     "The current school year has ended.": "Unyaka wesikole wamanje usuphelile.",
     "This learner has no leaver access to end.": "Lo mfundi akanakho ukufinyelela kophumile okungaqedwa.",
     "The learner is back as a returning learner.": "Umfundi ubuyile njengomfundi obuyayo.",
-    "Leaver access ended today for the learner and any guardian with no other child here.": "Ukufinyelela kophumile kuphele namuhla kumfundi nakunoma yimuphi umgcini ongenayo enye ingane lapha."
+    "Leaver access ended today for the learner and any guardian with no other child here.": "Ukufinyelela kophumile kuphele namuhla kumfundi nakunoma yimuphi umgcini ongenayo enye ingane lapha.",
+    "Re-enrolment for next year": "Ukubhalisa kabusha konyaka ozayo",
+    "Open Re-enrolment to read and accept the contract for next year.": "Vula Ukubhalisa kabusha ukuze ufunde futhi wamukele inkontileka yonyaka ozayo.",
+    "Bursary application": "Isicelo somfundaze",
+    "Bursary application updates": "Izindaba ngezicelo zomfundaze",
+    "There is news about your bursary application. Open Bursaries to read it.": "Kunezindaba ngesicelo sakho somfundaze. Vula Imifundaze ukuze uzifunde.",
+    "Re-enrolment contracts for :year: :confirmed confirmed, :awaiting still waiting. This is for information; it does not change the promotion.": "Izinkontileka zokubhalisa kabusha ze-:year: :confirmed eziqinisekisiwe, :awaiting zisalindile. Lokhu kungokwazisa kuphela; akushintshi ukudluliselwa.",
+    "Re-enrolment confirmed": "Ukubhalisa kabusha kuqinisekisiwe",
+    "Re-enrolment awaited": "Ukubhalisa kabusha kusalindile",
+    "Re-enrolment contracts": "Izinkontileka zokubhalisa kabusha",
+    "Bursary applications": "Izicelo zomfundaze",
+    "Alumni giving": "Iminikelo yabafundi bakudala",
+    "Review bursary applications and decide awards": "Buyekeza izicelo zomfundaze futhi unqume imiklomelo",
+    "Record donations and see donor names": "Bhala iminikelo futhi ubone amagama abanikeli"
 }

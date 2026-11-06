@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-06
+
+- Independent schools can publish a versioned re-enrolment contract for next year. Guardians accept the exact wording online; the school sees who has not yet re-enrolled and can send reminders, and the promotion page shows which learners are confirmed (Action Plan 5.10).
+- Families can apply for a bursary with household details and supporting documents that only they and the school's bursary committee can see. The committee's award becomes a fee discount that Finance approves; private details are erased on a fixed schedule (Action Plan 5.10).
+- Finance can run alumni giving campaigns: pledges and EFT donations are recorded with numbered receipts on the school ledger, donor names stay with Finance, and a school may share campaign totals (Action Plan 5.10).
+- **Deploy:** run migrations and the installation seeder (new permissions); the new daily `bursaries:prune` job runs from the scheduler.
+
 ## 2026-11-03
 
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
