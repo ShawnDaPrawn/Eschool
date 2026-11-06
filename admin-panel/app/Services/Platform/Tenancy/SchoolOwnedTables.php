@@ -57,6 +57,7 @@ final class SchoolOwnedTables
         'career_profiles', 'career_profile_versions',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'diary_entries', 'diary_item_states',
+        'strengths_mirror_shares',
         'early_years_development_areas', 'early_years_diary_entries', 'early_years_observations', 'early_years_concerns',
         'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
         'past_papers', 'past_paper_versions', 'past_paper_memos', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
