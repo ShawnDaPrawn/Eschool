@@ -4,24 +4,30 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Models\People\Enrolment;
 use App\Models\Platform\AuditLog;
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformInvoice;
 use App\Models\Platform\PlatformStaffIdentity;
+use App\Models\Platform\School;
 use App\Models\Platform\SchoolGroup;
 use App\Models\Platform\SchoolGroupAdmin;
 use App\Models\Platform\SchoolGroupInvoice;
 use App\Models\Platform\SchoolGroupInvoiceLine;
 use App\Models\Platform\SchoolGroupMember;
 use App\Models\Platform\SchoolGroupPayment;
+use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Services\Leadership\LeadershipDashboard;
 use App\Services\Platform\Groups\SchoolGroupAccess;
 use App\Services\Platform\Groups\SchoolGroupBilling;
 use App\Services\Platform\Groups\SchoolGroupDashboard;
 use App\Services\Platform\Groups\SchoolGroups;
 use App\Services\Platform\Groups\SmallNumbers;
 use App\Services\Platform\Saas\PlatformBilling;
+use App\Services\Platform\Saas\PlatformBillingAccounts;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -508,6 +514,81 @@ class SchoolGroupsTest extends TestCase
         app(SchoolGroupBilling::class)->recompute($finance, $group->id, $draft->id);
         app(SchoolGroupBilling::class)->issue($finance, $group->id, $draft->id);
         $this->assertSame(PlatformInvoice::GROUPED, $own->refresh()->status);
+    }
+
+    public function test_attendance_is_hidden_by_the_learners_whose_records_are_counted_not_by_the_enrolment(): void
+    {
+        config(['school_groups.min_count' => 2]);
+        $ops = $this->staff('operations');
+        $group = $this->group($ops);
+        $year = $this->schoolA->ids['session_year'];
+        $grade = (int) DB::table('grade_levels')->where('code', '5')->value('id');
+        app(CurrentSchool::class)->run(1, function () use ($year, $grade): void {
+            DB::table('classes')->whereIn('id', [$this->schoolA->ids['class_a'], $this->schoolA->ids['class_c']])->update(['grade_level_id' => $grade]);
+            // Three learners enrolled; only Asha's legacy register rows match her enrolment (Ben's rows are for a homeroom he is not enrolled in).
+            foreach (['asha' => 'section_a', 'ben' => 'section_c', 'cara' => 'section_c'] as $learner => $section) {
+                Enrolment::query()->create(['learner_id' => $this->schoolA->ids[$learner], 'session_year_id' => $year, 'class_section_id' => $this->schoolA->ids[$section],
+                    'starts_on' => now('Africa/Johannesburg')->subDays(60)->toDateString(), 'ends_on' => null, 'legacy_dates' => false]);
+            }
+        });
+        // One learner's rate is never shown, though three are enrolled.
+        $attendance = app(SchoolGroupDashboard::class)->read($group->id)['schools'][0]['attendance'];
+        $this->assertSame(['percent_bp' => null, 'hidden' => true], ['percent_bp' => $attendance['percent_bp'], 'hidden' => $attendance['hidden']]);
+        $totals = app(CurrentSchool::class)->run(1, fn () => app(LeadershipDashboard::class)->attendanceTotals($year, now('Africa/Johannesburg')->subDays(27)->toDateString(), now('Africa/Johannesburg')->toDateString()));
+        $this->assertSame(1, $totals['learners']);
+        $this->assertGreaterThan(0, $totals['recorded_days']);
+    }
+
+    public function test_the_billing_summary_counts_group_invoices_and_payments_once(): void
+    {
+        $ops = $this->staff('operations');
+        $finance = $this->staff('finance');
+        // A third school, with one learner, so that one school is billed alone and two through the group.
+        School::query()->forceCreate(['id' => 3, 'name' => 'Synthetic Third School', 'slug' => 'synthetic-third', 'timezone' => 'Africa/Johannesburg']);
+        app(SchoolRoles::class)->seed(3);
+        $learner = $this->person('Thandi');
+        SchoolMembership::query()->create(['user_id' => $learner->id, 'school_id' => 3, 'role' => SchoolRoles::STUDENT, 'status' => SchoolMembership::ACTIVE]);
+        $groups = app(SchoolGroups::class);
+        $group = $groups->create($ops, ['name' => 'Synthetic Schools Trust']);
+        $this->schoolBAdmin();
+        foreach ([2, 3] as $school) {
+            $member = $groups->invite($ops, $group->id, ['school_id' => $school]);
+            $admin = $school === 2 ? User::query()->withoutGlobalScopes()->where('email', 'baobab-principal@groups.example')->sole() : $this->thirdAdmin();
+            app(CurrentSchool::class)->run($school, fn () => $groups->agree($admin, $member->id));
+            $groups->setBilling($finance, $group->id, $member->id, ['billing' => 'group']);
+        }
+        $this->price(5000);
+        $billing = app(PlatformBilling::class);
+        $billing->run(['period' => $this->month()], $finance);
+        $billing->issueMonth(['period' => $this->month()], $finance);
+        $invoice = app(SchoolGroupBilling::class)->compose($finance, $group->id, ['period' => $this->month()]);
+        app(SchoolGroupBilling::class)->issue($finance, $group->id, $invoice->id);
+        $invoice->refresh();
+        $alone = $this->ownInvoice(1);
+        $this->assertSame([PlatformInvoice::ISSUED, PlatformInvoice::GROUPED, PlatformInvoice::GROUPED], [$alone->status, $this->ownInvoice(2)->status, $this->ownInvoice(3)->status]);
+        app(SchoolGroupBilling::class)->recordPayment($finance, $group->id, $invoice->id, ['amount' => '50.00', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'SYN-TRUST-PAY']);
+        $this->signInAs($finance)->post('/saas/billing/schools/1/payments', ['amount' => '20.00', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'SYN-SCHOOL-PAY'])->assertSessionHasNoErrors();
+
+        $summary = app(PlatformBillingAccounts::class)->overview($this->month())['summary'];
+        // The grouped school snapshots are not counted again: only the school billed alone and the group invoice.
+        $this->assertSame($alone->total_cents + $invoice->total_cents, $summary['invoiced_cents']);
+        $this->assertSame($alone->subtotal_cents + $invoice->subtotal_cents, $summary['mrr_cents']);
+        $this->assertSame(2000 + 5000, $summary['collected_cents']);
+        $this->assertSame(3, $summary['schools_invoiced']);
+        $this->assertSame(1, $summary['group_invoices']);
+        // A reversed group payment no longer counts as collected.
+        app(SchoolGroupBilling::class)->reversePayment($finance, $group->id, $invoice->id, SchoolGroupPayment::query()->sole()->id, ['reason' => 'Synthetic wrong account']);
+        $this->assertSame(2000, app(PlatformBillingAccounts::class)->overview($this->month())['summary']['collected_cents']);
+        $this->get('/saas/billing?month='.$this->month())->assertOk()->assertSee('Includes 1 school group invoice');
+    }
+
+    private function thirdAdmin(): User
+    {
+        $user = app(CurrentSchool::class)->acrossSchools(fn () => User::query()->create(['first_name' => 'Third', 'last_name' => 'Principal', 'email' => 'third-principal@groups.example',
+            'mobile' => '', 'password' => 'Synthetic-groups-password-482!', 'status' => 1]));
+        app(CurrentSchool::class)->run(3, fn () => $user->assignRole('Super Admin'));
+
+        return $user;
     }
 
     public function test_hq_pages_use_two_factor_and_show_counts_only(): void

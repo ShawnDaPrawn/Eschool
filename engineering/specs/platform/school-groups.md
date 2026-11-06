@@ -43,7 +43,7 @@ A private school group owns several schools and buys NavigateEd for all of them 
 - **Small-number suppression** (`SmallNumbers`, k = `config('school_groups.min_count')`, 10 by default):
   - a count of people from 1 to k − 1 shows as "Fewer than k"; 0 and k or more are shown;
   - a share is hidden, with its count, when its base is under k, or when the people it counts or the people it leaves out number 1 to k − 1 (so "all but three" is hidden as well as "three");
-  - attendance is hidden when the learners it covers are under k;
+  - attendance is hidden when fewer than k distinct learners have counted records behind it (an eligible, non-holiday day in their own homeroom), however many are enrolled;
   - a group total is hidden when any school's figure for that measure is hidden, so a hidden figure cannot be worked out by subtraction.
 - No page lists or names a learner, guardian or staff member, and the pages link to no record.
 
@@ -67,6 +67,7 @@ A private school group owns several schools and buys NavigateEd for all of them 
   3. Issuing the group invoice locks each school's own draft. It checks that the draft is unchanged since it was copied and that the membership still says "through the group". It then sets the school's draft to the new status `grouped`. A grouped invoice is frozen like an issued one (the existing model guard and database trigger refuse any change to a non-draft invoice). It is never issued alone, and its month slot stays taken, so no second invoice is ever made for that school and month.
   4. When a school leaves or is removed, its claims on group drafts are released and those drafts' totals worked out again. Its own draft can then be billed alone. A claim on an issued group invoice stays: that month is billed.
   5. Discarding a group draft releases its claims.
+- **The billing summary** (`/saas/billing`, per month) counts each issued group invoice in invoiced revenue, monthly recurring revenue and the number of schools invoiced (its schools). It counts the group's EFT payments that stand in what was collected. The grouped school months are never issued, so they are not counted a second time. The page says how many group invoices the figures include. Overdue amounts are still school invoices only.
 - **Immutability below the models:** database triggers (migration `2026_11_08_100000`, MySQL and MariaDB) refuse three things:
   - any change to an issued or discarded group invoice, or its deletion;
   - any change to the lines or claims of a group invoice that is not a draft;
@@ -140,6 +141,8 @@ Group administrators (`auth`, no `school.context`): `GET /group` (their groups; 
 | `test_small_numbers_are_hidden_per_school_and_in_the_groups_totals` | the suppression rules, secondary suppression of totals, and HQ seeing the same |
 | `test_a_group_invoice_rolls_up_the_schools_lines_and_no_month_is_billed_twice` | roll-up totals; schools not issued alone; the grouped status; reruns change nothing; immutability in the models and the database; payments and their reversal |
 | `test_a_school_billed_alone_or_leaving_is_never_on_the_group_invoice_as_well` | a month issued alone stays off the group invoice; leaving releases the claim; a changed school draft needs a recompute before issue |
+| `test_attendance_is_hidden_by_the_learners_whose_records_are_counted_not_by_the_enrolment` | three learners are enrolled but only one has counted records: the rate is hidden at k = 2 |
+| `test_the_billing_summary_counts_group_invoices_and_payments_once` | one school is billed alone and two through a group: invoiced, monthly recurring revenue, collected and schools invoiced count the school invoice and the group invoice once each, and a reversed group payment drops out |
 | `test_hq_pages_use_two_factor_and_show_counts_only` | the HQ pages need two-factor (`PassesPlatformTwoFactor`) and show no person |
 
 `Platform/SaasPanelTest` counts 139 `/saas` routes, each naming its ability. `Tenancy/SchoolOwnedTablesTest` checks the new tables' places.
