@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
+use App\Http\Controllers\Api\V2\Activities\FixtureController;
 use App\Http\Controllers\Api\V2\Activities\GroupChatController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
@@ -252,6 +253,27 @@ Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role
         Route::put('groups/{group}/'.$path.'/{'.$parameter.'}', [$c, $method])->whereNumber('group')->whereNumber($parameter)->name($path.'.update.'.$action);
     }
     Route::put('sessions/{session}/attendance', [$c, 'attendance'])->whereNumber('session')->name('attendance-save');
+});
+
+// Fixtures and competitions between schools (Action Plan 5.1, 5.2): shared
+// records; each school sees its own side and, once both accepted, what the
+// other chose to share.
+Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.fixtures.')->group(function () {
+    $c = FixtureController::class;
+    Route::get('fixtures', [$c, 'index'])->name('index');
+    Route::post('fixtures', [$c, 'create'])->name('create');
+    Route::get('fixture-schools', [$c, 'schools'])->name('schools');
+    Route::get('fixtures/learners/{learner}', [$c, 'learner'])->whereNumber('learner')->name('learner');
+    Route::get('fixtures/{fixture}', [$c, 'show'])->whereNumber('fixture')->name('show');
+    Route::put('fixtures/{fixture}', [$c, 'schedule'])->whereNumber('fixture')->name('schedule');
+    Route::post('fixtures/{fixture}/decision', [$c, 'decision'])->whereNumber('fixture')->name('decision');
+    Route::put('fixtures/{fixture}/side', [$c, 'side'])->whereNumber('fixture')->name('side');
+    Route::post('fixtures/{fixture}/result', [$c, 'result'])->whereNumber('fixture')->name('result');
+    Route::get('competitions', [$c, 'competitions'])->name('competitions');
+    Route::post('competitions', [$c, 'competitionCreate'])->name('competition-create');
+    Route::get('competitions/{competition}', [$c, 'competition'])->whereNumber('competition')->name('competition-show');
+    Route::post('competitions/{competition}/invitations', [$c, 'competitionInvite'])->whereNumber('competition')->name('competition-invite');
+    Route::post('competitions/{competition}/decision', [$c, 'competitionDecision'])->whereNumber('competition')->name('competition-decision');
 });
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
