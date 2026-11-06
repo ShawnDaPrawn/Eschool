@@ -24,6 +24,8 @@ final class SchoolOwnedTables
         'library_school_settings',
         'reading_hidden_items', 'reading_settings', 'reading_progress', 'reading_days', 'reading_answers',
         'school_messaging_settings',
+        // Each person's verified number and own SMS and WhatsApp choice at one school (Action Plan 2.7).
+        'messaging_numbers', 'messaging_choices',
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
