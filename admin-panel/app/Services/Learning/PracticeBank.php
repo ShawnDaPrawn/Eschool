@@ -20,7 +20,7 @@ class PracticeBank
         $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'expected_revision' => ['required', 'integer', 'min:0'],
             'topic_id' => ['required', 'integer', 'min:1'], 'content_version_id' => ['required', 'integer', 'min:1'],
             'estimated_seconds' => ['required', 'integer', 'between:60,300'], 'definition' => ['required', 'array'], 'active' => ['required', 'boolean']])->validate();
-        $data['definition'] = app(PracticeAnswers::class)->definition($data['definition']);
+        $data['definition'] = app(PracticeAnswers::class)->definition(app(PracticeMedia::class)->withSchoolDiagram($data['definition']));
         $authorize = function () use ($actor, $groupId, $data) {
             $group = app(PracticeAccess::class)->staff($actor, $groupId, true);
             app(PracticeAccess::class)->topic($group, $data['topic_id'], true);
@@ -50,14 +50,16 @@ class PracticeBank
         });
     }
 
-    public function catalogue(User $actor, int $groupId, int $page = 1): array
+    /** A legacy client (PracticeContract) reads choice and number questions only, as before 3.11. */
+    public function catalogue(User $actor, int $groupId, int $page = 1, int $contract = PracticeContract::ANSWER_FREE): array
     {
         app(PracticeAccess::class)->staff($actor, $groupId);
         $items = PracticeItem::usedIn($groupId)->orderByDesc('id')->paginate(25, ['id', 'topic_id', 'revision', 'active'], 'page', $page);
         $versions = PracticeItemVersion::whereIn('id', PracticeItemVersion::selectRaw('MAX(id)')->whereIn('practice_item_id', $items->pluck('id'))->groupBy('practice_item_id'))->get()->keyBy('practice_item_id');
         $result = $items->map(fn ($item) => ['id' => (int) $item->id, 'topic_id' => (int) $item->topic_id, 'revision' => (int) $item->revision, 'active' => $item->active,
             'content_version_id' => (int) $versions[$item->id]->content_version_id, 'estimated_seconds' => (int) $versions[$item->id]->estimated_seconds,
-            'definition' => $versions[$item->id]->definition])->all();
+            'definition' => $versions[$item->id]->definition])
+            ->filter(fn ($row) => in_array($row['definition']['kind'] ?? null, app(PracticeContract::class)->kinds($contract), true))->values()->all();
         app(PracticeAccess::class)->staff($actor, $groupId);
 
         return ['items' => $result, 'page' => $items->currentPage(), 'last_page' => $items->lastPage()];

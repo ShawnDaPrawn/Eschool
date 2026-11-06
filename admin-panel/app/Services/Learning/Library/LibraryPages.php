@@ -149,8 +149,9 @@ class LibraryPages
         if (isset($content['definition'])) {
             $d = $content['definition'];
 
-            return ['type' => 'question', 'prompt' => $d['prompt'], 'options' => $d['options'], 'answers' => $d['answers'], 'explanation' => $d['explanation'],
-                'seconds' => $version->estimated_seconds, 'paper' => $content['paper'] ?? null];
+            return ['type' => 'question', 'kind_label' => __(LibraryContent::QUESTION_KINDS[$d['kind']] ?? $d['kind']), 'prompt' => $d['prompt'], 'options' => $d['options'], 'answers' => $d['answers'],
+                'explanation' => $d['explanation'], 'seconds' => $version->estimated_seconds, 'paper' => $content['paper'] ?? null, 'steps' => $d['steps'] ?? [],
+                'diagram' => $d['diagram'] ?? null, 'regions' => $d['regions'] ?? [], 'labels' => $d['labels'] ?? [], 'mapping' => $d['mapping'] ?? [], 'max_seconds' => $d['max_seconds'] ?? null];
         }
         if (isset($content['body'])) {
             return ['type' => 'lesson', 'body' => $content['body']];
