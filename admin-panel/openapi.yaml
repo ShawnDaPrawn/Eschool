@@ -210,6 +210,8 @@ tags:
   description: School-reviewed licensed papers and private exam study plans.
 - name: FamilyVisits
   description: Private parent meeting bookings and staff-approved online early collection.
+- name: LearnerPassport
+  description: A learner's read-only passport across the schools they attended, and their own download from 18.
 - name: Pathways
   description: School-reviewed sources, Grade 9 subject choices and private projected admission scores.
 - name: SchoolAssistance
@@ -25587,6 +25589,117 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GroupChatReadChange'
+  /passport/me:
+    get:
+      operationId: getMyLearnerPassport
+      tags:
+      - LearnerPassport
+      summary: getMyLearnerPassport
+      description: The signed-in, approved learner's own passport across every NavigateEd school they attended, headed by their
+        LURITS number. Awards, activity groups and verified peer tutoring service minutes from each school, results that arrived
+        in a signed transfer package, and an empty reading section until the reading library is in use. Health, counselling,
+        wellbeing, discipline, support plans, safeguarding, house points, private reasons, transfer documents and the date of
+        birth are never included. Read-only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's own passport.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerPassportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /passport/me/export:
+    get:
+      operationId: exportMyLearnerPassport
+      tags:
+      - LearnerPassport
+      summary: exportMyLearnerPassport
+      description: The learner themself downloads their passport as JSON or PDF, only from their 18th birthday by the school's
+        calendar. Before then, and for guardians and staff, it is refused (403) without saying why beyond the age rule; the date
+        of birth is never returned. Each download is audited with its format only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - json
+          - pdf
+          default: json
+      responses:
+        '200':
+          description: The learner's passport file.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerPassportExport'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /passport/learners/{learner}:
+    get:
+      operationId: getLearnerPassport
+      tags:
+      - LearnerPassport
+      summary: getLearnerPassport
+      description: A learner's passport by this school's learner id (never by LURITS number). The learner and a guardian whose
+        active link may approve see every NavigateEd school the learner attended. Staff with profile permission see only what
+        this school holds and what arrived in a signed transfer package addressed to it; nothing is read live from another
+        school. Another learner or guardian, and another school's learner, get 404; staff without profile permission get 403.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The learner's passport, as this caller may see it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerPassportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /peer-tutoring/configuration:
     get:
       operationId: getPeerConfiguration
@@ -59291,6 +59404,335 @@ components:
           maxItems: 50
           items:
             $ref: '#/components/schemas/PathwayReleasedEvidence'
+    LearnerPassportResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/LearnerPassport'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    LearnerPassportExport:
+      type: object
+      additionalProperties: false
+      required:
+      - format
+      - generated_at
+      - passport
+      properties:
+        format:
+          type: string
+          enum:
+          - navigateed-learner-passport-v1
+        generated_at:
+          type: string
+          format: date-time
+        passport:
+          type: object
+          additionalProperties: false
+          required:
+          - learner
+          - scope
+          - schools
+          - transfers
+          - reading
+          properties:
+            learner:
+              $ref: '#/components/schemas/LearnerPassportLearner'
+            scope:
+              type: string
+              enum:
+              - all_schools
+            schools:
+              type: array
+              items:
+                $ref: '#/components/schemas/LearnerPassportSchool'
+            transfers:
+              type: array
+              items:
+                $ref: '#/components/schemas/LearnerPassportTransfer'
+            reading:
+              $ref: '#/components/schemas/LearnerPassportReading'
+    LearnerPassport:
+      type: object
+      additionalProperties: false
+      description: A read-only learner passport (Action Plan 4.10). `scope` is `all_schools` for the learner and their approving
+        guardians, `this_school` for staff. `export` is present only for the learner themself.
+      required:
+      - learner
+      - viewer
+      - scope
+      - schools
+      - transfers
+      - reading
+      - export
+      properties:
+        learner:
+          $ref: '#/components/schemas/LearnerPassportLearner'
+        viewer:
+          type: string
+          enum:
+          - learner
+          - guardian
+          - staff
+        scope:
+          type: string
+          enum:
+          - all_schools
+          - this_school
+        schools:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerPassportSchool'
+        transfers:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerPassportTransfer'
+        reading:
+          $ref: '#/components/schemas/LearnerPassportReading'
+        export:
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPassportExportAvailability'
+          - type: 'null'
+    LearnerPassportLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - primary_identifier
+      properties:
+        name:
+          type: string
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
+    LearnerPassportSchool:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - current
+      - attended_from
+      - attended_to
+      - awards
+      - activities
+      - service
+      properties:
+        name:
+          type: string
+        current:
+          type: boolean
+          description: The school the caller is signed in at.
+        attended_from:
+          type: [string, 'null']
+          format: date
+        attended_to:
+          type: [string, 'null']
+          format: date
+          description: Null while the learner still attends.
+        awards:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerPassportAward'
+        activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerPassportActivity'
+        service:
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPassportService'
+          - type: 'null'
+    LearnerPassportAward:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - criteria
+      - presented_on
+      - event
+      - outside_organisation
+      - kind
+      properties:
+        title:
+          type: string
+        criteria:
+          type: string
+        presented_on:
+          type: string
+          format: date
+        event:
+          type: [string, 'null']
+        outside_organisation:
+          type: [string, 'null']
+        kind:
+          type: string
+          enum:
+          - catalogue
+          - outside
+          - badge
+    LearnerPassportActivity:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - discipline
+      - season
+      - school_year
+      - role
+      - starts_on
+      - ends_on
+      properties:
+        name:
+          type: string
+        discipline:
+          type: string
+        season:
+          type: string
+        school_year:
+          type: [string, 'null']
+        role:
+          type: string
+          enum:
+          - member
+          - captain
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+    LearnerPassportService:
+      type: object
+      additionalProperties: false
+      description: Verified supervised peer tutoring, net of corrections.
+      required:
+      - minutes
+      - sessions
+      properties:
+        minutes:
+          type: integer
+          minimum: 0
+        sessions:
+          type: integer
+          minimum: 0
+    LearnerPassportTransfer:
+      type: object
+      additionalProperties: false
+      description: Results frozen in a signed transfer package the school received, after its signature was checked.
+      required:
+      - from_school_name
+      - to_school_name
+      - last_attended_on
+      - starts_on
+      - reports
+      - results
+      properties:
+        from_school_name:
+          type: string
+        to_school_name:
+          type: string
+        last_attended_on:
+          type: string
+          format: date
+        starts_on:
+          type: string
+          format: date
+        reports:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - year_name
+            - term_name
+            properties:
+              year_name:
+                type: string
+              term_name:
+                type: string
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - subject_name
+            - mode
+            - percentage_bp
+            - rating_level
+            - released_on
+            properties:
+              subject_name:
+                type: string
+              mode:
+                type: string
+                enum:
+                - official
+                - running
+              percentage_bp:
+                type: [integer, 'null']
+                description: Percentage in basis points (7250 is 72.50%).
+              rating_level:
+                type: [integer, 'null']
+              released_on:
+                type: [string, 'null']
+                format: date
+    LearnerPassportReading:
+      type: object
+      additionalProperties: false
+      description: Empty, with `available` false, until the reading library is in use.
+      required:
+      - available
+      - items
+      properties:
+        available:
+          type: boolean
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - title
+            properties:
+              title:
+                type: string
+              author:
+                type: [string, 'null']
+              finished_on:
+                type: [string, 'null']
+                format: date
+    LearnerPassportExportAvailability:
+      type: object
+      additionalProperties: false
+      description: Whether the learner may download their passport today (from their 18th birthday).
+      required:
+      - available
+      - formats
+      properties:
+        available:
+          type: boolean
+        formats:
+          type: array
+          items:
+            type: string
+            enum:
+            - json
+            - pdf
     PathwayConfigurationResponse:
       type: object
       additionalProperties: false

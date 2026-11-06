@@ -61,6 +61,8 @@ return [
                             'keywords' => ['bulk upload', 'excel', 'csv', 'import students']],
                         ['key' => 'lurits-numbers', 'label' => 'nav_lurits_numbers', 'route' => 'lurits-office.index', 'permissions' => ['student-edit'], 'module' => null,
                             'keywords' => ['lurits', 'learner number', 'sa-sams', 'dbe', 'missing numbers']],
+                        ['key' => 'learner-passports', 'label' => 'Learner passports', 'route' => 'passport-panel.index', 'permissions' => [], 'passport_actor' => true, 'module' => 'passport',
+                            'active' => ['passport-panel.*'], 'keywords' => ['passport', 'record of achievement', 'awards', 'service hours', 'activities', 'transfer results']],
                         ['key' => 'school-imports', 'label' => 'nav_school_imports', 'route' => 'school-imports.index', 'permissions' => ['student-create', 'class-create', 'staff-create'], 'module' => null,
                             'active' => ['school-imports.index', 'school-imports.check', 'school-imports.store'],
                             'keywords' => ['onboarding', 'sa-sams', 'sasams', 'csv', 'import homerooms', 'import guardians', 'lurits', 'set up the school']],

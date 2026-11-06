@@ -25,6 +25,7 @@ use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Leadership\MasteryImpact;
 use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Learning\ExamCoachAccess;
+use App\Services\Passport\PassportAuthority;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Pathways\CareerGuidance;
@@ -190,6 +191,9 @@ class Navigation
             return false;
         }
         if (($item['card_actor'] ?? false) && ! app(CardPanelScope::class)->available($user, (bool) ($item['card_readers'] ?? false))) {
+            return false;
+        }
+        if (($item['passport_actor'] ?? false) && ! app(PassportAuthority::class)->available($user)) {
             return false;
         }
         if (($item['pathway_manager'] ?? false) && ! app(PathwayPanelScope::class)->available($user)) {
