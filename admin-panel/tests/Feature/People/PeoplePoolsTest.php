@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\People;
 
+use App\Models\Activities\ActivityGroup;
 use App\Models\Activities\ActivityMembership;
+use App\Models\Activities\ActivitySession;
 use App\Models\People\Enrolment;
 use App\Models\People\Pools\PoolBooking;
 use App\Models\People\Pools\PoolMember;
@@ -17,7 +19,6 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Activities\ActivityGroups;
 use App\Services\People\Pools\PoolAccess;
-use App\Services\People\Pools\PoolMembers;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -202,6 +203,8 @@ class PeoplePoolsTest extends TestCase
     {
         [$member, $token] = $this->consented();
         $this->book($member)->assertUnprocessable()->assertJsonValidationErrors('pool_member_id', 'data.errors');
+        $this->vet($member, ['outcome' => 'refused', 'expires_on' => null, 'checks' => ['identity']])->assertOk()->assertJsonPath('data.vetting_status', 'refused');
+        $this->book($member)->assertUnprocessable()->assertJsonValidationErrors('pool_member_id', 'data.errors');
         // Clearing needs every required check.
         $this->vet($member, ['checks' => ['identity']])->assertUnprocessable()->assertJsonValidationErrors('checks', 'data.errors');
         // A clearance that ends before the session date does not cover it.
@@ -221,7 +224,7 @@ class PeoplePoolsTest extends TestCase
         PoolMember::whereKey($other->id)->update(['vetting_expires_on' => '2026-02-11']);
         $this->travelTo(now()->setDate(2026, 2, 12)->setTime(8, 0));
         $this->api(token: $otherToken)->getJson('/api/v2/pool/bookings/'.$otherBooking.'/attendance')->assertForbidden();
-        $this->assertSame(3, PoolVetting::where('pool_member_id', $member->id)->count());
+        $this->assertSame(4, PoolVetting::where('pool_member_id', $member->id)->count());
     }
 
     public function test_a_one_to_one_booking_is_refused(): void
@@ -249,7 +252,7 @@ class PeoplePoolsTest extends TestCase
         $asha = $this->schoolA->ids['asha'];
         foreach ([
             '/api/v2/me/context', '/api/v2/activities/groups', '/api/v2/activities/groups/'.$this->group.'/roster', '/api/v2/people-pool/members',
-            '/api/teacher/classes', '/api/student/subjects', '/api/parent/subjects?child_id='.$asha
+            '/api/teacher/classes', '/api/student/subjects', '/api/parent/subjects?child_id='.$asha,
         ] as $path) {
             $response = $this->api(token: $token)->getJson($path);
             $this->assertContains($response->status(), [401, 403, 404], $path.' answered '.$response->status());
@@ -284,7 +287,7 @@ class PeoplePoolsTest extends TestCase
         $this->api(token: $token)->withHeaders(['X-School-Id' => '2'])->getJson('/api/v2/pool/session')->assertForbidden();
         $this->signIn('vusi.volunteer@example.test', School::findOrFail(2)->slug, self::CHOSEN)->assertForbidden();
         // School A cannot book into School B's sessions.
-        $sessionB = app(CurrentSchool::class)->run(2, fn () => \App\Models\Activities\ActivitySession::create(['activity_group_id' => \App\Models\Activities\ActivityGroup::create(['session_year_id' => $this->schoolB->ids['session_year'], 'name' => 'Baobab careers', 'discipline' => 'Careers', 'season' => '2026', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31'])->id, 'on_date' => '2026-02-12', 'name' => 'Baobab talk', 'venue' => 'Hall'])->id);
+        $sessionB = app(CurrentSchool::class)->run(2, fn () => ActivitySession::create(['activity_group_id' => ActivityGroup::create(['session_year_id' => $this->schoolB->ids['session_year'], 'name' => 'Baobab careers', 'discipline' => 'Careers', 'season' => '2026', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31'])->id, 'on_date' => '2026-02-12', 'name' => 'Baobab talk', 'venue' => 'Hall'])->id);
         $this->book($member, $sessionB)->assertNotFound();
     }
 
@@ -382,6 +385,5 @@ class PeoplePoolsTest extends TestCase
         // Replays recheck authority first.
         $this->superAdmin()->roles()->first()?->revokePermissionTo(PoolAccess::MANAGE);
         $this->admin()->postJson('/api/v2/people-pool/bookings', $booking)->assertForbidden();
-        $this->assertInstanceOf(PoolMembers::class, app(PoolMembers::class));
     }
 }
