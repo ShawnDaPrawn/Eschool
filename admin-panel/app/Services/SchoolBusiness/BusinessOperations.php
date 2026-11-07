@@ -36,9 +36,11 @@ class BusinessOperations
             $receipt = $write();
             $authorize();
             abort_unless(app(CurrentSchool::class)->id() === $school, 403);
-            BusinessOperation::create(['actor_id' => $actor->id, 'operation_id' => $operation, 'kind' => $kind, 'request_hash' => $hash, 'receipt' => $receipt, 'created_at' => now('UTC')]);
+            $saved = BusinessOperation::create(['actor_id' => $actor->id, 'operation_id' => $operation, 'kind' => $kind, 'request_hash' => $hash, 'receipt' => $receipt, 'created_at' => now('UTC')]);
 
-            return $receipt;
+            // MySQL normalizes JSON object keys on storage. Use the stored
+            // representation for both the first response and exact retries.
+            return $saved->refresh()->receipt;
         }, 3);
     }
 }

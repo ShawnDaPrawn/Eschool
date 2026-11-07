@@ -5,6 +5,7 @@
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 - Keep the check-in test answers on their intended school date when CI starts near midnight.
+- Return the saved school-business receipt on the first response so exact retries retain the same JSON representation on MySQL.
 
 ## 2026-11-06
 
