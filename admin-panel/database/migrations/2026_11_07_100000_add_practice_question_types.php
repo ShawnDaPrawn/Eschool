@@ -77,7 +77,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (DB::table('practice_reviews')->where('state', '!=', 'marked')->orWhereNull('correct')->orWhere('marked_how', '!=', 'automatic')->exists()
+        // Parts are encrypted, so a SQL predicate cannot inspect their marks.
+        // Any newly recorded parts must be retained, even when automatically
+        // marked; backfilled legacy reviews have null parts and remain safe.
+        if (DB::table('practice_reviews')->where('state', '!=', 'marked')->orWhereNull('correct')->orWhere('marked_how', '!=', 'automatic')->orWhereNotNull('parts')->exists()
             || DB::table('practice_audio_answers')->exists() || DB::table('practice_diagrams')->exists() || DB::table('library_diagrams')->exists()) {
             throw new RuntimeException('Practice answers use the new question types: export them before rolling back.');
         }

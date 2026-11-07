@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-07
+
+- Refuse the practice question-type rollback while recorded per-part results remain, including automatically marked answers, so rollback cannot erase their marks.
+
 ## 2026-11-04
 
 - Daily practice has four new question types: worked steps with a mark per step, short written answers, labelling a diagram, and spoken answers. Teachers write them on the new "Write a practice question" page or in the API, and HQ writes them in the content library (Action Plan 3.11).

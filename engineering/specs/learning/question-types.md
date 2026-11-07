@@ -131,6 +131,11 @@ a teacher marks it, whichever is first (`learning:prune-practice-audio`, daily
 at 03:55). The mark stays. Recordings never reach the learner's family or the
 learner again. Diagram pictures are kept with the questions that use them.
 
+Rollback refuses to remove the question-type columns while recorded per-part
+results remain, including automatically marked answers. Their encrypted parts
+and unit counts must be exported and retained before rollback; backfilled legacy
+reviews with no parts remain compatible with the previous schema.
+
 ## Authoring
 
 - Teachers: the API approval (`approvePracticeQuestion`, with
