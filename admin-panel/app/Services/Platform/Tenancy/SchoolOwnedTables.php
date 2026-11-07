@@ -150,6 +150,8 @@ final class SchoolOwnedTables
         'library_item_versions' => 'versioned library item content; a published version is immutable; written only from /saas/library',
         'library_reviews' => 'HQ reviewers\' decisions on library item versions; names platform staff only',
         'library_reviewers' => 'which platform staff review which library framework and subject; no school role or record',
+        'library_ai_drafts' => 'HQ requests for AI drafts of library items (topic, source, brief, outcome), written only from /saas/library; the model is given library data only, never a school\'s',
+        'platform_ai_usage' => 'HQ\'s own AI metering for model calls made from /saas with no school (tokens, cents, hashes and flag codes, never a prompt or an answer); a school\'s calls stay in its own ai_usage',
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
         'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
