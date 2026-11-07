@@ -15,6 +15,7 @@
 - Recorded answers are encrypted in the school's private storage, heard only by the learner's teachers, and deleted after 90 days (30 days after marking). **Deploy:** run migrations; the new daily `learning:prune-practice-audio` job runs at 03:55.
 - **Apps:** the new practice contract (`question` instead of `definition`, and a `solution` with each saved answer) is opt-in, so installed apps keep working unchanged. Regenerate the Dart client and update the apps to send `X-Practice-Contract: 2`, then switch off `PRACTICE_LEGACY_SET_CONTRACT` to close the old answer loophole for everyone.
 
+- Run the browser CI server without JIT, matching the application runtime, after a native PHP crash stopped the server during report tests. The browser assertions and failure checks stay in place.
 - Refuse OneRoster exports containing formula-like spreadsheet values instead of changing names or identifiers; show the requester how to correct the source data and remove partial temporary archives.
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
@@ -29,6 +30,8 @@
 
 ## 2026-11-06
 
+- The homework reuse test now reads the clock once, so it no longer fails when a minute ticks over between the copy request and the due-date check.
+- The wellbeing check-in context test now spreads its answers from a fixed time of day, so it no longer fails when run in the last minutes before midnight.
 - Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
 - Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
 

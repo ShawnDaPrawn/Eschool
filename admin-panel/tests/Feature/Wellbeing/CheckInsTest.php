@@ -244,8 +244,10 @@ class CheckInsTest extends TestCase
         // Asha answered once, five weeks ago; Ben answered 520 times since, more than any one page of rows.
         $answer('asha', '2026-01-06 09:00:00', 4);
         $answer('asha', '2025-12-01 09:00:00', 1);
+        // A fixed time of day, so the 520 answers (about nine minutes) never run past midnight into the next date.
+        $since = now()->subDay()->setTime(9, 0);
         for ($i = 0; $i < 520; $i++) {
-            $answer('ben', now()->subDays(1)->addSeconds($i)->toDateTimeString(), $i === 519 ? 5 : 2);
+            $answer('ben', $since->copy()->addSeconds($i)->toDateTimeString(), $i === 519 ? 5 : 2);
         }
         // Another school's answers for the same ids never count.
         app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => CheckIn::create(['learner_id' => $this->schoolB->ids['asha'], 'session_year_id' => $this->schoolB->ids['session_year'],
