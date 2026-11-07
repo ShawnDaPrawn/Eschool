@@ -26,6 +26,22 @@
 
 ## 2026-11-04
 
+- Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
+  content staff build a catalogue of classic public-domain books in HQ
+  (Reading library), record a copyright decision for each one (who, when and
+  why; only books cleared as public domain in South Africa ever reach
+  learners), put them on shelves by grade and write comprehension questions.
+  The server fetches each book once from a Project Gutenberg mirror, removes
+  the Project Gutenberg licence and name, keeps a private copy and serves it a
+  page at a time. With the new Reading library module switched on, school
+  leaders can hide shelves or books from their learners and switch on two
+  reading badges (finishing a book, reading on several days in a week), given
+  through Awards. Learners' places, reading time and answers are their own and
+  never compared. The learner API is ready; the app screens come later.
+  **Deploy:** run the migrations and set `READING_MIRROR_URL` (nothing is
+  fetched until it is set). The South African copyright rule and the use of the
+  Project Gutenberg name still need legal review before launch.
+
 - SMS and WhatsApp (Action Plan 2.7 follow-ups): a mobile number is now texted only after its owner verifies it in the app with a six-digit code sent by SMS (codes expire after ten minutes, five wrong codes lock it for an hour, one code a minute and three an hour). Numbers recorded before this change are not texted until verified, and a changed number must be verified again; a skipped text is recorded with the reason. Guardians and staff choose SMS, WhatsApp, both or neither for each notice in the app (`/api/v2/me/text-messaging`); the school sees only how many people chose. Schools can now also switch SMS and WhatsApp on for staff (urgent notices and safeguarding alerts), on the number on the staff member's own account. Navigate Ed's monthly invoice to a school now has a line per channel passing on what Twilio charged for the previous month's texts, in rand at a configured exchange rate. **Deploy:** run the migration `2026_11_07_100000`; set `PLATFORM_BILLING_USD_ZAR_RATE` (rands per US dollar, for example `18.50`) before creating invoices for months with texts, or the drafts stay blocked.
 
 - New "My strengths" mirror for learners (Action Plan 4.8, server and API; the app screens follow): the topics a learner is growing in fastest, what they remember well from daily practice, the topics they chose to explore with the tutor (never anything said in a conversation), their activities and the skills from them, and a few career ideas with their sources. No scores, ranks or comparisons. Only the learner sees it. They can share a read-only copy with an approving guardian or a teacher who teaches them, for up to 30 days, end it at any time, and see when it was last viewed; every share and view is audited. Nothing else in NavigateEd can read it, so it is never used for streaming or placement. Schools switch it on with the new "Interests and strengths mirror" module (off by default, not for early years). Reading will appear once the reading library is built.
