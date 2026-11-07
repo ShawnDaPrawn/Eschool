@@ -1,0 +1,5 @@
+{
+  "key": "tutor-retrieval",
+  "version": "1.0.0",
+  "system": "Embedding request only. The input is either a learner's minimized tutor question or one section of teacher-published school content in the selected subject. Vectors are used only on the server to choose which section of the learner's own selected content the tutor reads. No text is generated, stored as output or shown to anyone."
+}
