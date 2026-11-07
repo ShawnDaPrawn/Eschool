@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\MyGradeController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
+use App\Http\Controllers\Api\V2\Learning\DiagnosticController;
 use App\Http\Controllers\Api\V2\Learning\DiaryController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
@@ -747,6 +748,16 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
     Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
     Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
+});
+
+// The starting check (Action Plan 3.7): library diagnostics marked on the server, written as mastery evidence.
+Route::prefix('learning/diagnostics')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:daily_practice', 'module:mastery'])->name('api.v2.diagnostics.')->group(function () {
+    $c = DiagnosticController::class;
+    Route::get('groups/{group}', [$c, 'group'])->whereNumber('group')->name('group');
+    Route::get('learners/{learner}', [$c, 'summary'])->whereNumber('learner')->name('summary');
+    Route::post('learners/{learner}/groups/{group}/attempts', [$c, 'start'])->whereNumber(['learner', 'group'])->name('start');
+    Route::get('learners/{learner}/attempts/{attempt}', [$c, 'read'])->whereNumber(['learner', 'attempt'])->name('read');
+    Route::post('learners/{learner}/attempts/{attempt}/items/{item}/answer', [$c, 'answer'])->whereNumber(['learner', 'attempt', 'item'])->name('answer');
 });
 
 // Private family history and explicitly assigned current activity sources.

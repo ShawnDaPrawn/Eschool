@@ -2,6 +2,7 @@
 
 ## 2026-11-07
 
+- Run the browser CI server without JIT, matching the application runtime, after a native PHP crash stopped the server during report tests. The browser assertions and failure checks stay in place.
 - Refuse OneRoster exports containing formula-like spreadsheet values instead of changing names or identifiers; show the requester how to correct the source data and remove partial temporary archives.
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
@@ -16,12 +17,16 @@
 
 ## 2026-11-06
 
+- The homework reuse test now reads the clock once, so it no longer fails when a minute ticks over between the copy request and the due-date check.
+- The wellbeing check-in context test now spreads its answers from a fixed time of day, so it no longer fails when run in the last minutes before midnight.
 - Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
 - Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
 
 ## 2026-11-04
 
 - Learner passport (Action Plan 4.10). With the new Learner passport module on, a learner, and a guardian who approves for them, can see one read-only record across the NavigateEd schools the learner attended, headed by their LURITS number: awards and badges, activity groups, supervised peer tutoring minutes, and the results that came with a signed school transfer. A reading section waits for the school library. School staff with profile permission see the same page for their own learners in the panel (People, Learner passports), limited to what their school holds and what arrived in a signed transfer to it; they never see another school's records, and learners are found by name, never by LURITS number. Health, counselling, wellbeing, discipline, support plans, safeguarding, house points and private notes are never part of a passport. From their 18th birthday (by the school's calendar) a learner can download their passport as JSON or PDF; each download is audited. API: `GET /api/v2/passport/me`, `/me/export` and `/learners/{learner}`; regenerate the Dart client. The app screens come later.
+
+- Learners can take a short starting check for a subject when their school has the Navigate Ed library switched on (Action Plan 3.7). It asks a few questions per topic, one at a time, marked on the server: the app never receives the answers or explanations, and the learner is not told right or wrong. Each answer fills the mastery map as its own kind of evidence ("diagnostic"), never as a mark. Learners and guardians see a plain starting point; teachers see who has finished and the starting map per topic on the new Starting checks page. API: new `/api/v2/learning/diagnostics` endpoints in `openapi.yaml` (the Dart client needs regenerating). **Deploy:** run migrations (two new school tables).
 
 - HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
 - HQ AI calls go through the AI gateway's own HQ path, with moderation and HQ's own daily spending caps, and are metered apart from every school's AI spend.
