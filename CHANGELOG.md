@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+- Keep the check-in test answers on their intended school date when CI starts near midnight.
+
 ## 2026-11-06
 
 - Independent schools can publish a versioned re-enrolment contract for next year. Guardians accept the exact wording online; the school sees who has not yet re-enrolled and can send reminders, and the promotion page shows which learners are confirmed (Action Plan 5.10).
