@@ -50,6 +50,10 @@
 
 ## 2026-11-04
 
+- Tutor teaching quality (Action Plan 3.10): a second tutor prompt (v2) that explains at the learner's stage and grade, shows worked examples of similar problems and common mistakes, lets a learner "explain it back" in their own words, and answers more warmly in the same structured form. The first prompt stays selectable.
+- The tutor now remembers which topics a learner practised in earlier sessions (topics and counts only, never the chat, and never anything flagged for safeguarding). The learner and their guardians can see and clear it; it only uses the last 90 days of the current school year.
+- The tutor can read the section of a document that answers the question, chosen with embeddings through the AI gateway; when that is off or unavailable it reads the opening, as before. Explanations in Afrikaans or isiZulu are built but stay off until each language's safeguarding phrases are reviewed. **Deploy:** `AI_TUTOR_PROMPT` (default `tutor-v2`), `AI_TUTOR_EMBEDDING_MODEL`, `AI_TUTOR_HOME_LANGUAGES`; new migration.
+
 - Learners get a guided learning path for each subject (Action Plan 3.9): the server finds the topic to work on next, shows the school's lesson (or a library lesson), gives a few practice questions, then a short check it marks itself, and plans a review for a later day. A check that does not go well yet leads back to the lesson with a kind message; after three tries the topic rests until tomorrow. Answers are never sent to the device before the learner answers. Teachers see which step each learner in their group is on (no scores or rankings), and guardians see a plain summary for their own child. When the tutor and the AI are switched on, the tutor opens on the topic and leads the lesson. API: new `/api/v2/learning/paths` endpoints; the Dart client needs regenerating.
 
 - Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's

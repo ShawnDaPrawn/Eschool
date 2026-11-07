@@ -71,7 +71,7 @@ final class SchoolOwnedTables
         'bursary_applications', 'bursary_documents', 'bursary_events', 'giving_campaigns', 'giving_pledges', 'giving_donations',
         'strengths_mirror_shares',
         'early_years_development_areas', 'early_years_diary_entries', 'early_years_observations', 'early_years_concerns',
-        'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
+        'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints', 'tutor_memories', 'tutor_memory_clears',
         'past_papers', 'past_paper_versions', 'past_paper_memos', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
         'ai_school_limits', 'ai_settings_operations',
         'ai_flag_reviews',
