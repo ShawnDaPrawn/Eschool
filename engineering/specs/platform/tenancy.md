@@ -366,6 +366,19 @@ nightly health figures (counts and shares only), so it carries a not-null
 `school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
 and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
 school reads it ([HQ school health](hq-school-health.md)).
+### Anonymous benchmarking
+
+`benchmark_participations` and `benchmark_school_values` are required school-owned:
+the school's own choice to take part, and its own school-level figures for each
+week (attendance, results movement and reach as basis points, its comparison
+group and whether it was counted), never a learner. A school reads only its own
+rows; the weekly platform snapshot reads them across schools explicitly.
+`benchmark_releases` is global: each row is the published lower quartile, median
+and upper quartile of one comparison group, written only from at least k schools'
+figures. It names no school and holds no school's own value.
+`benchmark_runs` is global too: the period end and completion time of each
+weekly snapshot, naming no school
+([anonymous benchmarking](../leadership/benchmarking.md)).
 ### Packages and prices
 
 `platform_packages`, `platform_package_modules` and `platform_prices` are global:

@@ -77,8 +77,13 @@ class LeadershipDashboard
         return ['status' => $value === null ? 'unavailable' : 'available', 'value' => $value];
     }
 
-    /** One physical school day per learner; canonical records replace legacy mirrors. */
-    private function attendance(int $year, string $start, string $end, Collection $enrolments): array
+    /**
+     * One physical school day per learner; canonical records replace legacy mirrors.
+     * Also read by the weekly benchmarking snapshot, inside one school.
+     *
+     * @return array<string, array{grade_id: int, date: string, recorded_days: int, present_half_days: int}>
+     */
+    public function attendance(int $year, string $start, string $end, Collection $enrolments): array
     {
         $scope = fn ($q) => $q->where('session_year_id', $year)->whereNull('timetable_lesson_id')->whereBetween('on_date', [$start, $end]);
         $days = [];

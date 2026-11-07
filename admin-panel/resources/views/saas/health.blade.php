@@ -10,6 +10,8 @@
 <h1>{{ __('School health') }}</h1>
 <p class="saas-lead">{{ __('Every school\'s latest nightly figures, with its at-risk flags. Counts and shares only: no learner, parent or staff record is shown here. Open a school for its figures as of now.') }}</p>
 
+<p class="saas-actions"><a class="saas-btn saas-btn--quiet" href="{{ route('saas.benchmarks') }}">{{ __('Benchmarks between comparable schools') }}</a></p>
+
 <form method="GET" action="{{ route('saas.health') }}" class="saas-inline" aria-label="{{ __('Order the schools') }}">
     <label for="health-sort">{{ __('Order') }}</label>
     <select id="health-sort" name="sort">

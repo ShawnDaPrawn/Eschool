@@ -13,6 +13,7 @@
 <x-page.field id="leadership-through" name="through" type="date" :label="__('Through date')" :value="$dashboard['ends_on']" required />
 <button type="submit" class="m3-button m3-button--filled">{{ __('View trends') }}</button>
 </form>
+@if(isset($benchmarks))@include('leadership.partials.benchmarks')@endif
 @if($dashboard['activity_observed_since'])<p>{{ __('Learner activity observed since') }} {{ $dashboard['activity_observed_since'] }}</p>@endif
 @forelse(array_reverse($dashboard['periods']) as $period)
 <section class="page-section" aria-labelledby="leadership-period-{{ $loop->index }}">

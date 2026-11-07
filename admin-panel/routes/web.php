@@ -65,6 +65,7 @@ use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Growth\UnseenLearnersController;
+use App\Http\Controllers\Panel\Leadership\BenchmarkingController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Leadership\MasteryImpactController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
@@ -138,6 +139,7 @@ use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAnnouncementController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformBenchmarksController;
 use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformFeatureFlagController;
 use App\Http\Controllers\Platform\PlatformHomeController;
@@ -370,6 +372,8 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     // School health and usage (SA.10): counts and shares only, never a person.
     Route::get('/schools/{school}/health', [PlatformSchoolHealthController::class, 'show'])->middleware('platform.can:health.view')->whereNumber('school')->name('schools.health');
     Route::get('/health', [PlatformSchoolHealthController::class, 'index'])->middleware('platform.can:health.view')->name('health');
+    // Anonymous benchmarking (5.5): the published medians and quartiles only, never a school.
+    Route::get('/benchmarks', [PlatformBenchmarksController::class, 'index'])->middleware('platform.can:health.view')->name('benchmarks');
     // HQ's own record of the school (contacts, stage, contracts, timeline): never the school's people.
     Route::prefix('/schools/{school}')->whereNumber('school')->middleware('platform.can:accounts.manage')->name('schools.')->group(function () {
         Route::get('account', [SchoolAccountController::class, 'show'])->name('account');
@@ -1046,6 +1050,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('actions/{operation}/{record}', [$c, 'write'])->whereIn('operation', ['reverse', 'review', 'withdraw', 'void'])->whereNumber('record')->name('change');
         });
         Route::get('leadership-dashboard', [DashboardController::class, 'index'])->middleware(['module:leadership_dashboard', 'cache.headers:private;no_store'])->name('leadership-dashboard.index');
+        Route::post('leadership-dashboard/benchmarking', [BenchmarkingController::class, 'update'])->middleware(['module:leadership_dashboard', 'throttle:10,1'])->name('leadership-benchmarking.update');
         Route::get('leadership-dashboard/mastery-impact', [MasteryImpactController::class, 'index'])->middleware(['module:leadership_dashboard', 'module:mastery', 'cache.headers:private;no_store'])->name('mastery-impact.index');
         Route::prefix('academic-transitions')->name('academic-transitions.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
             $controller = TransitionWorkbenchController::class;

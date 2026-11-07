@@ -147,6 +147,10 @@ Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOv
 // the start of a term is written once, the latest is refreshed each night.
 Schedule::command('mastery:growth-snapshots')->dailyAt('04:25')->name('mastery-growth-snapshots')->withoutOverlapping();
 
+// Anonymous benchmarking (Action Plan 5.5): weekly, after Sunday night's
+// health and mastery figures; the week is the one that ended on Sunday.
+Schedule::command('benchmarking:snapshot')->weeklyOn(1, '05:10')->name('benchmark-snapshots')->withoutOverlapping();
+
 Schedule::command('assistance:prune-private')->dailyAt('04:10')->name('school-support-private-retention')->withoutOverlapping();
 // Recovery also reaches a guardian verified after the original publication.
 Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-notice-recovery')->withoutOverlapping();
