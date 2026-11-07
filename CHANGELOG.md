@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
 ## 2026-11-08
 
 - Schools on NavigateEd can now arrange fixtures with each other. An activity manager invites another school (found by name) or types the name of a team that is not on NavigateEd, sets the date, venue and field, and the invited school accepts for one of its own groups or declines. Until a school accepts, the other sees only its name.
