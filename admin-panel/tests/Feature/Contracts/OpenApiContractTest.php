@@ -371,6 +371,8 @@ class OpenApiContractTest extends TestCase
             'getPracticeTest requires auth' => [null, 'GET', 'api/v2/learning/practice-tests/learners/1/tests/1', [], 401],
             'savePracticeTestAnswers requires auth' => [null, 'POST', 'api/v2/learning/practice-tests/learners/1/tests/1/answers', [], 401],
             'submitPracticeTest requires auth' => [null, 'POST', 'api/v2/learning/practice-tests/learners/1/tests/1/submit', [], 401],
+            'getPracticeMotivation requires auth' => [null, 'GET', 'api/v2/learning/practice/learners/1/motivation', [], 401],
+            'setPracticeGoal requires auth' => [null, 'POST', 'api/v2/learning/practice/learners/1/practice-goal', [], 401],
             'getPracticeEntryDiagram requires auth' => [null, 'GET', 'api/v2/learning/practice/learners/1/daily-sets/1/entries/1/diagram', [], 401],
             'uploadPracticeDiagram requires auth' => [null, 'POST', 'api/v2/learning/practice/groups/1/diagrams', [], 401],
             'getPracticeMarking requires auth' => [null, 'GET', 'api/v2/learning/practice/groups/1/marking', [], 401],

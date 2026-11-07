@@ -79,6 +79,7 @@ final class SchoolOwnedTables
         'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
         'practice_items', 'practice_item_groups', 'practice_item_versions', 'practice_daily_sets', 'practice_set_entries', 'practice_memories', 'practice_reviews', 'practice_operations',
         'practice_test_blueprints', 'practice_tests', 'practice_test_questions',
+        'practice_motivation_settings', 'practice_goals', 'practice_goal_weeks', 'practice_nudges', 'mastery_topic_gaps', 'mastery_gap_closures',
         'practice_audio_answers', 'practice_diagrams',
         'learning_paths', 'learning_path_items', 'learning_path_reviews',
         'diagnostic_attempts', 'diagnostic_attempt_items',

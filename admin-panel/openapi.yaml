@@ -32366,6 +32366,103 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PracticeMarkInput'
+  /learning/practice/learners/{learner}/motivation:
+    get:
+      operationId: getPracticeMotivation
+      tags:
+      - Practice
+      summary: getPracticeMotivation
+      description: Action Plan 3.13. The learner's own practice run (counted in practice days; weekends, holidays and one
+        rest day a week never break it), weekly practice goal and topics made secure this school year, in plain words. Only
+        the learner or a current guardian of a current, guardian-approved learner in a stage with daily practice may read
+        it. It describes this learner only, with no ranking, score or comparison. Private, no-store.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The learner's own streak, goal and secure topics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeMotivationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/learners/{learner}/practice-goal:
+    post:
+      operationId: setPracticeGoal
+      tags:
+      - Practice
+      summary: setPracticeGoal
+      description: Action Plan 3.13. Only the learner sets or clears (null) their own weekly practice goal, in days a week.
+        Guardians may read it but not set it. Writes accept body fields only, check the goal revision (409 when stale) and
+        replay an exact retry of the same operation. Reaching the goal is celebrated once a week.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The learner's own streak, goal and secure topics after the change.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeMotivationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeGoalInput'
 components:
   securitySchemes:
     bearerAuth:
@@ -76141,5 +76238,121 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/PracticeMarkReceipt'
+        code:
+          type: integer
+    PracticeGoalInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - days_per_week
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        days_per_week:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 7
+    PracticeMotivation:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - can_set_goal
+      - streak
+      - goal
+      - secure_topics
+      properties:
+        learner_id:
+          type: integer
+        can_set_goal:
+          type: boolean
+        streak:
+          type: object
+          additionalProperties: false
+          required:
+          - current_days
+          - best_days
+          - rest_day_available
+          properties:
+            current_days:
+              type: integer
+              minimum: 0
+            best_days:
+              type: integer
+              minimum: 0
+            rest_day_available:
+              type: boolean
+        goal:
+          type: object
+          additionalProperties: false
+          required:
+          - days_per_week
+          - practised_days_this_week
+          - met
+          - week_start
+          - revision
+          properties:
+            days_per_week:
+              type:
+              - integer
+              - 'null'
+              minimum: 1
+              maximum: 7
+            practised_days_this_week:
+              type: integer
+              minimum: 0
+              maximum: 7
+            met:
+              type: boolean
+            week_start:
+              type: string
+              format: date
+            revision:
+              type: integer
+              minimum: 0
+        secure_topics:
+          type: array
+          maxItems: 20
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - topic_id
+            - name
+            - subject
+            - secured_on
+            properties:
+              topic_id:
+                type: integer
+              name:
+                type: string
+              subject:
+                type: string
+              secured_on:
+                type: string
+                format: date
+    GetPracticeMotivationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeMotivation'
         code:
           type: integer

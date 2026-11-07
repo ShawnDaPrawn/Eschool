@@ -279,6 +279,7 @@ class MasteryEngineTest extends TestCase
             $dependents = [];
             foreach ([
                 '2026_11_08_170000_create_practice_tests.php',
+                '2026_11_07_131300_create_practice_motivation.php',
                 '2026_11_07_100000_create_diagnostic_attempts.php',
                 '2026_11_07_100000_add_practice_question_types.php',
                 '2026_11_06_110000_create_mastery_growth_snapshots.php',
