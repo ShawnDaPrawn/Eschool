@@ -26,6 +26,10 @@ return [
             'practice_review' => 0.5,
             'tutor_checkpoint' => 0.5,
             'practice_test' => 0.75,
+            // A diagnostic answer is marked on the server, but it is a short,
+            // one-off starting check: it counts as practice does, and newer
+            // marks and practice soon outweigh it.
+            'diagnostic' => 0.5,
         ],
         'default_source_weight' => 0.5,
 
