@@ -22,6 +22,7 @@ final class SchoolOwnedTables
      */
     public const REQUIRED = [
         'library_school_settings',
+        'reading_hidden_items', 'reading_settings', 'reading_progress', 'reading_days', 'reading_answers',
         'school_messaging_settings',
         // Each person's verified number and own SMS and WhatsApp choice at one school (Action Plan 2.7).
         'messaging_numbers', 'messaging_choices',
@@ -166,6 +167,12 @@ final class SchoolOwnedTables
         'library_item_versions' => 'versioned library item content; a published version is immutable; written only from /saas/library',
         'library_reviews' => 'HQ reviewers\' decisions on library item versions; names platform staff only',
         'library_reviewers' => 'which platform staff review which library framework and subject; no school role or record',
+        'reading_books' => 'the reading library\'s public-domain book catalogue, written only from /saas/reading; names no school or learner',
+        'reading_rights_decisions' => 'HQ\'s recorded copyright decision for each book (who, when, on what basis); names platform staff only',
+        'reading_book_texts' => 'the state of each book\'s one cached public-domain text, written only by the server\'s fetcher; holds no school or learner data',
+        'reading_shelves' => 'HQ-curated reading shelves by grade, written only from /saas/reading; a school hides a shelf in its own reading_hidden_items',
+        'reading_shelf_books' => 'which books are on each HQ shelf, written only from /saas/reading',
+        'reading_questions' => 'HQ-written comprehension questions per book, written only from /saas/reading; learners\' answers are school-owned in reading_answers',
         'library_ai_drafts' => 'HQ requests for AI drafts of library items (topic, source, brief, outcome), written only from /saas/library; the model is given library data only, never a school\'s',
         'platform_ai_usage' => 'HQ\'s own AI metering for model calls made from /saas with no school (tokens, cents, hashes and flag codes, never a prompt or an answer); a school\'s calls stay in its own ai_usage',
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',

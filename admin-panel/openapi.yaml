@@ -200,8 +200,8 @@ tags:
   description: Private school identity cards and isolated online gate readers.
 - name: Diary
   description: The learner's private diary - notes, to-dos and the school items placed in it automatically.
-- name: Strengths mirror
-  description: The learner's own interests and strengths mirror, and the read-only copies they choose to share by name.
+- name: Reading
+  description: The learner's reading library - public-domain books on shelves for their grade, their own progress and comprehension checks.
 - name: Tutor
   description: Own-learner subject tutoring, approved private working crops and metadata-only guardian summaries.
 - name: FamilyForms
@@ -224,6 +224,8 @@ tags:
   description: Private parent fee shares, receipts and held credits from the NavigateEd ledger.
 - name: Commerce
   description: Private wallet storefronts, reviewed purchases and original order receipts.
+- name: Strengths mirror
+  description: The learner's own interests and strengths mirror, and the read-only copies they choose to share by name.
 paths:
   /facilitator/sign-in:
     post:
@@ -30497,6 +30499,243 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DiaryItemStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/shelves:
+    get:
+      operationId: getReadingShelves
+      tags:
+      - Reading
+      summary: getReadingShelves
+      description: 'The signed-in learner''s reading shelves - the shelves Navigate Ed made for their grade that their school shows, with only the books cleared as public domain in South Africa and not hidden by the school - with the learner''s own progress on each and their own reading this week. Only a current guardian-approved Student of the school, in a junior or high school grade, reads it. Nothing compares the learner with anyone else.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: 'The learner''s shelves.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingShelvesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/books/{book}:
+    get:
+      operationId: getReadingBook
+      tags:
+      - Reading
+      summary: getReadingBook
+      description: 'A book the learner may open, with their own progress and how many of its comprehension questions are open and answered. A book that is not cleared, not on a shelf for the learner''s grade, or hidden by the school does not exist (404).'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: book
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: 'The book.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingBookResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/books/{book}/pages/{page}:
+    get:
+      operationId: getReadingPage
+      tags:
+      - Reading
+      summary: getReadingPage
+      description: 'One page of the book''s text. The server fetches the book from its configured mirror the first time anyone reads it and serves every page from its own private copy; the device never contacts the mirror. The Project Gutenberg licence and name are removed. While the text cannot be fetched the answer is 503 with Retry-After.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: book
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: 'The page.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          description: 'The book''s text is not ready yet; try again after Retry-After seconds.'
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/books/{book}/progress:
+    put:
+      operationId: saveReadingProgress
+      tags:
+      - Reading
+      summary: saveReadingProgress
+      description: 'Saves the learner''s own place in the book and adds the seconds they read since the last save (at most 900 per save and six hours a day). Reaching the last page finishes the book once. Reading badges the school has switched on are given through awards and their titles returned. 409 until the book''s text has been opened.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: book
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadingProgressInput'
+      responses:
+        '200':
+          description: 'The saved progress.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingProgressResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'Open the book before saving a place in it.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/books/{book}/questions:
+    get:
+      operationId: getReadingQuestions
+      tags:
+      - Reading
+      summary: getReadingQuestions
+      description: 'The comprehension questions the learner has unlocked (by reaching their page, or by finishing the book), without the answers. A question the learner has answered carries their result, the right answer and the explanation.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: book
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: 'The open questions.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingQuestionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/questions/{question}/answer:
+    post:
+      operationId: answerReadingQuestion
+      tags:
+      - Reading
+      summary: answerReadingQuestion
+      description: 'Marks the learner''s answer on the server and returns the right answer and explanation. The first answer stands: answering again returns it. A question that is not unlocked for the learner does not exist (404).'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: question
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadingAnswerInput'
+      responses:
+        '200':
+          description: 'The marked answer.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingAnswerResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -70661,6 +70900,466 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/DiaryDeleted'
+        code:
+          type: integer
+    ReadingProgress:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - furthest_page
+      - page_count
+      - minutes_read
+      - finished
+      - finished_on
+      properties:
+        page:
+          type: integer
+        furthest_page:
+          type: integer
+        page_count:
+          type:
+          - integer
+          - 'null'
+        minutes_read:
+          type: integer
+        finished:
+          type: boolean
+        finished_on:
+          type:
+          - string
+          - 'null'
+          format: date
+    ReadingBookCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - author
+      - language
+      - subjects
+      - reading_level
+      - reading_level_label
+      - page_count
+      - progress
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        language:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        reading_level:
+          type: string
+          enum:
+          - beginner
+          - developing
+          - confident
+          - fluent
+        reading_level_label:
+          type: string
+        page_count:
+          type:
+          - integer
+          - 'null'
+          description: 'Known once the text has been fetched.'
+        progress:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingProgress'
+          - type: 'null'
+    ReadingWeek:
+      type: object
+      additionalProperties: false
+      required:
+      - week_start
+      - minutes_this_week
+      - days_this_week
+      - books_finished
+      description: 'The learner''s own reading only; never a comparison.'
+      properties:
+        week_start:
+          type: string
+          format: date
+        minutes_this_week:
+          type: integer
+        days_this_week:
+          type: integer
+        books_finished:
+          type: integer
+    ReadingShelf:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - description
+      - books
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        books:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingBookCard'
+    ReadingShelves:
+      type: object
+      additionalProperties: false
+      required:
+      - grade_set
+      - shelves
+      - reading
+      - ai_checks
+      properties:
+        grade_set:
+          type: boolean
+          description: 'False when the learner''s homeroom has no grade yet, so no shelf applies.'
+        shelves:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingShelf'
+        reading:
+          $ref: '#/components/schemas/ReadingWeek'
+        ai_checks:
+          type: boolean
+          description: 'Whether AI-written comprehension checks are available. Always false for now.'
+    ReadingBook:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - author
+      - language
+      - subjects
+      - reading_level
+      - reading_level_label
+      - page_count
+      - progress
+      - author_birth_year
+      - author_death_year
+      - summary
+      - word_count
+      - checks
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        language:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        reading_level:
+          type: string
+          enum:
+          - beginner
+          - developing
+          - confident
+          - fluent
+        reading_level_label:
+          type: string
+        page_count:
+          type:
+          - integer
+          - 'null'
+          description: 'Known once the text has been fetched.'
+        progress:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingProgress'
+          - type: 'null'
+        author_birth_year:
+          type:
+          - integer
+          - 'null'
+        author_death_year:
+          type:
+          - integer
+          - 'null'
+        summary:
+          type:
+          - string
+          - 'null'
+        word_count:
+          type:
+          - integer
+          - 'null'
+        checks:
+          type: object
+          additionalProperties: false
+          required:
+          - total
+          - open
+          - answered
+          properties:
+            total:
+              type: integer
+            open:
+              type: integer
+            answered:
+              type: integer
+    ReadingPage:
+      type: object
+      additionalProperties: false
+      required:
+      - book_id
+      - page
+      - page_count
+      - text
+      properties:
+        book_id:
+          type: integer
+        page:
+          type: integer
+        page_count:
+          type: integer
+        text:
+          type: string
+          description: 'Plain text; paragraphs are separated by a blank line.'
+    ReadingProgressInput:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - seconds
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        seconds:
+          type: integer
+          minimum: 0
+          maximum: 86400
+          description: 'Seconds read since the last save; the server counts at most 900 per save.'
+    ReadingProgressSaved:
+      type: object
+      additionalProperties: false
+      required:
+      - progress
+      - reading
+      - badges
+      properties:
+        progress:
+          $ref: '#/components/schemas/ReadingProgress'
+        reading:
+          $ref: '#/components/schemas/ReadingWeek'
+        badges:
+          type: array
+          description: 'Titles of the reading badges earned with this save.'
+          items:
+            type: string
+    ReadingResult:
+      type: object
+      additionalProperties: false
+      required:
+      - choice
+      - correct
+      - answer
+      - explanation
+      properties:
+        choice:
+          type: integer
+        correct:
+          type: boolean
+        answer:
+          type: integer
+          description: 'The index of the right option.'
+        explanation:
+          type:
+          - string
+          - 'null'
+    ReadingQuestion:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - after_page
+      - prompt
+      - options
+      - result
+      properties:
+        id:
+          type: integer
+        after_page:
+          type:
+          - integer
+          - 'null'
+          description: 'The page that unlocks the question; null means the end of the book.'
+        prompt:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        result:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingResult'
+          - type: 'null'
+    ReadingQuestions:
+      type: object
+      additionalProperties: false
+      required:
+      - book_id
+      - questions
+      - locked
+      properties:
+        book_id:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingQuestion'
+        locked:
+          type: integer
+          description: 'How many questions are still locked.'
+    ReadingAnswerInput:
+      type: object
+      additionalProperties: false
+      required:
+      - choice
+      properties:
+        choice:
+          type: integer
+          minimum: 0
+          maximum: 4
+    ReadingAnswer:
+      type: object
+      additionalProperties: false
+      required:
+      - question_id
+      - choice
+      - correct
+      - answer
+      - explanation
+      properties:
+        question_id:
+          type: integer
+        choice:
+          type: integer
+        correct:
+          type: boolean
+        answer:
+          type: integer
+        explanation:
+          type:
+          - string
+          - 'null'
+    ReadingShelvesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingShelves'
+        code:
+          type: integer
+    ReadingBookResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingBook'
+        code:
+          type: integer
+    ReadingPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingPage'
+        code:
+          type: integer
+    ReadingProgressResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingProgressSaved'
+        code:
+          type: integer
+    ReadingQuestionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingQuestions'
+        code:
+          type: integer
+    ReadingAnswerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingAnswer'
         code:
           type: integer
     StrengthsSectionKey:
