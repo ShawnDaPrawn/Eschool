@@ -62,6 +62,8 @@
   fetched until it is set). The South African copyright rule and the use of the
   Project Gutenberg name still need legal review before launch.
 
+- Learner passport (Action Plan 4.10). With the new Learner passport module on, a learner, and a guardian who approves for them, can see one read-only record across the NavigateEd schools the learner attended, headed by their LURITS number: awards and badges, activity groups, supervised peer tutoring minutes, and the results that came with a signed school transfer. A reading section waits for the school library. School staff with profile permission see the same page for their own learners in the panel (People, Learner passports), limited to what their school holds and what arrived in a signed transfer to it; they never see another school's records, and learners are found by name, never by LURITS number. Health, counselling, wellbeing, discipline, support plans, safeguarding, house points and private notes are never part of a passport. From their 18th birthday (by the school's calendar) a learner can download their passport as JSON or PDF; each download is audited. API: `GET /api/v2/passport/me`, `/me/export` and `/learners/{learner}`; regenerate the Dart client. The app screens come later.
+
 - School groups: one owner, many schools (Action Plan 5.7, SA.18).
   - HQ creates a group, invites schools and names the group's administrators.
   - A school joins only when its own Super Admin agrees on the new School groups page. The page shows exactly what the group will see. The school can leave at any time, and the group stops seeing it at once.

@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Exceptions\TooManyLoginFailures;
 use App\Services\FormService;
+use App\Services\Passport\NoReadingRecords;
+use App\Services\Passport\ReadingRecords;
 use App\Services\People\Leavers\AlumniInvitations;
 use App\Services\People\Leavers\NoAlumniInvitations;
 use App\Services\Platform\Files\ClamAv;
@@ -38,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SesConfigurationSets::class, fn () => SesConfigurationSets::fromConfig());
         // The alumni invitation hook (Action Plan 1.21); Phase 4 replaces it.
         $this->app->bind(AlumniInvitations::class, NoAlumniInvitations::class);
+        // The learner passport's reading section (Action Plan 4.10); the reading library (4.4) replaces it.
+        $this->app->bindIf(ReadingRecords::class, NoReadingRecords::class);
         $this->app->singleton('form', function ($app) {
             return new FormService;
         });
