@@ -759,6 +759,9 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
     Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
     Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
+    // Action Plan 3.13: the learner's own streak, weekly goal and recently secure topics.
+    Route::get('learners/{learner}/motivation', [$c, 'motivation'])->whereNumber('learner')->name('motivation');
+    Route::post('learners/{learner}/practice-goal', [$c, 'goal'])->whereNumber('learner')->name('goal');
     // Question types (3.11): a labelling question's picture, teachers' diagram uploads and the marking queue.
     Route::get('learners/{learner}/daily-sets/{set}/entries/{entry}/diagram', [$c, 'entryDiagram'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('entry-diagram');
     Route::post('groups/{group}/diagrams', [$c, 'diagram'])->whereNumber('group')->middleware('throttle:30,1')->name('diagram');

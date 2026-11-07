@@ -17,6 +17,6 @@ class RecognitionBadgeSettings extends Model
 
     protected function casts(): array
     {
-        return ['practice_days_enabled' => 'boolean', 'practice_days_required' => 'integer', 'comeback_enabled' => 'boolean', 'comeback_below_percent' => 'integer', 'switched_on_by' => 'integer', 'revision' => 'integer'];
+        return ['practice_days_enabled' => 'boolean', 'practice_days_required' => 'integer', 'comeback_enabled' => 'boolean', 'comeback_below_percent' => 'integer', 'streak_enabled' => 'boolean', 'switched_on_by' => 'integer', 'revision' => 'integer'];
     }
 }

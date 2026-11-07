@@ -50,6 +50,14 @@
 
 ## 2026-11-04
 
+- Practice runs are counted kindly: weekends, holidays, school closures and one missed school day a week no longer break a learner's run, and practising on a weekend still counts. The practice screen's day count follows the new rule.
+- Learners can set their own weekly practice goal (1 to 7 days) and get one short "well done" note the week they reach it. Guardians can see the goal; only the learner sets it.
+- When a topic that needed more practice becomes secure on the family-visible mastery map, the learner and their guardians get one short "something to celebrate" note, at most once per topic each term. It never shows a score, and staff-only marks are never used.
+- Schools can switch on gentle practice reminders for guardians and learners (both off by default) under Academics, Practice reminders: at most one a week, school-day afternoons only, never during quiet hours, and never naming a child or a count.
+- Awards managers can switch on practice run badges (off by default), presented with the other persistence badges once a school year for runs of 5, 10, 20 and 40 days.
+- The weekly parent update can now say when a child reached their weekly practice goal and how long their practice run is; it never says a goal was missed.
+- API: `GET /api/v2/learning/practice/learners/{learner}/motivation` and `POST /api/v2/learning/practice/learners/{learner}/practice-goal` (the Dart client needs regenerating).
+
 - Tutor teaching quality (Action Plan 3.10): a second tutor prompt (v2) that explains at the learner's stage and grade, shows worked examples of similar problems and common mistakes, lets a learner "explain it back" in their own words, and answers more warmly in the same structured form. The first prompt stays selectable.
 - The tutor now remembers which topics a learner practised in earlier sessions (topics and counts only, never the chat, and never anything flagged for safeguarding). The learner and their guardians can see and clear it; it only uses the last 90 days of the current school year.
 - The tutor can read the section of a document that answers the question, chosen with embeddings through the AI gateway; when that is off or unavailable it reads the opening, as before. Explanations in Afrikaans or isiZulu are built but stay off until each language's safeguarding phrases are reviewed. **Deploy:** `AI_TUTOR_PROMPT` (default `tutor-v2`), `AI_TUTOR_EMBEDDING_MODEL`, `AI_TUTOR_HOME_LANGUAGES`; new migration.
