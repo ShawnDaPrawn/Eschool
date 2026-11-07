@@ -6,6 +6,7 @@ use App\Services\Assistance\AssistanceNotices;
 use App\Services\Consultations\ConsultationNotices;
 use App\Services\Discipline\DisciplineNotices;
 use App\Services\FamilyForms\ConsentNotices;
+use App\Services\FamilySummary\FamilySummaryNotices;
 use App\Services\Growth\ProgressNoticeScope;
 use App\Services\Learning\Digests\DigestNotices;
 use App\Services\Learning\Digests\LearnerGrowthNotices;
@@ -20,7 +21,7 @@ $disciplineStaff = array_fill_keys([DisciplineNotices::STAFF, DisciplineNotices:
     ['feature' => 'discipline', 'title' => 'School discipline update', 'message' => 'Open School discipline to review an available update.']);
 
 return [
-    'scopes' => ['fees.ledger_reminder' => FeeReminderNotices::class, 'group_chat.' => GroupChatNotices::class, 'school_assistance.' => AssistanceNotices::class, 'consent.' => ConsentNotices::class, 'digest.' => DigestNotices::class, 'growth.weekly' => LearnerGrowthNotices::class, 'discipline.' => DisciplineNotices::class, 'progress.' => ProgressNoticeScope::class, 'consultations.' => ConsultationNotices::class, 'wellbeing.' => WellbeingNotices::class, 'transfer.' => TransferNoticeScope::class, 'recognition.' => RecognitionNotices::class, 'fixtures.' => FixtureNotices::class],
+    'scopes' => ['fees.ledger_reminder' => FeeReminderNotices::class, 'group_chat.' => GroupChatNotices::class, 'school_assistance.' => AssistanceNotices::class, 'consent.' => ConsentNotices::class, 'digest.' => DigestNotices::class, 'family.' => FamilySummaryNotices::class, 'growth.weekly' => LearnerGrowthNotices::class, 'discipline.' => DisciplineNotices::class, 'progress.' => ProgressNoticeScope::class, 'consultations.' => ConsultationNotices::class, 'wellbeing.' => WellbeingNotices::class, 'transfer.' => TransferNoticeScope::class, 'recognition.' => RecognitionNotices::class, 'fixtures.' => FixtureNotices::class],
     'read_states' => ['wellbeing.' => WellbeingNoticeReadState::class],
     'staff_inbox' => ['group_chat.staff_update' => ['feature' => 'group_chat', 'title' => 'Group conversation updated', 'message' => 'Open Activity groups to read an available message.'], 'school_assistance.office_update' => ['feature' => 'school_assistance', 'title' => 'School support update', 'message' => 'Open the school support office to review available requests.'], 'progress.staff_band_changed' => ['feature' => 'progress', 'title' => 'Learning progress updated', 'message' => 'Open Learning progress to review an available update.'], 'consultations.staff_opened' => ['feature' => 'consultations', 'title' => 'School consultation available', 'message' => 'Open school consultations to review an available ballot.'], 'wellbeing.staff_update' => ['feature' => 'wellbeing', 'title' => 'Private school update', 'message' => 'Open your private school area to review an available update.']] + $disciplineStaff,
     'staff_types' => ['group_chat.staff_update', 'school_assistance.office_update', 'progress.staff_band_changed', 'consultations.staff_opened', 'wellbeing.staff_update', ...array_keys($disciplineStaff)],

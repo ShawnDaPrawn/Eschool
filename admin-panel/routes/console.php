@@ -137,6 +137,10 @@ Schedule::command('activities:prune-material-files')->dailyAt('03:40')->name('ac
 Schedule::command('digest:weekly')->hourly()->name('school-local-monday-digests')->withoutOverlapping(55);
 Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-digest-copy-retention')->withoutOverlapping();
 
+// The daily family summary (Action Plan 5.11): each guardian at their own chosen time.
+Schedule::command('family:daily-summary')->everyFifteenMinutes()->name('family-daily-summaries')->withoutOverlapping(14);
+Schedule::command('family:daily-summary --retention')->dailyAt('03:45')->name('family-daily-summary-retention')->withoutOverlapping();
+
 Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-retention')->withoutOverlapping();
 
 Schedule::command('exam-coach:prune-working')->dailyAt('04:00')->name('exam-working-retention')->withoutOverlapping();
