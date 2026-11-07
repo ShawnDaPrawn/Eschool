@@ -228,6 +228,8 @@ Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_
 
 The learner diary adds school-owned `diary_entries` and `diary_item_states`, each bound to one learner's `user_id`. Text is encrypted with a key derived per school and learner, so a row copied into another school's context cannot be read there either. School items are computed per read from the current school's own homework, holidays and events; nothing is copied across schools.
 
+The learner passport (Action Plan 4.10, [learner passport](../people/learner-passport.md)) adds no tables. It reads one learner across schools only for that learner and their approving guardians: their learner rows are found by their own `user_id` (`Students::acrossSchools()`), and each school's awards, activity memberships and service minutes are then read inside that school (`CurrentSchool::run`). A staff view never leaves the current school: it shows the school's own rows and the transfer receipts addressed to it, verified with the sending school's public key (`ExitSigning::publicKey`, derived without switching school). There is no lookup by LURITS number.
+
 Foundation classroom eligibility and device/Teacher delegations (`foundation_classroom_groups`, `foundation_classroom_leases`) are school-owned. Existing classroom learner sessions additionally reference a same-school delegation, never a gate scan.
 
 ### Ledger preparation
