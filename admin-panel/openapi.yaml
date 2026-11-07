@@ -18242,13 +18242,16 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PracticeAudioReviewInput'
-  /learning/practice/learners/{learner}/daily-sets/{set}/entries/{entry}/diagram:
+  /learning/practice/learners/{learner}/motivation:
     get:
-      operationId: getPracticeEntryDiagram
+      operationId: getPracticeMotivation
       tags:
       - Practice
-      summary: getPracticeEntryDiagram
-      description: "The diagram picture of a labelling question in the learner's own set (Action Plan 3.11), authorized exactly as reading the set. JPEG pixels only; cache it with the set and erase it with the set."
+      summary: getPracticeMotivation
+      description: Action Plan 3.13. The learner's own practice run (counted in practice days; weekends, holidays and one
+        rest day a week never break it), weekly practice goal and topics made secure this school year, in plain words. Only
+        the learner or a current guardian of a current, guardian-approved learner in a stage with daily practice may read
+        it. It describes this learner only, with no ranking, score or comparison. Private, no-store.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -18258,26 +18261,13 @@ paths:
         schema:
           type: integer
           minimum: 1
-      - name: set
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: entry
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
       responses:
         '200':
-          description: Private bytes, never cached.
+          description: The learner's own streak, goal and secure topics.
           content:
-            image/jpeg:
+            application/json:
               schema:
-                type: string
-                format: binary
+                $ref: '#/components/schemas/GetPracticeMotivationResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -18298,17 +18288,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /learning/practice/groups/{group}/diagrams:
+  /learning/practice/learners/{learner}/practice-goal:
     post:
-      operationId: uploadPracticeDiagram
+      operationId: setPracticeGoal
       tags:
       - Practice
-      summary: uploadPracticeDiagram
-      description: "A current teacher of the group uploads a diagram picture for a labelling question (Action Plan 3.11). JPEG or PNG up to 4 MB, re-encoded as pixels only, scanned and stored encrypted in the school's private storage. Reference the returned id in PracticeQuestion.diagram. A retried upload stores another copy; only a referenced picture is used."
+      summary: setPracticeGoal
+      description: Action Plan 3.13. Only the learner sets or clears (null) their own weekly practice goal, in days a week.
+        Guardians may read it but not set it. Writes accept body fields only, check the goal revision (409 when stale) and
+        replay an exact retry of the same operation. Reaching the goal is celebrated once a week.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
-      - name: group
+      - name: learner
         in: path
         required: true
         schema:
@@ -18316,194 +18308,11 @@ paths:
           minimum: 1
       responses:
         '200':
-          description: Freshly scoped private practice result.
+          description: The learner's own streak, goal and secure topics after the change.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UploadPracticeDiagramResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/IdempotencyKeyInProgress'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-        '423':
-          description: Historical school year is read-only.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '503':
-          description: "File safety checks are temporarily unavailable."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PracticeDiagramUpload'
-  /learning/practice/groups/{group}/marking:
-    get:
-      operationId: getPracticeMarking
-      tags:
-      - Practice
-      summary: getPracticeMarking
-      description: "Practice answers waiting for a teacher in this group (Action Plan 3.11): short written answers that matched no accepted answer, and spoken answers. Only the group's current teachers, by dated allocation; never another teacher, a learner, a parent or another school."
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: group
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 1000
-      responses:
-        '200':
-          description: Freshly scoped private practice result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetPracticeMarkingResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/IdempotencyKeyInProgress'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-        '423':
-          description: Historical school year is read-only.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /learning/practice/groups/{group}/marking/{review}/audio:
-    get:
-      operationId: getPracticeMarkingAudio
-      tags:
-      - Practice
-      summary: getPracticeMarkingAudio
-      description: "A spoken practice answer's recording, for the current teachers of the group it was given in only (Action Plan 3.11). Audited."
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: group
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: review
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Private bytes, never cached.
-          content:
-            audio/mp4:
-              schema:
-                type: string
-                format: binary
-            audio/aac:
-              schema:
-                type: string
-                format: binary
-            audio/webm:
-              schema:
-                type: string
-                format: binary
-            audio/ogg:
-              schema:
-                type: string
-                format: binary
-            audio/mpeg:
-              schema:
-                type: string
-                format: binary
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/IdempotencyKeyInProgress'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-        '423':
-          description: Historical school year is read-only.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '410':
-          description: "The recording was deleted under the retention rule."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /learning/practice/groups/{group}/marking/{review}:
-    post:
-      operationId: markPracticeAnswer
-      tags:
-      - Practice
-      summary: markPracticeAnswer
-      description: "A current teacher of the group marks a waiting answer correct or not yet (Action Plan 3.11). Marked once: the same operation replays its receipt and any other attempt is refused with 409. The mark feeds practice memory and mastery evidence exactly as an automatic mark does."
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: group
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: review
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Freshly scoped private practice result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MarkPracticeAnswerResponse'
+                $ref: '#/components/schemas/GetPracticeMotivationResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -18529,7 +18338,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PracticeMarkInput'
+              $ref: '#/components/schemas/PracticeGoalInput'
   /gallery/configuration:
     get:
       operationId: getGalleryConfiguration
@@ -31664,6 +31473,294 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /learning/practice/learners/{learner}/daily-sets/{set}/entries/{entry}/diagram:
+    get:
+      operationId: getPracticeEntryDiagram
+      tags:
+      - Practice
+      summary: getPracticeEntryDiagram
+      description: "The diagram picture of a labelling question in the learner's own set (Action Plan 3.11), authorized exactly as reading the set. JPEG pixels only; cache it with the set and erase it with the set."
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: set
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private bytes, never cached.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/diagrams:
+    post:
+      operationId: uploadPracticeDiagram
+      tags:
+      - Practice
+      summary: uploadPracticeDiagram
+      description: "A current teacher of the group uploads a diagram picture for a labelling question (Action Plan 3.11). JPEG or PNG up to 4 MB, re-encoded as pixels only, scanned and stored encrypted in the school's private storage. Reference the returned id in PracticeQuestion.diagram. A retried upload stores another copy; only a referenced picture is used."
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadPracticeDiagramResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: "File safety checks are temporarily unavailable."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PracticeDiagramUpload'
+  /learning/practice/groups/{group}/marking:
+    get:
+      operationId: getPracticeMarking
+      tags:
+      - Practice
+      summary: getPracticeMarking
+      description: "Practice answers waiting for a teacher in this group (Action Plan 3.11): short written answers that matched no accepted answer, and spoken answers. Only the group's current teachers, by dated allocation; never another teacher, a learner, a parent or another school."
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeMarkingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/marking/{review}/audio:
+    get:
+      operationId: getPracticeMarkingAudio
+      tags:
+      - Practice
+      summary: getPracticeMarkingAudio
+      description: "A spoken practice answer's recording, for the current teachers of the group it was given in only (Action Plan 3.11). Audited."
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: review
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private bytes, never cached.
+          content:
+            audio/mp4:
+              schema:
+                type: string
+                format: binary
+            audio/aac:
+              schema:
+                type: string
+                format: binary
+            audio/webm:
+              schema:
+                type: string
+                format: binary
+            audio/ogg:
+              schema:
+                type: string
+                format: binary
+            audio/mpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: "The recording was deleted under the retention rule."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/marking/{review}:
+    post:
+      operationId: markPracticeAnswer
+      tags:
+      - Practice
+      summary: markPracticeAnswer
+      description: "A current teacher of the group marks a waiting answer correct or not yet (Action Plan 3.11). Marked once: the same operation replays its receipt and any other attempt is refused with 409. The mark feeds practice memory and mastery evidence exactly as an automatic mark does."
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: review
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarkPracticeAnswerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeMarkInput'
 components:
   securitySchemes:
     bearerAuth:
@@ -55063,234 +55160,6 @@ components:
           type: integer
           minimum: 10
           maximum: 180
-    PracticeStep:
-      type: object
-      additionalProperties: false
-      required:
-      - prompt
-      - kind
-      - options
-      - answers
-      properties:
-        id:
-          type: string
-          pattern: ^s[1-8]$
-        prompt:
-          type: string
-          minLength: 1
-          maxLength: 1000
-        kind:
-          type: string
-          enum:
-          - choice
-          - number
-        options:
-          type: array
-          maxItems: 6
-          items:
-            $ref: '#/components/schemas/PracticeQuestionOption'
-        answers:
-          type: array
-          minItems: 1
-          maxItems: 10
-          items:
-            type: string
-            maxLength: 100
-    PracticeDiagramReference:
-      type: object
-      additionalProperties: false
-      description: "An uploaded diagram picture (uploadPracticeDiagram). The server fills width and height from the stored picture."
-      required:
-      - id
-      properties:
-        source:
-          type: string
-          enum:
-          - school
-          - library
-        id:
-          type: string
-          format: uuid
-        width:
-          type: integer
-          minimum: 1
-          maximum: 4096
-        height:
-          type: integer
-          minimum: 1
-          maximum: 4096
-    PracticeDiagramRegion:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - x
-      - y
-      properties:
-        id:
-          type: string
-          pattern: ^[a-z][a-z0-9]{0,2}$
-        x:
-          type: integer
-          minimum: 0
-          maximum: 100
-          description: Per cent across from the left edge.
-        y:
-          type: integer
-          minimum: 0
-          maximum: 100
-          description: Per cent down from the top edge.
-    PracticeSetQuestion:
-      type: object
-      additionalProperties: false
-      description: "What a learner device receives before answering. Never accepted answers, step answers, the label mapping
-        or the explanation; those arrive in PracticeReview.solution once the server has recorded the answer. A diagram_label
-        picture is fetched from getPracticeEntryDiagram."
-      required:
-      - kind
-      - prompt
-      - options
-      properties:
-        kind:
-          type: string
-          enum:
-          - choice
-          - number
-          - steps
-          - short_text
-          - diagram_label
-          - audio
-        prompt:
-          type: string
-          minLength: 1
-          maxLength: 4000
-        options:
-          type: array
-          maxItems: 6
-          items:
-            $ref: '#/components/schemas/PracticeQuestionOption'
-        steps:
-          type: array
-          minItems: 2
-          maxItems: 8
-          items:
-            $ref: '#/components/schemas/PracticeSetStep'
-        diagram:
-          type: object
-          additionalProperties: false
-          required:
-          - width
-          - height
-          properties:
-            width:
-              type: integer
-              minimum: 1
-              maximum: 4096
-            height:
-              type: integer
-              minimum: 1
-              maximum: 4096
-        regions:
-          type: array
-          maxItems: 12
-          items:
-            $ref: '#/components/schemas/PracticeDiagramRegion'
-        labels:
-          type: array
-          maxItems: 16
-          items:
-            $ref: '#/components/schemas/PracticeQuestionOption'
-        max_seconds:
-          type: integer
-          minimum: 10
-          maximum: 180
-        max_length:
-          type: integer
-          minimum: 1
-          maximum: 500
-    PracticeSetStep:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - prompt
-      - kind
-      - options
-      properties:
-        id:
-          type: string
-          pattern: ^s[1-8]$
-        prompt:
-          type: string
-          maxLength: 1000
-        kind:
-          type: string
-          enum:
-          - choice
-          - number
-        options:
-          type: array
-          maxItems: 6
-          items:
-            $ref: '#/components/schemas/PracticeQuestionOption'
-    PracticeSolution:
-      type: object
-      additionalProperties: false
-      description: Shown only after the answer is recorded on the server.
-      required:
-      - explanation
-      - answers
-      - steps
-      - mapping
-      properties:
-        explanation:
-          type: string
-          maxLength: 4000
-        answers:
-          type: array
-          maxItems: 20
-          items:
-            type: string
-            maxLength: 200
-        steps:
-          type: array
-          maxItems: 8
-          items:
-            $ref: '#/components/schemas/PracticeStepSolution'
-        mapping:
-          type: array
-          maxItems: 12
-          items:
-            $ref: '#/components/schemas/PracticeRegionSolution'
-    PracticeStepSolution:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - answers
-      properties:
-        id:
-          type: string
-          pattern: ^s[1-8]$
-        answers:
-          type: array
-          maxItems: 10
-          items:
-            type: string
-            maxLength: 100
-    PracticeRegionSolution:
-      type: object
-      additionalProperties: false
-      required:
-      - region
-      - label
-      properties:
-        region:
-          type: string
-          maxLength: 3
-        label:
-          type: string
-          maxLength: 20
     PracticeGroupChoice:
       type: object
       additionalProperties: false
@@ -55503,76 +55372,6 @@ components:
           type: integer
           minimum: 0
           maximum: 365
-    PracticeReviewV2:
-      type: object
-      additionalProperties: false
-      description: "A recorded answer. state is awaiting_teacher for a short written answer that matched no accepted answer,
-        and for a spoken answer, until one of the group's current teachers marks it; correct, the unit counts and the
-        schedule of a marked answer are then filled once. solution is present because the answer is recorded."
-      required:
-      - id
-      - entry_id
-      - state
-      - correct
-      - achieved_units
-      - maximum_units
-      - parts
-      - marked_how
-      - schedule
-      - reviewed_on
-      - solution
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        entry_id:
-          type: integer
-          minimum: 1
-        state:
-          type: string
-          enum:
-          - marked
-          - awaiting_teacher
-        correct:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-        achieved_units:
-          anyOf:
-          - type: integer
-            minimum: 0
-            maximum: 8
-          - type: 'null'
-        maximum_units:
-          type: integer
-          minimum: 1
-          maximum: 8
-        parts:
-          anyOf:
-          - type: object
-            description: The mark of each step or region, by its code.
-            maxProperties: 12
-            additionalProperties:
-              type: boolean
-          - type: 'null'
-        marked_how:
-          type: string
-          enum:
-          - automatic
-          - teacher
-        schedule:
-          anyOf:
-          - $ref: '#/components/schemas/PracticeSchedule'
-          - type: 'null'
-        reviewed_on:
-          type: string
-          pattern: ^\d{4}-\d{2}-\d{2}$
-        solution:
-          $ref: '#/components/schemas/PracticeSolution'
-        streak_days:
-          type: integer
-          minimum: 0
-          maximum: 365
     PracticeSetEntry:
       type: object
       additionalProperties: false
@@ -55606,40 +55405,6 @@ components:
         review:
           anyOf:
           - $ref: '#/components/schemas/PracticeReview'
-          - type: 'null'
-    PracticeSetEntryV2:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - item_id
-      - topic_id
-      - source_version_id
-      - estimated_seconds
-      - question
-      - review
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        item_id:
-          type: integer
-          minimum: 1
-        topic_id:
-          type: integer
-          minimum: 1
-        source_version_id:
-          type: integer
-          minimum: 1
-        estimated_seconds:
-          type: integer
-          minimum: 60
-          maximum: 300
-        question:
-          $ref: '#/components/schemas/PracticeSetQuestion'
-        review:
-          anyOf:
-          - $ref: '#/components/schemas/PracticeReviewV2'
           - type: 'null'
     PracticeDailySet:
       type: object
@@ -55699,64 +55464,6 @@ components:
           type: integer
           minimum: 0
           maximum: 365
-    PracticeDailySetV2:
-      type: object
-      additionalProperties: false
-      description: "The answer-free set contract (X-Practice-Contract: 2, Action Plan 3.11): questions only, every kind; results and solutions follow each recorded answer."
-      required:
-      - id
-      - school_id
-      - reader_id
-      - learner_id
-      - group_id
-      - practice_on
-      - server_time
-      - offline_until
-      - estimated_seconds
-      - completed
-      - items
-      - streak_days
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        school_id:
-          type: integer
-          minimum: 1
-        reader_id:
-          type: integer
-          minimum: 1
-        learner_id:
-          type: integer
-          minimum: 1
-        group_id:
-          type: integer
-          minimum: 1
-        practice_on:
-          type: string
-          pattern: ^\d{4}-\d{2}-\d{2}$
-        server_time:
-          type: string
-          format: date-time
-        offline_until:
-          type: string
-          format: date-time
-        estimated_seconds:
-          type: integer
-          minimum: 60
-          maximum: 600
-        completed:
-          type: boolean
-        items:
-          type: array
-          minItems: 1
-          maxItems: 10
-          items:
-            $ref: '#/components/schemas/PracticeSetEntryV2'
-        streak_days:
-          type: integer
-          minimum: 0
-          maximum: 365
     PracticeApproveInput:
       type: object
       additionalProperties: false
@@ -55802,6 +55509,122 @@ components:
         practice_on:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+    PracticeGoalInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - days_per_week
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        days_per_week:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 7
+    PracticeMotivation:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - can_set_goal
+      - streak
+      - goal
+      - secure_topics
+      properties:
+        learner_id:
+          type: integer
+        can_set_goal:
+          type: boolean
+        streak:
+          type: object
+          additionalProperties: false
+          required:
+          - current_days
+          - best_days
+          - rest_day_available
+          properties:
+            current_days:
+              type: integer
+              minimum: 0
+            best_days:
+              type: integer
+              minimum: 0
+            rest_day_available:
+              type: boolean
+        goal:
+          type: object
+          additionalProperties: false
+          required:
+          - days_per_week
+          - practised_days_this_week
+          - met
+          - week_start
+          - revision
+          properties:
+            days_per_week:
+              type:
+              - integer
+              - 'null'
+              minimum: 1
+              maximum: 7
+            practised_days_this_week:
+              type: integer
+              minimum: 0
+              maximum: 7
+            met:
+              type: boolean
+            week_start:
+              type: string
+              format: date
+            revision:
+              type: integer
+              minimum: 0
+        secure_topics:
+          type: array
+          maxItems: 20
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - topic_id
+            - name
+            - subject
+            - secured_on
+            properties:
+              topic_id:
+                type: integer
+              name:
+                type: string
+              subject:
+                type: string
+              secured_on:
+                type: string
+                format: date
+    GetPracticeMotivationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeMotivation'
+        code:
+          type: integer
     PracticeReviewInput:
       type: object
       additionalProperties: false
@@ -55829,208 +55652,6 @@ components:
           type: integer
           minimum: 2
           maximum: 4
-    PracticeAudioReviewInput:
-      type: object
-      additionalProperties: false
-      required:
-      - operation_id
-      - rating
-      - audio
-      properties:
-        operation_id:
-          type: string
-          format: uuid
-        rating:
-          type: integer
-          minimum: 2
-          maximum: 4
-        audio:
-          type: string
-          format: binary
-          description: "M4A/AAC, WebM, Ogg or MP3, at most 3 MB; type read from the content, scanned, stored encrypted in the
-            school's private storage and deleted 90 days after recording or 30 days after marking."
-    PracticeDiagramUpload:
-      type: object
-      additionalProperties: false
-      required:
-      - photo
-      properties:
-        photo:
-          type: string
-          format: binary
-          description: JPEG or PNG up to 4 MB; re-encoded as pixels only and scanned.
-    PracticeDiagram:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - width
-      - height
-      properties:
-        id:
-          type: string
-          format: uuid
-        width:
-          type: integer
-          minimum: 1
-          maximum: 4096
-        height:
-          type: integer
-          minimum: 1
-          maximum: 4096
-    PracticeMarkInput:
-      type: object
-      additionalProperties: false
-      required:
-      - operation_id
-      - correct
-      properties:
-        operation_id:
-          type: string
-          format: uuid
-        correct:
-          type: boolean
-    PracticeMarkReceipt:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - state
-      - correct
-      - marked_how
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        state:
-          type: string
-          enum:
-          - marked
-        correct:
-          type: boolean
-        marked_how:
-          type: string
-          enum:
-          - teacher
-    PracticeMarkingAudio:
-      type: object
-      additionalProperties: false
-      required:
-      - kept
-      - mime
-      - bytes
-      - delete_after
-      properties:
-        kept:
-          type: boolean
-        mime:
-          type: string
-          maxLength: 40
-        bytes:
-          type: integer
-          minimum: 1
-        delete_after:
-          type: string
-          pattern: ^\d{4}-\d{2}-\d{2}$
-    PracticeMarkingItem:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - learner_id
-      - learner_name
-      - kind
-      - prompt
-      - answer
-      - accepted
-      - explanation
-      - answered_on
-      - audio
-      - suggestion
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        learner_id:
-          type: integer
-          minimum: 1
-        learner_name:
-          type: string
-          maxLength: 255
-        kind:
-          type: string
-          enum:
-          - short_text
-          - audio
-        prompt:
-          type: string
-          maxLength: 4000
-        answer:
-          anyOf:
-          - type: string
-            maxLength: 500
-          - type: 'null'
-        accepted:
-          type: array
-          maxItems: 20
-          items:
-            type: string
-            maxLength: 200
-        explanation:
-          type: string
-          maxLength: 4000
-        answered_on:
-          type: string
-          pattern: ^\d{4}-\d{2}-\d{2}$
-        audio:
-          anyOf:
-          - $ref: '#/components/schemas/PracticeMarkingAudio'
-          - type: 'null'
-        suggestion:
-          description: Reserved for AI-assisted marking after a provider is qualified; always null today. A suggestion never
-            marks an answer by itself.
-          anyOf:
-          - $ref: '#/components/schemas/PracticeMarkingSuggestion'
-          - type: 'null'
-    PracticeMarkingSuggestion:
-      type: object
-      additionalProperties: false
-      required:
-      - correct
-      - reason
-      properties:
-        correct:
-          type: boolean
-        reason:
-          type: string
-          maxLength: 1000
-    PracticeMarkingQueue:
-      type: object
-      additionalProperties: false
-      required:
-      - group_id
-      - items
-      - page
-      - last_page
-      - total
-      properties:
-        group_id:
-          type: integer
-          minimum: 1
-        items:
-          type: array
-          maxItems: 25
-          items:
-            $ref: '#/components/schemas/PracticeMarkingItem'
-        page:
-          type: integer
-          minimum: 1
-        last_page:
-          type: integer
-          minimum: 1
-        total:
-          type: integer
-          minimum: 0
     GetPracticeAccessResponse:
       type: object
       additionalProperties: false
@@ -56171,57 +55792,6 @@ components:
           anyOf:
           - $ref: '#/components/schemas/PracticeReview'
           - $ref: '#/components/schemas/PracticeReviewV2'
-        code:
-          type: integer
-    UploadPracticeDiagramResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/PracticeDiagram'
-        code:
-          type: integer
-    GetPracticeMarkingResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/PracticeMarkingQueue'
-        code:
-          type: integer
-    MarkPracticeAnswerResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/PracticeMarkReceipt'
         code:
           type: integer
     LiveSessionRequest:
@@ -74266,5 +73836,648 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/LearningPathFamilySummary'
+        code:
+          type: integer
+    PracticeStep:
+      type: object
+      additionalProperties: false
+      required:
+      - prompt
+      - kind
+      - options
+      - answers
+      properties:
+        id:
+          type: string
+          pattern: ^s[1-8]$
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        options:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+        answers:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 100
+    PracticeDiagramReference:
+      type: object
+      additionalProperties: false
+      description: "An uploaded diagram picture (uploadPracticeDiagram). The server fills width and height from the stored picture."
+      required:
+      - id
+      properties:
+        source:
+          type: string
+          enum:
+          - school
+          - library
+        id:
+          type: string
+          format: uuid
+        width:
+          type: integer
+          minimum: 1
+          maximum: 4096
+        height:
+          type: integer
+          minimum: 1
+          maximum: 4096
+    PracticeDiagramRegion:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - x
+      - y
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z][a-z0-9]{0,2}$
+        x:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Per cent across from the left edge.
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Per cent down from the top edge.
+    PracticeSetQuestion:
+      type: object
+      additionalProperties: false
+      description: "What a learner device receives before answering. Never accepted answers, step answers, the label mapping
+        or the explanation; those arrive in PracticeReview.solution once the server has recorded the answer. A diagram_label
+        picture is fetched from getPracticeEntryDiagram."
+      required:
+      - kind
+      - prompt
+      - options
+      properties:
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+          - steps
+          - short_text
+          - diagram_label
+          - audio
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        options:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+        steps:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/PracticeSetStep'
+        diagram:
+          type: object
+          additionalProperties: false
+          required:
+          - width
+          - height
+          properties:
+            width:
+              type: integer
+              minimum: 1
+              maximum: 4096
+            height:
+              type: integer
+              minimum: 1
+              maximum: 4096
+        regions:
+          type: array
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/PracticeDiagramRegion'
+        labels:
+          type: array
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+        max_seconds:
+          type: integer
+          minimum: 10
+          maximum: 180
+        max_length:
+          type: integer
+          minimum: 1
+          maximum: 500
+    PracticeSetStep:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - prompt
+      - kind
+      - options
+      properties:
+        id:
+          type: string
+          pattern: ^s[1-8]$
+        prompt:
+          type: string
+          maxLength: 1000
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        options:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+    PracticeSolution:
+      type: object
+      additionalProperties: false
+      description: Shown only after the answer is recorded on the server.
+      required:
+      - explanation
+      - answers
+      - steps
+      - mapping
+      properties:
+        explanation:
+          type: string
+          maxLength: 4000
+        answers:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 200
+        steps:
+          type: array
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/PracticeStepSolution'
+        mapping:
+          type: array
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/PracticeRegionSolution'
+    PracticeStepSolution:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - answers
+      properties:
+        id:
+          type: string
+          pattern: ^s[1-8]$
+        answers:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 100
+    PracticeRegionSolution:
+      type: object
+      additionalProperties: false
+      required:
+      - region
+      - label
+      properties:
+        region:
+          type: string
+          maxLength: 3
+        label:
+          type: string
+          maxLength: 20
+    PracticeReviewV2:
+      type: object
+      additionalProperties: false
+      description: "A recorded answer. state is awaiting_teacher for a short written answer that matched no accepted answer,
+        and for a spoken answer, until one of the group's current teachers marks it; correct, the unit counts and the
+        schedule of a marked answer are then filled once. solution is present because the answer is recorded."
+      required:
+      - id
+      - entry_id
+      - state
+      - correct
+      - achieved_units
+      - maximum_units
+      - parts
+      - marked_how
+      - schedule
+      - reviewed_on
+      - solution
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        entry_id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - marked
+          - awaiting_teacher
+        correct:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+        achieved_units:
+          anyOf:
+          - type: integer
+            minimum: 0
+            maximum: 8
+          - type: 'null'
+        maximum_units:
+          type: integer
+          minimum: 1
+          maximum: 8
+        parts:
+          anyOf:
+          - type: object
+            description: The mark of each step or region, by its code.
+            maxProperties: 12
+            additionalProperties:
+              type: boolean
+          - type: 'null'
+        marked_how:
+          type: string
+          enum:
+          - automatic
+          - teacher
+        schedule:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeSchedule'
+          - type: 'null'
+        reviewed_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        solution:
+          $ref: '#/components/schemas/PracticeSolution'
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+    PracticeSetEntryV2:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - item_id
+      - topic_id
+      - source_version_id
+      - estimated_seconds
+      - question
+      - review
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        item_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        source_version_id:
+          type: integer
+          minimum: 1
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 300
+        question:
+          $ref: '#/components/schemas/PracticeSetQuestion'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReviewV2'
+          - type: 'null'
+    PracticeDailySetV2:
+      type: object
+      additionalProperties: false
+      description: "The answer-free set contract (X-Practice-Contract: 2, Action Plan 3.11): questions only, every kind; results and solutions follow each recorded answer."
+      required:
+      - id
+      - school_id
+      - reader_id
+      - learner_id
+      - group_id
+      - practice_on
+      - server_time
+      - offline_until
+      - estimated_seconds
+      - completed
+      - items
+      - streak_days
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        practice_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        server_time:
+          type: string
+          format: date-time
+        offline_until:
+          type: string
+          format: date-time
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 600
+        completed:
+          type: boolean
+        items:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PracticeSetEntryV2'
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+    PracticeAudioReviewInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - rating
+      - audio
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 2
+          maximum: 4
+        audio:
+          type: string
+          format: binary
+          description: "M4A/AAC, WebM, Ogg or MP3, at most 3 MB; type read from the content, scanned, stored encrypted in the
+            school's private storage and deleted 90 days after recording or 30 days after marking."
+    PracticeDiagramUpload:
+      type: object
+      additionalProperties: false
+      required:
+      - photo
+      properties:
+        photo:
+          type: string
+          format: binary
+          description: JPEG or PNG up to 4 MB; re-encoded as pixels only and scanned.
+    PracticeDiagram:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - width
+      - height
+      properties:
+        id:
+          type: string
+          format: uuid
+        width:
+          type: integer
+          minimum: 1
+          maximum: 4096
+        height:
+          type: integer
+          minimum: 1
+          maximum: 4096
+    PracticeMarkInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - correct
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        correct:
+          type: boolean
+    PracticeMarkReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - correct
+      - marked_how
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - marked
+        correct:
+          type: boolean
+        marked_how:
+          type: string
+          enum:
+          - teacher
+    PracticeMarkingAudio:
+      type: object
+      additionalProperties: false
+      required:
+      - kept
+      - mime
+      - bytes
+      - delete_after
+      properties:
+        kept:
+          type: boolean
+        mime:
+          type: string
+          maxLength: 40
+        bytes:
+          type: integer
+          minimum: 1
+        delete_after:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    PracticeMarkingItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - kind
+      - prompt
+      - answer
+      - accepted
+      - explanation
+      - answered_on
+      - audio
+      - suggestion
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+          - short_text
+          - audio
+        prompt:
+          type: string
+          maxLength: 4000
+        answer:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+        accepted:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 200
+        explanation:
+          type: string
+          maxLength: 4000
+        answered_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        audio:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeMarkingAudio'
+          - type: 'null'
+        suggestion:
+          description: Reserved for AI-assisted marking after a provider is qualified; always null today. A suggestion never
+            marks an answer by itself.
+          anyOf:
+          - $ref: '#/components/schemas/PracticeMarkingSuggestion'
+          - type: 'null'
+    PracticeMarkingSuggestion:
+      type: object
+      additionalProperties: false
+      required:
+      - correct
+      - reason
+      properties:
+        correct:
+          type: boolean
+        reason:
+          type: string
+          maxLength: 1000
+    PracticeMarkingQueue:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/PracticeMarkingItem'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+    UploadPracticeDiagramResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeDiagram'
+        code:
+          type: integer
+    GetPracticeMarkingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeMarkingQueue'
+        code:
+          type: integer
+    MarkPracticeAnswerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeMarkReceipt'
         code:
           type: integer

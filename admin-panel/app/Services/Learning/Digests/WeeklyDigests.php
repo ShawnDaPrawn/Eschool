@@ -11,6 +11,7 @@ use App\Models\Notification;
 use App\Models\Platform\School;
 use App\Models\Students;
 use App\Models\User;
+use App\Services\Learning\Motivation\PracticeMotivation;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -50,11 +51,14 @@ class WeeklyDigests
             $person = User::acrossSchools()->findOrFail($learner->user_id);
             // Action Plan 4.6: rises only, from evidence this family may see.
             $growth = app(GrowthMovement::class)->digest($learnerId, $start);
+            // Action Plan 3.13: a reached weekly goal and a practice run, only when there is one to celebrate.
+            $growth['practice'] = app(PracticeMotivation::class)->digestWeek($learner, $start);
             $rendered = app(DigestTemplates::class)->render($template, [
                 'learner' => mb_substr((string) $person->full_name, 0, 100), 'week_start' => $start->toDateString(), 'week_end' => $start->addDays(6)->toDateString(),
                 'marks_count' => count($evidence['marks']), 'attendance_present' => $evidence['attendance']['present'], 'attendance_absent' => $evidence['attendance']['absent'],
                 'practice_completed' => $evidence['practice']['completed'], 'practice_total' => $evidence['practice']['total'], 'event_count' => $evidence['event_count'], 'home_action' => $action['label'],
                 'grew_in' => GrowthMovement::grewText($growth), 'help_at_home' => GrowthMovement::helpText($growth),
+                'practice_goal_met' => (string) ($growth['practice']['goal_met_days'] ?? ''), 'practice_streak' => (string) ($growth['practice']['streak_days'] ?? ''),
             ]);
             $digest = WeeklyParentDigest::create(['learner_id' => $learnerId, 'recipient_id' => $parent->id, 'session_year_id' => (int) schoolSetting('session_year'),
                 'template_id' => $template->id, 'template_version' => $template->version, 'language' => $language,

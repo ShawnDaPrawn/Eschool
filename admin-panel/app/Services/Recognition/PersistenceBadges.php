@@ -11,6 +11,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Learning\Digests\DigestAuthority;
 use App\Services\Learning\Digests\GrowthMovement;
+use App\Services\Learning\Motivation\PracticeStreaks;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -30,7 +31,7 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
  */
 class PersistenceBadges
 {
-    public const DEFAULTS = ['practice_days_enabled' => false, 'practice_days_required' => 4, 'comeback_enabled' => false, 'comeback_below_percent' => 50];
+    public const DEFAULTS = ['practice_days_enabled' => false, 'practice_days_required' => 4, 'comeback_enabled' => false, 'comeback_below_percent' => 50, 'streak_enabled' => false];
 
     /** At most this many "came back" badges per learner per week. */
     public const COMEBACKS_PER_WEEK = 3;
@@ -50,14 +51,17 @@ class PersistenceBadges
         foreach (['revision', 'practice_days_required', 'comeback_below_percent'] as $key) {
             $d[$key] = (int) $d[$key];
         }
-        foreach (['practice_days_enabled', 'comeback_enabled'] as $key) {
-            $d[$key] = (bool) $d[$key];
+        foreach (['practice_days_enabled', 'comeback_enabled', 'streak_enabled'] as $key) {
+            // The streak badge (Action Plan 3.13) is optional in the form: left out, it keeps its setting.
+            if (array_key_exists($key, $d)) {
+                $d[$key] = (bool) $d[$key];
+            }
         }
 
         return app(RecognitionOperations::class)->once($actor, 'badges', $d, fn () => $a->manage($actor, 'awards'), function () use ($actor, $d) {
             $row = RecognitionBadgeSettings::lockForUpdate()->first() ?? new RecognitionBadgeSettings(['revision' => 0]);
             abort_unless((int) $row->revision === $d['revision'], 409, 'The badge settings changed. Compare the current settings.');
-            $on = $d['practice_days_enabled'] || $d['comeback_enabled'];
+            $on = $d['practice_days_enabled'] || $d['comeback_enabled'] || ($d['streak_enabled'] ?? (bool) $row->streak_enabled);
             $row->fill(array_intersect_key($d, self::DEFAULTS) + ['switched_on_by' => $on ? (int) $actor->id : $row->switched_on_by, 'revision' => (int) $row->revision + 1])->save();
             Audit::record('recognition.badges_configured', $row, [], ['revision' => $row->revision] + array_intersect_key($d, self::DEFAULTS));
 
@@ -83,7 +87,7 @@ class PersistenceBadges
         $gate = app(ModuleGate::class);
         $gate->forget();
         $settings = RecognitionBadgeSettings::first();
-        if (! $gate->writable('awards') || $settings === null || $settings->switched_on_by === null || (! $settings->practice_days_enabled && ! $settings->comeback_enabled)) {
+        if (! $gate->writable('awards') || $settings === null || $settings->switched_on_by === null || (! $settings->practice_days_enabled && ! $settings->comeback_enabled && ! $settings->streak_enabled)) {
             return ['awarded' => 0];
         }
         $presenter = User::find($settings->switched_on_by);
@@ -93,7 +97,7 @@ class PersistenceBadges
         if ($presenter === null) {
             return ['awarded' => 0];
         }
-        $practice = $settings->practice_days_enabled && $gate->allows('daily_practice');
+        $practice = ($settings->practice_days_enabled || $settings->streak_enabled) && $gate->allows('daily_practice');
         $awarded = 0;
         Students::orderBy('id')->chunkById(100, function ($learners) use ($settings, $presenter, $start, $practice, &$awarded): void {
             foreach ($learners as $learner) {
@@ -115,13 +119,16 @@ class PersistenceBadges
     {
         $week = $start->toDateString();
         $awarded = 0;
-        if ($practice) {
+        if ($practice && $settings->practice_days_enabled) {
             $days = PracticeReview::where('learner_id', $learner->id)->whereBetween('reviewed_on', [$week, $start->addDays(6)->toDateString()])->distinct()->count('reviewed_on');
             if ($days >= $settings->practice_days_required) {
                 $awarded += (int) $this->award($presenter, $learner, 'practice_days', $start, null,
                     __('Kept practising on :days days in one week', ['days' => $days]),
                     __('Earned automatically for practising on at least :required different days in the week of :week.', ['required' => $settings->practice_days_required, 'week' => $week]));
             }
+        }
+        if ($practice && $settings->streak_enabled) {
+            $awarded += $this->streaks($presenter, $learner, $start);
         }
         if ($settings->comeback_enabled) {
             $below = $settings->comeback_below_percent * 100;
@@ -136,9 +143,32 @@ class PersistenceBadges
         return $awarded;
     }
 
-    private function award(User $presenter, Students $learner, string $kind, CarbonImmutable $start, ?int $topicId, string $title, string $criteria): bool
+    /**
+     * Streak milestones (Action Plan 3.13): each milestone a run reached during
+     * this week, once per learner and milestone each school year, counted the
+     * kind way (PracticeStreaks). It names the run's length, never a place.
+     */
+    private function streaks(User $presenter, Students $learner, CarbonImmutable $start): int
     {
-        $key = hash('sha256', implode(':', ['badge', $kind, $learner->id, $start->toDateString(), $topicId ?? 0]));
+        $peak = app(PracticeStreaks::class)->summary((int) $learner->id, $start->addDays(6)->toDateString(), $start->toDateString())['peak_days'];
+        $year = (int) schoolSetting('session_year');
+        $awarded = 0;
+        foreach ((array) config('motivation.streak.milestones', []) as $days) {
+            if ($peak < (int) $days) {
+                continue;
+            }
+            $awarded += (int) $this->award($presenter, $learner, 'streak', $start, null,
+                __('Kept a practice run going for :days days', ['days' => (int) $days]),
+                __('Earned automatically for a practice run of :days days. Weekends, holidays and one rest day a week never break a run.', ['days' => (int) $days]),
+                hash('sha256', implode(':', ['badge', 'streak', $learner->id, $year, (int) $days])));
+        }
+
+        return $awarded;
+    }
+
+    private function award(User $presenter, Students $learner, string $kind, CarbonImmutable $start, ?int $topicId, string $title, string $criteria, ?string $key = null): bool
+    {
+        $key ??= hash('sha256', implode(':', ['badge', $kind, $learner->id, $start->toDateString(), $topicId ?? 0]));
         if (RecognitionBadge::where('dedupe_key', $key)->exists()) {
             return false;
         }

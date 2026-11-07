@@ -71,6 +71,7 @@ use App\Http\Controllers\Panel\Leadership\MasteryImpactController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Learning\ExamMemoPanelController;
 use App\Http\Controllers\Panel\Learning\PracticeMarkingController;
+use App\Http\Controllers\Panel\Learning\PracticeMotivationController;
 use App\Http\Controllers\Panel\Learning\QuestionBankController;
 use App\Http\Controllers\Panel\Learning\StartingCheckController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
@@ -748,6 +749,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
+        // Gentle practice reminders (Action Plan 3.13): school managers only, both off by default.
+        Route::prefix('practice-motivation')->name('practice-motivation.')->middleware(['module:daily_practice', 'cache.headers:private;no_store'])->group(function () {
+            Route::get('/', [PracticeMotivationController::class, 'index'])->name('index');
+            Route::put('/', [PracticeMotivationController::class, 'update'])->middleware('throttle:30,1')->name('update');
         });
         // Teachers' question banks by subject and grade (Action Plan 3.6).
         Route::prefix('question-banks')->name('question-banks.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
