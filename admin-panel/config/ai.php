@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\Ai\Providers\OpenAiModerator;
 use App\Services\Ai\Providers\OpenAiProvider;
 use App\Services\Assistance\AssistanceModeration;
 use App\Services\Assistance\AssistanceQuarantine;
@@ -82,6 +83,20 @@ return [
         'personal_features' => ['tutor'],
         // Only explicit feature-owned resolvers may load approved private derivatives.
         'vision_resolvers' => ['teaching_assistant' => TeachingDraftVisionResolver::class, 'exam_coach' => ExamAnswerVisionResolver::class, 'tutor' => TutorVisionResolver::class],
+    ],
+    // HQ's own model calls (Action Plan 3.4), made from /saas with no school:
+    // AI drafts for the platform content library. They pass the same
+    // switches as school features (inference.enabled and a qualified
+    // provider) and are metered in platform_ai_usage against HQ's own daily
+    // caps, never a school's. Ability: the platform staff ability that may ask.
+    'platform' => [
+        'features' => [
+            'library_drafting' => ['enabled' => false, 'ability' => 'library.manage', 'capabilities' => ['complete'],
+                'provider' => 'openai', 'provider_class' => OpenAiProvider::class, 'moderator' => OpenAiModerator::class,
+                'model' => env('AI_LIBRARY_DRAFTING_MODEL', ''), 'prompt' => 'library-drafting', 'maximum_output_tokens' => 4096,
+                'cents_per_million_tokens' => null, 'platform_daily_tokens' => 2000000, 'actor_daily_tokens' => 500000,
+                'platform_daily_cents' => 2000, 'actor_daily_cents' => 500],
+        ],
     ],
     'transcribe' => [
         'provider' => 'local-whisper-base',

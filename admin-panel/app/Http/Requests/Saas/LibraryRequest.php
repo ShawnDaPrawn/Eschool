@@ -6,6 +6,7 @@ namespace App\Http\Requests\Saas;
 
 use App\Services\Learning\Library\LibraryAccess;
 use App\Services\Learning\Library\LibraryCatalogue;
+use App\Services\Learning\Library\LibraryDrafting;
 use App\Services\Learning\Library\LibraryItems;
 use App\Services\Learning\Library\LibraryReviewers;
 use App\Services\Learning\Library\LibrarySchools;
@@ -35,6 +36,8 @@ class LibraryRequest extends PlatformStaffRequest
             'saas.library.items.draft' => LibraryItems::draftRules(),
             'saas.library.items.submit' => LibraryItems::stepRules(),
             'saas.library.items.publish' => LibraryItems::publishRules(),
+            'saas.library.items.redraft' => LibraryItems::stepRules(),
+            'saas.library.drafts.store' => LibraryDrafting::rules(),
             'saas.library.versions.review' => LibraryItems::reviewRules(),
             'saas.library.reviewers.store' => LibraryReviewers::assignRules(),
             'saas.library.schools.switch' => LibrarySchools::switchRules(),
