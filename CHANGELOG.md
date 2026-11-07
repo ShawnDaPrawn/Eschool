@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
 ## 2026-11-04
 
 - Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
