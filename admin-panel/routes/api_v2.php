@@ -58,6 +58,7 @@ use App\Http\Controllers\Api\V2\Money\WalletDepositController;
 use App\Http\Controllers\Api\V2\Money\WalletTransferController;
 use App\Http\Controllers\Api\V2\Money\WalletWithdrawalController;
 use App\Http\Controllers\Api\V2\OpenStandards\BadgeCredentialController;
+use App\Http\Controllers\Api\V2\Passport\PassportController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
@@ -1071,6 +1072,15 @@ Route::prefix('pathways')->name('api.v2.pathways.')->middleware([PrivateDomainRe
     Route::post('references', [$controller, 'store'])->middleware('module:pathway,write')->name('references.store');
     Route::put('references/{reference}', [$controller, 'update'])->whereUuid('reference')->middleware('module:pathway,write')->name('references.update');
     Route::post('references/{reference}/projection', [$controller, 'project'])->whereUuid('reference')->name('projection');
+});
+
+// The learner passport (Action Plan 4.10): read-only; the learner's own
+// download from 18. A learner is named by this school's id, never by LURITS.
+Route::prefix('passport')->name('api.v2.passport.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:passport,read', 'throttle:60,1'])->group(function () {
+    $controller = PassportController::class;
+    Route::get('me', [$controller, 'me'])->name('me');
+    Route::get('me/export', [$controller, 'export'])->middleware('throttle:10,1')->name('export');
+    Route::get('learners/{learner}', [$controller, 'show'])->whereNumber('learner')->name('show');
 });
 
 // Supervised staff writes and purpose-bound read-only family arrangements.
