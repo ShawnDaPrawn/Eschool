@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Policies\Academics\ContentPolicy;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\ReleasedMarks;
+use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -44,7 +45,20 @@ class TutorQueries
             'session_year_id' => (int) schoolSetting('session_year'), 'groups' => $items,
             'inference_enabled' => config('ai.inference.enabled') === true && config('ai.inference.features.tutor.enabled') === true,
             'photo_requires_approved_crop' => true, 'feedback_is_provisional' => true,
-            'checkpoints_enabled' => app(ModuleGate::class)->allows('daily_practice')];
+            'checkpoints_enabled' => app(ModuleGate::class)->allows('daily_practice')] + $this->teaching();
+    }
+
+    /** What the configured prompt version offers (Action Plan 3.10). */
+    private function teaching(): array
+    {
+        try {
+            $v2 = TutorPrompts::selected() === TutorPrompts::V2;
+        } catch (AiUnavailable) {
+            $v2 = false;
+        }
+
+        return ['tutor_version' => $v2 ? 2 : 1, 'explain_back_enabled' => $v2, 'home_languages' => $v2 ? TutorLanguages::choices() : [],
+            'memory_days' => TutorMemory::retentionDays()];
     }
 
     public function sessions(User $actor, int $page = 1): array
