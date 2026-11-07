@@ -34,6 +34,8 @@
 - The weekly parent update can now say when a child reached their weekly practice goal and how long their practice run is; it never says a goal was missed.
 - API: `GET /api/v2/learning/practice/learners/{learner}/motivation` and `POST /api/v2/learning/practice/learners/{learner}/practice-goal` (the Dart client needs regenerating).
 
+- Learners get a guided learning path for each subject (Action Plan 3.9): the server finds the topic to work on next, shows the school's lesson (or a library lesson), gives a few practice questions, then a short check it marks itself, and plans a review for a later day. A check that does not go well yet leads back to the lesson with a kind message; after three tries the topic rests until tomorrow. Answers are never sent to the device before the learner answers. Teachers see which step each learner in their group is on (no scores or rankings), and guardians see a plain summary for their own child. When the tutor and the AI are switched on, the tutor opens on the topic and leads the lesson. API: new `/api/v2/learning/paths` endpoints; the Dart client needs regenerating.
+
 - Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
   content staff build a catalogue of classic public-domain books in HQ
   (Reading library), record a copyright decision for each one (who, when and

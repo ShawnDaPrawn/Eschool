@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\V2\Learning\DiagnosticController;
 use App\Http\Controllers\Api\V2\Learning\DiaryController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
+use App\Http\Controllers\Api\V2\Learning\LearningPathController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Learning\StrengthsMirrorController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
@@ -758,6 +759,16 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     // Action Plan 3.13: the learner's own streak, weekly goal and recently secure topics.
     Route::get('learners/{learner}/motivation', [$c, 'motivation'])->whereNumber('learner')->name('motivation');
     Route::post('learners/{learner}/practice-goal', [$c, 'goal'])->whereNumber('learner')->name('goal');
+});
+
+// The guided learning path (Action Plan 3.9): own learner, the group's teacher, or a child's guardian.
+Route::prefix('learning/paths')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:daily_practice', 'module:mastery'])->name('api.v2.learning-paths.')->group(function () {
+    $c = LearningPathController::class;
+    Route::get('learners/{learner}/groups/{group}', [$c, 'show'])->whereNumber(['learner', 'group'])->name('show');
+    Route::post('learners/{learner}/groups/{group}/actions', [$c, 'act'])->whereNumber(['learner', 'group'])->middleware('throttle:60,1')->name('act');
+    Route::post('learners/{learner}/groups/{group}/items/{item}/answer', [$c, 'answer'])->whereNumber(['learner', 'group', 'item'])->middleware('throttle:60,1')->name('answer');
+    Route::get('groups/{group}/learners', [$c, 'group'])->whereNumber('group')->name('group');
+    Route::get('learners/{learner}/summary', [$c, 'family'])->whereNumber('learner')->name('family');
 });
 
 // The starting check (Action Plan 3.7): library diagnostics marked on the server, written as mastery evidence.
