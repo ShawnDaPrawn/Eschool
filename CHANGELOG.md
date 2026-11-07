@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
 ## 2026-11-04
 
 - Learner passport (Action Plan 4.10). With the new Learner passport module on, a learner, and a guardian who approves for them, can see one read-only record across the NavigateEd schools the learner attended, headed by their LURITS number: awards and badges, activity groups, supervised peer tutoring minutes, and the results that came with a signed school transfer. A reading section waits for the school library. School staff with profile permission see the same page for their own learners in the panel (People, Learner passports), limited to what their school holds and what arrived in a signed transfer to it; they never see another school's records, and learners are found by name, never by LURITS number. Health, counselling, wellbeing, discipline, support plans, safeguarding, house points and private notes are never part of a passport. From their 18th birthday (by the school's calendar) a learner can download their passport as JSON or PDF; each download is audited. API: `GET /api/v2/passport/me`, `/me/export` and `/learners/{learner}`; regenerate the Dart client. The app screens come later.
