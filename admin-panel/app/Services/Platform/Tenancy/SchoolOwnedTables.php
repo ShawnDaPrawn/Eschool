@@ -157,6 +157,8 @@ final class SchoolOwnedTables
         'reading_shelves' => 'HQ-curated reading shelves by grade, written only from /saas/reading; a school hides a shelf in its own reading_hidden_items',
         'reading_shelf_books' => 'which books are on each HQ shelf, written only from /saas/reading',
         'reading_questions' => 'HQ-written comprehension questions per book, written only from /saas/reading; learners\' answers are school-owned in reading_answers',
+        'library_ai_drafts' => 'HQ requests for AI drafts of library items (topic, source, brief, outcome), written only from /saas/library; the model is given library data only, never a school\'s',
+        'platform_ai_usage' => 'HQ\'s own AI metering for model calls made from /saas with no school (tokens, cents, hashes and flag codes, never a prompt or an answer); a school\'s calls stay in its own ai_usage',
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
         'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
