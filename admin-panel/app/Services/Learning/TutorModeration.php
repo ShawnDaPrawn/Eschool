@@ -36,7 +36,7 @@ class TutorModeration implements InferenceModerator
         }
         $session = TutorSession::findOrFail($message->tutor_session_id);
         $token = hash_hmac('sha256', 'subject:'.$session->subject_id, config('app.key'));
-        $kinds = trim((string) $message->working) === '' ? ['hint', 'question', 'refusal'] : ['hint', 'question', 'correction', 'refusal'];
+        $kinds = TutorPrompts::kinds($message);
         if (! is_array($data) || count($data) !== 4 || array_diff(array_keys($data), ['subject_token', 'kind', 'text', 'question']) !== []
             || ($data['subject_token'] ?? null) !== $token || ! in_array($data['kind'] ?? null, $kinds, true)
             || ! is_string($data['text'] ?? null) || trim($data['text']) === '' || strlen($data['text']) > 1600

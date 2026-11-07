@@ -20801,6 +20801,166 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /tutor/memory:
+    get:
+      operationId: getTutorMemory
+      tags:
+      - Tutor
+      summary: getTutorMemory
+      description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's tutor memory.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutorMemoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /tutor/memory/clear:
+    post:
+      operationId: clearTutorMemory
+      tags:
+      - Tutor
+      summary: clearTutorMemory
+      description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's tutor memory.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutorMemoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: This operation UUID was already used to clear for another person, learner or route.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TutorOperationWrite'
+  /tutor/parent/learners/{learner}/memory:
+    get:
+      operationId: getTutorLearnerMemory
+      tags:
+      - Tutor
+      summary: getTutorLearnerMemory
+      description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The learner's tutor memory.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutorMemoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /tutor/parent/learners/{learner}/memory/clear:
+    post:
+      operationId: clearTutorLearnerMemory
+      tags:
+      - Tutor
+      summary: clearTutorLearnerMemory
+      description: The tutor's derived memory of one learner at this school (topics and counts, no chat). The learner and
+        their active guardians can see and clear it, also while the tutor module is off; nobody else can. A clear is kept
+        by its operation_id, so replaying it changes nothing.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The learner's tutor memory.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutorMemoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: This operation UUID was already used to clear for another person, learner or route.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TutorOperationWrite'
   /family-forms/configuration:
     get:
       operationId: getFamilyFormConfiguration
@@ -57642,6 +57802,24 @@ components:
           type: boolean
           description: True only while the owning learner has current daily-practice access. Independent of external model
             activation.
+        tutor_version:
+          type: integer
+          description: The configured tutor prompt version. Version 2 adapts to the learner's stage and grade, uses worked
+            examples, offers explain_back turns, a learner memory and home-language explanations.
+          enum:
+          - 1
+          - 2
+        explain_back_enabled:
+          type: boolean
+        home_languages:
+          type: array
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/TutorHomeLanguage'
+        memory_days:
+          type: integer
+          minimum: 1
+          maximum: 365
     TutorSessionResult:
       type: object
       additionalProperties: false
@@ -57810,6 +57988,21 @@ components:
           - type: 'null'
         provisional:
           type: boolean
+        turn_type:
+          type: string
+          description: ask for an ordinary question, explain_back when the learner explained the idea in their own words
+            (tutor v2).
+          enum:
+          - ask
+          - explain_back
+        explain_language:
+          description: The home language the tutor was asked to explain in (tutor v2), or null for English.
+          anyOf:
+          - type: string
+            enum:
+            - af
+            - zu
+          - type: 'null'
     TutorTurnResult:
       type: object
       additionalProperties: false
@@ -57868,6 +58061,21 @@ components:
           - type: 'null'
         provisional:
           type: boolean
+        turn_type:
+          type: string
+          description: ask for an ordinary question, explain_back when the learner explained the idea in their own words
+            (tutor v2).
+          enum:
+          - ask
+          - explain_back
+        explain_language:
+          description: The home language the tutor was asked to explain in (tutor v2), or null for English.
+          anyOf:
+          - type: string
+            enum:
+            - af
+            - zu
+          - type: 'null'
     TutorSessionDetail:
       type: object
       additionalProperties: false
@@ -58084,6 +58292,21 @@ components:
           items:
             type: string
             format: uuid
+        turn_type:
+          type: string
+          description: explain_back sends the learner's own explanation of the idea for kind feedback. Needs tutor v2.
+          enum:
+          - ask
+          - explain_back
+        language:
+          description: Ask for the explanation in a home language listed in the configuration's home_languages (tutor
+            v2 only).
+          anyOf:
+          - type: string
+            enum:
+            - af
+            - zu
+          - type: 'null'
     TutorPhotoWrite:
       type: object
       additionalProperties: false
@@ -58121,6 +58344,124 @@ components:
           type: integer
           minimum: 1
           maximum: 8192
+    TutorHomeLanguage:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - name
+      properties:
+        code:
+          type: string
+          enum:
+          - af
+          - zu
+        name:
+          type: string
+    TutorMemoryTopic:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    TutorMemorySubject:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - subject_name
+      - sessions
+      - learning_steps
+      - explained_back
+      - topics
+      - last_active_on
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        sessions:
+          type: integer
+          minimum: 0
+        learning_steps:
+          type: integer
+          minimum: 0
+        explained_back:
+          type: integer
+          minimum: 0
+        topics:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/TutorMemoryTopic'
+        last_active_on:
+          type: string
+          format: date
+    TutorMemory:
+      type: object
+      additionalProperties: false
+      description: Derived topics and counts only, never chat text or anything flagged for safeguarding. Turns older than
+        retention_days, from an earlier school year or from before cleared_at do not count.
+      required:
+      - school_id
+      - reader_id
+      - learner_id
+      - retention_days
+      - cleared_at
+      - note
+      - subjects
+      - contains_raw_chat
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+        cleared_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        note:
+          type: string
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/TutorMemorySubject'
+        contains_raw_chat:
+          type: boolean
+    TutorMemoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TutorMemory'
+        code:
+          type: integer
     TutorConfigurationResponse:
       type: object
       additionalProperties: false
