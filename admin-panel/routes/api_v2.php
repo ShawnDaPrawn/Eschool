@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\MyGradeController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
+use App\Http\Controllers\Api\V2\Learning\DiagnosticController;
 use App\Http\Controllers\Api\V2\Learning\DiaryController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
@@ -757,6 +758,16 @@ Route::prefix('learning/paths')->middleware([PrivateMastery::class, 'auth:sanctu
     Route::post('learners/{learner}/groups/{group}/items/{item}/answer', [$c, 'answer'])->whereNumber(['learner', 'group', 'item'])->middleware('throttle:60,1')->name('answer');
     Route::get('groups/{group}/learners', [$c, 'group'])->whereNumber('group')->name('group');
     Route::get('learners/{learner}/summary', [$c, 'family'])->whereNumber('learner')->name('family');
+});
+
+// The starting check (Action Plan 3.7): library diagnostics marked on the server, written as mastery evidence.
+Route::prefix('learning/diagnostics')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:daily_practice', 'module:mastery'])->name('api.v2.diagnostics.')->group(function () {
+    $c = DiagnosticController::class;
+    Route::get('groups/{group}', [$c, 'group'])->whereNumber('group')->name('group');
+    Route::get('learners/{learner}', [$c, 'summary'])->whereNumber('learner')->name('summary');
+    Route::post('learners/{learner}/groups/{group}/attempts', [$c, 'start'])->whereNumber(['learner', 'group'])->name('start');
+    Route::get('learners/{learner}/attempts/{attempt}', [$c, 'read'])->whereNumber(['learner', 'attempt'])->name('read');
+    Route::post('learners/{learner}/attempts/{attempt}/items/{item}/answer', [$c, 'answer'])->whereNumber(['learner', 'attempt', 'item'])->name('answer');
 });
 
 // Private family history and explicitly assigned current activity sources.

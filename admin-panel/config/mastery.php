@@ -26,6 +26,10 @@ return [
             // Guided learning path (Action Plan 3.9): self-study, like daily practice.
             'path_practice' => 0.5,
             'path_check' => 0.5,
+            // A diagnostic answer is marked on the server, but it is a short,
+            // one-off starting check: it counts as practice does, and newer
+            // marks and practice soon outweigh it.
+            'diagnostic' => 0.5,
         ],
         'default_source_weight' => 0.5,
 
