@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Platform\MessagingNumber;
 use App\Services\Platform\Identity\GuardianService;
+use App\Services\Platform\Notifications\TextNumbers;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +21,13 @@ class Parents extends Model
 
     protected static function booted()
     {
+        // A new number on the parent record is not verified (Action Plan 2.7).
+        static::updated(function (Parents $parent) {
+            if ($parent->wasChanged('mobile') && $parent->user_id !== null && $parent->school_id !== null) {
+                TextNumbers::numberChanged((int) $parent->user_id, MessagingNumber::PARENT, (int) $parent->school_id);
+            }
+        });
+
         static::deleting(function (Parents $parent) {
             if ($parent->isForceDeleting() || empty($parent->email)) {
                 return;
