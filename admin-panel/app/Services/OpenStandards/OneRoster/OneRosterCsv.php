@@ -24,9 +24,9 @@ final class OneRosterCsv
             throw new RuntimeException('The CSV could not be written.');
         }
         try {
-            fputcsv($stream, $headers, ',', '"', '', "\r\n");
+            fputcsv($stream, array_map(self::safeCell(...), $headers), ',', '"', '', "\r\n");
             foreach ($rows as $row) {
-                fputcsv($stream, array_map(fn (string $h): string => (string) ($row[$h] ?? ''), $headers), ',', '"', '', "\r\n");
+                fputcsv($stream, array_map(fn (string $h): string => self::safeCell((string) ($row[$h] ?? '')), $headers), ',', '"', '', "\r\n");
             }
             rewind($stream);
 
@@ -34,5 +34,17 @@ final class OneRosterCsv
         } finally {
             fclose($stream);
         }
+    }
+
+    /** Refuse active spreadsheet cells; never change a roster identity or code. */
+    private static function safeCell(string $value): string
+    {
+        $plain = preg_replace('/\A[\s\x{FEFF}\x00-\x1f]*/u', '', $value);
+        if ($plain === null || str_contains($value, "\0") || preg_match('/\A[=+@]/', $plain) === 1
+            || (str_starts_with($plain, '-') && preg_match('/\A-\d+(?:\.\d+)?\z/', $plain) !== 1)) {
+            throw new UnsafeRosterValue;
+        }
+
+        return $value;
     }
 }

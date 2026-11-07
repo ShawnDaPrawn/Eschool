@@ -6887,5 +6887,6 @@
     "with birth dates and sex": "nezinsuku zokuzalwa nobulili",
     "Badge credentials are not available yet. Ask the school to contact NavigateEd.": "Izitifiketi zezibonakaliso azikatholakali. Cela isikole sixhumane ne-NavigateEd.",
     "Ask your parent or guardian to download your badges.": "Cela umzali wakho noma umnakekeli wakho alande izibonakaliso zakho.",
-    "Export the school roster in OneRoster format": "Thumela uhlu lwesikole ngefomethi ye-OneRoster"
+    "Export the school roster in OneRoster format": "Thumela uhlu lwesikole ngefomethi ye-OneRoster",
+    "The roster contains an unsafe spreadsheet value. Correct the source data before preparing another export.": "The roster contains an unsafe spreadsheet value. Correct the source data before preparing another export."
 }

@@ -13,6 +13,12 @@ new v2 endpoints in a later step).
 
 ## OneRoster 1.2 CSV export
 
+CSV cells are checked before packaging. Formula-like source values (including
+leading whitespace or a BOM) and NUL bytes refuse the export rather than changing
+roster names or identifiers. The failed export has no download or retained
+temporary archive, and its requester sees a source-correction message. Ordinary
+CSV quoting and safe source values remain byte-for-byte unchanged.
+
 ### User stories
 
 - As a **school leader** with the sensitive ability *Export the school roster

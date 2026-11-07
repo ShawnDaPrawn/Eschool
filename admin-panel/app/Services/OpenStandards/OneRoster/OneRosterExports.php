@@ -77,6 +77,7 @@ class OneRosterExports
                 'id' => (int) $row->id, 'state' => $row->state, 'requested_at' => $row->created_at?->timezone($this->timezone())->format('Y-m-d H:i'),
                 'demographics' => $row->include_demographics, 'counts' => (array) ($row->row_counts ?? []), 'sha256' => $row->artifact_sha256,
                 'expires_at' => $row->expires_at?->setTimezone($this->timezone())->format('Y-m-d H:i'),
+                'problem' => $row->failure_code === 'unsafe_value' ? __(UnsafeRosterValue::MESSAGE) : null,
                 'download_url' => $this->available($row) ? URL::temporarySignedRoute('open-standards.download', now()->addMinutes(max(1, (int) config('open_standards.oneroster.download_link_minutes'))),
                     ['export' => $row->id, 'reader' => $fresh->id]) : null,
             ])->all()];
@@ -116,7 +117,13 @@ class OneRosterExports
 
             return;
         }
-        $built = $this->zip($row);
+        try {
+            $built = $this->zip($row);
+        } catch (UnsafeRosterValue) {
+            $this->failed($id, $generation, 'unsafe_value');
+
+            return;
+        }
         if ($built === null) {
             $this->failed($id, $generation, 'too_large');
 
@@ -264,11 +271,16 @@ class OneRosterExports
             if ($zip->open($path, ZipArchive::OVERWRITE) !== true) {
                 throw new RuntimeException('The export could not be packaged.');
             }
-            $zip->addFromString('manifest.csv', OneRosterCsv::render(['propertyName', 'value'], OneRosterTables::manifest(array_keys($tables))));
-            foreach ($tables as $file => $rows) {
-                $zip->addFromString($file, OneRosterCsv::render(OneRosterTables::HEADERS[$file], $rows));
+            try {
+                $zip->addFromString('manifest.csv', OneRosterCsv::render(['propertyName', 'value'], OneRosterTables::manifest(array_keys($tables))));
+                foreach ($tables as $file => $rows) {
+                    $zip->addFromString($file, OneRosterCsv::render(OneRosterTables::HEADERS[$file], $rows));
+                }
+            } finally {
+                // Close before unlinking, including on invalid source data, so
+                // the ZIP destructor cannot recreate an unencrypted temp file.
+                $zip->close();
             }
-            $zip->close();
             $bytes = (string) file_get_contents($path);
         } finally {
             if (is_file($path)) {

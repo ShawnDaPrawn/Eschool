@@ -6887,5 +6887,6 @@
     "with birth dates and sex": "met geboortedatums en geslag",
     "Badge credentials are not available yet. Ask the school to contact NavigateEd.": "Kentekenbewyse is nog nie beskikbaar nie. Vra die skool om NavigateEd te kontak.",
     "Ask your parent or guardian to download your badges.": "Vra jou ouer of voog om jou kentekens af te laai.",
-    "Export the school roster in OneRoster format": "Voer die skoolrooster in OneRoster-formaat uit"
+    "Export the school roster in OneRoster format": "Voer die skoolrooster in OneRoster-formaat uit",
+    "The roster contains an unsafe spreadsheet value. Correct the source data before preparing another export.": "The roster contains an unsafe spreadsheet value. Correct the source data before preparing another export."
 }

@@ -116,6 +116,28 @@ class OpenStandardsTest extends TestCase
         }
     }
 
+    public function test_formula_like_roster_values_do_not_produce_a_downloadable_artifact(): void
+    {
+        User::findOrFail($this->schoolA->ids['asha_user'])->forceFill(['first_name' => '=1+1'])->save();
+        Queue::fake();
+        $this->actingAs($this->admin)->post('/open-standards/oneroster', ['reason' => 'Synthetic source-value qualification'])
+            ->assertRedirect(route('open-standards.index'));
+        $row = OneRosterExport::latest('id')->firstOrFail();
+        $temporaryFiles = glob(sys_get_temp_dir().'/oneroster-*') ?: [];
+        (new BuildOneRosterExport(1, (int) $row->id, (string) $row->generation_id))->handle(app(CurrentSchool::class));
+
+        $row->refresh();
+        $this->assertSame(OneRosterExport::FAILED, $row->state);
+        $this->assertSame('unsafe_value', $row->failure_code);
+        $this->assertNull($row->artifact_path);
+        $this->assertSame([], Storage::disk('academic_private')->allFiles());
+        $this->assertSame($temporaryFiles, glob(sys_get_temp_dir().'/oneroster-*') ?: []);
+        $page = app(OneRosterExports::class)->page($this->admin);
+        $this->assertNull($page['exports'][0]['download_url']);
+        $this->assertStringContainsString('unsafe spreadsheet value', $page['exports'][0]['problem']);
+        $this->get(route('open-standards.index'))->assertOk()->assertSee($page['exports'][0]['problem']);
+    }
+
     public function test_the_csv_files_carry_the_oneroster_1_2_column_headers(): void
     {
         $files = $this->export(['reason' => 'Checking the export format', 'include_demographics' => '1']);
