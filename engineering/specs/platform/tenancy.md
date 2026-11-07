@@ -475,3 +475,19 @@ current school's rows ([mastery impact](../leadership/mastery-impact.md)).
 `wellbeing_check_ins` are required school-owned: a school's library, the
 progress against its own interventions and its learners' check-ins. Another
 school's ids are not found ([check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)).
+
+### Records shared between schools (Action Plan 5.1, 5.2)
+
+`shared_fixtures` and `shared_competitions` are global: the facts of a fixture
+or league that every accepted participant shares (date, venue, field, an
+outside opponent's name, the agreed result, points rules). They name no school
+and hold no learner, group or note. `shared_participants` is required
+school-owned: each school's own link to a shared record (role and whether it
+accepted), so a school finds shared records only through its own rows and a
+third school finds nothing. `shared_record_operations`, `shared_fixture_sides`
+and `shared_fixture_selections` are required school-owned: each school's write
+receipts, its own side of a fixture (group, team name, notes, score report) and
+its team sheet, with composite school foreign keys to its own group and
+learners. Another school's rows are read only through `SharedRecords`, and only
+the columns declared in `config/shared_records.php` once the schools accepted
+([shared records](shared-records.md)).
