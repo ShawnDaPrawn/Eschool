@@ -485,6 +485,20 @@ learners, fee discounts and ledger rows through composite `(school_id, id)`
 foreign keys, so a row can never point into another school. Another school's
 ids are not found ([school business tools](../money/school-business-tools.md)).
 
+### School groups
+
+`school_groups`, `school_group_admins`, `school_group_invoices` and
+`school_group_payments` are global: a group of schools with one owner, its
+group-level roles (which grant nothing inside a school), Navigate Ed's monthly
+invoice to the group and the group's payments, all written only from `/saas`.
+`school_group_members` is required school-owned: each school's own membership,
+agreed by its Super Admin in the school panel (another school's id is not
+found). `school_group_invoice_schools` and `school_group_invoice_lines` are
+required school-owned: each school's month on a group invoice and the lines
+copied from its own draft. The group's dashboard reads a school only while its
+membership is active, inside that school, and shows counts with small numbers
+hidden ([school groups](school-groups.md)).
+
 ### Records shared between schools (Action Plan 5.1, 5.2)
 
 `shared_fixtures` and `shared_competitions` are global: the facts of a fixture

@@ -29,6 +29,9 @@ class PlatformInvoice extends Model
 
     public const DISCARDED = 'discarded';
 
+    /** The school's month was rolled up on its school group's issued invoice (school-groups.md): frozen, never issued alone. */
+    public const GROUPED = 'grouped';
+
     /** The only columns an issued invoice may still change. */
     public const AFTER_ISSUE = ['reminded_at', 'reminders', 'updated_at'];
 
