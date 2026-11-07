@@ -58,6 +58,13 @@ day (`PlatformPackages::quote`):
 With neither a contract nor a list base price, the draft says so and cannot be
 issued until a price or contract exists and the draft is recomputed.
 
+**SMS and WhatsApp** (Action Plan 2.7, `MessagingCharges`): on top of either
+price, a line per channel (kind `messaging`) passes on what Twilio charged for
+the texts the school sent in the month before the invoice's month, converted to
+rand at `platform_billing.messaging.exchange_rates` and written on the line.
+The draft is blocked while one of those texts may still be priced or a
+currency has no rate. Details: `sms-whatsapp.md`.
+
 ### Learners
 
 Counted on the day the draft is computed (the run date or a recompute), and
@@ -135,7 +142,7 @@ school and who did it.
 | Table | Tenancy | Holds |
 | --- | --- | --- |
 | `platform_invoices` | school-owned (required) | kind (invoice, credit note), status (draft, issued, discarded), reference, period, month slot (unique per school), the invoice it credits, package and version, price source (contract or list), contract and contracted learners, learners and the day counted, currency, VAT rate in basis points, subtotal, VAT and total in cents, why a draft is blocked, credit note reason, issue and due dates, who computed, issued or discarded it, reminders |
-| `platform_invoice_lines` | school-owned (required) | position, kind (base, discount, module, credit), product module, description, learners, unit price, amount and VAT in cents |
+| `platform_invoice_lines` | school-owned (required) | position, kind (base, discount, module, credit, messaging), product module, description, learners, unit price, amount and VAT in cents |
 | `platform_payments` | school-owned (required) | date received, amount in cents, currency, bank reference, note, who recorded it, reversal (when, who, why) |
 | `platform_payment_allocations` | school-owned (required) | invoice, the payment or credit note settling it, amount in cents, who, reversed when and by whom |
 | `platform_billing_reminders` | school-owned (required) | each overdue reminder: its request key (unique per school), the invoices, the amount overdue, how many Super Admins, which bursar contacts, the email title and text, when the emails were queued, who sent it |

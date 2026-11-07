@@ -6,6 +6,7 @@ namespace App\Services\Platform\Saas;
 
 use App\Mail\Platform\NotificationMail;
 use App\Models\Platform\PlatformInvoice;
+use App\Models\Platform\PlatformInvoiceLine;
 use App\Models\Platform\PlatformPayment;
 use App\Models\Platform\PlatformPaymentAllocation;
 use App\Models\Platform\School;
@@ -256,10 +257,16 @@ class PlatformBillingAccounts
             $documents = PlatformInvoice::query()->where('status', PlatformInvoice::ISSUED)->orderBy('issued_on')->orderBy('id')->get();
             $payments = PlatformPayment::query()->orderBy('received_on')->orderBy('id')->get();
             $entries = [];
+            // SMS and WhatsApp passed through on each invoice (Action Plan 2.7), excluding VAT.
+            $texts = PlatformInvoiceLine::query()->whereIn('invoice_id', $documents->pluck('id'))->where('kind', 'messaging')
+                ->groupBy('invoice_id')->selectRaw('invoice_id, SUM(amount_cents) as cents')->pluck('cents', 'invoice_id');
             foreach ($documents as $doc) {
+                $description = $doc->kind === PlatformInvoice::INVOICE ? __('Invoice for :month', ['month' => $doc->period_start->format('F Y')]) : __('Credit note: :reason', ['reason' => (string) $doc->reason]);
+                if ($doc->kind === PlatformInvoice::INVOICE && isset($texts[$doc->id])) {
+                    $description .= ' '.__('(includes SMS and WhatsApp: :amount excluding VAT)', ['amount' => PlatformBilling::rands((int) $texts[$doc->id])]);
+                }
                 $entries[] = ['date' => $doc->issued_on?->toDateString(), 'order' => 1, 'kind' => $doc->kind, 'id' => (int) $doc->id, 'reference' => $doc->reference,
-                    'description' => $doc->kind === PlatformInvoice::INVOICE ? __('Invoice for :month', ['month' => $doc->period_start->format('F Y')]) : __('Credit note: :reason', ['reason' => (string) $doc->reason]),
-                    'amount_cents' => (int) $doc->total_cents];
+                    'description' => $description, 'amount_cents' => (int) $doc->total_cents];
             }
             foreach ($payments as $payment) {
                 $entries[] = ['date' => $payment->received_on->toDateString(), 'order' => 2, 'kind' => 'payment', 'id' => (int) $payment->id, 'reference' => $payment->bank_reference,

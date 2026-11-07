@@ -23,6 +23,8 @@ final class SchoolOwnedTables
     public const REQUIRED = [
         'library_school_settings',
         'school_messaging_settings',
+        // Each person's verified number and own SMS and WhatsApp choice at one school (Action Plan 2.7).
+        'messaging_numbers', 'messaging_choices',
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',

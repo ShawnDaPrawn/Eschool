@@ -6,6 +6,7 @@ namespace Tests\Feature\Platform;
 
 use App\Models\People\Enrolment;
 use App\Models\Platform\AuditLog;
+use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformInvoice;
 use App\Models\Platform\PlatformStaffIdentity;
@@ -17,6 +18,7 @@ use App\Models\Platform\SchoolGroupInvoiceLine;
 use App\Models\Platform\SchoolGroupMember;
 use App\Models\Platform\SchoolGroupPayment;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolMessagingSetting;
 use App\Models\User;
 use App\Services\Leadership\LeadershipDashboard;
 use App\Services\Platform\Groups\SchoolGroupAccess;
@@ -28,6 +30,7 @@ use App\Services\Platform\Saas\PlatformBilling;
 use App\Services\Platform\Saas\PlatformBillingAccounts;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -401,6 +404,41 @@ class SchoolGroupsTest extends TestCase
         config(['school_groups.min_count' => 10]);
         $hq = $this->signInAs($ops)->get('/saas/groups/'.$group->id)->assertOk()->assertSee('Fewer than 10')->getContent();
         $this->assertNoPerson($hq);
+    }
+
+    public function test_group_billing_rechecks_texting_enabled_after_an_early_draft(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-11-03 10:00', 'Africa/Johannesburg'));
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
+        $finance = $this->staff('finance');
+        $group = $this->group($this->staff('operations'));
+        app(SchoolGroups::class)->setBilling($finance, $group->id, $this->member(1)->id, ['billing' => 'group']);
+        $this->price(5000);
+        $billing = app(SchoolGroupBilling::class);
+        $invoice = $billing->compose($finance, $group->id, ['period' => '2026-12']);
+        $this->assertNull($invoice->blocked_reason);
+        app(CurrentSchool::class)->run(1, fn () => SchoolMessagingSetting::query()->create([
+            'sms_enabled' => true, 'sms_types' => ['comms.urgent'], 'whatsapp_enabled' => false, 'whatsapp_types' => [], 'revision' => 1,
+        ]));
+        $this->expectsValidation(fn () => $billing->issue($finance, $group->id, $invoice->id), 'invoice');
+        $this->assertNotNull($billing->issueProblem($invoice));
+        $this->assertTrue($invoice->fresh()->isDraft());
+        $this->assertSame(0, PlatformInvoice::acrossSchools()->where('status', PlatformInvoice::GROUPED)->count());
+
+        $this->travelTo(CarbonImmutable::parse('2026-11-20 10:00', 'Africa/Johannesburg'));
+        NotificationDelivery::query()->create([
+            'school_id' => 1, 'delivery_key' => 'synthetic-group-text', 'type' => 'sms.comms.urgent', 'channel' => 'sms',
+            'recipient_hash' => hash('sha256', 'synthetic-recipient'), 'status' => 'delivered', 'provider' => 'twilio',
+            'provider_message_id' => 'SMsyntheticgroupbilling', 'attempt' => 1, 'queued_at' => now(), 'sent_at' => now(),
+            'segments' => 1, 'price_cents' => 37, 'price_currency' => 'ZAR',
+        ]);
+        $this->travelTo(CarbonImmutable::parse('2026-12-01 08:00', 'Africa/Johannesburg'));
+        $this->expectsValidation(fn () => $billing->issue($finance, $group->id, $invoice->id), 'invoice');
+        $billing->recompute($finance, $group->id, $invoice->id);
+        $this->assertNull($billing->issueProblem($invoice->fresh()));
+        $billing->issue($finance, $group->id, $invoice->id);
+        $this->assertTrue($invoice->fresh()->isIssued());
+        $this->assertSame(37, (int) SchoolGroupInvoiceLine::acrossSchools()->where('group_invoice_id', $invoice->id)->where('kind', 'messaging')->sum('amount_cents'));
     }
 
     public function test_a_group_invoice_rolls_up_the_schools_lines_and_no_month_is_billed_twice(): void

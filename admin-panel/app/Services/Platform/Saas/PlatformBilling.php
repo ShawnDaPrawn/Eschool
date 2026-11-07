@@ -38,6 +38,11 @@ use RuntimeException;
  * module of the school's package version that has an add-on price and that
  * the school has switched on.
  *
+ * SMS and WhatsApp texts are passed through at cost (MessagingCharges): the
+ * invoice for a month has a line per channel for the texts the school sent in
+ * the month before it. Recomputing replaces the lines, and the month's slot is
+ * unique, so a month's texts are billed once.
+ *
  * Learners are counted on the day the draft is computed: active Student
  * memberships of that school, not learners who have left. VAT is a rate from
  * config/platform_billing.php kept on each invoice; each line's VAT is rounded
@@ -419,6 +424,11 @@ class PlatformBilling
         if ($draft->blocked_reason !== null) {
             return (string) $draft->blocked_reason;
         }
+        // Texts are billed only from a draft computed after their month ended (Action Plan 2.7).
+        $texts = app(MessagingCharges::class)->issueProblem((int) $draft->getAttribute('school_id'), $draft->period_start->toDateString(), $draft->computed_at, $locking);
+        if ($texts !== null) {
+            return $texts;
+        }
         if ((int) $draft->total_cents <= 0) {
             return __('There is nothing to bill. Recompute it once the school has learners, or discard it.');
         }
@@ -469,6 +479,12 @@ class PlatformBilling
         }
         foreach ($lines as $i => $line) {
             $lines[$i]['amount_cents'] = $line['learners'] * $line['unit_cents'];
+        }
+        // SMS and WhatsApp the school sent in the month before, at what Twilio charged (Action Plan 2.7).
+        $texts = app(MessagingCharges::class)->forInvoice((int) $school->id, $periodStart, (string) $draft->currency);
+        array_push($lines, ...$texts['lines']);
+        $blocked ??= $texts['blocked'];
+        foreach ($lines as $i => $line) {
             $lines[$i]['vat_cents'] = self::lineVat($lines[$i]['amount_cents'], $rate);
         }
         $draft->lines()->get()->each(fn (PlatformInvoiceLine $line) => $line->delete());

@@ -2749,6 +2749,154 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /me/text-messaging:
+    get:
+      operationId: getMyTextMessaging
+      tags:
+      - Platform
+      summary: Read your SMS and WhatsApp at this school
+      description: Guardians and staff only (learners 403). Whether the number you are texted on at this school is on record and verified (only its last three digits are shown), when a code can be asked for, and, for each notice the school texts you, the channels the school switched on for you and your own choice. A number is texted only after you verify it.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextMessagingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateMyTextMessaging
+      tags:
+      - Platform
+      summary: Choose SMS, WhatsApp, both or neither for one notice
+      description: Your own choice for one notice type at this school. Only channels the school switched on for you can be chosen (422 otherwise); choosing neither is always allowed. The school sees only that you made a choice.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - type
+              - sms
+              - whatsapp
+              properties:
+                type:
+                  type: string
+                  maxLength: 80
+                sms:
+                  type: boolean
+                whatsapp:
+                  type: boolean
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextMessagingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/text-messaging/verification:
+    post:
+      operationId: requestMyTextMessagingCode
+      tags:
+      - Platform
+      summary: Text a code to verify your number
+      description: Sends a six-digit code by SMS to the number you are texted on at this school (never another number). Nothing is sent when it is already verified. One code a minute and three an hour (429 with Retry-After); 422 when there is no number on record, the school texts you nothing yet, the number is locked after too many wrong codes, or SMS is not set up.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextMessagingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/text-messaging/verification/confirm:
+    post:
+      operationId: confirmMyTextMessagingCode
+      tags:
+      - Platform
+      summary: Type the code to verify your number
+      description: The code expires after ten minutes. Five wrong codes lock verification for an hour. A changed number is no longer verified.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - code
+              properties:
+                code:
+                  type: string
+                  maxLength: 12
+                  description: The six digits from the SMS.
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextMessagingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile:
     get:
       operationId: getMyProfile
@@ -37560,6 +37708,115 @@ components:
               $ref: '#/components/schemas/NotificationChannelPreference'
             in_app:
               $ref: '#/components/schemas/NotificationChannelPreference'
+    TextMessagingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - number
+          - notices
+          properties:
+            number:
+              type: object
+              additionalProperties: false
+              required:
+              - on_record
+              - source
+              - ending
+              - verified
+              - code_sent
+              - code_expires_at
+              - next_code_at
+              - locked_until
+              - can_verify
+              properties:
+                on_record:
+                  type: boolean
+                  description: Whether the school has a mobile number for you.
+                source:
+                  type:
+                  - string
+                  - 'null'
+                  enum:
+                  - parent
+                  - account
+                  - null
+                  description: parent is the number on your parent record at this school; account is the one on your own account (staff).
+                ending:
+                  type:
+                  - string
+                  - 'null'
+                  description: The last three digits of that number.
+                verified:
+                  type: boolean
+                code_sent:
+                  type: boolean
+                  description: A code is waiting to be typed.
+                code_expires_at:
+                  type:
+                  - string
+                  - 'null'
+                  format: date-time
+                next_code_at:
+                  type:
+                  - string
+                  - 'null'
+                  format: date-time
+                  description: When another code can be asked for, or null when it can be now.
+                locked_until:
+                  type:
+                  - string
+                  - 'null'
+                  format: date-time
+                can_verify:
+                  type: boolean
+                  description: Whether the school texts you anything, so the number can be verified.
+            notices:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - type
+                - label
+                - offered
+                - sms
+                - whatsapp
+                - own_choice
+                properties:
+                  type:
+                    type: string
+                  label:
+                    type: string
+                  offered:
+                    type: array
+                    description: The channels the school switched on for you for this notice.
+                    items:
+                      type: string
+                      enum:
+                      - sms
+                      - whatsapp
+                  sms:
+                    type: boolean
+                  whatsapp:
+                    type: boolean
+                  own_choice:
+                    type: boolean
+                    description: Whether this is your own choice rather than the school's default.
     QuietHoursResponse:
       type: object
       additionalProperties: false

@@ -15,6 +15,7 @@ use App\Models\Platform\SchoolGroupPayment;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Saas\MessagingCharges;
 use App\Services\Platform\Saas\PlatformBilling;
 use App\Services\Platform\Saas\PlatformStaffAccess;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -198,6 +199,10 @@ class SchoolGroupBilling
                     if (! $same) {
                         throw ValidationException::withMessages(['invoice' => __('A school\'s own draft or its place in the group changed since this draft was computed. Recompute the group\'s draft, then issue it.')]);
                     }
+                    $texts = app(MessagingCharges::class)->issueProblem((int) $own->getAttribute('school_id'), $own->period_start->toDateString(), $own->computed_at, true);
+                    if ($texts !== null) {
+                        throw ValidationException::withMessages(['invoice' => $texts]);
+                    }
                     $own->forceFill(['status' => PlatformInvoice::GROUPED])->save();
                 });
             }
@@ -364,6 +369,12 @@ class SchoolGroupBilling
         }
         if ((int) $draft->total_cents <= 0) {
             return __('There is nothing to bill. Recompute it once a school is billed through the group, or discard it.');
+        }
+        foreach (SchoolGroupInvoiceSchool::acrossSchools()->where('group_invoice_id', $draft->id)->whereNotNull('open_key')->get() as $claim) {
+            $texts = app(MessagingCharges::class)->issueProblem((int) $claim->getAttribute('school_id'), $draft->period_start->toDateString(), $claim->invoice_computed_at);
+            if ($texts !== null) {
+                return $texts;
+            }
         }
 
         return null;
