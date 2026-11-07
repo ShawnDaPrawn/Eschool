@@ -6,6 +6,14 @@
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 
+## 2026-11-08
+
+- Schools on NavigateEd can now arrange fixtures with each other. An activity manager invites another school (found by name) or types the name of a team that is not on NavigateEd, sets the date, venue and field, and the invited school accepts for one of its own groups or declines. Until a school accepts, the other sees only its name.
+- Each school keeps its own team sheet and private notes. The other school sees the team name and, only if the school chooses to share it, each player's label and position, never learners' names or anything else.
+- Both schools report the score; the result counts once the two reports agree, and each school sees the other's report while they differ. Against a team not on NavigateEd, the host's report is the result. Guardians of the learners on the team sheet get a private notice that a result is ready and can see their child's team's results.
+- Leagues and competitions between schools, with a running table from confirmed results for every school that joined. New panel page: Fixtures between schools, next to Activity groups. New API: /api/v2/activities/fixtures and /competitions.
+- Developers: records shared between schools follow a new pattern (engineering/specs/platform/shared-records.md): a shared row that names no school, each school's own participant row, and one service that reads only the columns a school chose to share.
+
 ## 2026-11-06
 
 - Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
