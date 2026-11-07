@@ -60,6 +60,8 @@ use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
 use App\Http\Controllers\Api\V2\PeerTutoring\PeerController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
+use App\Http\Controllers\Api\V2\People\PoolController;
+use App\Http\Controllers\Api\V2\People\PoolMemberController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
 use App\Http\Controllers\Api\V2\People\ProfileFileController;
@@ -99,6 +101,7 @@ use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\CardEncoderContext;
 use App\Http\Middleware\FoundationCredentialContext;
 use App\Http\Middleware\FoundationStaffContext;
+use App\Http\Middleware\PoolMemberContext;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
@@ -216,6 +219,32 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     Route::post('sign-in', [$c, 'signIn'])->middleware(['throttle:login', 'portal.sign-in'])->name('sign-in');
     Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context', 'role.any'])->name('session');
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
+});
+
+// The alumni and volunteer pool (Action Plan 5.6). Staff manage it under
+// people-pool; pool members use their own sign-in and pool-only token.
+Route::prefix('people-pool')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:people_pool'])
+    ->name('api.v2.people-pool.')->group(function () {
+        $c = PoolController::class;
+        Route::get('members', [$c, 'members'])->name('list');
+        Route::post('members', [$c, 'invite'])->name('invite');
+        Route::get('members/{member}', [$c, 'member'])->where('member', '[1-9][0-9]{0,17}')->name('detail');
+        Route::post('members/{member}/vetting', [$c, 'vet'])->where('member', '[1-9][0-9]{0,17}')->name('vet');
+        Route::get('bookings', [$c, 'bookings'])->name('bookings');
+        Route::post('bookings', [$c, 'book'])->name('book');
+        Route::post('bookings/{booking}/cancel', [$c, 'cancel'])->where('booking', '[1-9][0-9]{0,17}')->name('cancel');
+    });
+
+Route::prefix('pool')->name('api.v2.pool.')->group(function () {
+    $c = PoolMemberController::class;
+    Route::post('sign-in', [$c, 'signIn'])->middleware([PrivateDomainResponse::class, 'throttle:login', 'portal.sign-in'])->name('sign-in');
+    Route::middleware([PrivateDomainResponse::class, 'auth:sanctum', PoolMemberContext::class])->group(function () use ($c) {
+        Route::get('session', [$c, 'session'])->name('session');
+        Route::get('bookings', [$c, 'bookings'])->name('bookings');
+        Route::get('bookings/{booking}/attendance', [$c, 'attendance'])->where('booking', '[1-9][0-9]{0,17}')->name('attendance');
+        Route::post('consent/withdraw', [$c, 'withdraw'])->name('withdraw');
+        Route::post('sign-out', [$c, 'signOut'])->name('sign-out');
+    });
 });
 
 Route::prefix('activities/groups/{group}/materials/{material}/files')->where(['group' => '[1-9][0-9]{0,17}', 'material' => '[1-9][0-9]{0,17}'])

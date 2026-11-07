@@ -224,6 +224,8 @@ tags:
   description: Private parent fee shares, receipts and held credits from the NavigateEd ledger.
 - name: Commerce
   description: Private wallet storefronts, reviewed purchases and original order receipts.
+- name: PeoplePool
+  description: The school's alumni and volunteer pool, vetting and group-session bookings, and the pool member's own restricted profile.
 paths:
   /facilitator/sign-in:
     post:
@@ -314,6 +316,501 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FacilitatorSignOutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /people-pool/members:
+    get:
+      operationId: listPoolMembers
+      tags:
+      - PeoplePool
+      summary: listPoolMembers
+      description: 'Alumni and volunteer pool (Action Plan 5.6), school side: a current staff role with people-pool-manage (vetting
+        needs people-pool-vet) and the people_pool module. School-scoped; another school''s pool members, sessions and bookings
+        answer 404. Private, never cached.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolMemberPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+    post:
+      operationId: invitePoolMember
+      tags:
+      - PeoplePool
+      summary: invitePoolMember
+      description: 'Alumni and volunteer pool (Action Plan 5.6), school side: a current staff role with people-pool-manage (vetting
+        needs people-pool-vet) and the people_pool module. School-scoped; another school''s pool members, sessions and bookings
+        answer 404. Private, never cached. Creates a dedicated pool account with a starting password the person must change;
+        consent is given by the person at the pool sign-in, never by the school. The operation receipt keeps record ids only.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolMemberResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: A different request reused this operation id, or the record changed (stale revision).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoolInviteInput'
+  /people-pool/members/{member}:
+    get:
+      operationId: getPoolMember
+      tags:
+      - PeoplePool
+      summary: getPoolMember
+      description: 'Alumni and volunteer pool (Action Plan 5.6), school side: a current staff role with people-pool-manage (vetting
+        needs people-pool-vet) and the people_pool module. School-scoped; another school''s pool members, sessions and bookings
+        answer 404. Private, never cached.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolMemberResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: member
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /people-pool/members/{member}/vetting:
+    post:
+      operationId: recordPoolVetting
+      tags:
+      - PeoplePool
+      summary: recordPoolVetting
+      description: 'Alumni and volunteer pool (Action Plan 5.6), school side: a current staff role with people-pool-manage (vetting
+        needs people-pool-vet) and the people_pool module. School-scoped; another school''s pool members, sessions and bookings
+        answer 404. Private, never cached. Records who checked, which checks, and when the clearance ends; ending a clearance
+        cancels upcoming bookings.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolMemberResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: A different request reused this operation id, or the record changed (stale revision).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - name: member
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoolVettingInput'
+  /people-pool/bookings:
+    get:
+      operationId: listPoolBookings
+      tags:
+      - PeoplePool
+      summary: listPoolBookings
+      description: 'Alumni and volunteer pool (Action Plan 5.6), school side: a current staff role with people-pool-manage (vetting
+        needs people-pool-vet) and the people_pool module. School-scoped; another school''s pool members, sessions and bookings
+        answer 404. Private, never cached.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolBookingListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: activity_session_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+    post:
+      operationId: bookPoolMember
+      tags:
+      - PeoplePool
+      summary: bookPoolMember
+      description: 'Alumni and volunteer pool (Action Plan 5.6), school side: a current staff role with people-pool-manage (vetting
+        needs people-pool-vet) and the people_pool module. School-scoped; another school''s pool members, sessions and bookings
+        answer 404. Private, never cached. Group sessions only: the session group needs the minimum learners on the day and
+        an allocated staff member; the person must be consented and cleared on the session date.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolBookingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: A different request reused this operation id, or the record changed (stale revision).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoolBookingInput'
+  /people-pool/bookings/{booking}/cancel:
+    post:
+      operationId: cancelPoolBooking
+      tags:
+      - PeoplePool
+      summary: cancelPoolBooking
+      description: 'Alumni and volunteer pool (Action Plan 5.6), school side: a current staff role with people-pool-manage (vetting
+        needs people-pool-vet) and the people_pool module. School-scoped; another school''s pool members, sessions and bookings
+        answer 404. Private, never cached.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolBookingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: A different request reused this operation id, or the record changed (stale revision).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - name: booking
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoolCancelInput'
+  /pool/sign-in:
+    post:
+      operationId: signInPoolMember
+      tags:
+      - PeoplePool
+      summary: signInPoolMember
+      description: Pool member sign-in, app only. Issues nothing until the starting password is changed, current policies are
+        accepted and the person consents to joining the pool.
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolSignInResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: Credentials verified; complete password, policy and consent setup and resubmit. No session has been issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolSignInResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoolSignInInput'
+      security: []
+  /pool/session:
+    get:
+      operationId: getPoolMemberSession
+      tags:
+      - PeoplePool
+      summary: getPoolMemberSession
+      description: 'Alumni and volunteer pool member endpoint: only a people-pool-app token, bound to the school it was issued
+        for (an X-School-Id naming another school is refused). The pool account has no school membership or role and reaches
+        no learner records, marks or contact details. Consent, account and setup are re-read on every request.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /pool/bookings:
+    get:
+      operationId: listOwnPoolBookings
+      tags:
+      - PeoplePool
+      summary: listOwnPoolBookings
+      description: 'Alumni and volunteer pool member endpoint: only a people-pool-app token, bound to the school it was issued
+        for (an X-School-Id naming another school is refused). The pool account has no school membership or role and reaches
+        no learner records, marks or contact details. Consent, account and setup are re-read on every request. Upcoming bookings
+        while the clearance runs; no learner appears here.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolOwnBookingsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /pool/bookings/{booking}/attendance:
+    get:
+      operationId: getPoolSessionAttendance
+      tags:
+      - PeoplePool
+      summary: getPoolSessionAttendance
+      description: 'Alumni and volunteer pool member endpoint: only a people-pool-app token, bound to the school it was issued
+        for (an X-School-Id naming another school is refused). The pool account has no school membership or role and reaches
+        no learner records, marks or contact details. Consent, account and setup are re-read on every request. The session attendance
+        list (names and recorded status), on the day of the session only.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolAttendanceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: booking
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /pool/consent/withdraw:
+    post:
+      operationId: withdrawPoolConsent
+      tags:
+      - PeoplePool
+      summary: withdrawPoolConsent
+      description: 'Alumni and volunteer pool member endpoint: only a people-pool-app token, bound to the school it was issued
+        for (an X-School-Id naming another school is refused). The pool account has no school membership or role and reaches
+        no learner records, marks or contact details. Consent, account and setup are re-read on every request. Withdrawal takes
+        effect at once: upcoming bookings are cancelled and every pool session of the account ends.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolWithdrawalResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /pool/sign-out:
+    post:
+      operationId: signOutPoolMember
+      tags:
+      - PeoplePool
+      summary: signOutPoolMember
+      description: 'Alumni and volunteer pool member endpoint: only a people-pool-app token, bound to the school it was issued
+        for (an X-School-Id naming another school is refused). The pool account has no school membership or role and reaches
+        no learner records, marks or contact details. Consent, account and setup are re-read on every request.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolSignOutResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -34894,6 +35391,888 @@ components:
           type: string
         text:
           type: string
+    PoolVettingRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - outcome
+      - checks
+      - checked_by
+      - checked_on
+      - expires_on
+      - note
+      properties:
+        id:
+          type: integer
+        outcome:
+          type: string
+          enum:
+          - cleared
+          - refused
+          - revoked
+        checks:
+          type: array
+          items:
+            type: string
+        checked_by:
+          type: integer
+        checked_on:
+          type: string
+        expires_on:
+          anyOf:
+          - type: string
+          - type: 'null'
+        note:
+          description: Only for people-pool-vet holders; null otherwise.
+          anyOf:
+          - type: string
+          - type: 'null'
+    PoolBookingRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - status
+      - revision
+      - activity_session_id
+      - activity_group_id
+      - group_name
+      - session_name
+      - venue
+      - on_date
+      - starts_at
+      - ends_at
+      - pool_member_id
+      - pool_member_name
+      - cancel_reason
+      - vetted_for_session
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+          enum:
+          - career_talk
+          - job_shadow
+        status:
+          type: string
+          enum:
+          - booked
+          - cancelled
+        revision:
+          type: integer
+        activity_session_id:
+          type: integer
+        activity_group_id:
+          type: integer
+        group_name:
+          type: string
+        session_name:
+          type: string
+        venue:
+          type: string
+        on_date:
+          anyOf:
+          - type: string
+          - type: 'null'
+        starts_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        ends_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        pool_member_id:
+          type: integer
+        pool_member_name:
+          type: string
+        cancel_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+        vetted_for_session:
+          type: boolean
+    PoolMemberSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - learner_id
+      - name
+      - occupation
+      - organisation
+      - offers_career_talk
+      - offers_job_shadow
+      - consent_status
+      - consented_at
+      - withdrawn_at
+      - vetting_status
+      - vetted_on
+      - vetting_expires_on
+      - bookable_today
+      - revision
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+          enum:
+          - alumnus
+          - volunteer
+        learner_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+        name:
+          type: string
+        occupation:
+          anyOf:
+          - type: string
+          - type: 'null'
+        organisation:
+          anyOf:
+          - type: string
+          - type: 'null'
+        offers_career_talk:
+          type: boolean
+        offers_job_shadow:
+          type: boolean
+        consent_status:
+          type: string
+          enum:
+          - invited
+          - given
+          - withdrawn
+        consented_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        withdrawn_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        vetting_status:
+          type: string
+          enum:
+          - pending
+          - cleared
+          - refused
+          - revoked
+        vetted_on:
+          anyOf:
+          - type: string
+          - type: 'null'
+        vetting_expires_on:
+          anyOf:
+          - type: string
+          - type: 'null'
+        bookable_today:
+          type: boolean
+        revision:
+          type: integer
+    PoolMemberDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - learner_id
+      - name
+      - occupation
+      - organisation
+      - offers_career_talk
+      - offers_job_shadow
+      - consent_status
+      - consented_at
+      - withdrawn_at
+      - vetting_status
+      - vetted_on
+      - vetting_expires_on
+      - bookable_today
+      - revision
+      - vettings
+      - bookings
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+          enum:
+          - alumnus
+          - volunteer
+        learner_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+        name:
+          type: string
+        occupation:
+          anyOf:
+          - type: string
+          - type: 'null'
+        organisation:
+          anyOf:
+          - type: string
+          - type: 'null'
+        offers_career_talk:
+          type: boolean
+        offers_job_shadow:
+          type: boolean
+        consent_status:
+          type: string
+          enum:
+          - invited
+          - given
+          - withdrawn
+        consented_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        withdrawn_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        vetting_status:
+          type: string
+          enum:
+          - pending
+          - cleared
+          - refused
+          - revoked
+        vetted_on:
+          anyOf:
+          - type: string
+          - type: 'null'
+        vetting_expires_on:
+          anyOf:
+          - type: string
+          - type: 'null'
+        bookable_today:
+          type: boolean
+        revision:
+          type: integer
+        vettings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolVettingRecord'
+        bookings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolBookingRecord'
+    PoolMemberPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolMemberSummary'
+        page:
+          type: integer
+        last_page:
+          type: integer
+        total:
+          type: integer
+    PoolBookingList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolBookingRecord'
+    PoolOwnBooking:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - status
+      - revision
+      - activity_session_id
+      - activity_group_id
+      - group_name
+      - session_name
+      - venue
+      - on_date
+      - starts_at
+      - ends_at
+      - attendance_open
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+          enum:
+          - career_talk
+          - job_shadow
+        status:
+          type: string
+          enum:
+          - booked
+          - cancelled
+        revision:
+          type: integer
+        activity_session_id:
+          type: integer
+        activity_group_id:
+          type: integer
+        group_name:
+          type: string
+        session_name:
+          type: string
+        venue:
+          type: string
+        on_date:
+          anyOf:
+          - type: string
+          - type: 'null'
+        starts_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        ends_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        attendance_open:
+          type: boolean
+    PoolOwnBookings:
+      type: object
+      additionalProperties: false
+      required:
+      - vetted
+      - items
+      properties:
+        vetted:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolOwnBooking'
+    PoolAttendanceList:
+      type: object
+      additionalProperties: false
+      required:
+      - booking_id
+      - on_date
+      - learners
+      properties:
+        booking_id:
+          type: integer
+        on_date:
+          type: string
+        learners:
+          type: array
+          description: 'The session attendance list: names and the recorded status only, no ids or contact details.'
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - name
+            - status
+            properties:
+              name:
+                type: string
+              status:
+                anyOf:
+                - type: string
+                - type: 'null'
+    PoolProfile:
+      type: object
+      additionalProperties: false
+      required:
+      - user_id
+      - name
+      - school
+      - pool_member_id
+      - kind
+      - offers_career_talk
+      - offers_job_shadow
+      - consented_at
+      - vetting_status
+      - vetting_expires_on
+      - vetted
+      properties:
+        user_id:
+          type: integer
+        name:
+          type: string
+        school:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - name
+          - slug
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            slug:
+              type: string
+        pool_member_id:
+          type: integer
+        kind:
+          type: string
+          enum:
+          - alumnus
+          - volunteer
+        offers_career_talk:
+          type: boolean
+        offers_job_shadow:
+          type: boolean
+        consented_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+        vetting_status:
+          type: string
+        vetting_expires_on:
+          anyOf:
+          - type: string
+          - type: 'null'
+        vetted:
+          type: boolean
+    PoolDocument:
+      type: object
+      additionalProperties: false
+      required:
+      - document
+      - version
+      - title
+      - text
+      properties:
+        document:
+          type: string
+          enum:
+          - navigateed
+          - school
+          - pool_consent
+        version:
+          type: string
+        title:
+          type: string
+        text:
+          type: string
+    PoolSignInData:
+      type: object
+      additionalProperties: false
+      required:
+      - authenticated
+      - token
+      - profile
+      - password_change_required
+      - documents
+      properties:
+        authenticated:
+          type: boolean
+        token:
+          anyOf:
+          - type: string
+          - type: 'null'
+        profile:
+          anyOf:
+          - $ref: '#/components/schemas/PoolProfile'
+          - type: 'null'
+        password_change_required:
+          type: boolean
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolDocument'
+    PoolWithdrawal:
+      type: object
+      additionalProperties: false
+      required:
+      - consent_status
+      - withdrawn_at
+      properties:
+        consent_status:
+          type: string
+          enum:
+          - withdrawn
+        withdrawn_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+    PoolInviteInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - kind
+      - first_name
+      - last_name
+      - email
+      - initial_password
+      - offers_career_talk
+      - offers_job_shadow
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - alumnus
+          - volunteer
+        learner_id:
+          description: 'Required for an alumnus: the school''s own adult leaver record.'
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 191
+          description: A new address; existing accounts are not converted.
+        initial_password:
+          type: string
+          maxLength: 72
+          writeOnly: true
+        occupation:
+          anyOf:
+          - type: string
+          - type: 'null'
+        organisation:
+          anyOf:
+          - type: string
+          - type: 'null'
+        offers_career_talk:
+          type: boolean
+        offers_job_shadow:
+          type: boolean
+    PoolVettingInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - outcome
+      - checks
+      - checked_on
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        outcome:
+          type: string
+          enum:
+          - cleared
+          - refused
+          - revoked
+        checks:
+          type: array
+          items:
+            type: string
+            enum:
+            - identity
+            - child_protection_register
+            - sexual_offences_register
+            - police_clearance
+            - references
+        checked_on:
+          type: string
+          format: date
+        expires_on:
+          description: Required for cleared, at most 36 months after the check.
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+    PoolBookingInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - pool_member_id
+      - activity_session_id
+      - kind
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        pool_member_id:
+          type: integer
+          minimum: 1
+        activity_session_id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - career_talk
+          - job_shadow
+    PoolCancelInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+    PoolSignInInput:
+      type: object
+      additionalProperties: false
+      required:
+      - school
+      - email
+      - password
+      properties:
+        school:
+          type: string
+          maxLength: 191
+        email:
+          type: string
+          maxLength: 191
+        password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        new_password:
+          type: string
+          maxLength: 72
+          writeOnly: true
+        new_password_confirmation:
+          type: string
+          maxLength: 72
+          writeOnly: true
+        acceptances:
+          type: object
+          additionalProperties:
+            type: string
+            pattern: ^[a-f0-9]{64}$
+    PoolMemberPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolMemberPage'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolMemberResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolMemberDetail'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolBookingListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolBookingList'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolBookingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolBookingRecord'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolOwnBookingsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolOwnBookings'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolAttendanceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolAttendanceList'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolProfileResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolProfile'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolSignInResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolSignInData'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolWithdrawalResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PoolWithdrawal'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    PoolSignOutResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: 'null'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
     FacilitatorSignInInput:
       type: object
       additionalProperties: false

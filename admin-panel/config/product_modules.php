@@ -53,8 +53,8 @@ return [
     ],
     'futures' => [
         'label' => 'Futures', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'Subject choice and pathways, and school transfers.',
-        'modules' => ['pathway', 'school_transfers'],
+        'description' => 'Subject choice and pathways, school transfers, and the alumni and volunteer pool for career talks and job shadows.',
+        'modules' => ['pathway', 'school_transfers', 'people_pool'],
     ],
     'leadership' => [
         'label' => 'Leadership and staff', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
