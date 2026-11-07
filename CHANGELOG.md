@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
 ## 2026-11-04
 
 - Tutor teaching quality (Action Plan 3.10): a second tutor prompt (v2) that explains at the learner's stage and grade, shows worked examples of similar problems and common mistakes, lets a learner "explain it back" in their own words, and answers more warmly in the same structured form. The first prompt stays selectable.
