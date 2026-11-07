@@ -2,6 +2,7 @@
 
 ## 2026-11-07
 
+- Refuse OneRoster exports containing formula-like spreadsheet values instead of changing names or identifiers; show the requester how to correct the source data and remove partial temporary archives.
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 - Keep the check-in test answers on their intended school date when CI starts near midnight.
@@ -14,6 +15,11 @@
 - Families can apply for a bursary with household details and supporting documents that only they and the school's bursary committee can see. The committee's award becomes a fee discount that Finance approves; private details are erased on a fixed schedule (Action Plan 5.10).
 - Finance can run alumni giving campaigns: pledges and EFT donations are recorded with numbered receipts on the school ledger, donor names stay with Finance, and a school may share campaign totals (Action Plan 5.10).
 - **Deploy:** run migrations and the installation seeder (new permissions); the new daily `bursaries:prune` job runs from the scheduler.
+
+## 2026-11-06
+
+- Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
+- Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
 
 ## 2026-11-03
 

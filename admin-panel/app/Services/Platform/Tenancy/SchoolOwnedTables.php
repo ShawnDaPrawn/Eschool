@@ -77,6 +77,8 @@ final class SchoolOwnedTables
         'discipline_operations', 'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',
         'discipline_acknowledgements', 'discipline_notice_intents', 'detention_sessions', 'detention_entries', 'detention_versions',
         'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations', 'recognition_badge_settings', 'recognition_badges',
+        // Open standards (5.9): the school's OneRoster exports and the Open Badges credentials issued for its awards.
+        'oneroster_exports', 'open_badge_credentials',
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
         'exam_periods', 'calendar_feeds',
