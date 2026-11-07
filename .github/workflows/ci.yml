@@ -875,6 +875,14 @@ jobs:
             python3 ../tool/ci/playwright_partition.py --verify
           fi
           python3 ../tool/ci/playwright_partition.py --part '${{ matrix.part }}'
+      # Diagnostics only. A PHP process the kernel kills (out of memory or a
+      # segfault) writes nothing to serve.log, so show the kernel's own note and
+      # the OPcache/JIT settings the built-in server ran with.
+      - name: Show why a panel server process stopped
+        if: failure()
+        run: |
+          php -i | grep -E '^opcache\.(enable|enable_cli|jit|jit_buffer_size) ' || true
+          sudo dmesg -T 2>/dev/null | grep -iE 'php|out of memory|oom-kill|segfault|general protection|traps:' | tail -n 40 || true
       - name: Upload the report
         if: failure()
         uses: actions/upload-artifact@v7
