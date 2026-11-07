@@ -42,7 +42,7 @@
                     @else
                         <ul>
                             @foreach ($topic['items'] as $item)
-                                <li><a href="{{ route('saas.library.items.show', $item['id']) }}">#{{ $item['id'] }} {{ $item['title'] }}</a> · {{ $item['kind'] }} · {{ $item['state'] }}@if ($item['published']) · <span class="saas-badge">{{ __('Live') }}</span>@endif</li>
+                                <li><a href="{{ route('saas.library.items.show', $item['id']) }}">#{{ $item['id'] }} {{ $item['title'] }}</a> · {{ $item['kind'] }} · {{ $item['state'] }}@if ($item['ai']) · <span class="saas-badge saas-badge--warn">{{ __('AI draft') }}</span>@endif @if ($item['published']) · <span class="saas-badge">{{ __('Live') }}</span>@endif</li>
                             @endforeach
                         </ul>
                     @endif
@@ -115,6 +115,48 @@
     </div>
     @include('saas.library.content-fields', ['kind' => null, 'fields' => [], 'prefix' => 'new'])
     <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Save the draft') }}</button></div>
+</form>
+@endif
+<h2 id="ai-drafts">{{ __('Ask AI for drafts') }}</h2>
+@if (! $drafting['available'])
+    <p class="saas-card" role="status">{{ $drafting['message'] }}</p>
+@elseif ($topicChoices === [] || $sourceChoices === [])
+    <p class="saas-card">{{ __('Add a topic here and a source on the library page first.') }}</p>
+@else
+<form method="POST" action="{{ route('saas.library.drafts.store') }}" class="saas-card" aria-label="{{ __('Ask AI for drafts') }}">
+    @csrf
+    <input type="hidden" name="operation_id" value="{{ $operationId }}">
+    <p>{{ __('AI writes drafts for one topic from the source you choose. Each arrives as a draft labelled AI draft: check it, change it, and send it for review. A reviewer for the subject must approve it before it can be published, and never the person who asked for it.') }}</p>
+    <p>{{ __('Today\'s AI drafting spend: :spent of :cap cents (:currency).', ['spent' => $drafting['spent'], 'cap' => $drafting['cap'] ?? '-', 'currency' => $drafting['currency']]) }}</p>
+    <div class="saas-grid">
+        <div class="saas-field">
+            <label for="draft-topic">{{ __('Topic') }}</label>
+            <select id="draft-topic" name="library_topic_id" required>
+                @foreach ($topicChoices as $id => $label)<option value="{{ $id }}" @selected((string) old('library_topic_id') === (string) $id)>{{ $label }}</option>@endforeach
+            </select>
+        </div>
+        <div class="saas-field">
+            <label for="draft-source">{{ __('Written from this source') }}</label>
+            <select id="draft-source" name="library_source_id" required>
+                @foreach ($sourceChoices as $id => $label)<option value="{{ $id }}" @selected((string) old('library_source_id') === (string) $id)>{{ $label }}</option>@endforeach
+            </select>
+        </div>
+        <div class="saas-field">
+            <label for="draft-kind">{{ __('What to draft') }}</label>
+            <select id="draft-kind" name="kind" required>
+                @foreach ($draftKinds as $value => $label)<option value="{{ $value }}" @selected(old('kind') === $value)>{{ $label }}</option>@endforeach
+            </select>
+        </div>
+        <div class="saas-field">
+            <label for="draft-count">{{ __('How many (one lesson at a time)') }}</label>
+            <input id="draft-count" name="count" type="number" min="1" max="{{ $draftMaximum }}" required value="{{ old('count', 3) }}">
+        </div>
+        <div class="saas-field">
+            <label for="draft-brief">{{ __('Brief') }}</label>
+            <textarea id="draft-brief" name="brief" required minlength="10" maxlength="1500" rows="3">{{ old('brief') }}</textarea>
+        </div>
+    </div>
+    <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Ask for drafts') }}</button></div>
 </form>
 @endif
 @endsection
