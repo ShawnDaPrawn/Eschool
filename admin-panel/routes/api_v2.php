@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\V2\Learning\DiaryController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
+use App\Http\Controllers\Api\V2\Learning\PracticeTestController;
 use App\Http\Controllers\Api\V2\Learning\StrengthsMirrorController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
@@ -754,6 +755,23 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
     Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
     Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
+});
+
+// Practice tests (Action Plan 3.17): cycle tests set by teachers, quick quizzes, timed sittings with server-held answers.
+Route::prefix('learning/practice-tests')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:daily_practice'])->name('api.v2.practice-tests.')->group(function () {
+    $c = PracticeTestController::class;
+    Route::get('groups/{group}/options', [$c, 'options'])->whereNumber('group')->name('options');
+    Route::get('groups/{group}/blueprints', [$c, 'blueprints'])->whereNumber('group')->name('blueprints');
+    Route::post('groups/{group}/blueprints', [$c, 'create'])->whereNumber('group')->middleware('throttle:30,1')->name('create');
+    Route::get('groups/{group}/blueprints/{blueprint}/results', [$c, 'results'])->whereNumber(['group', 'blueprint'])->name('results');
+    Route::post('groups/{group}/blueprints/{blueprint}/withdraw', [$c, 'withdraw'])->whereNumber(['group', 'blueprint'])->name('withdraw');
+    Route::get('learners/{learner}/tests', [$c, 'tests'])->whereNumber('learner')->name('tests');
+    Route::get('learners/{learner}/groups/{group}/quiz-topics', [$c, 'quizTopics'])->whereNumber(['learner', 'group'])->name('quiz-topics');
+    Route::post('learners/{learner}/groups/{group}/quick-quizzes', [$c, 'quickQuiz'])->whereNumber(['learner', 'group'])->middleware('throttle:30,1')->name('quick-quiz');
+    Route::post('learners/{learner}/blueprints/{blueprint}/start', [$c, 'start'])->whereNumber(['learner', 'blueprint'])->middleware('throttle:30,1')->name('start');
+    Route::get('learners/{learner}/tests/{test}', [$c, 'show'])->whereNumber(['learner', 'test'])->name('show');
+    Route::post('learners/{learner}/tests/{test}/answers', [$c, 'answers'])->whereNumber(['learner', 'test'])->middleware('throttle:120,1')->name('answers');
+    Route::post('learners/{learner}/tests/{test}/submit', [$c, 'submit'])->whereNumber(['learner', 'test'])->middleware('throttle:30,1')->name('submit');
 });
 
 // The starting check (Action Plan 3.7): library diagnostics marked on the server, written as mastery evidence.
