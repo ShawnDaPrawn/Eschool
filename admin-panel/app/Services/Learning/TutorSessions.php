@@ -76,16 +76,28 @@ class TutorSessions
         });
     }
 
-    public function send(User $actor, string $sessionId, string $operation, string $text, string $working = '', array $photos = []): array
+    /**
+     * One learner turn. $turnType 'explain_back' (the learner explains the idea
+     * in their own words) and $language (a home-language explanation) need
+     * tutor v2; v1 refuses them.
+     */
+    public function send(User $actor, string $sessionId, string $operation, string $text, string $working = '', array $photos = [],
+        string $turnType = 'ask', ?string $language = null): array
     {
-        app(TutorAccess::class)->session($actor, $sessionId, true);
-        Validator::make(compact('operation', 'text', 'working', 'photos'), ['operation' => ['required', 'uuid'], 'text' => ['required', 'string', 'max:1000'],
-            'working' => ['string', 'max:2000'], 'photos' => ['array', 'max:3'], 'photos.*' => ['required', 'uuid', 'distinct']])->validate();
+        $session = app(TutorAccess::class)->session($actor, $sessionId, true);
+        $prompt = TutorPrompts::selected();
+        Validator::make(compact('operation', 'text', 'working', 'photos', 'turnType', 'language'), ['operation' => ['required', 'uuid'], 'text' => ['required', 'string', 'max:1000'],
+            'working' => ['string', 'max:2000'], 'photos' => ['array', 'max:3'], 'photos.*' => ['required', 'uuid', 'distinct'],
+            'turnType' => ['required', 'in:'.implode(',', TutorPrompts::TURN_TYPES)], 'language' => ['nullable', 'string', 'in:'.implode(',', array_keys(TutorLanguages::enabled()) ?: ['-'])]])->validate();
         abort_unless(mb_check_encoding($text.$working, 'UTF-8') && ! str_contains($text.$working, "\0") && strlen($text) <= 4000 && strlen($working) <= 8000, 422);
-        $hash = hash_hmac('sha256', json_encode([$sessionId, $text, $working, $photos], JSON_THROW_ON_ERROR), config('app.key'));
+        abort_if($prompt === TutorPrompts::V1 && ($turnType !== 'ask' || $language !== null), 422, __('This tutor version offers only ordinary questions in English.'));
+        // Turns without the v2 options keep their original request identity.
+        $identity = $turnType === 'ask' && $language === null ? [$sessionId, $text, $working, $photos] : [$sessionId, $text, $working, $photos, $turnType, $language];
+        $hash = hash_hmac('sha256', json_encode($identity, JSON_THROW_ON_ERROR), config('app.key'));
         $attempt = (string) Str::uuid();
         $school = app(CurrentSchool::class)->id();
-        $message = DB::transaction(function () use ($actor, $sessionId, $operation, $text, $working, $photos, $hash, $attempt, $school) {
+        $sections = $this->sections($actor, $session, $operation, $prompt, $text, $working);
+        $message = DB::transaction(function () use ($actor, $sessionId, $operation, $text, $working, $photos, $hash, $attempt, $school, $prompt, $sections, $turnType, $language) {
             School::lockForUpdate()->findOrFail($school);
             $session = app(TutorAccess::class)->session($actor, $sessionId, true);
             $prior = TutorMessage::where('operation_id', $operation)->lockForUpdate()->first();
@@ -106,9 +118,10 @@ class TutorSessions
             if (AiUsage::where('feature', 'tutor')->where('user_id', $actor->id)->where('usage_date', $day)->count() >= 50) {
                 throw new AiUnavailable('tutor_daily_turn_cap');
             }
-            $context = app(TutorContext::class)->capture($actor, $session);
+            $context = app(TutorContext::class)->capture($actor, $session, $prompt, $sections);
             $message = TutorMessage::create(['id' => (string) Str::uuid(), 'tutor_session_id' => $sessionId, 'user_id' => $actor->id,
-                'operation_id' => $operation, 'request_hash' => $hash, 'learner_text' => $text, 'working' => $working, 'media_ids' => $photos,
+                'operation_id' => $operation, 'request_hash' => $hash, 'prompt_key' => $prompt, 'turn_type' => $turnType, 'explain_language' => $language,
+                'learner_text' => $text, 'working' => $working, 'media_ids' => $photos,
                 'source_manifest' => $context['manifest'], 'context_text' => $context['text'], 'attempt_id' => $attempt, 'lease_until' => now('UTC')->addSeconds(30)]);
             app(TutorPhotos::class)->references($actor, $message);
 
@@ -160,16 +173,36 @@ class TutorSessions
         }
     }
 
+    /**
+     * The content section each source should show, chosen by embeddings for a
+     * new v2 turn. Never for a replay, a disclosure (which goes to the local
+     * safeguarding guard without any network call) or a turn the caps refuse.
+     */
+    private function sections(User $actor, TutorSession $session, string $operation, string $prompt, string $text, string $working): array
+    {
+        if ($prompt !== TutorPrompts::V2 || ! TutorRetrieval::enabled() || TutorMessage::where('operation_id', $operation)->exists()
+            || app(TutorModeration::class)->localFlags($text.' '.$working) !== []
+            || TutorMessage::where('tutor_session_id', $session->id)->count() >= 100) {
+            return [];
+        }
+        $day = now(app(CurrentSchool::class)->school()->timezone)->toDateString();
+        if (AiUsage::where('feature', 'tutor')->where('user_id', $actor->id)->where('usage_date', $day)->count() >= 50) {
+            return [];
+        }
+
+        return app(TutorRetrieval::class)->select($actor, $session, $operation, $text);
+    }
+
     private function localSafety(User $actor, TutorMessage $message, array $flags): AiUsage
     {
         return DB::transaction(function () use ($actor, $message, $flags) {
             School::lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
             $session = app(TutorAccess::class)->session($actor, $message->tutor_session_id, true);
-            $prompt = app(PromptRegistry::class)->get('tutor');
+            $prompt = app(PromptRegistry::class)->get(TutorPrompts::of($message));
             $usage = AiUsage::firstOrCreate(['feature' => 'tutor', 'operation_id' => $message->operation_id], ['user_id' => $actor->id, 'learner_id' => $session->learner_id,
                 'provider' => 'local-safeguarding-guard', 'model' => 'local-patterns-1', 'request_hash' => $message->request_hash,
                 'usage_date' => now(app(CurrentSchool::class)->school()->timezone)->toDateString(), 'unit' => 'tokens', 'state' => 'reserved',
-                'prompt_key' => 'tutor', 'prompt_version' => $prompt['version'], 'prompt_sha256' => $prompt['sha256']]);
+                'prompt_key' => $prompt['key'], 'prompt_version' => $prompt['version'], 'prompt_sha256' => $prompt['sha256']]);
             abort_unless((int) $usage->user_id === (int) $actor->id && hash_equals($usage->request_hash, $message->request_hash) && $usage->quarantine_purged_at === null, 409);
             $content = ['text' => $message->learner_text."\n".$message->working, 'media' => app(TutorPhotos::class)->references($actor, $message)];
             app(AiQuarantine::class)->capture($usage, 'input', $flags, $content);
@@ -198,7 +231,7 @@ class TutorSessions
         return ['id' => $message->id, 'operation_id' => $message->operation_id, 'state' => $state,
             'question' => $ownInput ? $message->learner_text : null, 'working' => $ownInput ? $message->working : null, 'response' => $safe ? $message->response : null,
             'failure_code' => $message->failure_code, 'support_message' => $state === 'quarantined' ? self::SUPPORT_MESSAGE : null,
-            'provisional' => true];
+            'provisional' => true, 'turn_type' => $message->turn_type ?? 'ask', 'explain_language' => $message->explain_language];
     }
 
     private function sessionData(TutorSession $session): array
