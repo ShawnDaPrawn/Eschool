@@ -478,6 +478,8 @@ return [
                             'active' => ['roles.*'], 'keywords' => ['role permission', 'staff roles', 'access', 'who can do what']],
                         ['key' => 'support-access', 'label' => 'nav_support_access', 'route' => 'support-access.index', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
                             'active' => ['support-access.*'], 'keywords' => ['Navigate Ed support', 'support session', 'who viewed', 'helpdesk access']],
+                        ['key' => 'school-groups', 'label' => 'nav_school_groups', 'route' => 'school-groups.index', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
+                            'active' => ['school-groups.*'], 'keywords' => ['school group', 'group of schools', 'owner', 'join a group']],
                         ['key' => 'access-review', 'label' => 'nav_access_review', 'route' => 'access-review.index', 'permissions' => ['role-list'], 'module' => null,
                             'keywords' => ['who can see what', 'view as role', 'access check', 'permissions review']],
                         ['key' => 'support-tickets', 'label' => 'nav_support_tickets', 'route' => 'support-tickets.index', 'permissions' => ['setting-create'], 'module' => null,
