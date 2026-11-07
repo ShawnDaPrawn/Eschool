@@ -29,8 +29,14 @@ declare(strict_types=1);
  *  - every_enabled_channel (optional): the type goes by each channel the
  *    school has switched on, without being ticked for that channel.
  *
- * Recipients are guardians (the parent portal) with a mobile number the
- * school office recorded on their parent record at this school.
+ *  - audiences: who may be texted it. "guardian" (the parent portal) is
+ *    texted on the number the school office recorded on their parent record
+ *    at this school; "staff" (teacher and admin portals) on the number on
+ *    their own account. A school opts guardians and staff in separately.
+ *
+ * A number is texted only once its owner has verified it with a one-time
+ * code (verification below), and each person chooses SMS, WhatsApp, both or
+ * neither for each type, within what the school has switched on.
  */
 return [
     'types' => [
@@ -38,15 +44,23 @@ return [
             'content' => 'broadcast_text',
             'whatsapp_notice_template' => env('TWILIO_WHATSAPP_TEMPLATE_NOTICE'),
             'whatsapp_text_template' => env('TWILIO_WHATSAPP_TEMPLATE_URGENT_NOTICE'),
+            'audiences' => ['guardian', 'staff'],
         ],
         'attendance.absence' => [
             'content' => 'notice',
             'whatsapp_notice_template' => env('TWILIO_WHATSAPP_TEMPLATE_NOTICE'),
+            'audiences' => ['guardian'],
+        ],
+        'safeguarding.alert' => [
+            'content' => 'notice',
+            'whatsapp_notice_template' => env('TWILIO_WHATSAPP_TEMPLATE_NOTICE'),
+            'audiences' => ['staff'],
         ],
         // Emergency alerts (Action Plan 5.8): never about one child, so the
         // text always carries the school's words, and they go by every
         // channel the school has switched on, without a per-type choice.
         'safety.critical' => [
+            'audiences' => ['guardian', 'staff'],
             'content' => 'school_text',
             'every_enabled_channel' => true,
             'whatsapp_notice_template' => env('TWILIO_WHATSAPP_TEMPLATE_NOTICE'),
@@ -54,8 +68,22 @@ return [
         ],
     ],
 
-    // Who may receive texts. Staff numbers are not used in this step.
-    'portals' => ['parent'],
+    // The portals of each audience.
+    'audiences' => [
+        'guardian' => ['parent'],
+        'staff' => ['teacher', 'admin'],
+    ],
+
+    // One-time codes that prove a person holds the number they are texted on.
+    // Sent by SMS through the same Twilio account; billed to the school like
+    // any other text. Codes are six digits, kept only as a keyed hash.
+    'verification' => [
+        'code_minutes' => 10,
+        'max_attempts' => 5,
+        'lockout_minutes' => 60,
+        'resend_seconds' => 60,
+        'codes_per_hour' => 3,
+    ],
 
     // Numbers recorded without a country code (0821234567) are South African.
     'default_country_code' => env('TWILIO_DEFAULT_COUNTRY_CODE', '27'),

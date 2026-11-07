@@ -85,6 +85,33 @@ class DeliveryLog
     }
 
     /**
+     * Record a message that was not sent, with why (for example a number its
+     * owner has not verified). The row is suppressed from the start and no
+     * job is queued for it.
+     */
+    public static function skipped(string $channel, string $type, ?int $userId, ?string $address, string $reason): void
+    {
+        try {
+            $row = NotificationDelivery::create([
+                'school_id' => app(CurrentSchool::class)->idOrNull(),
+                'delivery_key' => (string) Str::uuid(),
+                'notification_id' => self::$notificationId,
+                'type' => Str::limit($type, 100, ''),
+                'channel' => $channel,
+                'recipient_user_id' => $userId,
+                'recipient_hash' => $address === null ? null : self::hash($address),
+                'status' => 'suppressed',
+                'error_summary' => self::summarise($reason),
+                'attempt' => 1,
+                'queued_at' => now(),
+            ]);
+            self::metric($row);
+        } catch (Throwable $e) {
+            self::bookkeepingFailed('skipped', '', $e);
+        }
+    }
+
+    /**
      * The row for this attempt of a queued message: the queued row for the
      * first attempt, a new row (same recipient and type) for each retry.
      */
