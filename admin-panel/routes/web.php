@@ -42,6 +42,7 @@ use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
 use App\Http\Controllers\Panel\Activities\ActivitySeasonController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
+use App\Http\Controllers\Panel\Activities\FixturePanelController;
 use App\Http\Controllers\Panel\Activities\GroupChatPanelController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
@@ -649,6 +650,20 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::middleware(['module:groups', 'can:activity-groups-manage'])->group(function () {
             Route::get('activity-seasons', [ActivitySeasonController::class, 'index'])->name('activity-seasons.index');
             Route::post('activity-seasons', [ActivitySeasonController::class, 'store'])->middleware('throttle:20,1')->name('activity-seasons.store');
+        });
+        // Fixtures and competitions between schools (Action Plan 5.1, 5.2).
+        Route::prefix('activity-fixtures')->name('activity-fixtures.')->middleware(['module:groups', 'can:activity-groups-manage', 'cache.headers:private;no_store'])->group(function () {
+            $c = FixturePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'write'])->middleware('throttle:30,1')->name('create');
+            Route::get('{fixture}', [$c, 'show'])->whereNumber('fixture')->name('show');
+            foreach (['schedule', 'decision', 'side', 'result'] as $action) {
+                Route::post('{fixture}/'.$action, [$c, 'write'])->whereNumber('fixture')->middleware('throttle:30,1')->name($action);
+            }
+            Route::post('competitions', [$c, 'competitionWrite'])->middleware('throttle:30,1')->name('competition-create');
+            Route::get('competitions/{competition}', [$c, 'competition'])->whereNumber('competition')->name('competition-show');
+            Route::post('competitions/{competition}/invitations', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-invite');
+            Route::post('competitions/{competition}/decision', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-decision');
         });
         Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
             $c = ActivityWorkbenchController::class;
