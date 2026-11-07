@@ -117,7 +117,7 @@ class LearningPathSources
         $memories = PracticeMemory::where('learner_id', $learner)->whereIn('practice_item_id', $items->pluck('id'))->get()->keyBy('practice_item_id');
         $own = [];
         foreach ($versions as $version) {
-            if (in_array((int) $version->content_version_id, $readable, true)) {
+            if (in_array((int) $version->content_version_id, $readable, true) && $this->markable($version->definition)) {
                 $memory = $memories->get($version->practice_item_id);
                 $own[] = ['key' => 's:'.$version->practice_item_id, 'version' => $version, 'due' => $memory === null || $memory->due_on->toDateString() <= $today ? 0 : 1];
             }
@@ -131,7 +131,7 @@ class LearningPathSources
             $memories = PracticeMemory::where('learner_id', $learner)->whereIn('library_item_id', $libraryItems->pluck('id'))->get()->keyBy('library_item_id');
             foreach ($libraryItems as $item) {
                 $version = $published->get($item->published_version_id);
-                if ($version !== null && $version->practiceDefinition() !== null) {
+                if ($version !== null && $this->markable($version->practiceDefinition())) {
                     $memory = $memories->get($item->id);
                     $library[] = ['key' => 'l:'.$item->id, 'version' => $version, 'due' => $memory === null || $memory->due_on->toDateString() <= $today ? 0 : 1];
                 }
@@ -168,7 +168,7 @@ class LearningPathSources
             $topicIds = $this->libraryTopics($group, $topic);
             $version = LibraryItemVersion::query()->where('state', 'published')->find($row->library_item_version_id);
             $item = $version === null ? null : LibraryItem::query()->where('kind', 'practice_question')->whereNotNull('published_version_id')->whereIn('library_topic_id', $topicIds)->find($version->library_item_id);
-            if ($item === null || $version->practiceDefinition() === null) {
+            if ($item === null || ! $this->markable($version->practiceDefinition())) {
                 return null;
             }
 
@@ -180,7 +180,15 @@ class LearningPathSources
             return null;
         }
 
-        return ['definition' => PracticeItemVersion::findOrFail($meta->id)->definition, 'memory' => ['practice_item_id' => (int) $item->id], 'library' => false];
+        $definition = PracticeItemVersion::findOrFail($meta->id)->definition;
+
+        return $this->markable($definition) ? ['definition' => $definition, 'memory' => ['practice_item_id' => (int) $item->id], 'library' => false] : null;
+    }
+
+    /** A path's answer contract carries one string, so it uses choice and number questions. */
+    private function markable(?array $definition): bool
+    {
+        return $definition !== null && in_array($definition['kind'] ?? null, PracticeAnswers::SINGLE, true);
     }
 
     /**

@@ -756,6 +756,12 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
     Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
     Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
+    // Question types (3.11): a labelling question's picture, teachers' diagram uploads and the marking queue.
+    Route::get('learners/{learner}/daily-sets/{set}/entries/{entry}/diagram', [$c, 'entryDiagram'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('entry-diagram');
+    Route::post('groups/{group}/diagrams', [$c, 'diagram'])->whereNumber('group')->middleware('throttle:30,1')->name('diagram');
+    Route::get('groups/{group}/marking', [$c, 'marking'])->whereNumber('group')->name('marking');
+    Route::get('groups/{group}/marking/{review}/audio', [$c, 'markingAudio'])->whereNumber('group')->whereNumber('review')->name('marking-audio');
+    Route::post('groups/{group}/marking/{review}', [$c, 'mark'])->whereNumber('group')->whereNumber('review')->name('mark');
 });
 
 // The guided learning path (Action Plan 3.9): own learner, the group's teacher, or a child's guardian.

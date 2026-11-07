@@ -323,6 +323,21 @@ class LibraryContentPipelineTest extends TestCase
         $this->assertSame(0, LibraryProbeProvider::$calls);
     }
 
+    public function test_answers_waiting_for_a_teacher_do_not_count_as_wrong_or_unlock_a_quality_signal(): void
+    {
+        School::query()->forceCreate(['id' => 3, 'name' => 'Cycad Primary', 'slug' => 'cycad-primary', 'timezone' => 'Africa/Johannesburg']);
+        $item = $this->publishedItem($this->fractions, ['question_kind' => 'short_text', 'answers' => 'one half']);
+        $this->answers($item, [1 => [7, 0], 2 => [7, 0], 3 => [6, 0]]);
+        DB::table('practice_reviews')->update(['state' => 'awaiting_teacher', 'correct' => null]);
+        $quality = app(LibraryQuality::class);
+        $this->assertNull($quality->signal($item->id));
+        $this->assertSame(0, $quality->flaggedCount());
+
+        $this->answers($item, [1 => [7, 7], 2 => [7, 7], 3 => [6, 6]]);
+        $signal = $quality->signal($item->id);
+        $this->assertSame([20, 20, 10000, 'easy'], [$signal['answers'], $signal['learners'], $signal['facility_bp'], $signal['signal']]);
+    }
+
     public function test_weak_items_are_flagged_only_for_large_groups_and_never_show_a_school_or_a_learner(): void
     {
         School::query()->forceCreate(['id' => 3, 'name' => 'Cycad Primary', 'slug' => 'cycad-primary', 'timezone' => 'Africa/Johannesburg']);

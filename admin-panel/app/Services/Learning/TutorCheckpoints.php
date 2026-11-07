@@ -42,7 +42,7 @@ class TutorCheckpoints
         abort_unless(in_array((int) $meta->content_version_id, $session->source_version_ids, true), 404);
         app(TutorContext::class)->version($actor, $session, (int) $meta->content_version_id);
 
-        return app(PracticeAnswers::class)->definition(PracticeItemVersion::findOrFail($versionId)->definition);
+        return app(PracticeAnswers::class)->definition(PracticeItemVersion::findOrFail($versionId)->definition, PracticeAnswers::SINGLE);
     }
 
     private function row(User $actor, string $session, string $id, bool $write = false): array
@@ -76,10 +76,11 @@ class TutorCheckpoints
             abort_if(TutorCheckpoint::where('tutor_session_id', $sessionId)->count() >= 10, 422, 'This session has reached its checkpoint limit.');
             abort_if(TutorCheckpoint::where('user_id', $actor->id)->whereDate('created_at', now()->toDateString())->count() >= 20, 422, 'The daily checkpoint allowance is used up.');
             $items = PracticeItem::usedIn((int) $group->id)->where('topic_id', $session->topic_id)->where('active', true);
+            // A checkpoint is marked on the spot from one answer: only choice and number questions (Action Plan 3.11).
             $candidate = PracticeItemVersion::whereIn('id', PracticeItemVersion::selectRaw('MAX(id)')->whereIn('practice_item_id', $items->select('id'))->groupBy('practice_item_id'))
                 ->whereIn('content_version_id', $session->source_version_ids)
                 ->whereNotIn('id', TutorCheckpoint::where('learner_id', $session->learner_id)->select('practice_item_version_id'))
-                ->orderBy('id')->first(['id']);
+                ->orderBy('id')->limit(200)->get(['id', 'definition'])->first(fn ($version) => in_array($version->definition['kind'] ?? null, PracticeAnswers::SINGLE, true));
             abort_if($candidate === null, 422, 'No unused teacher-approved checkpoint is available for this topic and selected material. Continue with your tutor or daily practice.');
             $definition = $this->definition($actor, $session, $group, (int) $candidate->id);
             $row = TutorCheckpoint::create(['id' => (string) Str::uuid(), 'tutor_session_id' => $sessionId, 'user_id' => $actor->id,
