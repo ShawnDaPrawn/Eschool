@@ -29,6 +29,10 @@ class UrgentMessagingRequest extends FormRequest
             'sms_types.*' => ['string', 'max:80'],
             'whatsapp_types' => ['nullable', 'array'],
             'whatsapp_types.*' => ['string', 'max:80'],
+            'staff_sms_types' => ['nullable', 'array'],
+            'staff_sms_types.*' => ['string', 'max:80'],
+            'staff_whatsapp_types' => ['nullable', 'array'],
+            'staff_whatsapp_types.*' => ['string', 'max:80'],
             'whatsapp_consent' => ['nullable', 'boolean'],
         ];
     }
