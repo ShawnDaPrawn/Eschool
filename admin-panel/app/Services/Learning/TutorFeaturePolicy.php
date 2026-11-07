@@ -47,10 +47,20 @@ class TutorFeaturePolicy implements InferenceFeaturePolicy
         $hasPhotos = $message->media_ids !== [];
         abort_unless($capability === ($hasPhotos ? Capability::Vision : Capability::Complete), 422);
         $minimize = app(TutorContext::class);
-        $input = json_encode(['subject_token' => hash_hmac('sha256', 'subject:'.$session->subject_id, config('app.key')),
+        $prompt = TutorPrompts::of($message);
+        $fields = ['subject_token' => hash_hmac('sha256', 'subject:'.$session->subject_id, config('app.key')),
             'subject' => $minimize->minimize($actor, (string) Subject::whereKey($session->subject_id)->value('name')),
-            'phase' => trim((string) $message->working) === '' ? 'hint' : 'correction', 'approved_context' => $message->context_text,
-            'question' => $minimize->minimize($actor, $message->learner_text), 'working' => $minimize->minimize($actor, (string) $message->working)], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            'phase' => TutorPrompts::phase($message), 'approved_context' => $message->context_text,
+            'question' => $minimize->minimize($actor, $message->learner_text), 'working' => $minimize->minimize($actor, (string) $message->working)];
+        if ($prompt === TutorPrompts::V2) {
+            // A language switched off since the turn was written is not sent.
+            $language = $message->explain_language;
+            if ($language !== null && ! array_key_exists($language, TutorLanguages::enabled())) {
+                throw new AiUnavailable('tutor_language_unavailable');
+            }
+            $fields += ['turn_type' => $message->turn_type, 'explanation_language' => $language === null ? null : ['code' => $language, 'name' => TutorLanguages::OFFERED[$language]]];
+        }
+        $input = json_encode($fields, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (strlen(json_encode($input, JSON_THROW_ON_ERROR)) > 60000 || ($hasPhotos && strlen($input) > 32768)) {
             throw new AiUnavailable('tutor_context_limit');
         }
@@ -62,6 +72,14 @@ class TutorFeaturePolicy implements InferenceFeaturePolicy
         foreach ($message->source_manifest['notes'] as $ref) {
             $references[] = 'tutor-note:'.$ref['id'].':'.$ref['revision'].':'.$ref['sha256'];
         }
+        foreach ($message->source_manifest['versions'] as $ref) {
+            if (isset($ref['section'])) {
+                $references[] = 'content-section:'.$ref['id'].':'.$ref['section']['index'].':'.$ref['section']['method'];
+            }
+        }
+        if (($message->source_manifest['memory'] ?? null) !== null) {
+            $references[] = 'tutor-memory:'.$message->source_manifest['memory'];
+        }
         if ($hasPhotos) {
             $media = app(TutorPhotos::class)->references($actor, $message);
             $input = ['text' => $input, 'media' => $media];
@@ -71,7 +89,7 @@ class TutorFeaturePolicy implements InferenceFeaturePolicy
         }
 
         return new AuthorizedInferenceScope(app(CurrentSchool::class)->id(), (int) $actor->id,
-            new InferenceRequest('tutor', $request->operationId, 'tutor', $input, $references), (int) $session->learner_id, (int) $session->subject_id);
+            new InferenceRequest('tutor', $request->operationId, $prompt, $input, $references), (int) $session->learner_id, (int) $session->subject_id);
     }
 
     public function reauthorize(User $actor, AuthorizedInferenceScope $scope): void
