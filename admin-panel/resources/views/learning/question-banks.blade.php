@@ -10,6 +10,7 @@
     <x-page.header :title="__('Question banks')" :subtitle="__('Practice questions belong to their subject and grade, not to one class, so they stay when the year changes. Use them in any of your groups, and choose who else may find and reuse the ones you wrote.')" />
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     @foreach ($errors->all() as $problem)<p role="alert">{{ $problem }}</p>@endforeach
+    <p><a class="m3-button m3-button--outlined" href="{{ route('question-banks.write') }}">{{ __('Write a practice question') }}</a> <a class="m3-button m3-button--text" href="{{ route('question-banks.marking') }}">{{ __('Marking') }}</a></p>
 
     @if ($scopes === [])
         <x-page.empty-state :title="__('No question banks yet')" :message="__('Banks appear for the subjects and grades you teach this year. Approve practice questions for a group in the teacher app to start one.')" />

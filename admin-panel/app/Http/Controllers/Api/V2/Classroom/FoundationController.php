@@ -20,6 +20,7 @@ use App\Services\Classroom\ClassroomAccess;
 use App\Services\Classroom\ClassroomAuthority;
 use App\Services\Classroom\ClassroomPractice;
 use App\Services\Classroom\ClassroomSessions;
+use App\Services\Learning\PracticeContract;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\JsonResponse;
@@ -140,7 +141,7 @@ class FoundationController extends Controller
         } else {
             $data = app(ClassroomPractice::class)->run($device, $learner, $action, $request->inputForService(),
                 $request->route('set') === null ? null : (int) $request->route('set'),
-                $request->route('entry') === null ? null : (int) $request->route('entry'));
+                $request->route('entry') === null ? null : (int) $request->route('entry'), app(PracticeContract::class)->fromRequest($request));
         }
 
         return $this->result($data);

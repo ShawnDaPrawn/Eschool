@@ -17,6 +17,7 @@ class PracticeReview extends Model
 
     protected function casts(): array
     {
-        return ['answer' => 'encrypted', 'correct' => 'boolean', 'schedule' => 'array', 'reviewed_on' => 'immutable_date'];
+        return ['answer' => 'encrypted', 'correct' => 'boolean', 'schedule' => 'array', 'reviewed_on' => 'immutable_date', 'parts' => 'encrypted:array',
+            'achieved_units' => 'integer', 'maximum_units' => 'integer', 'rating' => 'integer', 'marked_at' => 'immutable_datetime'];
     }
 }

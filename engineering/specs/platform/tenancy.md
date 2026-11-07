@@ -317,6 +317,16 @@ too (Action Plan 3.4). The library's quality signals read school practice
 answers across schools only as counts with a minimum group of 20 learners in 3
 schools, and store nothing ([content pipeline](../learning/content-pipeline.md)).
 
+### Practice question types (Action Plan 3.11)
+
+`library_diagrams` (the library's diagram pictures for labelling questions) is
+global like the other library tables and written only from `/saas/library`.
+`practice_diagrams` (a school's own diagram pictures) and
+`practice_audio_answers` (learners' recorded spoken answers, encrypted in the
+school's private storage with a retention date) are required school-owned. A
+school reads a library diagram only through a published library question in a
+learner's own practice set ([question types](../learning/question-types.md)).
+
 ### Reading library (Action Plan 4.4)
 
 The reading library catalogue (`reading_books`, `reading_rights_decisions`,

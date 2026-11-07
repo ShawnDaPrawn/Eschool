@@ -10,6 +10,20 @@
 
 - Daily family summary (Action Plan 5.11): a guardian can opt in to one short summary a day, at a time they choose outside their quiet hours, covering all their children at all their schools: today's and tomorrow's timetable changes, homework due, forms waiting for them, unread school messages and how many private updates are waiting (never what they say). Each school's part is read and written inside that school. The wording comes from the AI gateway when a school has it switched on, and from a plain template otherwise. New API: `GET`/`PUT /api/v2/me/family-summary/preferences`, `GET /api/v2/me/family-summaries/{summary}`. **Deploy:** run migrations; the scheduler runs `family:daily-summary` every 15 minutes and its retention daily.
 
+- Keep starting checks to choice and number questions so extended practice question types cannot leave a diagnostic waiting for an answer it cannot mark.
+- Exclude answers awaiting teacher marking from library quality rates and privacy cohort thresholds.
+- Refuse the practice question-type rollback while recorded per-part results remain, including automatically marked answers, so rollback cannot erase their marks.
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
+## 2026-11-04
+
+- Daily practice has four new question types: worked steps with a mark per step, short written answers, labelling a diagram, and spoken answers. Teachers write them on the new "Write a practice question" page or in the API, and HQ writes them in the content library (Action Plan 3.11).
+- Downloaded practice sets no longer carry the answers or worked explanations for apps that ask for the new practice contract (`X-Practice-Contract: 2`): answers are marked on the server when they sync, and the result and explanation appear only after the answer is saved. This applies to school and library questions and to the classroom tablet, which already asks for it. Apps that do not ask yet keep today's sets (choice and number questions, answers included) until `practice.legacy_set_contract` is switched off.
+- Short written answers that match no accepted answer, and spoken answers, wait for the learner's own teachers on the new practice marking page; their mark counts towards the learner's practice once. AI help with marking stays switched off until an AI provider is qualified.
+- Recorded answers are encrypted in the school's private storage, heard only by the learner's teachers, and deleted after 90 days (30 days after marking). **Deploy:** run migrations; the new daily `learning:prune-practice-audio` job runs at 03:55.
+- **Apps:** the new practice contract (`question` instead of `definition`, and a `solution` with each saved answer) is opt-in, so installed apps keep working unchanged. Regenerate the Dart client and update the apps to send `X-Practice-Contract: 2`, then switch off `PRACTICE_LEGACY_SET_CONTRACT` to close the old answer loophole for everyone.
+
 - Prevent SMS or WhatsApp activation during a usage month whose invoice was already issued early; show when it can be enabled and retain the sealed invoice unchanged.
 
 - Run the browser CI server without JIT, matching the application runtime, after a native PHP crash stopped the server during report tests. The browser assertions and failure checks stay in place.
