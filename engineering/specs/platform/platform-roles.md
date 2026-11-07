@@ -28,6 +28,8 @@ config grants nothing. Existing grants became Owner, so nobody lost access.
 Every `/saas` route except the operator's own password and the two-factor pages names its ability with
 the `platform.can:{ability}` middleware (`EnsurePlatformAbility`, after
 `platform.staff`); `SaasPanelTest` fails the build for a route without one.
+A route may name alternatives, `platform.can:a,b`, which a role holding either
+passes (the library's diagram pictures, for writers and reviewers alike).
 Pages hide what the role cannot do: the set-up link, the package, status and
 module controls, and the staff link.
 

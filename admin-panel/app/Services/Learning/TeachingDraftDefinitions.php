@@ -62,7 +62,8 @@ class TeachingDraftDefinitions
                 Validator::make($row, ['topic_id' => ['required', 'integer', 'min:1'], 'estimated_seconds' => ['required', 'integer', 'between:60,300'], 'definition' => ['required', 'array']])->validate();
                 $group = app(TeachingDraftAccess::class)->group($actor, (int) $draft->teaching_group_id);
                 app(TeachingDraftAccess::class)->topic($group, (int) $row['topic_id']);
-                $question = app(PracticeAnswers::class)->definition($row['definition']);
+                // AI drafts stay within the first two kinds; teachers author the others themselves (Action Plan 3.11).
+                $question = app(PracticeAnswers::class)->definition($row['definition'], PracticeAnswers::SINGLE);
                 $question['prompt'] = $clean($question['prompt'], 8000);
                 $question['explanation'] = $clean($question['explanation'], 8000);
                 foreach ($question['options'] as &$option) {

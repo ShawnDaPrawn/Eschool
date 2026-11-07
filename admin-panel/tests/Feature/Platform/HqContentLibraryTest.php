@@ -15,15 +15,21 @@ use App\Services\Learning\Library\LibraryCatalogue;
 use App\Services\Learning\Library\LibraryItems;
 use App\Services\Learning\Library\LibraryPages;
 use App\Services\Learning\Library\LibraryReviewers;
+use App\Services\Learning\PracticeMedia;
+use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolOwnedTables;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesContentLibrary;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Support\SyntheticCleanScanner;
 use Tests\TestCase;
 
 /**
@@ -111,6 +117,33 @@ class HqContentLibraryTest extends TestCase
         $this->assertEqualsCanonicalizing(['library_framework_created', 'library_source_created', 'library_topic_created', 'library_item_created', 'library_submitted',
             'library_reviewer_assigned', 'library_reviewed', 'library_published'], AuditLog::query()->where('action', 'like', 'library_%')->pluck('action')->all());
         $this->assertSame(0, AuditLog::query()->where('action', 'like', 'library_%')->whereNotNull('school_id')->count(), 'library actions belong to no school');
+    }
+
+    public function test_content_staff_write_a_labelling_question_with_a_private_picture_that_reviewers_can_see(): void
+    {
+        Storage::fake(PracticeMedia::LIBRARY_DISK);
+        $this->app->instance(UploadScanner::class, new SyntheticCleanScanner);
+        $topic = $this->libraryTopic('Shapes');
+        $source = $this->librarySource();
+        $this->assignReviewer();
+        $this->signInAs($this->libraryStaff('content'));
+        $this->post('/saas/library/items', $this->question(['library_topic_id' => $topic->id, 'library_source_id' => $source->id, 'question_kind' => 'diagram_label',
+            'answers' => '', 'diagram' => UploadedFile::fake()->image('triangle.png', 240, 160), 'regions' => "p1: 10, 90\np2: 50, 5", 'labels' => "base: Base\napex: Apex",
+            'mapping' => "p1: base\np2: apex"]))->assertRedirect()->assertSessionHasNoErrors();
+        $item = LibraryItem::query()->sole();
+        $diagram = LibraryItemVersion::query()->sole()->practiceDefinition()['diagram'];
+        $this->assertSame(['library', 240, 160], [$diagram['source'], $diagram['width'], $diagram['height']]);
+        $this->get('/saas/library/items/'.$item->id)->assertOk()->assertSee('/saas/library/diagrams/'.$diagram['id'], false)->assertSee('Apex');
+        $this->get('/saas/library/diagrams/'.$diagram['id'])->assertOk()->assertHeader('Content-Type', 'image/jpeg');
+        // Saving the draft without a new picture keeps the one it names.
+        $this->put('/saas/library/items/'.$item->id.'/draft', $this->question(['title' => 'Label the triangle', 'revision' => $item->revision, 'question_kind' => 'diagram_label',
+            'answers' => '', 'diagram_id' => $diagram['id'], 'regions' => "p1: 10, 90\np2: 50, 5", 'labels' => "base: Base\napex: Apex\nside: Side",
+            'mapping' => "p1: base\np2: apex"]))->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame($diagram['id'], LibraryItemVersion::query()->sole()->practiceDefinition()['diagram']['id']);
+        $this->signInAs($this->libraryStaff('reviewer'));
+        $this->get('/saas/library/diagrams/'.$diagram['id'])->assertOk();
+        $this->signInAs(User::query()->findOrFail($this->schoolA->ids['tara_user']));
+        $this->get('/saas/library/diagrams/'.$diagram['id'])->assertForbidden();
     }
 
     public function test_a_cycle_in_prerequisites_is_refused(): void
@@ -318,7 +351,7 @@ class HqContentLibraryTest extends TestCase
         $before = $this->libraryCounts();
         foreach ([$this->superAdmin(), User::query()->findOrFail($this->schoolA->ids['tara_user']), User::query()->findOrFail($this->schoolB->ids['tara_user'])] as $person) {
             $this->signInAs($person);
-            foreach (['/saas/library', '/saas/library/reviews', '/saas/library/frameworks/'.$topic->library_framework_id] as $page) {
+            foreach (['/saas/library', '/saas/library/reviews', '/saas/library/frameworks/'.$topic->library_framework_id, '/saas/library/diagrams/'.Str::uuid()] as $page) {
                 $this->get($page)->assertForbidden();
             }
             $this->post('/saas/library/frameworks', ['code' => 'IEB', 'name' => 'Independent Examinations Board'])->assertForbidden();

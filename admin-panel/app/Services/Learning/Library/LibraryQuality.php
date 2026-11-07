@@ -155,6 +155,7 @@ class LibraryQuality
             ->join('practice_set_entries as e', fn ($join) => $join->on('e.id', '=', 'r.practice_set_entry_id')->on('e.school_id', '=', 'r.school_id'))
             ->join('library_items as i', 'i.published_version_id', '=', 'e.library_item_version_id')
             ->whereNotNull('e.library_item_version_id')
+            ->where('r.state', 'marked')->whereNotNull('r.correct')
             ->groupBy('i.id', 'e.library_item_version_id')
             ->havingRaw('COUNT(DISTINCT r.learner_id) >= ?', [self::MINIMUM_LEARNERS])
             ->havingRaw('COUNT(DISTINCT r.school_id) >= ?', [self::MINIMUM_SCHOOLS])

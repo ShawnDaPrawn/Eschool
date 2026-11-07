@@ -17782,8 +17782,9 @@ paths:
       summary: getPracticeAccess
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -17823,8 +17824,9 @@ paths:
       summary: getPracticeBankChoices
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -17870,10 +17872,12 @@ paths:
       summary: getPracticeBank
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -17922,8 +17926,9 @@ paths:
       summary: approvePracticeQuestion
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -17975,8 +17980,9 @@ paths:
       summary: revisePracticeQuestion
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -18034,10 +18040,12 @@ paths:
       summary: issuePracticeDailySet
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -18053,6 +18061,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly scoped private practice result.
           content:
@@ -18093,10 +18107,12 @@ paths:
       summary: getPracticeDailySet
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -18112,6 +18128,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly scoped private practice result.
           content:
@@ -18146,10 +18168,12 @@ paths:
       summary: reviewPracticeEntry
       description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
         or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted receipt
-        replay. The module defaults off. Approved answers are deliberately included for offline self-study. Writes accept
-        body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
+        replay. The module defaults off. With X-Practice-Contract 2 sets carry questions only, answers are marked on the server
+        on sync, and the result and explanation follow the recorded answer (Action Plan 3.11); without it the legacy contract
+        returns choice and number questions with approved answers included. Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses the server school calendar
         day.
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -18171,6 +18195,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly scoped private practice result.
           content:
@@ -18203,17 +18233,72 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PracticeReviewInput'
-  /learning/diagnostics/groups/{group}:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PracticeAudioReviewInput'
+  /learning/practice/learners/{learner}/daily-sets/{set}/entries/{entry}/diagram:
     get:
-      operationId: getDiagnosticGroup
+      operationId: getPracticeEntryDiagram
       tags:
-      - Diagnostics
-      summary: getDiagnosticGroup
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
+      - Practice
+      summary: getPracticeEntryDiagram
+      description: "The diagram picture of a labelling question in the learner's own set (Action Plan 3.11), authorized exactly as reading the set. JPEG pixels only; cache it with the set and erase it with the set."
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: set
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private bytes, never cached.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/diagrams:
+    post:
+      operationId: uploadPracticeDiagram
+      tags:
+      - Practice
+      summary: uploadPracticeDiagram
+      description: "A current teacher of the group uploads a diagram picture for a labelling question (Action Plan 3.11). JPEG or PNG up to 4 MB, re-encoded as pixels only, scanned and stored encrypted in the school's private storage. Reference the returned id in PracticeQuestion.diagram. A retried upload stores another copy; only a referenced picture is used."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -18225,11 +18310,11 @@ paths:
           minimum: 1
       responses:
         '200':
-          description: Freshly authorized private starting-check result.
+          description: Freshly scoped private practice result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetDiagnosticGroupResponse'
+                $ref: '#/components/schemas/UploadPracticeDiagramResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -18237,95 +18322,61 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}:
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: "File safety checks are temporarily unavailable."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PracticeDiagramUpload'
+  /learning/practice/groups/{group}/marking:
     get:
-      operationId: getDiagnosticSummary
+      operationId: getPracticeMarking
       tags:
-      - Diagnostics
-      summary: getDiagnosticSummary
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
+      - Practice
+      summary: getPracticeMarking
+      description: "Practice answers waiting for a teacher in this group (Action Plan 3.11): short written answers that matched no accepted answer, and spoken answers. Only the group's current teachers, by dated allocation; never another teacher, a learner, a parent or another school."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
-      - name: learner
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Freshly authorized private starting-check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetDiagnosticSummaryResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}/groups/{group}/attempts:
-    post:
-      operationId: startDiagnostic
-      tags:
-      - Diagnostics
-      summary: startDiagnostic
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: learner
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
       - name: group
         in: path
         required: true
         schema:
           type: integer
           minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
       responses:
         '200':
-          description: Freshly authorized private starting-check result.
+          description: Freshly scoped private practice result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+                $ref: '#/components/schemas/GetPracticeMarkingResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -18333,38 +18384,36 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}/attempts/{attempt}:
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/marking/{review}/audio:
     get:
-      operationId: getDiagnosticAttempt
+      operationId: getPracticeMarkingAudio
       tags:
-      - Diagnostics
-      summary: getDiagnosticAttempt
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
+      - Practice
+      summary: getPracticeMarkingAudio
+      description: "A spoken practice answer's recording, for the current teachers of the group it was given in only (Action Plan 3.11). Audited."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
-      - name: learner
+      - name: group
         in: path
         required: true
         schema:
           type: integer
           minimum: 1
-      - name: attempt
+      - name: review
         in: path
         required: true
         schema:
@@ -18372,11 +18421,28 @@ paths:
           minimum: 1
       responses:
         '200':
-          description: Freshly authorized private starting-check result.
+          description: Private bytes, never cached.
           content:
-            application/json:
+            audio/mp4:
               schema:
-                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+                type: string
+                format: binary
+            audio/aac:
+              schema:
+                type: string
+                format: binary
+            audio/webm:
+              schema:
+                type: string
+                format: binary
+            audio/ogg:
+              schema:
+                type: string
+                format: binary
+            audio/mpeg:
+              schema:
+                type: string
+                format: binary
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -18384,44 +18450,42 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}/attempts/{attempt}/items/{item}/answer:
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: "The recording was deleted under the retention rule."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/marking/{review}:
     post:
-      operationId: answerDiagnosticQuestion
+      operationId: markPracticeAnswer
       tags:
-      - Diagnostics
-      summary: answerDiagnosticQuestion
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
+      - Practice
+      summary: markPracticeAnswer
+      description: "A current teacher of the group marks a waiting answer correct or not yet (Action Plan 3.11). Marked once: the same operation replays its receipt and any other attempt is refused with 409. The mark feeds practice memory and mastery evidence exactly as an automatic mark does."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
-      - name: learner
+      - name: group
         in: path
         required: true
         schema:
           type: integer
           minimum: 1
-      - name: attempt
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: item
+      - name: review
         in: path
         required: true
         schema:
@@ -18429,11 +18493,11 @@ paths:
           minimum: 1
       responses:
         '200':
-          description: Freshly authorized private starting-check result.
+          description: Freshly scoped private practice result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+                $ref: '#/components/schemas/MarkPracticeAnswerResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -18441,23 +18505,25 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DiagnosticAnswerInput'
+              $ref: '#/components/schemas/PracticeMarkInput'
   /gallery/configuration:
     get:
       operationId: getGalleryConfiguration
@@ -27283,8 +27349,15 @@ paths:
         writable daily practice; new registration and Teacher grants still require writable card inventory.
       security:
       - foundationLearnerAuth: []
-      parameters: []
+      parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly authorized private classroom result.
           content:
@@ -27325,6 +27398,7 @@ paths:
       security:
       - foundationLearnerAuth: []
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - name: set
         in: path
         required: true
@@ -27332,6 +27406,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly authorized private classroom result.
           content:
@@ -27366,6 +27446,7 @@ paths:
       security:
       - foundationLearnerAuth: []
       parameters:
+      - $ref: '#/components/parameters/PracticeContract'
       - name: set
         in: path
         required: true
@@ -27379,6 +27460,12 @@ paths:
           type: integer
           minimum: 1
       responses:
+        '426':
+          description: The legacy practice contract is switched off, or this set holds no question the legacy contract can show. Update the app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '200':
           description: Freshly authorized private classroom result.
           content:
@@ -30349,6 +30436,261 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/groups/{group}:
+    get:
+      operationId: getDiagnosticGroup
+      tags:
+      - Diagnostics
+      summary: getDiagnosticGroup
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDiagnosticGroupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}:
+    get:
+      operationId: getDiagnosticSummary
+      tags:
+      - Diagnostics
+      summary: getDiagnosticSummary
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDiagnosticSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/groups/{group}/attempts:
+    post:
+      operationId: startDiagnostic
+      tags:
+      - Diagnostics
+      summary: startDiagnostic
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/attempts/{attempt}:
+    get:
+      operationId: getDiagnosticAttempt
+      tags:
+      - Diagnostics
+      summary: getDiagnosticAttempt
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: attempt
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/attempts/{attempt}/items/{item}/answer:
+    post:
+      operationId: answerDiagnosticQuestion
+      tags:
+      - Diagnostics
+      summary: answerDiagnosticQuestion
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: attempt
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiagnosticAnswerInput'
   /strengths:
     get:
       operationId: getStrengthsMirror
@@ -30615,6 +30957,19 @@ components:
       schema:
         type: integer
         minimum: 1
+    PracticeContract:
+      name: X-Practice-Contract
+      in: header
+      required: false
+      description: "2 opts in to the answer-free practice contract (Action Plan 3.11): sets carry questions only, of every kind, and
+        answers and explanations arrive in review.solution once the answer is recorded. Without it (or 1) the legacy contract
+        applies, exactly as before: choice and number questions only, approved answers included. The legacy contract is
+        retired with practice.legacy_set_contract; legacy requests are then refused with 426."
+      schema:
+        type: string
+        enum:
+        - '1'
+        - '2'
     SchoolId:
       name: X-School-Id
       in: header
@@ -53886,6 +54241,10 @@ components:
     PracticeQuestion:
       type: object
       additionalProperties: false
+      description: "A teacher-approved practice definition (Action Plan 3.11). choice and number carry options and answers;
+        steps carries two to eight steps, each with its own number or choice answers; short_text carries accepted answers,
+        matched ignoring case, spacing and punctuation; diagram_label carries a diagram reference, regions, labels and the
+        exact mapping; audio carries max_seconds. Learner devices never receive this shape, only PracticeSetQuestion."
       required:
       - kind
       - prompt
@@ -53898,6 +54257,10 @@ components:
           enum:
           - choice
           - number
+          - steps
+          - short_text
+          - diagram_label
+          - audio
         prompt:
           type: string
           minLength: 1
@@ -53913,11 +54276,268 @@ components:
           maxItems: 6
         answers:
           type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 200
+        steps:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/PracticeStep'
+        diagram:
+          $ref: '#/components/schemas/PracticeDiagramReference'
+        regions:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/PracticeDiagramRegion'
+        labels:
+          type: array
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+        mapping:
+          type: object
+          description: Region code to the correct label code.
+          maxProperties: 12
+          additionalProperties:
+            type: string
+            maxLength: 20
+        max_seconds:
+          type: integer
+          minimum: 10
+          maximum: 180
+    PracticeStep:
+      type: object
+      additionalProperties: false
+      required:
+      - prompt
+      - kind
+      - options
+      - answers
+      properties:
+        id:
+          type: string
+          pattern: ^s[1-8]$
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        options:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+        answers:
+          type: array
           minItems: 1
           maxItems: 10
           items:
             type: string
             maxLength: 100
+    PracticeDiagramReference:
+      type: object
+      additionalProperties: false
+      description: "An uploaded diagram picture (uploadPracticeDiagram). The server fills width and height from the stored picture."
+      required:
+      - id
+      properties:
+        source:
+          type: string
+          enum:
+          - school
+          - library
+        id:
+          type: string
+          format: uuid
+        width:
+          type: integer
+          minimum: 1
+          maximum: 4096
+        height:
+          type: integer
+          minimum: 1
+          maximum: 4096
+    PracticeDiagramRegion:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - x
+      - y
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z][a-z0-9]{0,2}$
+        x:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Per cent across from the left edge.
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Per cent down from the top edge.
+    PracticeSetQuestion:
+      type: object
+      additionalProperties: false
+      description: "What a learner device receives before answering. Never accepted answers, step answers, the label mapping
+        or the explanation; those arrive in PracticeReview.solution once the server has recorded the answer. A diagram_label
+        picture is fetched from getPracticeEntryDiagram."
+      required:
+      - kind
+      - prompt
+      - options
+      properties:
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+          - steps
+          - short_text
+          - diagram_label
+          - audio
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        options:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+        steps:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/PracticeSetStep'
+        diagram:
+          type: object
+          additionalProperties: false
+          required:
+          - width
+          - height
+          properties:
+            width:
+              type: integer
+              minimum: 1
+              maximum: 4096
+            height:
+              type: integer
+              minimum: 1
+              maximum: 4096
+        regions:
+          type: array
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/PracticeDiagramRegion'
+        labels:
+          type: array
+          maxItems: 16
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+        max_seconds:
+          type: integer
+          minimum: 10
+          maximum: 180
+        max_length:
+          type: integer
+          minimum: 1
+          maximum: 500
+    PracticeSetStep:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - prompt
+      - kind
+      - options
+      properties:
+        id:
+          type: string
+          pattern: ^s[1-8]$
+        prompt:
+          type: string
+          maxLength: 1000
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        options:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+    PracticeSolution:
+      type: object
+      additionalProperties: false
+      description: Shown only after the answer is recorded on the server.
+      required:
+      - explanation
+      - answers
+      - steps
+      - mapping
+      properties:
+        explanation:
+          type: string
+          maxLength: 4000
+        answers:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 200
+        steps:
+          type: array
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/PracticeStepSolution'
+        mapping:
+          type: array
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/PracticeRegionSolution'
+    PracticeStepSolution:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - answers
+      properties:
+        id:
+          type: string
+          pattern: ^s[1-8]$
+        answers:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 100
+    PracticeRegionSolution:
+      type: object
+      additionalProperties: false
+      required:
+      - region
+      - label
+      properties:
+        region:
+          type: string
+          maxLength: 3
+        label:
+          type: string
+          maxLength: 20
     PracticeGroupChoice:
       type: object
       additionalProperties: false
@@ -54130,6 +54750,76 @@ components:
           type: integer
           minimum: 0
           maximum: 365
+    PracticeReviewV2:
+      type: object
+      additionalProperties: false
+      description: "A recorded answer. state is awaiting_teacher for a short written answer that matched no accepted answer,
+        and for a spoken answer, until one of the group's current teachers marks it; correct, the unit counts and the
+        schedule of a marked answer are then filled once. solution is present because the answer is recorded."
+      required:
+      - id
+      - entry_id
+      - state
+      - correct
+      - achieved_units
+      - maximum_units
+      - parts
+      - marked_how
+      - schedule
+      - reviewed_on
+      - solution
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        entry_id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - marked
+          - awaiting_teacher
+        correct:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+        achieved_units:
+          anyOf:
+          - type: integer
+            minimum: 0
+            maximum: 8
+          - type: 'null'
+        maximum_units:
+          type: integer
+          minimum: 1
+          maximum: 8
+        parts:
+          anyOf:
+          - type: object
+            description: The mark of each step or region, by its code.
+            maxProperties: 12
+            additionalProperties:
+              type: boolean
+          - type: 'null'
+        marked_how:
+          type: string
+          enum:
+          - automatic
+          - teacher
+        schedule:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeSchedule'
+          - type: 'null'
+        reviewed_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        solution:
+          $ref: '#/components/schemas/PracticeSolution'
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
     PracticeSetEntry:
       type: object
       additionalProperties: false
@@ -54164,9 +54854,44 @@ components:
           anyOf:
           - $ref: '#/components/schemas/PracticeReview'
           - type: 'null'
+    PracticeSetEntryV2:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - item_id
+      - topic_id
+      - source_version_id
+      - estimated_seconds
+      - question
+      - review
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        item_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        source_version_id:
+          type: integer
+          minimum: 1
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 300
+        question:
+          $ref: '#/components/schemas/PracticeSetQuestion'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReviewV2'
+          - type: 'null'
     PracticeDailySet:
       type: object
       additionalProperties: false
+      description: "The legacy set contract, for a client that sends no X-Practice-Contract header: choice and number questions only, with approved answers and explanations included for offline self-study. Switched off by practice.legacy_set_contract (then 426)."
       required:
       - id
       - school_id
@@ -54221,6 +54946,64 @@ components:
           type: integer
           minimum: 0
           maximum: 365
+    PracticeDailySetV2:
+      type: object
+      additionalProperties: false
+      description: "The answer-free set contract (X-Practice-Contract: 2, Action Plan 3.11): questions only, every kind; results and solutions follow each recorded answer."
+      required:
+      - id
+      - school_id
+      - reader_id
+      - learner_id
+      - group_id
+      - practice_on
+      - server_time
+      - offline_until
+      - estimated_seconds
+      - completed
+      - items
+      - streak_days
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        practice_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        server_time:
+          type: string
+          format: date-time
+        offline_until:
+          type: string
+          format: date-time
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 600
+        completed:
+          type: boolean
+        items:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PracticeSetEntryV2'
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
     PracticeApproveInput:
       type: object
       additionalProperties: false
@@ -54269,9 +55052,11 @@ components:
     PracticeReviewInput:
       type: object
       additionalProperties: false
+      description: "answer for choice, number and short_text questions; parts (each step or region code to its answer or
+        label code) for steps and diagram_label questions. A spoken answer is sent as multipart/form-data with the recording
+        in audio (PracticeAudioReviewInput)."
       required:
       - operation_id
-      - answer
       - rating
       properties:
         operation_id:
@@ -54280,321 +55065,219 @@ components:
         answer:
           type: string
           minLength: 1
-          maxLength: 100
+          maxLength: 500
+        parts:
+          type: object
+          maxProperties: 16
+          additionalProperties:
+            type: string
+            maxLength: 100
         rating:
           type: integer
           minimum: 2
           maximum: 4
-    DiagnosticAnswerInput:
+    PracticeAudioReviewInput:
       type: object
       additionalProperties: false
       required:
-      - answer
+      - operation_id
+      - rating
+      - audio
       properties:
-        answer:
+        operation_id:
           type: string
-          minLength: 1
-          maxLength: 100
-    DiagnosticStatus:
-      type: string
-      enum:
-      - not_started
-      - in_progress
-      - completed
-    DiagnosticBand:
-      type: string
-      description: How a topic came out in the starting check, from its own answers only (staff only).
-      enum:
-      - secure
-      - developing
-      - gap
-      - not_reached
-    DiagnosticQuestion:
+          format: uuid
+        rating:
+          type: integer
+          minimum: 2
+          maximum: 4
+        audio:
+          type: string
+          format: binary
+          description: "M4A/AAC, WebM, Ogg or MP3, at most 3 MB; type read from the content, scanned, stored encrypted in the
+            school's private storage and deleted 90 days after recording or 30 days after marking."
+    PracticeDiagramUpload:
       type: object
       additionalProperties: false
-      description: What is needed to answer, never the accepted answers or the explanation.
+      required:
+      - photo
+      properties:
+        photo:
+          type: string
+          format: binary
+          description: JPEG or PNG up to 4 MB; re-encoded as pixels only and scanned.
+    PracticeDiagram:
+      type: object
+      additionalProperties: false
       required:
       - id
-      - position
-      - kind
-      - prompt
-      - options
+      - width
+      - height
+      properties:
+        id:
+          type: string
+          format: uuid
+        width:
+          type: integer
+          minimum: 1
+          maximum: 4096
+        height:
+          type: integer
+          minimum: 1
+          maximum: 4096
+    PracticeMarkInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - correct
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        correct:
+          type: boolean
+    PracticeMarkReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - correct
+      - marked_how
       properties:
         id:
           type: integer
           minimum: 1
-        position:
+        state:
+          type: string
+          enum:
+          - marked
+        correct:
+          type: boolean
+        marked_how:
+          type: string
+          enum:
+          - teacher
+    PracticeMarkingAudio:
+      type: object
+      additionalProperties: false
+      required:
+      - kept
+      - mime
+      - bytes
+      - delete_after
+      properties:
+        kept:
+          type: boolean
+        mime:
+          type: string
+          maxLength: 40
+        bytes:
           type: integer
           minimum: 1
-          maximum: 20
+        delete_after:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    PracticeMarkingItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - kind
+      - prompt
+      - answer
+      - accepted
+      - explanation
+      - answered_on
+      - audio
+      - suggestion
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+          maxLength: 255
         kind:
           type: string
           enum:
-          - choice
-          - number
+          - short_text
+          - audio
         prompt:
           type: string
-          minLength: 1
           maxLength: 4000
-        options:
-          type: array
-          maxItems: 6
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - id
-            - text
-            properties:
-              id:
-                type: string
-                pattern: ^[a-z][a-z0-9_]{0,19}$
-              text:
-                type: string
-                minLength: 1
-                maxLength: 1000
-    DiagnosticAttempt:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - learner_id
-      - group_id
-      - subject_name
-      - instructions
-      - status
-      - answered
-      - remaining
-      - question
-      - message
-      - focus_topics
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        learner_id:
-          type: integer
-          minimum: 1
-        group_id:
-          type: integer
-          minimum: 1
-        subject_name:
-          type: string
-        instructions:
-          type: string
-          maxLength: 2000
-        status:
-          $ref: '#/components/schemas/DiagnosticStatus'
-        answered:
-          type: integer
-          minimum: 0
-          maximum: 20
-        remaining:
-          type: integer
-          minimum: 0
-          maximum: 20
-          description: Questions still waiting; fewer may be asked, as a topic stops once two answers agree.
-        question:
+        answer:
           anyOf:
-          - $ref: '#/components/schemas/DiagnosticQuestion'
+          - type: string
+            maxLength: 500
           - type: 'null'
-        message:
-          type: string
-        focus_topics:
+        accepted:
           type: array
-          maxItems: 3
-          description: Names of up to three topics practice begins with, once finished. Never a score.
+          maxItems: 20
           items:
             type: string
-    DiagnosticSummary:
+            maxLength: 200
+        explanation:
+          type: string
+          maxLength: 4000
+        answered_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        audio:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeMarkingAudio'
+          - type: 'null'
+        suggestion:
+          description: Reserved for AI-assisted marking after a provider is qualified; always null today. A suggestion never
+            marks an answer by itself.
+          anyOf:
+          - $ref: '#/components/schemas/PracticeMarkingSuggestion'
+          - type: 'null'
+    PracticeMarkingSuggestion:
       type: object
       additionalProperties: false
       required:
-      - learner_id
-      - diagnostics
+      - correct
+      - reason
       properties:
-        learner_id:
-          type: integer
-          minimum: 1
-        diagnostics:
-          type: array
-          maxItems: 50
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - group_id
-            - subject_name
-            - status
-            - attempt_id
-            - can_start
-            - message
-            - focus_topics
-            properties:
-              group_id:
-                type: integer
-                minimum: 1
-              subject_name:
-                type: string
-              status:
-                $ref: '#/components/schemas/DiagnosticStatus'
-              attempt_id:
-                description: The learner's own attempt; always null for a guardian.
-                type:
-                - integer
-                - 'null'
-                minimum: 1
-              can_start:
-                type: boolean
-              message:
-                type: string
-              focus_topics:
-                type: array
-                maxItems: 3
-                items:
-                  type: string
-    DiagnosticGroup:
+        correct:
+          type: boolean
+        reason:
+          type: string
+          maxLength: 1000
+    PracticeMarkingQueue:
       type: object
       additionalProperties: false
       required:
       - group_id
-      - group_name
-      - subject_name
-      - available
-      - title
-      - topics
-      - learners
+      - items
+      - page
+      - last_page
+      - total
       properties:
         group_id:
           type: integer
           minimum: 1
-        group_name:
-          type: string
-        subject_name:
-          type: string
-        available:
-          type: boolean
-        title:
-          type:
-          - string
-          - 'null'
-        topics:
+        items:
           type: array
-          maxItems: 100
+          maxItems: 25
           items:
-            type: object
-            additionalProperties: false
-            required:
-            - library_topic_id
-            - name
-            - secure
-            - developing
-            - gap
-            - not_reached
-            properties:
-              library_topic_id:
-                type: integer
-                minimum: 1
-              name:
-                type: string
-              secure:
-                type: integer
-                minimum: 0
-              developing:
-                type: integer
-                minimum: 0
-              gap:
-                type: integer
-                minimum: 0
-              not_reached:
-                type: integer
-                minimum: 0
-        learners:
-          type: array
-          maxItems: 1000
-          description: By name, never ranked; no total per learner.
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - learner_id
-            - name
-            - status
-            - topics
-            properties:
-              learner_id:
-                type: integer
-                minimum: 1
-              name:
-                type: string
-              status:
-                $ref: '#/components/schemas/DiagnosticStatus'
-              topics:
-                type: array
-                maxItems: 100
-                items:
-                  type: object
-                  additionalProperties: false
-                  required:
-                  - library_topic_id
-                  - band
-                  properties:
-                    library_topic_id:
-                      type: integer
-                      minimum: 1
-                    band:
-                      $ref: '#/components/schemas/DiagnosticBand'
-    DiagnosticAttemptResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/DiagnosticAttempt'
-        code:
+            $ref: '#/components/schemas/PracticeMarkingItem'
+        page:
           type: integer
-    GetDiagnosticSummaryResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/DiagnosticSummary'
-        code:
+          minimum: 1
+        last_page:
           type: integer
-    GetDiagnosticGroupResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/DiagnosticGroup'
-        code:
+          minimum: 1
+        total:
           type: integer
+          minimum: 0
     GetPracticeAccessResponse:
       type: object
       additionalProperties: false
@@ -54694,7 +55377,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     GetPracticeDailySetResponse:
@@ -54711,7 +55396,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     ReviewPracticeEntryResponse:
@@ -54728,7 +55415,60 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeReview'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReview'
+          - $ref: '#/components/schemas/PracticeReviewV2'
+        code:
+          type: integer
+    UploadPracticeDiagramResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeDiagram'
+        code:
+          type: integer
+    GetPracticeMarkingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeMarkingQueue'
+        code:
+          type: integer
+    MarkPracticeAnswerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeMarkReceipt'
         code:
           type: integer
     LiveSessionRequest:
@@ -64423,7 +65163,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     GetFoundationPracticeResponse:
@@ -64440,7 +65182,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeDailySet'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeDailySet'
+          - $ref: '#/components/schemas/PracticeDailySetV2'
         code:
           type: integer
     ReviewFoundationPracticeResponse:
@@ -64457,7 +65201,9 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/PracticeReview'
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReview'
+          - $ref: '#/components/schemas/PracticeReviewV2'
         code:
           type: integer
     LeaveFoundationLearnerResponse:
@@ -70320,6 +71066,316 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/DiaryDeleted'
+        code:
+          type: integer
+    DiagnosticAnswerInput:
+      type: object
+      additionalProperties: false
+      required:
+      - answer
+      properties:
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 100
+    DiagnosticStatus:
+      type: string
+      enum:
+      - not_started
+      - in_progress
+      - completed
+    DiagnosticBand:
+      type: string
+      description: How a topic came out in the starting check, from its own answers only (staff only).
+      enum:
+      - secure
+      - developing
+      - gap
+      - not_reached
+    DiagnosticQuestion:
+      type: object
+      additionalProperties: false
+      description: What is needed to answer, never the accepted answers or the explanation.
+      required:
+      - id
+      - position
+      - kind
+      - prompt
+      - options
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        position:
+          type: integer
+          minimum: 1
+          maximum: 20
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        options:
+          type: array
+          maxItems: 6
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - text
+            properties:
+              id:
+                type: string
+                pattern: ^[a-z][a-z0-9_]{0,19}$
+              text:
+                type: string
+                minLength: 1
+                maxLength: 1000
+    DiagnosticAttempt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - group_id
+      - subject_name
+      - instructions
+      - status
+      - answered
+      - remaining
+      - question
+      - message
+      - focus_topics
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        instructions:
+          type: string
+          maxLength: 2000
+        status:
+          $ref: '#/components/schemas/DiagnosticStatus'
+        answered:
+          type: integer
+          minimum: 0
+          maximum: 20
+        remaining:
+          type: integer
+          minimum: 0
+          maximum: 20
+          description: Questions still waiting; fewer may be asked, as a topic stops once two answers agree.
+        question:
+          anyOf:
+          - $ref: '#/components/schemas/DiagnosticQuestion'
+          - type: 'null'
+        message:
+          type: string
+        focus_topics:
+          type: array
+          maxItems: 3
+          description: Names of up to three topics practice begins with, once finished. Never a score.
+          items:
+            type: string
+    DiagnosticSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - diagnostics
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        diagnostics:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - group_id
+            - subject_name
+            - status
+            - attempt_id
+            - can_start
+            - message
+            - focus_topics
+            properties:
+              group_id:
+                type: integer
+                minimum: 1
+              subject_name:
+                type: string
+              status:
+                $ref: '#/components/schemas/DiagnosticStatus'
+              attempt_id:
+                description: The learner's own attempt; always null for a guardian.
+                type:
+                - integer
+                - 'null'
+                minimum: 1
+              can_start:
+                type: boolean
+              message:
+                type: string
+              focus_topics:
+                type: array
+                maxItems: 3
+                items:
+                  type: string
+    DiagnosticGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - group_name
+      - subject_name
+      - available
+      - title
+      - topics
+      - learners
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        group_name:
+          type: string
+        subject_name:
+          type: string
+        available:
+          type: boolean
+        title:
+          type:
+          - string
+          - 'null'
+        topics:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - library_topic_id
+            - name
+            - secure
+            - developing
+            - gap
+            - not_reached
+            properties:
+              library_topic_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              secure:
+                type: integer
+                minimum: 0
+              developing:
+                type: integer
+                minimum: 0
+              gap:
+                type: integer
+                minimum: 0
+              not_reached:
+                type: integer
+                minimum: 0
+        learners:
+          type: array
+          maxItems: 1000
+          description: By name, never ranked; no total per learner.
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - name
+            - status
+            - topics
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              status:
+                $ref: '#/components/schemas/DiagnosticStatus'
+              topics:
+                type: array
+                maxItems: 100
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - library_topic_id
+                  - band
+                  properties:
+                    library_topic_id:
+                      type: integer
+                      minimum: 1
+                    band:
+                      $ref: '#/components/schemas/DiagnosticBand'
+    DiagnosticAttemptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiagnosticAttempt'
+        code:
+          type: integer
+    GetDiagnosticSummaryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiagnosticSummary'
+        code:
+          type: integer
+    GetDiagnosticGroupResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiagnosticGroup'
         code:
           type: integer
     StrengthsSectionKey:

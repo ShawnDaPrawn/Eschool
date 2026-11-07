@@ -13,6 +13,7 @@ use App\Models\Library\LibraryTopic;
 use App\Models\Library\LibraryTopicPrerequisite;
 use App\Services\Academics\MarkDefinitions;
 use App\Services\Growth\TopicGraph;
+use App\Services\Learning\PracticeAnswers;
 use Illuminate\Support\Collection;
 
 /**
@@ -75,11 +76,12 @@ class LibraryPractice
     /**
      * Published library practice questions for the group's topics, ordered
      * like the school's own: due first, weakest topic first, then earlier
-     * topics in the library's prerequisite graph.
+     * topics in the library's prerequisite graph. Only the question kinds
+     * the asking client can answer (Action Plan 3.11).
      *
      * @return list<LibraryItemVersion>
      */
-    public function candidates(int $learner, TeachingGroup $group, Collection $weakness, string $today): array
+    public function candidates(int $learner, TeachingGroup $group, Collection $weakness, string $today, array $kinds = PracticeAnswers::KINDS): array
     {
         if (! app(LibrarySchools::class)->enabled()) {
             return [];
@@ -99,7 +101,7 @@ class LibraryPractice
         foreach ($items as $item) {
             $version = $versions->get($item->published_version_id);
             $topic = $topics->get($item->library_topic_id);
-            if ($version === null || $topic === null || $version->estimated_seconds === null) {
+            if ($version === null || $topic === null || $version->estimated_seconds === null || ! in_array($version->practiceDefinition()['kind'] ?? null, $kinds, true)) {
                 continue;
             }
             $memory = $memories->get($item->id);

@@ -69,6 +69,7 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Leadership\MasteryImpactController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Learning\ExamMemoPanelController;
+use App\Http\Controllers\Panel\Learning\PracticeMarkingController;
 use App\Http\Controllers\Panel\Learning\QuestionBankController;
 use App\Http\Controllers\Panel\Learning\StartingCheckController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
@@ -445,6 +446,8 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::delete('/reviewers/{assignment}', [PlatformLibraryController::class, 'removeReviewer'])->whereNumber('assignment')->name('reviewers.destroy');
             Route::put('/schools/{school}', [PlatformLibraryController::class, 'switch'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.switch');
         });
+        // A labelling question's diagram picture (3.11), for library writers and reviewers alike.
+        Route::get('/diagrams/{diagram}', [PlatformLibraryController::class, 'diagram'])->middleware('platform.can:library.manage,library.review')->whereUuid('diagram')->name('diagrams.show');
         Route::middleware('platform.can:library.review')->group(function () {
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
@@ -702,6 +705,13 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('items/{item}', [$c, 'update'])->whereNumber('item')->middleware('throttle:60,1')->name('update');
             Route::post('items/{item}/use', [$c, 'use'])->whereNumber('item')->middleware('throttle:60,1')->name('use');
             Route::post('items/{item}/stop', [$c, 'stop'])->whereNumber('item')->middleware('throttle:60,1')->name('stop');
+            // Question types (Action Plan 3.11): write any type, see a diagram, and mark answers waiting for a teacher.
+            Route::get('write', [$c, 'write'])->name('write');
+            Route::post('write', [$c, 'create'])->middleware('throttle:30,1')->name('create');
+            Route::get('diagrams/{diagram}', [$c, 'diagram'])->whereUuid('diagram')->name('diagram');
+            Route::get('marking', [PracticeMarkingController::class, 'index'])->name('marking');
+            Route::get('marking/{group}/{review}/audio', [PracticeMarkingController::class, 'audio'])->whereNumber(['group', 'review'])->name('marking.audio');
+            Route::post('marking/{group}/{review}', [PracticeMarkingController::class, 'mark'])->whereNumber(['group', 'review'])->middleware('throttle:120,1')->name('marking.mark');
         });
         // Who has done the starting check, and the starting map per topic (Action Plan 3.7).
         Route::get('starting-checks', [StartingCheckController::class, 'index'])->middleware(['module:daily_practice', 'module:mastery', PrivateMastery::class])->name('starting-checks.index');
