@@ -68,7 +68,7 @@ return [
     ],
     'access' => [
         'label' => 'Access and admissions', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'ID cards and the gate, and online registration and admissions.',
-        'modules' => ['cards', 'intake'],
+        'description' => 'ID cards and the gate, emergency alerts, drills, visitors and reunification, and online registration and admissions.',
+        'modules' => ['cards', 'emergency', 'intake'],
     ],
 ];

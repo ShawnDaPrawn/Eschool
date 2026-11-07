@@ -58,6 +58,17 @@ class UrgentMessaging
     }
 
     /**
+     * The types a school ticks per channel. Types that go by every channel
+     * switched on (emergency alerts, Action Plan 5.8) are not a choice.
+     *
+     * @return list<string>
+     */
+    public function choosableTypes(?string $audience = null): array
+    {
+        return array_values(array_filter($this->eligibleTypes($audience), fn ($type) => $audience === self::STAFF || ($this->definition($type)['every_enabled_channel'] ?? false) !== true));
+    }
+
+    /**
      * The type's entry in config/urgent_messaging.php (types have dots in
      * their names, so never a dotted config() path).
      *
@@ -119,9 +130,12 @@ class UrgentMessaging
             default => $setting->staff_whatsapp_types,
         };
 
+        // Emergency alerts use every channel the school switched on (Action Plan 5.8).
+        $always = $audience === self::GUARDIAN && ($this->definition($type)['every_enabled_channel'] ?? false) === true;
+
         return $channel === DeliveryLog::SMS
-            ? $setting->sms_enabled && in_array($type, $types ?? [], true)
-            : $setting->whatsapp_enabled && $setting->whatsapp_consent_confirmed_at !== null && in_array($type, $types ?? [], true);
+            ? $setting->sms_enabled && ($always || in_array($type, $types ?? [], true))
+            : $setting->whatsapp_enabled && $setting->whatsapp_consent_confirmed_at !== null && ($always || in_array($type, $types ?? [], true));
     }
 
     /**
@@ -293,7 +307,7 @@ class UrgentMessaging
     {
         $school = Str::limit(trim((string) app(CurrentSchool::class)->school()?->name) ?: 'your school', 80, '');
         $definition = $this->definition($type);
-        $withText = ($definition['content'] ?? 'notice') === 'broadcast_text' && (int) $notice->send_to === 1;
+        $withText = (($definition['content'] ?? 'notice') === 'broadcast_text' && (int) $notice->send_to === 1) || ($definition['content'] ?? 'notice') === 'school_text';
         $text = Str::limit(trim(preg_replace('/\s+/', ' ', trim($title).'. '.trim($body)) ?? ''), 300);
 
         if ($channel === DeliveryLog::WHATSAPP) {
@@ -319,8 +333,8 @@ class UrgentMessaging
     public function change(User $actor, array $input): SchoolMessagingSetting
     {
         abort_unless(self::mayManage($actor), 403);
-        $guardian = $this->eligibleTypes(self::GUARDIAN);
-        $staff = $this->eligibleTypes(self::STAFF);
+        $guardian = $this->choosableTypes(self::GUARDIAN);
+        $staff = $this->choosableTypes(self::STAFF);
         $withTemplate = fn (array $types) => array_values(array_filter($types, fn ($type) => $this->whatsappAvailable($type)));
         $noTemplate = __('This notice cannot go by WhatsApp until NavigateEd has an approved template for it.');
         $data = validator($input, [
@@ -390,7 +404,10 @@ class UrgentMessaging
         $own = $this->ownChoices();
         $types = [];
         foreach ($this->eligibleTypes() as $type) {
-            $audiences = $this->audiences($type);
+            $audiences = array_values(array_filter($this->audiences($type), fn ($audience) => in_array($type, $this->choosableTypes($audience), true)));
+            if ($audiences === []) {
+                continue;
+            }
             $types[] = [
                 'type' => $type,
                 'label' => (string) (config('notification_types', [])[$type]['label'] ?? $type),

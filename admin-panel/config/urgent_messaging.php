@@ -24,6 +24,10 @@ declare(strict_types=1);
  *  - whatsapp_text_template (broadcast_text only, optional): the approved
  *    template with {{1}} = the school's name and {{2}} = the message; without
  *    it a whole-school notice also goes as the notice-only template.
+ *    "school_text" always sends the school's title and message: only for
+ *    types that are never about one child (emergency alerts).
+ *  - every_enabled_channel (optional): the type goes by each channel the
+ *    school has switched on, without being ticked for that channel.
  *
  *  - audiences: who may be texted it. "guardian" (the parent portal) is
  *    texted on the number the school office recorded on their parent record
@@ -51,6 +55,16 @@ return [
             'content' => 'notice',
             'whatsapp_notice_template' => env('TWILIO_WHATSAPP_TEMPLATE_NOTICE'),
             'audiences' => ['staff'],
+        ],
+        // Emergency alerts (Action Plan 5.8): never about one child, so the
+        // text always carries the school's words, and they go by every
+        // channel the school has switched on, without a per-type choice.
+        'safety.critical' => [
+            'audiences' => ['guardian', 'staff'],
+            'content' => 'school_text',
+            'every_enabled_channel' => true,
+            'whatsapp_notice_template' => env('TWILIO_WHATSAPP_TEMPLATE_NOTICE'),
+            'whatsapp_text_template' => env('TWILIO_WHATSAPP_TEMPLATE_URGENT_NOTICE'),
         ],
     ],
 

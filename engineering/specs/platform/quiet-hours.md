@@ -10,7 +10,7 @@ A parent does not want a homework notice buzzing at 23:00. Each person can set q
 - **Push only.** In-app notices still appear and emails are still sent. Only push messages wait.
 - **Held, not dropped.** When a push job for a person in quiet hours runs, it queues a fresh job for the same delivery, delayed until the hours end, and sends nothing. The delivery stays `queued`, so waiting never uses up a retry. When the held job runs, the usual delivery checks run again: access, choices and device. A log line `notification_held_for_quiet_hours` records the delivery key, user id and release time.
 - **Only on a real queue.** On the `sync` queue connection a delayed job would run at once, so pushes are sent as before, never held (and never lost). Production uses a real queue.
-- **Never held.** Types marked `quiet_hours_exempt` in `config/notification_types.php`: safeguarding alerts, urgent school notices, absence alerts and new sign-in alerts. Legacy push names (for example `attendance`) count as their registered type.
+- **Never held.** Types marked `quiet_hours_exempt` in `config/notification_types.php`: safeguarding alerts, urgent school notices, emergency alerts (`safety.critical`, Action Plan 5.8), absence alerts and new sign-in alerts. Legacy push names (for example `attendance`) count as their registered type.
 - **Payload hints for the apps.**
   - Every push's data carries `channel`, the type's area (`comms`, `academics`, `attendance` and so on), for Android notification channels.
   - iOS pushes carry `apns.payload.aps.interruption-level`: `time-sensitive` for the exempt types, otherwise `active`.

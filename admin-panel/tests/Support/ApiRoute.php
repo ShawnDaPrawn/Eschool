@@ -139,6 +139,10 @@ final readonly class ApiRoute
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
 
+        if (str_starts_with($this->uri, 'api/v2/emergency/') && $name === 'alert') {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         if (str_starts_with($this->uri, 'api/v2/family-visits/') && in_array($name, ['slot', 'pass'], true) || str_starts_with($this->uri, 'api/v2/card-device/') && $name === 'pass') {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
