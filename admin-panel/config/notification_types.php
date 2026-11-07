@@ -74,4 +74,6 @@ return [
     'growth.unseen_adult_assigned' => ['label' => 'Learner to check in with', 'module' => 'early_warning', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     // School offboarding (SA.11): the leaving school's Super Admins, who must collect the export.
     'school.offboarding_export' => ['label' => 'School data export ready', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
+    // Inter-school fixtures (Action Plan 5.2): guardians of learners on the team sheet; says only that a result is ready.
+    'fixtures.result_confirmed' => ['label' => 'Match results', 'module' => 'groups', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
 ];

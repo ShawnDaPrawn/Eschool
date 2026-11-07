@@ -8588,6 +8588,594 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ActivityAttendanceWrite'
+  /activities/fixtures:
+    get:
+      operationId: listFixtures
+      tags:
+      - Activities
+      summary: List the fixtures this school takes part in
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: List the fixtures this school takes part in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createFixture
+      tags:
+      - Activities
+      summary: Arrange a fixture with another school or an opponent outside NavigateEd
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Arrange a fixture with another school or an opponent outside NavigateEd.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureCreate'
+  /activities/fixture-schools:
+    get:
+      operationId: searchFixtureSchools
+      tags:
+      - Activities
+      summary: Find schools to invite by name
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: search
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 3
+          maxLength: 100
+      responses:
+        '200':
+          description: Find schools to invite by name.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureSchoolListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/learners/{learner}/fixtures:
+    get:
+      operationId: listLearnerFixtures
+      tags:
+      - Activities
+      summary: Fixtures a learner is on the team sheet for, as their family sees them
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fixtures a learner is on the team sheet for, as their family sees them.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureLearnerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/fixtures/{fixture}:
+    get:
+      operationId: readFixture
+      tags:
+      - Activities
+      summary: Read this school's view of a fixture
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read this school's view of a fixture.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: scheduleFixture
+      tags:
+      - Activities
+      summary: Change the date, venue or status (host school)
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Change the date, venue or status (host school).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureSchedule'
+  /activities/fixtures/{fixture}/decision:
+    post:
+      operationId: decideFixture
+      tags:
+      - Activities
+      summary: Accept or decline a fixture invitation
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Accept or decline a fixture invitation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureDecision'
+  /activities/fixtures/{fixture}/side:
+    put:
+      operationId: saveFixtureSide
+      tags:
+      - Activities
+      summary: Save this school's own side and team sheet
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Save this school's own side and team sheet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureSideWrite'
+  /activities/fixtures/{fixture}/result:
+    post:
+      operationId: reportFixtureResult
+      tags:
+      - Activities
+      summary: Report the score; it is confirmed when both schools agree
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Report the score; it is confirmed when both schools agree.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureResultWrite'
+  /activities/competitions:
+    get:
+      operationId: listCompetitions
+      tags:
+      - Activities
+      summary: List the competitions this school takes part in
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: List the competitions this school takes part in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createCompetition
+      tags:
+      - Activities
+      summary: Start a competition or league
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Start a competition or league.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionCreate'
+  /activities/competitions/{competition}:
+    get:
+      operationId: readCompetition
+      tags:
+      - Activities
+      summary: Read a competition and, once accepted, its members and standings
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read a competition and, once accepted, its members and standings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/competitions/{competition}/invitations:
+    post:
+      operationId: inviteCompetitionSchool
+      tags:
+      - Activities
+      summary: Invite a school to the competition (organiser)
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Invite a school to the competition (organiser).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionInvite'
+  /activities/competitions/{competition}/decision:
+    post:
+      operationId: decideCompetition
+      tags:
+      - Activities
+      summary: Accept or decline a competition invitation
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Accept or decline a competition invitation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionDecision'
   /growth/mastery/configuration:
     get:
       operationId: getMasteryConfiguration
@@ -45173,6 +45761,970 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/ActivityMaterial'
+    FixtureScores:
+      type: object
+      additionalProperties: false
+      required:
+      - host_score
+      - guest_score
+      properties:
+        host_score:
+          type: integer
+        guest_score:
+          type: integer
+    FixtureTeam:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - external
+      - state
+      properties:
+        name:
+          type: string
+        external:
+          type: boolean
+        state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+          - external
+          - ''
+        team_label:
+          type:
+          - string
+          - 'null'
+    FixtureResultState:
+      type: object
+      additionalProperties: false
+      required:
+      - state
+      - host_score
+      - guest_score
+      properties:
+        state:
+          type: string
+          enum:
+          - none
+          - awaiting
+          - disputed
+          - confirmed
+        host_score:
+          type:
+          - integer
+          - 'null'
+        guest_score:
+          type:
+          - integer
+          - 'null'
+        my_report:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/FixtureScores'
+        their_report:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/FixtureScores'
+        waiting_for:
+          type:
+          - string
+          - 'null'
+          enum:
+          - us
+          - them
+          - null
+    FixtureSheetEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - sheet_label
+      - position
+      properties:
+        sheet_label:
+          type: string
+        position:
+          type:
+          - string
+          - 'null'
+    FixtureSide:
+      type: object
+      additionalProperties: false
+      required:
+      - activity_group_id
+      - group_name
+      - team_label
+      - sheet_shared
+      - notes
+      - revision
+      - selections
+      properties:
+        activity_group_id:
+          type: integer
+        group_name:
+          type: string
+        team_label:
+          type: string
+        sheet_shared:
+          type: boolean
+        notes:
+          type:
+          - string
+          - 'null'
+        revision:
+          type: integer
+        selections:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - learner_name
+            - sheet_label
+            - position
+            properties:
+              learner_id:
+                type: integer
+              learner_name:
+                type: string
+              sheet_label:
+                type: string
+              position:
+                type:
+                - string
+                - 'null'
+    FixtureSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - competition
+      - discipline
+      - on_date
+      - starts_at
+      - venue
+      - field
+      - host_is_home
+      - status
+      - revision
+      - my_role
+      - my_state
+      - open
+      - host
+      - guest
+      - result
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        competition:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        discipline:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        field:
+          type:
+          - string
+          - 'null'
+        host_is_home:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+        revision:
+          type: integer
+        my_role:
+          type: string
+          enum:
+          - host
+          - guest
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+        open:
+          type: boolean
+        host:
+          $ref: '#/components/schemas/FixtureTeam'
+        guest:
+          $ref: '#/components/schemas/FixtureTeam'
+        result:
+          $ref: '#/components/schemas/FixtureResultState'
+    Fixture:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - competition
+      - discipline
+      - on_date
+      - starts_at
+      - venue
+      - field
+      - host_is_home
+      - status
+      - revision
+      - my_role
+      - my_state
+      - open
+      - host
+      - guest
+      - result
+      - side
+      - their_sheet
+      - can_decide
+      - can_schedule
+      - can_report
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        competition:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        discipline:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        field:
+          type:
+          - string
+          - 'null'
+        host_is_home:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+        revision:
+          type: integer
+        my_role:
+          type: string
+          enum:
+          - host
+          - guest
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+        open:
+          type: boolean
+        host:
+          $ref: '#/components/schemas/FixtureTeam'
+        guest:
+          $ref: '#/components/schemas/FixtureTeam'
+        result:
+          $ref: '#/components/schemas/FixtureResultState'
+        side:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/FixtureSide'
+        their_sheet:
+          oneOf:
+          - type: 'null'
+          - type: array
+            items:
+              $ref: '#/components/schemas/FixtureSheetEntry'
+        can_decide:
+          type: boolean
+        can_schedule:
+          type: boolean
+        can_report:
+          type: boolean
+    FixtureList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FixtureSummary'
+        page:
+          type: integer
+        last_page:
+          type: integer
+        total:
+          type: integer
+    FixtureListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/FixtureList'
+    FixtureResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/Fixture'
+    FixtureSchoolList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+    FixtureSchoolListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/FixtureSchoolList'
+    LearnerFixture:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - discipline
+      - on_date
+      - starts_at
+      - venue
+      - field
+      - status
+      - competition
+      - team_label
+      - opponent
+      - home
+      - result
+      properties:
+        id:
+          type: integer
+        discipline:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        field:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+        competition:
+          type:
+          - string
+          - 'null'
+        team_label:
+          type: string
+        opponent:
+          type: string
+        home:
+          type: boolean
+        result:
+          type: object
+          additionalProperties: false
+          required:
+          - state
+          - our_score
+          - their_score
+          properties:
+            state:
+              type: string
+              enum:
+              - confirmed
+              - pending
+            our_score:
+              type:
+              - integer
+              - 'null'
+            their_score:
+              type:
+              - integer
+              - 'null'
+    FixtureLearnerList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerFixture'
+    FixtureLearnerListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/FixtureLearnerList'
+    CompetitionSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - name
+      - discipline
+      - season
+      - points_win
+      - points_draw
+      - points_loss
+      - organiser
+      - my_role
+      - my_state
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        name:
+          type: string
+        discipline:
+          type: string
+        season:
+          type: string
+        points_win:
+          type: integer
+        points_draw:
+          type: integer
+        points_loss:
+          type: integer
+        organiser:
+          type: string
+        my_role:
+          type: string
+          enum:
+          - organiser
+          - member
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+    Competition:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - name
+      - discipline
+      - season
+      - points_win
+      - points_draw
+      - points_loss
+      - organiser
+      - my_role
+      - my_state
+      - members
+      - standings
+      - can_invite
+      - can_decide
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        name:
+          type: string
+        discipline:
+          type: string
+        season:
+          type: string
+        points_win:
+          type: integer
+        points_draw:
+          type: integer
+        points_loss:
+          type: integer
+        organiser:
+          type: string
+        my_role:
+          type: string
+          enum:
+          - organiser
+          - member
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+        members:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - name
+            - role
+            - state
+            properties:
+              name:
+                type: string
+              role:
+                type: string
+              state:
+                type: string
+        standings:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - team
+            - played
+            - won
+            - drawn
+            - lost
+            - scored
+            - conceded
+            - difference
+            - points
+            properties:
+              team:
+                type: string
+              played:
+                type: integer
+              won:
+                type: integer
+              drawn:
+                type: integer
+              lost:
+                type: integer
+              scored:
+                type: integer
+              conceded:
+                type: integer
+              difference:
+                type: integer
+              points:
+                type: integer
+        can_invite:
+          type: boolean
+        can_decide:
+          type: boolean
+    CompetitionList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompetitionSummary'
+    CompetitionListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CompetitionList'
+    CompetitionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/Competition'
+    FixtureCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - activity_group_id
+      - team_label
+      - discipline
+      - on_date
+      - venue
+      - host_is_home
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        team_label:
+          type: string
+          maxLength: 100
+        discipline:
+          type: string
+          minLength: 2
+          maxLength: 100
+        shared_competition_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        guest_school_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        external_opponent:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+          minLength: 2
+          maxLength: 191
+        field:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        host_is_home:
+          type: boolean
+    FixtureSchedule:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - on_date
+      - venue
+      - host_is_home
+      - status
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+          minLength: 2
+          maxLength: 191
+        field:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        host_is_home:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+    FixtureDecision:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - decision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        decision:
+          type: string
+          enum:
+          - accept
+          - decline
+        activity_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        team_label:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+    FixtureSideWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - team_label
+      - sheet_shared
+      - selections
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        activity_group_id:
+          type: integer
+          minimum: 1
+        team_label:
+          type: string
+          maxLength: 100
+        sheet_shared:
+          type: boolean
+        notes:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        selections:
+          type: array
+          maxItems: 60
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              sheet_label:
+                type:
+                - string
+                - 'null'
+                maxLength: 60
+              position:
+                type:
+                - string
+                - 'null'
+                maxLength: 40
+    FixtureResultWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - host_score
+      - guest_score
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        host_score:
+          type: integer
+          minimum: 0
+          maximum: 999
+        guest_score:
+          type: integer
+          minimum: 0
+          maximum: 999
+    CompetitionCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - name
+      - kind
+      - discipline
+      - season
+      - points_win
+      - points_draw
+      - points_loss
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 2
+          maxLength: 191
+        kind:
+          type: string
+          enum:
+          - sport
+        discipline:
+          type: string
+          minLength: 2
+          maxLength: 100
+        season:
+          type: string
+          maxLength: 100
+        points_win:
+          type: integer
+          minimum: 0
+          maximum: 10
+        points_draw:
+          type: integer
+          minimum: 0
+          maximum: 10
+        points_loss:
+          type: integer
+          minimum: 0
+          maximum: 10
+    CompetitionInvite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - school_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        school_id:
+          type: integer
+          minimum: 1
+    CompetitionDecision:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - decision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        decision:
+          type: string
+          enum:
+          - accept
+          - decline
     ActivityGroupListResponse:
       type: object
       additionalProperties: false
