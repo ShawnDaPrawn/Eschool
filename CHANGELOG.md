@@ -7,6 +7,7 @@
 
 ## 2026-11-03
 
+- When an admin panel browser CI part fails, CI now prints the PHP OPcache/JIT settings and the kernel's note on any PHP process it killed, so a panel server that stops without a PHP error can be diagnosed.
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
 - Refresh the strict HQ route inventory while retaining every route authorization assertion.
 - Apply question-bank scope foreign keys after backfill and required-column conversion, preserving the final constraints on MySQL 8 and MariaDB.
