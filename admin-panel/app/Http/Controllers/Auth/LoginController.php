@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Providers\RouteServiceProvider;
+use App\Services\Platform\Groups\SchoolGroupAccess;
 use App\Services\Platform\Saas\PlatformStaffAccess;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
@@ -70,6 +71,12 @@ class LoginController extends Controller
         // An operator who holds both platform keys needs no school role: they
         // belong to no school and go to the platform area (/saas).
         $operator = $user->roles->isEmpty() && app(PlatformStaffAccess::class)->operatesPlatform($user);
+        // A school group's administrator may hold no school role at all: they
+        // see only the group's dashboard, never a school (Action Plan 5.7).
+        if ($user->roles->isEmpty() && ! $operator && app(SchoolGroupAccess::class)->groups($user) !== []
+            && ! RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
+            return redirect()->route('group.index');
+        }
         if ($user->roles->isEmpty() && ! $operator) {
             return $this->refuseLogin($request, 'no_permission_message');
         }
