@@ -12,6 +12,7 @@ use App\Models\Platform\MessagingNumber;
 use App\Models\Platform\SchoolMessagingSetting;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Saas\MessagingCharges;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -341,9 +342,16 @@ class UrgentMessaging
         ])->validate();
 
         return DB::transaction(function () use ($actor, $data) {
-            $setting = SchoolMessagingSetting::query()->where('school_id', app(CurrentSchool::class)->id())->lockForUpdate()->first();
+            $schoolId = app(CurrentSchool::class)->id();
+            // Match invoice issuance's school-before-settings/invoice lock order.
+            DB::table('schools')->where('id', $schoolId)->lockForUpdate()->first(['id']);
+            $setting = SchoolMessagingSetting::query()->where('school_id', $schoolId)->lockForUpdate()->first();
             if ((int) $data['revision'] !== (int) ($setting?->revision ?? 0)) {
                 throw ValidationException::withMessages(['revision' => __('Someone else changed these settings. Reload the page and try again.')]);
+            }
+            $enabling = array_values(array_filter(['sms_enabled', 'whatsapp_enabled'], fn (string $channel): bool => (bool) $data[$channel] && ! (bool) $setting?->getAttribute($channel)));
+            if ($enabling !== [] && ($problem = app(MessagingCharges::class)->activationProblem($schoolId)) !== null) {
+                throw ValidationException::withMessages(array_fill_keys($enabling, $problem));
             }
             $whatsapp = (bool) $data['whatsapp_enabled'];
             $confirmed = $setting?->whatsapp_consent_confirmed_at;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Saas;
 
+use App\Models\Platform\PlatformInvoice;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Notifications\DeliveryLog;
 use Carbon\CarbonImmutable;
@@ -30,6 +31,22 @@ class MessagingCharges
 {
     /** Rates are read to millionths. */
     private const RATE_SCALE = 1000000;
+
+    /**
+     * A school that never texted may already have an early-issued invoice.
+     * Its usage month cannot receive new costs after the invoice was sealed.
+     * Called while holding the school's account lock, also used by issuance.
+     */
+    public function activationProblem(int $schoolId): ?string
+    {
+        $sealed = DB::table('platform_invoices')->where('school_id', $schoolId)
+            ->where('kind', PlatformInvoice::INVOICE)
+            ->whereNotIn('status', [PlatformInvoice::DRAFT, PlatformInvoice::DISCARDED])
+            ->where('period_start', '>', CarbonImmutable::now(PlatformBilling::TIMEZONE)->startOfMonth()->toDateString())
+            ->orderByDesc('period_start')->lockForUpdate()->first(['period_start']);
+
+        return $sealed === null ? null : __('Texting can be switched on from :date because an invoice covering its usage month has already been issued.', ['date' => $sealed->period_start]);
+    }
 
     /**
      * @return array{lines: list<array<string, mixed>>, blocked: string|null}

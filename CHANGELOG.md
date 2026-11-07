@@ -2,6 +2,7 @@
 
 ## 2026-11-07
 
+- Prevent SMS or WhatsApp activation during a usage month whose invoice was already issued early; show when it can be enabled and retain the sealed invoice unchanged.
 - Refuse OneRoster exports containing formula-like spreadsheet values instead of changing names or identifiers; show the requester how to correct the source data and remove partial temporary archives.
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.

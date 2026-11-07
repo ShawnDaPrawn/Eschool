@@ -12,6 +12,7 @@ use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\SchoolMessagingSetting;
 use App\Models\User;
 use App\Services\Platform\Notifications\DeliveryLog;
+use App\Services\Platform\Notifications\UrgentMessaging;
 use App\Services\Platform\Saas\MessagingCharges;
 use App\Services\Platform\Saas\PlatformBilling;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -188,6 +189,65 @@ class MessagingInvoiceLineTest extends TestCase
         $this->assertSame(444, array_sum(array_column($this->textLines(1, '2026-12'), 'amount_cents')));
         app(PlatformBilling::class)->issue(1, $december->id, $finance);
         $this->assertTrue($this->invoice(1, '2026-12')->isIssued());
+    }
+
+    public function test_first_texting_activation_waits_until_an_already_issued_usage_month_has_closed(): void
+    {
+        $finance = $this->finance();
+        DB::table('platform_prices')->insert(['package_id' => DB::table('platform_packages')->where('package_key', 'legacy')->value('id'), 'kind' => 'base',
+            'product_module' => null, 'amount_cents' => 5000, 'effective_from' => '2026-01-01', 'created_at' => now(), 'updated_at' => now()]);
+        app(PlatformBilling::class)->run(['period' => '2026-12'], $finance);
+        $invoice = $this->invoice(1, '2026-12');
+        app(PlatformBilling::class)->issue(1, $invoice->id, $finance);
+        $sealed = $invoice->fresh()->getAttributes();
+
+        app(CurrentSchool::class)->run(1, function (): void {
+            foreach ([0, 1] as $revision) {
+                foreach (['sms_enabled', 'whatsapp_enabled'] as $channel) {
+                    try {
+                        app(UrgentMessaging::class)->change($this->superAdmin(), [
+                            'revision' => $revision, 'sms_enabled' => $channel === 'sms_enabled', 'sms_types' => ['comms.urgent'],
+                            'whatsapp_enabled' => $channel === 'whatsapp_enabled', 'whatsapp_types' => [], 'whatsapp_consent' => true,
+                        ]);
+                        $this->fail('Texting was enabled after its usage month had already been invoiced.');
+                    } catch (ValidationException $e) {
+                        $this->assertArrayHasKey($channel, $e->errors());
+                        $this->assertStringContainsString('2026-12-01', $e->errors()[$channel][0]);
+                    }
+                }
+                if ($revision === 0) {
+                    $this->assertFalse(SchoolMessagingSetting::query()->exists());
+                    // Saving both switches off is safe, and cannot bypass the guard on a later request.
+                    app(UrgentMessaging::class)->change($this->superAdmin(), [
+                        'revision' => 0, 'sms_enabled' => false, 'sms_types' => [],
+                        'whatsapp_enabled' => false, 'whatsapp_types' => [],
+                    ]);
+                }
+            }
+            $this->assertFalse(SchoolMessagingSetting::query()->sole()->sms_enabled);
+            $this->assertFalse(SchoolMessagingSetting::query()->sole()->whatsapp_enabled);
+        });
+
+        // School A's sealed invoice cannot prevent another school's activation.
+        app(CurrentSchool::class)->run(2, function (): void {
+            $office = User::query()->create(['first_name' => 'School B', 'last_name' => 'Office', 'email' => 'office@billing-school-b.example', 'mobile' => '', 'password' => 'Synthetic-billing-office-731!', 'status' => 1]);
+            $office->assignRole('Super Admin');
+            $setting = app(UrgentMessaging::class)->change($office, [
+                'revision' => 0, 'sms_enabled' => true, 'sms_types' => ['comms.urgent'],
+                'whatsapp_enabled' => false, 'whatsapp_types' => [],
+            ]);
+            $this->assertTrue($setting->sms_enabled);
+        });
+
+        $this->travelTo(CarbonImmutable::parse('2026-12-01 00:00', 'Africa/Johannesburg'));
+        app(CurrentSchool::class)->run(1, function (): void {
+            $setting = app(UrgentMessaging::class)->change($this->superAdmin(), [
+                'revision' => 1, 'sms_enabled' => true, 'sms_types' => ['comms.urgent'],
+                'whatsapp_enabled' => false, 'whatsapp_types' => [],
+            ]);
+            $this->assertTrue($setting->sms_enabled);
+        });
+        $this->assertSame($sealed, $invoice->fresh()->getAttributes());
     }
 
     public function test_rates_are_read_without_floating_point_and_a_bad_rate_is_refused(): void
