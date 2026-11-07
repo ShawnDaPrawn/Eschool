@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V2\Learning;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Learning\PracticeRequest;
 use App\Services\Learning\DailyPractice;
+use App\Services\Learning\Motivation\PracticeMotivation;
 use App\Services\Learning\PracticeBank;
 use App\Services\Learning\PracticeChoices;
 use App\Services\ResponseService;
@@ -57,5 +58,15 @@ class PracticeController extends Controller
     public function review(PracticeRequest $r, int $learner, int $set, int $entry): JsonResponse
     {
         return $this->result(fn () => app(DailyPractice::class)->review($r->user(), $learner, $set, $entry, $r->all()));
+    }
+
+    public function motivation(PracticeRequest $r, int $learner): JsonResponse
+    {
+        return $this->result(fn () => app(PracticeMotivation::class)->summary($r->user(), $learner));
+    }
+
+    public function goal(PracticeRequest $r, int $learner): JsonResponse
+    {
+        return $this->result(fn () => app(PracticeMotivation::class)->setGoal($r->user(), $learner, $r->all()));
     }
 }

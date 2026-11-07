@@ -100,7 +100,8 @@ class DailyPracticeTest extends TestCase
         $this->refuses(fn () => $this->review($set, ['operation_id' => (string) Str::uuid()]), 409);
     }
 
-    public function test_streak_counts_distinct_calendar_days_across_many_subject_sets(): void
+    /** Action Plan 3.13: a run counts practice days; only a second missed school day in a week ends it. */
+    public function test_streak_counts_distinct_practice_days_across_many_subject_sets(): void
     {
         $this->approve();
         $set = $this->issue();
@@ -131,8 +132,12 @@ class DailyPracticeTest extends TestCase
         $this->assertSame(1000, PracticeDailySet::count());
         $view = app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id']);
         $this->assertSame(100, $view['streak_days']);
+        // 2026-01-01 (Thursday) is the term's first school day: one missed school day is a rest day.
         PracticeDailySet::whereDate('completed_on', now()->subDays(40)->toDateString())->update(['completed_on' => null, 'completed_at' => null]);
-        $this->assertSame(40, app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id'])['streak_days']);
+        $this->assertSame(99, app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id'])['streak_days']);
+        // A second missed school day in the same week (Friday 2 January) ends the run.
+        PracticeDailySet::whereDate('completed_on', now()->subDays(39)->toDateString())->update(['completed_on' => null, 'completed_at' => null]);
+        $this->assertSame(39, app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id'])['streak_days']);
     }
 
     public function test_withdrawn_guardian_approval_and_source_hide_downloads_and_replays(): void

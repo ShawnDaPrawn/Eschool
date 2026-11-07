@@ -13,12 +13,15 @@ use App\Models\Learning\PracticeMemory;
 use App\Models\Learning\PracticeReview;
 use App\Models\Learning\PracticeSetEntry;
 use App\Models\Library\LibraryItemVersion;
+use App\Models\Students;
 use App\Models\User;
 use App\Policies\Academics\ContentPolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Growth\MasteryRecompute;
 use App\Services\Growth\TopicGraph;
 use App\Services\Learning\Library\LibraryPractice;
+use App\Services\Learning\Motivation\PracticeGoals;
+use App\Services\Learning\Motivation\PracticeStreaks;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -186,6 +189,8 @@ class DailyPractice
             app(MasteryRecompute::class)->practice($review, $group, $this->topicOf($entry));
             if (PracticeReview::whereIn('practice_set_entry_id', $entries->pluck('id'))->count() === $entries->count()) {
                 $set->update(['completed_at' => now()->utc(), 'completed_on' => $today]);
+                // A gentle once-a-week celebration when this completes the learner's own weekly goal (3.13).
+                app(PracticeGoals::class)->celebrate(Students::findOrFail($learner));
             }
 
             return $this->reviewData($review) + ['streak_days' => $this->streak($learner)];
@@ -214,23 +219,9 @@ class DailyPractice
             'schedule' => $review->schedule, 'reviewed_on' => $review->reviewed_on->toDateString()];
     }
 
+    /** Practice days in the learner's current run, counted kindly (Action Plan 3.13, PracticeStreaks). */
     private function streak(int $learner): int
     {
-        $day = CarbonImmutable::parse(app(AcademicAuthority::class)->today());
-        // Bound calendar dates before distinct, rather than truncating multi-subject rows.
-        $days = PracticeDailySet::where('learner_id', $learner)->whereNotNull('completed_at')
-            ->whereBetween('completed_on', [$day->subDays(365)->toDateString(), $day->toDateString()])
-            ->distinct()->orderByDesc('completed_on')->pluck('completed_on')
-            ->map(fn ($date) => $date->toDateString())->all();
-        if (! in_array($day->toDateString(), $days, true)) {
-            $day = $day->subDay();
-        }
-        $count = 0;
-        while ($count < 365 && in_array($day->toDateString(), $days, true)) {
-            $count++;
-            $day = $day->subDay();
-        }
-
-        return $count;
+        return app(PracticeStreaks::class)->current($learner);
     }
 }

@@ -754,6 +754,9 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
     Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
     Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
+    // Action Plan 3.13: the learner's own streak, weekly goal and recently secure topics.
+    Route::get('learners/{learner}/motivation', [$c, 'motivation'])->whereNumber('learner')->name('motivation');
+    Route::post('learners/{learner}/practice-goal', [$c, 'goal'])->whereNumber('learner')->name('goal');
 });
 
 // The starting check (Action Plan 3.7): library diagnostics marked on the server, written as mastery evidence.

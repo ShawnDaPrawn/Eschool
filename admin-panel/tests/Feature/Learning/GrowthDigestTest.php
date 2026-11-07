@@ -330,7 +330,7 @@ class GrowthDigestTest extends TestCase
         $this->assertSame($first->id, app(PersistenceBadges::class)->configure($this->superAdmin(), $data)->id);
         $this->assertSame(1, $first->fresh()->revision);
         $this->refuses(fn () => app(PersistenceBadges::class)->configure($this->superAdmin(), $this->operation(['revision' => 0] + $data)), 409);
-        $this->assertSame(['practice_days_enabled' => true, 'practice_days_required' => 4, 'comeback_enabled' => false, 'comeback_below_percent' => 50, 'revision' => 1], app(PersistenceBadges::class)->current());
+        $this->assertSame(['practice_days_enabled' => true, 'practice_days_required' => 4, 'comeback_enabled' => false, 'comeback_below_percent' => 50, 'streak_enabled' => false, 'revision' => 1], app(PersistenceBadges::class)->current());
     }
 
     public function test_panel_manager_saves_badges_and_teacher_or_other_school_cannot(): void
