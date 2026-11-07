@@ -64,6 +64,9 @@
     </table>
     </div>
     <p>{{ __('Rounding: each line\'s VAT is rounded to the cent (half a cent up) on the line, and the totals add up the lines.') }}</p>
+    @if (collect($lines)->contains('kind', 'messaging'))
+        <p>{{ __('SMS and WhatsApp lines pass on, at cost, what Twilio charged for the messages the school sent in the month before this invoice. A price in another currency is converted at the rate shown on the line.') }}</p>
+    @endif
     @if (! $isCredit && $invoice['status'] === 'issued')
         <p>{{ __('Pay by EFT using the reference :reference.', ['reference' => $invoice['reference']]) }}@if (($seller['bank'] ?? '') !== '') {{ $seller['bank'] }}@endif</p>
         <p>{{ $invoice['outstanding_cents'] === 0 ? __('Paid in full.') : __('Unpaid: :amount', ['amount' => $rands($invoice['outstanding_cents'])]) }}</p>
