@@ -7287,5 +7287,8 @@
     "This answer has already been marked.": "Hierdie antwoord is reeds nagesien.",
     "Question approved. Its learners get it in daily practice once its material and topic are published to the group.": "Vraag goedgekeur. Leerders kry dit in daaglikse oefening sodra die materiaal en onderwerp aan die groep gepubliseer is.",
     "Marked. The learner sees the result the next time their practice loads.": "Nagesien. Die leerder sien die uitslag die volgende keer wat hul oefening laai.",
-    "Spoken answer of up to :seconds seconds, marked by the learner's teacher.": "Gesproke antwoord van tot :seconds sekondes, deur die leerder se onderwyser nagesien."
+    "Spoken answer of up to :seconds seconds, marked by the learner's teacher.": "Gesproke antwoord van tot :seconds sekondes, deur die leerder se onderwyser nagesien.",
+    "The tutor remembers which topics were practised in the last :days days, not what was said. It can be cleared at any time.": "Die tutor onthou watter onderwerpe in die afgelope :days dae geoefen is, nie wat gesê is nie. Dit kan enige tyd uitgevee word.",
+    "This tutor version offers only ordinary questions in English.": "Hierdie weergawe van die tutor bied slegs gewone vrae in Engels.",
+    "This clear request was already used for something else.": "Hierdie versoek om uit te vee is reeds vir iets anders gebruik."
 }

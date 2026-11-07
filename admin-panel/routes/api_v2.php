@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Learning\StrengthsMirrorController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
+use App\Http\Controllers\Api\V2\Learning\TutorMemoryController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
@@ -901,6 +902,15 @@ Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum'
     Route::get('sessions/{session}/photos/{photo}', [$c, 'preview'])->whereUuid('session')->whereUuid('photo')->name('preview');
     Route::post('sessions/{session}/photos/{photo}/revoke', [$c, 'revoke'])->whereUuid('session')->whereUuid('photo')->name('revoke');
     Route::get('parent/learners/{learner}/subjects/{subject}/summary', [$c, 'summary'])->whereNumber('learner')->whereNumber('subject')->name('summary');
+});
+// The tutor's memory of a learner (Action Plan 3.10): the learner and their guardians
+// can see and clear it even while the school has the tutor switched off.
+Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->name('api.v2.tutor.memory.')->group(function () {
+    $c = TutorMemoryController::class;
+    Route::get('memory', [$c, 'own'])->name('own');
+    Route::post('memory/clear', [$c, 'clearOwn'])->middleware('throttle:20,1')->name('clear');
+    Route::get('parent/learners/{learner}/memory', [$c, 'guardian'])->whereNumber('learner')->name('guardian');
+    Route::post('parent/learners/{learner}/memory/clear', [$c, 'clearGuardian'])->whereNumber('learner')->middleware('throttle:20,1')->name('guardian.clear');
 });
 
 // Private health categories and exact, authenticated activity/trip consent.

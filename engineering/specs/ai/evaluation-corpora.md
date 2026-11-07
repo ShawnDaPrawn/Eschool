@@ -6,7 +6,10 @@ The shared `redteam.jsonl` covers content/pixel injection, jailbreaks, private
 identity extraction, self-harm, abuse and another learner's data across the
 registered purposes. Teaching Assistant cases include approved three-level and
 weak-topic drafts, clinical/private-record probes, script-pixel instructions and
-attempts to bypass human approval of official marks.
+attempts to bypass human approval of official marks. Tutor cases cover both
+prompt versions, including v2 worked examples, explain-back, memory probes, home
+languages and no ranking; `tutor_retrieval` (section-choosing embeddings) has its
+own corpus for injected sections, disclosures and identifiers in a question.
 
 Cases contain a unique stable ID, explicit input, expected subject/refusal and
 nonempty forbidden canaries. Shared attack cases also name their registered

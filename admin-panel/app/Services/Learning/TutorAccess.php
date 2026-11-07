@@ -20,23 +20,26 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 
 class TutorAccess
 {
-    public function actor(User $actor, bool $write = false): User
+    /** $module false is only for the learner's and guardians' own memory controls, which stay open while the tutor is off. */
+    public function actor(User $actor, bool $write = false, bool $module = true): User
     {
         $school = app(CurrentSchool::class);
         abort_unless($school->isSet() && ! $school->isAcrossSchools() && ! $school->isImpersonating() && $school->school()?->isActive(), 403);
         $fresh = app(ProfilePolicy::class)->actor($actor);
         abort_if($fresh->password_change_required || PlatformStaffIdentity::where('user_id', $fresh->id)->where('active', true)->exists(), 403);
         app(ApprovalService::class)->assertAccess($fresh);
-        $gate = app(ModuleGate::class);
-        $gate->forget();
-        abort_unless($write ? $gate->writable('tutor') : $gate->allows('tutor'), 403);
+        if ($module) {
+            $gate = app(ModuleGate::class);
+            $gate->forget();
+            abort_unless($write ? $gate->writable('tutor') : $gate->allows('tutor'), 403);
+        }
 
         return $fresh;
     }
 
-    public function learner(User $actor, bool $write = false): Students
+    public function learner(User $actor, bool $write = false, bool $module = true): Students
     {
-        $fresh = $this->actor($actor, $write);
+        $fresh = $this->actor($actor, $write, $module);
         abort_unless(in_array('Student', app(ProfilePolicy::class)->roles($fresh), true)
             && app(CurrentLearnerMembership::class)->users()->whereKey($fresh->id)->exists(), 404);
         $person = Students::where('user_id', $fresh->id)->firstOrFail();
