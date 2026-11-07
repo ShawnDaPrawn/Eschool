@@ -59,6 +59,7 @@ use App\Http\Controllers\Panel\EarlyYears\EarlyYearsPanelController;
 use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
 use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
+use App\Http\Controllers\Panel\Groups\GroupDashboardController;
 use App\Http\Controllers\Panel\Growth\CaseloadRenewalController;
 use App\Http\Controllers\Panel\Growth\InterventionLibraryController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
@@ -152,6 +153,7 @@ use App\Http\Controllers\Platform\PlatformMessagingController;
 use App\Http\Controllers\Platform\PlatformOffboardingController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
+use App\Http\Controllers\Platform\PlatformSchoolGroupController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformSchoolImportController;
 use App\Http\Controllers\Platform\PlatformStaffController;
@@ -163,6 +165,7 @@ use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
 use App\Http\Controllers\Platform\SchoolAnnouncementController;
 use App\Http\Controllers\Platform\SchoolExitController;
+use App\Http\Controllers\Platform\SchoolGroupMembershipController;
 use App\Http\Controllers\Platform\SchoolJoinInvitationController;
 use App\Http\Controllers\Platform\SchoolStageController;
 use App\Http\Controllers\Platform\SchoolSupportAccessController;
@@ -509,6 +512,28 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::post('/{announcement}/publish', [PlatformAnnouncementController::class, 'publish'])->middleware('throttle:20,1')->whereNumber('announcement')->name('publish');
         Route::post('/{announcement}/withdraw', [PlatformAnnouncementController::class, 'withdraw'])->middleware('throttle:20,1')->whereNumber('announcement')->name('withdraw');
     });
+    // School groups (Action Plan 5.7, SA.18): one owner, many schools. Counts only; each school agrees in its own panel.
+    Route::prefix('/groups')->name('groups.')->group(function () {
+        $c = PlatformSchoolGroupController::class;
+        Route::get('/', [$c, 'index'])->middleware('platform.can:groups.view')->name('index');
+        Route::post('/', [$c, 'store'])->middleware(['platform.can:groups.manage', 'throttle:20,1'])->name('store');
+        Route::get('/{group}', [$c, 'show'])->middleware('platform.can:groups.view')->whereNumber('group')->name('show');
+        Route::post('/{group}/schools', [$c, 'invite'])->middleware(['platform.can:groups.manage', 'throttle:30,1'])->whereNumber('group')->name('schools.store');
+        Route::post('/{group}/schools/{member}/end', [$c, 'end'])->middleware(['platform.can:groups.manage', 'throttle:30,1'])->whereNumber(['group', 'member'])->name('schools.end');
+        Route::put('/{group}/schools/{member}/billing', [$c, 'billing'])->middleware(['platform.can:billing.manage', 'throttle:30,1'])->whereNumber(['group', 'member'])->name('schools.billing');
+        Route::post('/{group}/admins', [$c, 'addAdmin'])->middleware(['platform.can:groups.manage', 'throttle:20,1'])->whereNumber('group')->name('admins.store');
+        Route::post('/{group}/admins/{admin}/revoke', [$c, 'revokeAdmin'])->middleware(['platform.can:groups.manage', 'throttle:20,1'])->whereNumber(['group', 'admin'])->name('admins.revoke');
+        Route::get('/{group}/invoices', [$c, 'invoices'])->middleware('platform.can:billing.view')->whereNumber('group')->name('invoices');
+        Route::get('/{group}/invoices/{invoice}', [$c, 'invoice'])->middleware('platform.can:billing.view')->whereNumber(['group', 'invoice'])->name('invoices.show');
+        Route::middleware(['platform.can:billing.manage', 'throttle:30,1'])->name('invoices.')->group(function () use ($c) {
+            Route::post('/{group}/invoices', [$c, 'compose'])->whereNumber('group')->name('store');
+            Route::post('/{group}/invoices/{invoice}/recompute', [$c, 'recompute'])->whereNumber(['group', 'invoice'])->name('recompute');
+            Route::post('/{group}/invoices/{invoice}/issue', [$c, 'issue'])->whereNumber(['group', 'invoice'])->name('issue');
+            Route::post('/{group}/invoices/{invoice}/discard', [$c, 'discard'])->whereNumber(['group', 'invoice'])->name('discard');
+            Route::post('/{group}/invoices/{invoice}/payments', [$c, 'pay'])->whereNumber(['group', 'invoice'])->name('payments.store');
+            Route::post('/{group}/invoices/{invoice}/payments/{payment}/reverse', [$c, 'reverse'])->whereNumber(['group', 'invoice', 'payment'])->name('payments.reverse');
+        });
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -527,6 +552,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'support.session'])->pr
     // A read sent as a POST (the search words stay out of the URL); the only POST support.session lets through.
     Route::post('/people', [SupportSessionController::class, 'search'])->whereNumber('grant')->middleware('throttle:60,1')->name('people.search');
     Route::get('/people/{person}', [SupportSessionController::class, 'person'])->whereNumber(['grant', 'person'])->name('person');
+});
+
+// A school group's administrators (Action Plan 5.7): the group's counts and shares across its
+// current schools. No school.context: the dashboard reads each school inside that school, and
+// a group role grants nothing inside any school.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'cache.headers:private;no_store'])->prefix('group')->name('group.')->group(function () {
+    Route::get('/', [GroupDashboardController::class, 'index'])->name('index');
+    Route::get('/{group}', [GroupDashboardController::class, 'show'])->whereNumber('group')->name('show');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
@@ -1581,6 +1614,11 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/support-access/{grant}/approve', [SchoolSupportAccessController::class, 'approve'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.approve');
     Route::post('/support-access/{grant}/decline', [SchoolSupportAccessController::class, 'decline'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.decline');
     Route::post('/support-access/{grant}/end', [SchoolSupportAccessController::class, 'end'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.end');
+    // School groups (Action Plan 5.7): this school's Super Admin agrees to join, declines or leaves.
+    Route::get('/school-groups', [SchoolGroupMembershipController::class, 'index'])->name('school-groups.index');
+    Route::post('/school-groups/{member}/agree', [SchoolGroupMembershipController::class, 'agree'])->whereNumber('member')->middleware('throttle:30,1')->name('school-groups.agree');
+    Route::post('/school-groups/{member}/decline', [SchoolGroupMembershipController::class, 'decline'])->whereNumber('member')->middleware('throttle:30,1')->name('school-groups.decline');
+    Route::post('/school-groups/{member}/leave', [SchoolGroupMembershipController::class, 'leave'])->whereNumber('member')->middleware('throttle:30,1')->name('school-groups.leave');
     Route::get('/family-reach', FamilyReachController::class)->name('family-reach.index');
     Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
     Route::post('/people-profiles/{person}/invitation', [ProfileFormController::class, 'invite'])->whereNumber('person')->middleware('throttle:20,1')->name('people-profiles.invitation');
