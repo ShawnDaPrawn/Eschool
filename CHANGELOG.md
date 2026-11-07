@@ -28,6 +28,22 @@
 
 - Learners get a guided learning path for each subject (Action Plan 3.9): the server finds the topic to work on next, shows the school's lesson (or a library lesson), gives a few practice questions, then a short check it marks itself, and plans a review for a later day. A check that does not go well yet leads back to the lesson with a kind message; after three tries the topic rests until tomorrow. Answers are never sent to the device before the learner answers. Teachers see which step each learner in their group is on (no scores or rankings), and guardians see a plain summary for their own child. When the tutor and the AI are switched on, the tutor opens on the topic and leads the lesson. API: new `/api/v2/learning/paths` endpoints; the Dart client needs regenerating.
 
+- Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
+  content staff build a catalogue of classic public-domain books in HQ
+  (Reading library), record a copyright decision for each one (who, when and
+  why; only books cleared as public domain in South Africa ever reach
+  learners), put them on shelves by grade and write comprehension questions.
+  The server fetches each book once from a Project Gutenberg mirror, removes
+  the Project Gutenberg licence and name, keeps a private copy and serves it a
+  page at a time. With the new Reading library module switched on, school
+  leaders can hide shelves or books from their learners and switch on two
+  reading badges (finishing a book, reading on several days in a week), given
+  through Awards. Learners' places, reading time and answers are their own and
+  never compared. The learner API is ready; the app screens come later.
+  **Deploy:** run the migrations and set `READING_MIRROR_URL` (nothing is
+  fetched until it is set). The South African copyright rule and the use of the
+  Project Gutenberg name still need legal review before launch.
+
 - School groups: one owner, many schools (Action Plan 5.7, SA.18).
   - HQ creates a group, invites schools and names the group's administrators.
   - A school joins only when its own Super Admin agrees on the new School groups page. The page shows exactly what the group will see. The school can leave at any time, and the group stops seeing it at once.
