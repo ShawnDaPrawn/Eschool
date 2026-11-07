@@ -394,6 +394,14 @@ school's private gallery tables and storage prefix; a concern's words stay in
 the school's encrypted intervention ([early years](../learning/early-years.md)).
 
 
+### Strengths mirror
+
+`strengths_mirror_shares` is required school-owned: a learner's own shares of
+their strengths mirror with one named guardian or teacher of the same school.
+The encrypted copy is read only by that learner (to list or end it) or that
+viewer, inside the school it was made in; another school's share id is not
+found ([strengths mirror](../learning/strengths-mirror.md)).
+
 ### Structured memos
 
 `past_paper_memos` is required school-owned: the mark points of a school's own
