@@ -200,6 +200,8 @@ tags:
   description: Private school identity cards and isolated online gate readers.
 - name: Diary
   description: The learner's private diary - notes, to-dos and the school items placed in it automatically.
+- name: Strengths mirror
+  description: The learner's own interests and strengths mirror, and the read-only copies they choose to share by name.
 - name: Tutor
   description: Own-learner subject tutoring, approved private working crops and metadata-only guardian summaries.
 - name: FamilyForms
@@ -30347,6 +30349,226 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /strengths:
+    get:
+      operationId: getStrengthsMirror
+      tags:
+      - Strengths mirror
+      summary: getStrengthsMirror
+      description: The signed-in learner's own interests and strengths mirror, worked out now. Only a current guardian-approved
+        Student of the school, in a stage the module allows (never early years), reads it; guardians, teachers, school leaders,
+        platform staff and other learners are refused. It holds no scores, levels, percentages, counts, ranks or averages, and
+        never tutor conversation content (only the topics a tutor session was started on). A section whose source module is off
+        has available false.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's mirror.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsMirrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /strengths/recipients:
+    get:
+      operationId: listStrengthsRecipients
+      tags:
+      - Strengths mirror
+      summary: listStrengthsRecipients
+      description: Who the signed-in learner may share their mirror with today - guardians with an active approving link, and
+        teachers of this school who currently teach one of the learner's teaching groups. Learner only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The people the learner may choose.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsRecipientsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /strengths/shares:
+    get:
+      operationId: listStrengthsShares
+      tags:
+      - Strengths mirror
+      summary: listStrengthsShares
+      description: The signed-in learner's own shares with whether each is open, revoked or expired and when it was last viewed.
+        Every open share comes first, in full and newest first, so it can always be found and ended; then up to 100 of the most
+        recent revoked or expired shares. Learner only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's shares.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsSharesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    post:
+      operationId: createStrengthsShare
+      tags:
+      - Strengths mirror
+      summary: createStrengthsShare
+      description: Shares a read-only copy of the chosen sections of the learner's mirror, as it is today, with one person from
+        the recipients list, for up to 30 days. Repeating the same operation_id returns the original share; reusing it for a
+        different share is refused with 409. Learner only; audited.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrengthsShareInput'
+      responses:
+        '200':
+          description: The share.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsShareResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The operation_id was already used for another share.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /strengths/shares/{share}/revoke:
+    post:
+      operationId: revokeStrengthsShare
+      tags:
+      - Strengths mirror
+      summary: revokeStrengthsShare
+      description: Ends one of the learner's own shares at once; the viewer can no longer open it. Ending an ended share changes
+        nothing. Another learner's share does not exist (404). Learner only; audited.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: share
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The ended share.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsShareResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /strengths/shared-with-me:
+    get:
+      operationId: listStrengthsSharedWithMe
+      tags:
+      - Strengths mirror
+      summary: listStrengthsSharedWithMe
+      description: Open shares a learner made to the signed-in guardian or teacher by name. A share leaves the list when it is
+        revoked or expires, when the learner is no longer a current approved learner here, or when the viewer no longer holds
+        the approving guardian link or teacher membership it was made for.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Shares made to this person.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsSharedWithMeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /strengths/shared-with-me/{share}:
+    get:
+      operationId: getStrengthsSharedWithMe
+      tags:
+      - Strengths mirror
+      summary: getStrengthsSharedWithMe
+      description: The read-only copy a learner shared with the signed-in guardian or teacher, as it was on the day it was shared
+        (never live data). Anyone but the named viewer, or a revoked or expired share, gets 404. Every view is audited and shown
+        to the learner as last viewed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: share
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The shared copy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsSharedViewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
 components:
   securitySchemes:
     bearerAuth:
@@ -70098,5 +70320,622 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/DiaryDeleted'
+        code:
+          type: integer
+    StrengthsSectionKey:
+      type: string
+      enum:
+      - growing
+      - remembering
+      - explored
+      - activities
+      - reading
+      - might_enjoy
+    StrengthsTopic:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - topic
+      - subject_id
+      - subject
+      properties:
+        topic_id:
+          type: integer
+        topic:
+          type: string
+        subject_id:
+          type: integer
+        subject:
+          type: string
+    StrengthsTopicSection:
+      type: object
+      additionalProperties: false
+      description: Topics only, in this learner's own order; never a score, level, count or comparison.
+      required:
+      - available
+      - title
+      - message
+      - items
+      properties:
+        available:
+          type: boolean
+          description: False when the source module is off at the school; the section is then not evidence of anything.
+        title:
+          type: string
+        message:
+          type: string
+        items:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/StrengthsTopic'
+    StrengthsExploredTopic:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - topic
+      properties:
+        topic_id:
+          type: integer
+        topic:
+          type: string
+    StrengthsExploredSubject:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - subject
+      - topics
+      properties:
+        subject_id:
+          type: integer
+        subject:
+          type: string
+        topics:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/StrengthsExploredTopic'
+    StrengthsExploredSection:
+      type: object
+      additionalProperties: false
+      description: The subjects and topics the learner started tutor sessions on this school year. Never conversation content.
+      required:
+      - available
+      - title
+      - message
+      - items
+      properties:
+        available:
+          type: boolean
+        title:
+          type: string
+        message:
+          type: string
+        items:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/StrengthsExploredSubject'
+    StrengthsActivity:
+      type: object
+      additionalProperties: false
+      required:
+      - activity_group_id
+      - name
+      - discipline
+      - season
+      - role
+      properties:
+        activity_group_id:
+          type: integer
+        name:
+          type: string
+        discipline:
+          type: string
+        season:
+          type: string
+        role:
+          type: string
+          enum:
+          - member
+          - captain
+    StrengthsSkill:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - label
+      properties:
+        kind:
+          type: string
+          enum:
+          - leading
+          - helping
+        label:
+          type: string
+    StrengthsActivitiesSection:
+      type: object
+      additionalProperties: false
+      required:
+      - available
+      - title
+      - message
+      - items
+      - skills
+      properties:
+        available:
+          type: boolean
+        title:
+          type: string
+        message:
+          type: string
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/StrengthsActivity'
+        skills:
+          type: array
+          description: Leading others (a captaincy) and helping others learn (completed supervised peer tutoring).
+          items:
+            $ref: '#/components/schemas/StrengthsSkill'
+    StrengthsReadingSection:
+      type: object
+      additionalProperties: false
+      description: A seam for the reading library. Until it is built, available is false and items is empty.
+      required:
+      - available
+      - title
+      - message
+      - items
+      properties:
+        available:
+          type: boolean
+        title:
+          type: string
+        message:
+          type: string
+        items:
+          type: array
+          maxItems: 0
+          items:
+            type: object
+    StrengthsIdea:
+      type: object
+      additionalProperties: false
+      required:
+      - career_profile_id
+      - title
+      - summary
+      - because
+      - source_title
+      - source_url
+      properties:
+        career_profile_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        summary:
+          type: string
+        because:
+          type: string
+          description: The learner's own topic or subject the career profile links.
+        source_title:
+          type: string
+        source_url:
+          type: string
+          format: uri
+    StrengthsIdeasSection:
+      type: object
+      additionalProperties: false
+      description: Up to three current published career profiles of the school that link the learner's own strengths. Ideas to
+        explore, never a recommendation of subjects or streams.
+      required:
+      - available
+      - title
+      - message
+      - items
+      properties:
+        available:
+          type: boolean
+        title:
+          type: string
+        message:
+          type: string
+        items:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/StrengthsIdea'
+    StrengthsSections:
+      type: object
+      additionalProperties: false
+      required:
+      - growing
+      - remembering
+      - explored
+      - activities
+      - reading
+      - might_enjoy
+      properties:
+        growing:
+          $ref: '#/components/schemas/StrengthsTopicSection'
+        remembering:
+          $ref: '#/components/schemas/StrengthsTopicSection'
+        explored:
+          $ref: '#/components/schemas/StrengthsExploredSection'
+        activities:
+          $ref: '#/components/schemas/StrengthsActivitiesSection'
+        reading:
+          $ref: '#/components/schemas/StrengthsReadingSection'
+        might_enjoy:
+          $ref: '#/components/schemas/StrengthsIdeasSection'
+    StrengthsSharedSections:
+      type: object
+      additionalProperties: false
+      description: Only the sections the learner chose to share.
+      properties:
+        growing:
+          $ref: '#/components/schemas/StrengthsTopicSection'
+        remembering:
+          $ref: '#/components/schemas/StrengthsTopicSection'
+        explored:
+          $ref: '#/components/schemas/StrengthsExploredSection'
+        activities:
+          $ref: '#/components/schemas/StrengthsActivitiesSection'
+        reading:
+          $ref: '#/components/schemas/StrengthsReadingSection'
+        might_enjoy:
+          $ref: '#/components/schemas/StrengthsIdeasSection'
+    StrengthsMirror:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - learner_id
+      - reader_id
+      - first_name
+      - as_of
+      - privacy
+      - sections
+      properties:
+        school_id:
+          type: integer
+          description: The school the mirror belongs to; the app refuses a reply for another school.
+        learner_id:
+          type: integer
+        reader_id:
+          type: integer
+          description: The signed-in learner's user id; the app refuses a reply for another account.
+        first_name:
+          type: string
+        as_of:
+          type: string
+          format: date
+        privacy:
+          type: string
+        sections:
+          $ref: '#/components/schemas/StrengthsSections'
+    StrengthsMirrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/StrengthsMirror'
+        code:
+          type: integer
+    StrengthsRecipient:
+      type: object
+      additionalProperties: false
+      required:
+      - user_id
+      - name
+      - kind
+      - detail
+      properties:
+        user_id:
+          type: integer
+        name:
+          type: string
+        kind:
+          type: string
+          enum:
+          - guardian
+          - teacher
+        detail:
+          type: string
+          description: The guardian's relationship, or the subjects the teacher teaches the learner.
+    StrengthsRecipientsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - recipients
+          properties:
+            recipients:
+              type: array
+              items:
+                $ref: '#/components/schemas/StrengthsRecipient'
+        code:
+          type: integer
+    StrengthsShare:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - recipient_user_id
+      - recipient_name
+      - kind
+      - sections
+      - shared_on
+      - expires_at
+      - revoked_at
+      - last_viewed_at
+      - status
+      properties:
+        id:
+          type: integer
+        recipient_user_id:
+          type: integer
+        recipient_name:
+          type: string
+        kind:
+          type: string
+          enum:
+          - guardian
+          - teacher
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/StrengthsSectionKey'
+        shared_on:
+          type: string
+          format: date
+        expires_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_viewed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        status:
+          type: string
+          enum:
+          - open
+          - revoked
+          - expired
+    StrengthsShareInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - recipient_user_id
+      - sections
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        recipient_user_id:
+          type: integer
+          minimum: 1
+          description: A user_id from listStrengthsRecipients.
+        sections:
+          type: array
+          minItems: 1
+          maxItems: 6
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/StrengthsSectionKey'
+        days:
+          type: integer
+          minimum: 1
+          maximum: 30
+          description: How long the share lasts; 30 when left out.
+    StrengthsShareResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/StrengthsShare'
+        code:
+          type: integer
+    StrengthsSharesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - school_id
+          - reader_id
+          - shares
+          properties:
+            school_id:
+              type: integer
+            reader_id:
+              type: integer
+            shares:
+              type: array
+              items:
+                $ref: '#/components/schemas/StrengthsShare'
+        code:
+          type: integer
+    StrengthsSharedWithMe:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - kind
+      - shared_on
+      - expires_at
+      properties:
+        id:
+          type: integer
+        learner_id:
+          type: integer
+        learner_name:
+          type: string
+        kind:
+          type: string
+          enum:
+          - guardian
+          - teacher
+        shared_on:
+          type: string
+          format: date
+        expires_at:
+          type: string
+          format: date-time
+    StrengthsSharedWithMeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - school_id
+          - reader_id
+          - shares
+          properties:
+            school_id:
+              type: integer
+            reader_id:
+              type: integer
+            shares:
+              type: array
+              items:
+                $ref: '#/components/schemas/StrengthsSharedWithMe'
+        code:
+          type: integer
+    StrengthsSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - first_name
+      - as_of
+      - sections
+      properties:
+        learner_id:
+          type: integer
+        first_name:
+          type: string
+        as_of:
+          type: string
+          format: date
+          description: The day the copy was taken.
+        sections:
+          $ref: '#/components/schemas/StrengthsSharedSections'
+    StrengthsSharedView:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - kind
+      - shared_on
+      - expires_at
+      - notice
+      - mirror
+      properties:
+        school_id:
+          type: integer
+        reader_id:
+          type: integer
+        id:
+          type: integer
+        kind:
+          type: string
+          enum:
+          - guardian
+          - teacher
+        shared_on:
+          type: string
+          format: date
+        expires_at:
+          type: string
+          format: date-time
+        notice:
+          type: string
+        mirror:
+          $ref: '#/components/schemas/StrengthsSnapshot'
+    StrengthsSharedViewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/StrengthsSharedView'
         code:
           type: integer
