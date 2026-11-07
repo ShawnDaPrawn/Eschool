@@ -14,7 +14,7 @@ An exam coach paper version already carries, per question, a prompt, free-text m
 ## Rules
 
 - **Mark point.** What earns it (2 to 500 characters); a type: `method`, `answer`, `accuracy`, `consistent_accuracy` or `explanation`; an optional rule; and its marks (a decimal with at most two places, more than zero, stored as hundredths). At most 20 points per question.
-- **Rules.** `none`; `exact_value` (a value, a tolerance of plus or minus, default 0, and an optional unit); or `units_required` (a unit only). A rule's fields must match its kind: a value with no rule, or a units rule with a value, is refused. Rules are stored for the marking engine; nothing evaluates them yet.
+- **Rules.** `none`; `exact_value` (a value, a tolerance of plus or minus, default 0, and an optional unit); `units_required` (a unit only); and, since the marking engine (3.16), `expression` (an expression or equation the engine can read), `keywords` (1 to 10 terms separated by commas, alternatives after a slash) and `significant_figures` (a whole number from 1 to 15). A rule's fields must match its kind: a value with no rule, or a units rule with a value, is refused. The [marking engine](../learning/marking-engine.md) evaluates them.
 - **Totals.** The mark points of a question must add up exactly to the question's total. This is checked in the FormRequest (`ExamMemoRequest`, through `PastPaperMemos::normalize`) and again in the service (`PastPaperMemos::save`). A draft may leave a question with no points; every other question must add up.
 - **Questions.** The input lists every question of the version, in the version's order, by number. A mismatch is refused ("its questions changed").
 - **Who may change it.** The same people who may change the paper (`PastPaperLibrary::editor`): its author or a lead of its grade, allocated to a current group the version is for, with exam coach writable. The paper must be active and the version draft or published (not withdrawn).
@@ -60,7 +60,7 @@ The full-paper PHP regression uses `parse_str` at the default `max_input_vars=10
 ## Not in this step
 
 - **AI conversion of memos into mark points.** The existing drafting path (`TeachingDrafts` through the AI gateway) is tied to learning-content versions, its own draft kinds, prompt, moderator output parser, quarantine participant and evaluation corpus, and inference is off. A "draft mark points from the memo text" action needs its own gateway feature with all of these (prompt `resources/ai/prompts`, corpus `resources/ai/evals`, feature policy, moderator, quarantine, HQ caps). Its output would land as a draft memo for teacher review (this step's draft state), never reviewed automatically. Conversion from uploaded PDF memos depends on that too.
-- The marking engine and rule evaluation (3.16); nothing reads `reviewed()` yet.
+- The marking engine and rule evaluation: built in 3.16 ([marking-engine.md](../learning/marking-engine.md)).
 - Copying mark points from an earlier version of the same paper into a new version.
 - Mark points in the staff memo PDF, and any API or app screen for mark points (no `openapi.yaml` or `/api/v2` change).
-- More rule kinds (accepted alternatives, keywords, ranges, significant figures).
+- More rule kinds (accepted alternatives, ranges); 3.16 added expressions, keywords and significant figures.

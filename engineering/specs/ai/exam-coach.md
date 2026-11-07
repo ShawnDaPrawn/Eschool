@@ -40,3 +40,8 @@ Structured memos (Action Plan 3.15): teachers who may change a paper break its
 memo into mark points per question in the panel at `/exam-memos`, and review
 the memo; only a reviewed memo is usable downstream. See
 [structured memos](structured-memos.md).
+
+Marking engine (Action Plan 3.16): answers are marked against a reviewed memo's
+mark points by rules in code, with Mathematics and Physical Sciences profiles.
+Teachers can try it from a memo; learner marking stays off per subject until
+the accuracy gate. See [marking engine](../learning/marking-engine.md).

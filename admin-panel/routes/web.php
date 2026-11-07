@@ -1736,13 +1736,17 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::post('turns/{turn}/run', [$controller, 'write'])->whereUuid('turn')->defaults('operation', 'run')->name('run');
 });
 
-// Structured exam coach memos (Action Plan 3.15): engineering/specs/ai/structured-memos.md.
+// Structured exam coach memos (Action Plan 3.15): engineering/specs/ai/structured-memos.md;
+// marking preview (3.16): engineering/specs/learning/marking-engine.md.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:exam_coach,read', EnforceReadOnlyYears::class])->prefix('exam-memos')->name('exam-memos.')->group(function () {
     $controller = ExamMemoPanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
     Route::get('groups/{group}/versions/{version}', [$controller, 'show'])->whereNumber('group')->whereUuid('version')->name('show');
     Route::post('groups/{group}/versions/{version}', [$controller, 'save'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('save');
     Route::post('groups/{group}/versions/{version}/review', [$controller, 'review'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('review');
+    // Mark a typed answer against the memo (Action Plan 3.16): a read, nothing stored.
+    Route::get('groups/{group}/versions/{version}/marking', [$controller, 'marking'])->whereNumber('group')->whereUuid('version')->name('marking');
+    Route::post('groups/{group}/versions/{version}/marking', [$controller, 'preview'])->whereNumber('group')->whereUuid('version')->middleware('throttle:60,1')->name('marking.preview');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:peer_tutoring,read'])->prefix('peer-tutoring')->name('peer-tutoring-panel.')->group(function () {
