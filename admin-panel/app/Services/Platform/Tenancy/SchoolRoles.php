@@ -51,6 +51,7 @@ class SchoolRoles
         'family-visits-manage', 'family-forms-manage', 'family-health-read', 'family-health-manage',
         'ai-settings-manage',
         'cards-manage', 'cards-readers-manage', 'cards-encode',
+        'oneroster-export',
         'marks-view-all', 'marks-release',
         'academic-structure-manage', 'communication-manage', 'consultations-manage', 'activity-groups-manage', 'wellbeing-configure',
         'curriculum-read', 'curriculum-manage', 'curriculum-publish',
