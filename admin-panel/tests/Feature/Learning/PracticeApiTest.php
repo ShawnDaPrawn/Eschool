@@ -65,12 +65,21 @@ class PracticeApiTest extends TestCase
         $input = ['operation_id' => (string) Str::uuid(), 'practice_on' => '2026-02-10'];
         $set = $this->postJson("$base/learners/$learner/groups/{$this->group}/daily-sets", $input)->assertOk()->json('data');
         $this->postJson("$base/learners/$learner/groups/{$this->group}/daily-sets", $input)->assertOk()->assertJsonPath('data.id', $set['id']);
-        $this->getJson("$base/learners/$learner/daily-sets/{$set['id']}")->assertOk()->assertJsonPath('data.items.0.definition.answers.0', '0.5');
+        // A client that has not opted in to the answer-free contract (3.11) reads the legacy set exactly as before.
+        $read = $this->getJson("$base/learners/$learner/daily-sets/{$set['id']}")->assertOk()->assertJsonPath('data.items.0.definition.answers.0', '0.5')->json('data.items.0');
+        $this->assertSame(['id', 'item_id', 'topic_id', 'source_version_id', 'estimated_seconds', 'definition', 'review'], array_keys($read));
+        // An opted-in client reads the question only; the result brings the answer and explanation.
+        $answerFree = $this->withHeader('X-Practice-Contract', '2')->getJson("$base/learners/$learner/daily-sets/{$set['id']}")->assertOk()
+            ->assertJsonPath('data.items.0.question.prompt', 'One half as a decimal?');
+        $this->assertStringNotContainsString('Divide one by two', $answerFree->getContent());
+        $this->assertStringNotContainsString('"answers"', $answerFree->getContent());
+        $this->withHeader('X-Practice-Contract', '1');
         $entry = $set['items'][0]['id'];
         $path = "$base/learners/$learner/daily-sets/{$set['id']}/entries/$entry/review";
         $review = ['operation_id' => (string) Str::uuid(), 'answer' => '.50', 'rating' => 3];
         $official = DB::table('question_marks')->count();
         $first = $this->postJson($path, $review)->assertOk()->assertJsonPath('data.correct', true)->json('data');
+        $this->assertSame(['id', 'entry_id', 'correct', 'schedule', 'reviewed_on', 'streak_days'], array_keys($first), 'the legacy result, exactly as before');
         $this->postJson($path, $review)->assertOk()->assertJsonPath('data', $first);
         $this->postJson($path, array_replace($review, ['answer' => '.25']))->assertConflict();
         $this->assertSame($official, DB::table('question_marks')->count());

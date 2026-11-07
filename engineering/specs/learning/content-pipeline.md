@@ -100,7 +100,9 @@ written.
 - **Quality signals.** `LibraryQuality` counts, in the database, learners'
   daily-practice answers (`practice_reviews` joined to
   `practice_set_entries.library_item_version_id`) on each item's current
-  published version, across schools. A group with fewer than 20 learners or
+  published version, across schools. Only marked answers with a recorded
+  right-or-wrong result count; answers waiting for a teacher count toward
+  neither the rates nor the cohort thresholds. A group with fewer than 20 learners or
   fewer than 3 schools never leaves the query (`HAVING`). A question is
   flagged when under 30% or over 95% of answers are right, decided in the same
   query (`HAVING` on the band), so the flagged list is complete however many

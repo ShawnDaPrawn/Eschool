@@ -86,6 +86,7 @@ manual cleanup, verify the actual feature policy, school scope and private disk.
 | `gallery:prune-copies`, `activities:prune-material-files` | Only owned retired/expired paths and recognized old orphan derivatives; no general bucket sweep. |
 | `digest:weekly --retention` | Expired encrypted digest copies; these are not permanent financial receipts. |
 | `ai:prune-quarantine`, `exam-coach:prune-working`, `learning:prune-teaching-drafts` | Temporary feature media/proposals; canonical published school records and metering remain separate. |
+| `learning:prune-practice-audio` | Learners' recorded practice answers (90 days after recording, or 30 days after marking); the marks stay. |
 | `assistance:prune-private`, `chat:prune-groups` | Expired private bodies are erased/redacted while minimal source/operation evidence is retained by the feature. |
 | `model:prune --model=App\\Models\\Platform\\IdempotencyKey` | The 24-hour HTTP response replay cache only; not a durable business receipt. |
 
