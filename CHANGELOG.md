@@ -28,6 +28,8 @@
 
 - Schools can build an alumni and volunteer pool for career talks and job shadows (API only for now; the module "Alumni and volunteer pool" is off by default). The office invites former learners from its own adult leaver records, and outside volunteers; each person consents when they first sign in, and can withdraw at any time with immediate effect. The school records each person's safety checks, who checked and when the clearance ends, and can book only cleared people, only into staffed group sessions of at least two learners. Pool members get their own sign-in that never reaches learner records, marks or contact details; they see a session's attendance list on the day of the session only.
 
+- Learners get a guided learning path for each subject (Action Plan 3.9): the server finds the topic to work on next, shows the school's lesson (or a library lesson), gives a few practice questions, then a short check it marks itself, and plans a review for a later day. A check that does not go well yet leads back to the lesson with a kind message; after three tries the topic rests until tomorrow. Answers are never sent to the device before the learner answers. Teachers see which step each learner in their group is on (no scores or rankings), and guardians see a plain summary for their own child. When the tutor and the AI are switched on, the tutor opens on the topic and leads the lesson. API: new `/api/v2/learning/paths` endpoints; the Dart client needs regenerating.
+
 - Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
   content staff build a catalogue of classic public-domain books in HQ
   (Reading library), record a copyright decision for each one (who, when and
