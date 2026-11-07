@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\V2\Learning\DiagnosticController;
 use App\Http\Controllers\Api\V2\Learning\DiaryController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
+use App\Http\Controllers\Api\V2\Learning\LearningPathController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Learning\PracticeTestController;
 use App\Http\Controllers\Api\V2\Learning\StrengthsMirrorController;
@@ -773,6 +774,16 @@ Route::prefix('learning/practice-tests')->middleware([PrivateMastery::class, 'au
     Route::get('learners/{learner}/tests/{test}', [$c, 'show'])->whereNumber(['learner', 'test'])->name('show');
     Route::post('learners/{learner}/tests/{test}/answers', [$c, 'answers'])->whereNumber(['learner', 'test'])->middleware('throttle:120,1')->name('answers');
     Route::post('learners/{learner}/tests/{test}/submit', [$c, 'submit'])->whereNumber(['learner', 'test'])->middleware('throttle:30,1')->name('submit');
+});
+
+// The guided learning path (Action Plan 3.9): own learner, the group's teacher, or a child's guardian.
+Route::prefix('learning/paths')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:daily_practice', 'module:mastery'])->name('api.v2.learning-paths.')->group(function () {
+    $c = LearningPathController::class;
+    Route::get('learners/{learner}/groups/{group}', [$c, 'show'])->whereNumber(['learner', 'group'])->name('show');
+    Route::post('learners/{learner}/groups/{group}/actions', [$c, 'act'])->whereNumber(['learner', 'group'])->middleware('throttle:60,1')->name('act');
+    Route::post('learners/{learner}/groups/{group}/items/{item}/answer', [$c, 'answer'])->whereNumber(['learner', 'group', 'item'])->middleware('throttle:60,1')->name('answer');
+    Route::get('groups/{group}/learners', [$c, 'group'])->whereNumber('group')->name('group');
+    Route::get('learners/{learner}/summary', [$c, 'family'])->whereNumber('learner')->name('family');
 });
 
 // The starting check (Action Plan 3.7): library diagnostics marked on the server, written as mastery evidence.

@@ -26,6 +26,9 @@ return [
             'practice_review' => 0.5,
             'tutor_checkpoint' => 0.5,
             'practice_test' => 0.75,
+            // Guided learning path (Action Plan 3.9): self-study, like daily practice.
+            'path_practice' => 0.5,
+            'path_check' => 0.5,
             // A diagnostic answer is marked on the server, but it is a short,
             // one-off starting check: it counts as practice does, and newer
             // marks and practice soon outweigh it.

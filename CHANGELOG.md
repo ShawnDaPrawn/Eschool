@@ -28,6 +28,8 @@
 
 - Practice tests (Action Plan 3.17): teachers set timed cycle tests for a group from their question bank (and the Navigate Ed library where it is on) on the new Practice tests page, sharing the questions between topics evenly or like chosen past papers; learners start quick quizzes and cycle tests through the v2 API. The server holds the deadline and the answers: nothing about the right answers reaches the device before hand-in, late saves are refused and a late hand-in counts only answers saved in time. Results count as practice evidence on the mastery map (labelled practice test), point to the topics to look at next and can hand a review to the tutor. Typed and photographed answers, mock exams and the app screens follow.
 
+- Learners get a guided learning path for each subject (Action Plan 3.9): the server finds the topic to work on next, shows the school's lesson (or a library lesson), gives a few practice questions, then a short check it marks itself, and plans a review for a later day. A check that does not go well yet leads back to the lesson with a kind message; after three tries the topic rests until tomorrow. Answers are never sent to the device before the learner answers. Teachers see which step each learner in their group is on (no scores or rankings), and guardians see a plain summary for their own child. When the tutor and the AI are switched on, the tutor opens on the topic and leads the lesson. API: new `/api/v2/learning/paths` endpoints; the Dart client needs regenerating.
+
 - Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
   content staff build a catalogue of classic public-domain books in HQ
   (Reading library), record a copyright decision for each one (who, when and

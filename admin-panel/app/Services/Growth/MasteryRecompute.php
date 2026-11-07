@@ -14,6 +14,8 @@ use App\Models\Growth\MasteryScope;
 use App\Models\Growth\MasteryTopic;
 use App\Models\Learning\DiagnosticAttempt;
 use App\Models\Learning\DiagnosticAttemptItem;
+use App\Models\Learning\LearningPath;
+use App\Models\Learning\LearningPathItem;
 use App\Models\Learning\PracticeDailySet;
 use App\Models\Learning\PracticeItem;
 use App\Models\Learning\PracticeItemVersion;
@@ -249,6 +251,34 @@ class MasteryRecompute
                     'session_year_id' => $group->session_year_id, 'source_type' => 'tutor_checkpoint', 'achieved_units' => $row->correct ? 1 : 0,
                     'maximum_units' => 1, 'observed_at' => $row->answered_at->setTimezone(app(CurrentSchool::class)->school()->timezone),
                     'item_key' => 'practice_item:'.$version->practice_item_id]);
+            $this->aggregate((int) $row->learner_id, (int) $group->subject_id);
+        });
+    }
+
+    /**
+     * A guided learning path answer (Action Plan 3.9): self-study evidence on
+     * the path's own topic, from its practice or its server-graded check.
+     */
+    public function learningPath(LearningPathItem $item, TeachingGroup $group): void
+    {
+        $this->serialised((int) $group->subject_id, function () use ($item, $group) {
+            $row = LearningPathItem::whereNotNull('answered_at')->findOrFail($item->id);
+            $path = LearningPath::where('teaching_group_id', $group->id)->where('learner_id', $row->learner_id)->findOrFail($row->learning_path_id);
+            abort_unless((int) $path->subject_id === (int) $group->subject_id && (int) $path->session_year_id === (int) $group->session_year_id, 404);
+            if ($row->library_item_version_id !== null) {
+                $version = LibraryItemVersion::query()->where('state', 'published')->findOrFail($row->library_item_version_id);
+                $source = ['content_source' => 'library', 'library_item_version_id' => (int) $version->id];
+                $itemKey = 'library_item:'.$version->library_item_id;
+            } else {
+                $version = PracticeItemVersion::findOrFail($row->practice_item_version_id);
+                PracticeItem::usedIn((int) $group->id)->where('topic_id', $row->topic_id)->findOrFail($version->practice_item_id);
+                $source = ['content_source' => 'school', 'library_item_version_id' => null];
+                $itemKey = 'practice_item:'.$version->practice_item_id;
+            }
+            MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $row->learner_id, 'topic_id' => $row->topic_id,
+                'audience' => 'practice', 'source_key' => 'path:'.$row->id], ['grade_level_id' => $group->grade_level_id,
+                    'session_year_id' => $group->session_year_id, 'source_type' => $row->purpose === 'check' ? 'path_check' : 'path_practice',
+                    'achieved_units' => $row->correct ? 1 : 0, 'maximum_units' => 1, 'observed_at' => $row->answered_at, 'item_key' => $itemKey] + $source);
             $this->aggregate((int) $row->learner_id, (int) $group->subject_id);
         });
     }
