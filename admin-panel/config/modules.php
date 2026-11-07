@@ -20,6 +20,8 @@ return [
     'family_forms' => ['name' => 'Health forms and family consents', 'default' => false, 'dependencies' => ['people']],
     'tutor' => ['name' => 'Subject tutor', 'default' => false, 'dependencies' => ['academics'], 'stages' => ['junior', 'high_school']],
     'diary' => ['name' => 'Learner diary', 'default' => false, 'dependencies' => ['people', 'academics']],
+    // Action Plan 4.8: the learner's own view; never read for streaming or placement.
+    'strengths_mirror' => ['name' => 'Interests and strengths mirror', 'default' => false, 'dependencies' => ['people', 'academics'], 'stages' => ['junior', 'high_school']],
     'early_years' => ['name' => 'Early years diary, observations and portfolios', 'default' => false, 'dependencies' => ['people', 'academics']],
     'digest' => ['name' => 'Weekly parent digest', 'default' => false, 'dependencies' => ['people', 'academics', 'communication']],
     'live_updates' => ['name' => 'Live school updates', 'default' => false, 'dependencies' => ['people', 'communication']],
