@@ -188,6 +188,8 @@ tags:
   description: Registered source-scoped generic private staff inbox.
 - name: Practice
   description: Approved daily self-study and separate practice evidence.
+- name: Diagnostics
+  description: The starting check from the library, marked on the server, as separate mastery evidence.
 - name: LiveUpdates
   description: Ephemeral private school/group invalidations and count-only presence.
 - name: WeeklyDigests
@@ -18165,6 +18167,261 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PracticeReviewInput'
+  /learning/diagnostics/groups/{group}:
+    get:
+      operationId: getDiagnosticGroup
+      tags:
+      - Diagnostics
+      summary: getDiagnosticGroup
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDiagnosticGroupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}:
+    get:
+      operationId: getDiagnosticSummary
+      tags:
+      - Diagnostics
+      summary: getDiagnosticSummary
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDiagnosticSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/groups/{group}/attempts:
+    post:
+      operationId: startDiagnostic
+      tags:
+      - Diagnostics
+      summary: startDiagnostic
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/attempts/{attempt}:
+    get:
+      operationId: getDiagnosticAttempt
+      tags:
+      - Diagnostics
+      summary: getDiagnosticAttempt
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: attempt
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/attempts/{attempt}/items/{item}/answer:
+    post:
+      operationId: answerDiagnosticQuestion
+      tags:
+      - Diagnostics
+      summary: answerDiagnosticQuestion
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: attempt
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiagnosticAnswerInput'
   /gallery/configuration:
     get:
       operationId: getGalleryConfiguration
@@ -53786,6 +54043,316 @@ components:
           type: integer
           minimum: 2
           maximum: 4
+    DiagnosticAnswerInput:
+      type: object
+      additionalProperties: false
+      required:
+      - answer
+      properties:
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 100
+    DiagnosticStatus:
+      type: string
+      enum:
+      - not_started
+      - in_progress
+      - completed
+    DiagnosticBand:
+      type: string
+      description: How a topic came out in the starting check, from its own answers only (staff only).
+      enum:
+      - secure
+      - developing
+      - gap
+      - not_reached
+    DiagnosticQuestion:
+      type: object
+      additionalProperties: false
+      description: What is needed to answer, never the accepted answers or the explanation.
+      required:
+      - id
+      - position
+      - kind
+      - prompt
+      - options
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        position:
+          type: integer
+          minimum: 1
+          maximum: 20
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        options:
+          type: array
+          maxItems: 6
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - text
+            properties:
+              id:
+                type: string
+                pattern: ^[a-z][a-z0-9_]{0,19}$
+              text:
+                type: string
+                minLength: 1
+                maxLength: 1000
+    DiagnosticAttempt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - group_id
+      - subject_name
+      - instructions
+      - status
+      - answered
+      - remaining
+      - question
+      - message
+      - focus_topics
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        instructions:
+          type: string
+          maxLength: 2000
+        status:
+          $ref: '#/components/schemas/DiagnosticStatus'
+        answered:
+          type: integer
+          minimum: 0
+          maximum: 20
+        remaining:
+          type: integer
+          minimum: 0
+          maximum: 20
+          description: Questions still waiting; fewer may be asked, as a topic stops once two answers agree.
+        question:
+          anyOf:
+          - $ref: '#/components/schemas/DiagnosticQuestion'
+          - type: 'null'
+        message:
+          type: string
+        focus_topics:
+          type: array
+          maxItems: 3
+          description: Names of up to three topics practice begins with, once finished. Never a score.
+          items:
+            type: string
+    DiagnosticSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - diagnostics
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        diagnostics:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - group_id
+            - subject_name
+            - status
+            - attempt_id
+            - can_start
+            - message
+            - focus_topics
+            properties:
+              group_id:
+                type: integer
+                minimum: 1
+              subject_name:
+                type: string
+              status:
+                $ref: '#/components/schemas/DiagnosticStatus'
+              attempt_id:
+                description: The learner's own attempt; always null for a guardian.
+                type:
+                - integer
+                - 'null'
+                minimum: 1
+              can_start:
+                type: boolean
+              message:
+                type: string
+              focus_topics:
+                type: array
+                maxItems: 3
+                items:
+                  type: string
+    DiagnosticGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - group_name
+      - subject_name
+      - available
+      - title
+      - topics
+      - learners
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        group_name:
+          type: string
+        subject_name:
+          type: string
+        available:
+          type: boolean
+        title:
+          type:
+          - string
+          - 'null'
+        topics:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - library_topic_id
+            - name
+            - secure
+            - developing
+            - gap
+            - not_reached
+            properties:
+              library_topic_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              secure:
+                type: integer
+                minimum: 0
+              developing:
+                type: integer
+                minimum: 0
+              gap:
+                type: integer
+                minimum: 0
+              not_reached:
+                type: integer
+                minimum: 0
+        learners:
+          type: array
+          maxItems: 1000
+          description: By name, never ranked; no total per learner.
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - name
+            - status
+            - topics
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              status:
+                $ref: '#/components/schemas/DiagnosticStatus'
+              topics:
+                type: array
+                maxItems: 100
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - library_topic_id
+                  - band
+                  properties:
+                    library_topic_id:
+                      type: integer
+                      minimum: 1
+                    band:
+                      $ref: '#/components/schemas/DiagnosticBand'
+    DiagnosticAttemptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiagnosticAttempt'
+        code:
+          type: integer
+    GetDiagnosticSummaryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiagnosticSummary'
+        code:
+          type: integer
+    GetDiagnosticGroupResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiagnosticGroup'
+        code:
+          type: integer
     GetPracticeAccessResponse:
       type: object
       additionalProperties: false
