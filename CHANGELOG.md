@@ -6,6 +6,11 @@
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 
+## 2026-11-06
+
+- Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
+- Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
+
 ## 2026-11-04
 
 - HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
@@ -13,10 +18,6 @@
 - Each library version now says where it came from (written by staff from a source, or an AI draft with who asked and who reviewed it), on the item page and in the audit log.
 - A new "Needs attention" page lists published library questions that learners find far harder or far easier than expected, from answers across schools, shown only as a percentage and a learner-count band, never a school or a learner, and only for questions answered by at least 20 learners in at least 3 schools. HQ can open a new draft from it.
 - The library review queue can show only AI drafts or only flagged items.
-## 2026-11-06
-
-- Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
-- Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
 
 ## 2026-11-03
 
