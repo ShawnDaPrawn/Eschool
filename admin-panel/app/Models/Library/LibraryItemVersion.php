@@ -16,12 +16,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property array<string, mixed> $content
  * @property list<int>|null $editor_ids
+ * @property string $origin
  */
 class LibraryItemVersion extends Model
 {
     use PlatformLibraryRow;
 
     public const STEPS = ['draft' => ['in_review'], 'in_review' => ['approved', 'rejected'], 'approved' => ['published'], 'rejected' => [], 'published' => []];
+
+    /** Who wrote the content: platform staff, or an AI draft that a human reviewer must still approve (Action Plan 3.4). */
+    public const ORIGINS = ['staff' => 'Written by staff', 'ai_draft' => 'AI draft'];
 
     protected $table = 'library_item_versions';
 
@@ -31,6 +35,8 @@ class LibraryItemVersion extends Model
     {
         static::updating(function (self $version): void {
             $from = (string) $version->getOriginal('state');
+            // Where content came from is fixed when the version is made: an AI draft stays labelled as one, however much staff edit it.
+            abort_if($version->isDirty(['origin', 'library_ai_draft_id']), 409, 'A library version keeps the origin it was made with.');
             abort_if($from === 'published', 409, 'A published library version is immutable. Edit the item to start a new draft.');
             abort_if($from !== 'draft' && $version->isDirty(['content', 'estimated_seconds', 'library_item_id', 'number', 'created_by', 'editor_ids']), 409, 'Only a draft library version can change its content.');
             if ($version->isDirty('state')) {
@@ -43,7 +49,7 @@ class LibraryItemVersion extends Model
     protected function casts(): array
     {
         return ['content' => 'array', 'editor_ids' => 'array', 'library_item_id' => 'integer', 'number' => 'integer', 'estimated_seconds' => 'integer',
-            'submitted_at' => 'datetime', 'published_at' => 'datetime'];
+            'library_ai_draft_id' => 'integer', 'submitted_at' => 'datetime', 'published_at' => 'datetime'];
     }
 
     public function item(): BelongsTo
@@ -60,6 +66,16 @@ class LibraryItemVersion extends Model
     public function editors(): array
     {
         return array_values(array_unique(array_map('intval', [(int) $this->created_by, ...(array) ($this->editor_ids ?? [])])));
+    }
+
+    public function aiDraft(): BelongsTo
+    {
+        return $this->belongsTo(LibraryAiDraft::class, 'library_ai_draft_id');
+    }
+
+    public function drafted(): bool
+    {
+        return $this->origin === 'ai_draft';
     }
 
     /** The practice question a learner answers (practice and past-paper questions only). */

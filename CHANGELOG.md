@@ -15,6 +15,12 @@
 
 - New "My strengths" mirror for learners (Action Plan 4.8, server and API; the app screens follow): the topics a learner is growing in fastest, what they remember well from daily practice, the topics they chose to explore with the tutor (never anything said in a conversation), their activities and the skills from them, and a few career ideas with their sources. No scores, ranks or comparisons. Only the learner sees it. They can share a read-only copy with an approving guardian or a teacher who teaches them, for up to 30 days, end it at any time, and see when it was last viewed; every share and view is audited. Nothing else in NavigateEd can read it, so it is never used for streaming or placement. Schools switch it on with the new "Interests and strengths mirror" module (off by default, not for early years). Reading will appear once the reading library is built.
 
+- HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
+- HQ AI calls go through the AI gateway's own HQ path, with moderation and HQ's own daily spending caps, and are metered apart from every school's AI spend.
+- Each library version now says where it came from (written by staff from a source, or an AI draft with who asked and who reviewed it), on the item page and in the audit log.
+- A new "Needs attention" page lists published library questions that learners find far harder or far easier than expected, from answers across schools, shown only as a percentage and a learner-count band, never a school or a learner, and only for questions answered by at least 20 learners in at least 3 schools. HQ can open a new draft from it.
+- The library review queue can show only AI drafts or only flagged items.
+
 ## 2026-11-03
 
 - When an admin panel browser CI part fails, CI now prints the PHP OPcache/JIT settings and the kernel's note on any PHP process it killed, so a panel server that stops without a PHP error can be diagnosed.

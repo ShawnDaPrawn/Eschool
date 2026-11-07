@@ -11,6 +11,8 @@
     <p>{{ trans_choice('{0} Nothing is waiting for review.|{1} 1 version is waiting for review.|[2,*] :count versions are waiting for review.', $waiting, ['count' => $waiting]) }}</p>
 @endif
 
+<p><a href="{{ route('saas.library.attention') }}">{{ trans_choice('{0} No item needs attention from learners\' answers.|{1} 1 item needs attention from learners\' answers.|[2,*] :count items need attention from learners\' answers.', $attention, ['count' => $attention]) }}</a></p>
+
 <h2>{{ __('Frameworks') }}</h2>
 @if ($frameworks === [])
     <p class="saas-card">{{ __('No frameworks yet. Add one below, such as CAPS.') }}</p>
@@ -48,6 +50,35 @@
     </div>
     <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Add the framework') }}</button></div>
 </form>
+
+<h2>{{ __('AI drafts') }}</h2>
+<p>{{ $drafting['available'] ? __('Ask for AI drafts from a framework\'s page. Every AI draft is reviewed by a person before it can be published.') : $drafting['message'] }}</p>
+@if ($recentDrafts !== [])
+<div class="saas-card saas-table-wrap" role="region" aria-label="{{ __('Recent AI draft requests') }}" tabindex="0">
+    <table class="saas-table">
+        <thead><tr><th scope="col">{{ __('Asked') }}</th><th scope="col">{{ __('Topic') }}</th><th scope="col">{{ __('What') }}</th><th scope="col">{{ __('By') }}</th><th scope="col">{{ __('Outcome') }}</th></tr></thead>
+        <tbody>
+        @foreach ($recentDrafts as $request)
+            <tr>
+                <td>{{ $request['at'] }}</td>
+                <th scope="row">{{ $request['topic'] }}</th>
+                <td>{{ $request['kind'] }} · {{ $request['count'] }}</td>
+                <td>{{ $request['by'] }}</td>
+                <td>
+                    @if ($request['state'] === 'completed')
+                        @foreach ($request['item_ids'] as $itemId)<a href="{{ route('saas.library.items.show', $itemId) }}">#{{ $itemId }}</a> @endforeach
+                    @elseif ($request['message'])
+                        <span class="saas-badge saas-badge--warn">{{ $request['message'] }}</span>
+                    @else
+                        {{ __('Waiting') }}
+                    @endif
+                </td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+</div>
+@endif
 
 <h2>{{ __('Sources and licences') }}</h2>
 <p>{{ __('Every item names where its content comes from and the licence that lets learners use it.') }}</p>
