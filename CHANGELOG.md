@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
 ## 2026-11-04
 
 - Practice runs are counted kindly: weekends, holidays, school closures and one missed school day a week no longer break a learner's run, and practising on a weekend still counts. The practice screen's day count follows the new rule.
