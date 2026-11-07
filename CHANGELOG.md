@@ -28,6 +28,22 @@
 
 - Practice tests (Action Plan 3.17): teachers set timed cycle tests for a group from their question bank (and the Navigate Ed library where it is on) on the new Practice tests page, sharing the questions between topics evenly or like chosen past papers; learners start quick quizzes and cycle tests through the v2 API. The server holds the deadline and the answers: nothing about the right answers reaches the device before hand-in, late saves are refused and a late hand-in counts only answers saved in time. Results count as practice evidence on the mastery map (labelled practice test), point to the topics to look at next and can hand a review to the tutor. Typed and photographed answers, mock exams and the app screens follow.
 
+- Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
+  content staff build a catalogue of classic public-domain books in HQ
+  (Reading library), record a copyright decision for each one (who, when and
+  why; only books cleared as public domain in South Africa ever reach
+  learners), put them on shelves by grade and write comprehension questions.
+  The server fetches each book once from a Project Gutenberg mirror, removes
+  the Project Gutenberg licence and name, keeps a private copy and serves it a
+  page at a time. With the new Reading library module switched on, school
+  leaders can hide shelves or books from their learners and switch on two
+  reading badges (finishing a book, reading on several days in a week), given
+  through Awards. Learners' places, reading time and answers are their own and
+  never compared. The learner API is ready; the app screens come later.
+  **Deploy:** run the migrations and set `READING_MIRROR_URL` (nothing is
+  fetched until it is set). The South African copyright rule and the use of the
+  Project Gutenberg name still need legal review before launch.
+
 - School groups: one owner, many schools (Action Plan 5.7, SA.18).
   - HQ creates a group, invites schools and names the group's administrators.
   - A school joins only when its own Super Admin agrees on the new School groups page. The page shows exactly what the group will see. The school can leave at any time, and the group stops seeing it at once.
