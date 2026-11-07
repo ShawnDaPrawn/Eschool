@@ -72,6 +72,33 @@ class LeadershipDashboard
         return ['school_id' => $school, 'session_year_id' => $yearId, 'starts_on' => $start, 'ends_on' => $end, 'activity_observed_since' => $observedSince, 'periods' => $periods];
     }
 
+    /**
+     * The school's recorded attendance over a window, with no grade split:
+     * the learners whose records were counted (an eligible, non-holiday day
+     * in their own homeroom, as read() decides), recorded learner days and
+     * present half-days. The learners are the base for small-number
+     * suppression, so a rate resting on one learner's records is never
+     * mistaken for one resting on the whole enrolment. Runs in the current school; the caller
+     * authorises (school groups, school-groups.md, show it as a rate with
+     * small numbers suppressed).
+     *
+     * @return array{learners: int, recorded_days: int, present_half_days: int}
+     */
+    public function attendanceTotals(int $yearId, string $start, string $end): array
+    {
+        $enrolments = Enrolment::with('homeroom.class')->where('session_year_id', $yearId)->whereDate('starts_on', '<=', $end)
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $start))->orderBy('id')->get();
+        $events = $this->attendance($yearId, $start, $end, $enrolments);
+
+        $learners = [];
+        foreach ($events as $event) {
+            $learners += $event['learner_ids'];
+        }
+
+        return ['learners' => count($learners),
+            'recorded_days' => array_sum(array_column($events, 'recorded_days')), 'present_half_days' => array_sum(array_column($events, 'present_half_days'))];
+    }
+
     private function metric(?int $value): array
     {
         return ['status' => $value === null ? 'unavailable' : 'available', 'value' => $value];
@@ -105,8 +132,10 @@ class LeadershipDashboard
                 continue;
             }
             $key = $grade.':'.$day['date'];
-            $events[$key] ??= ['grade_id' => (int) $grade, 'date' => $day['date'], 'recorded_days' => 0, 'present_half_days' => 0];
+            $events[$key] ??= ['grade_id' => (int) $grade, 'date' => $day['date'], 'recorded_days' => 0, 'present_half_days' => 0, 'learner_ids' => []];
             $events[$key]['recorded_days']++;
+            // Who the counted days belong to (read() ignores it; attendanceTotals() needs it).
+            $events[$key]['learner_ids'][$day['learner_id']] = true;
             $events[$key]['present_half_days'] += match ($day['state']) {
                 'present', 'late' => 2, 'first_half', 'second_half' => 1, default => 0
             };
