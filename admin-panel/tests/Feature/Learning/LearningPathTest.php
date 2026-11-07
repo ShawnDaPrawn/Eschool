@@ -89,6 +89,34 @@ class LearningPathTest extends TestCase
         return $this->path()->read($this->actor('asha'), $this->learner(), $this->group);
     }
 
+    public function test_path_ignores_school_questions_outside_its_single_answer_contract(): void
+    {
+        PracticeItem::query()->update(['active' => false]);
+        $this->approve(['definition' => ['kind' => 'short_text', 'prompt' => 'Write half in words.', 'explanation' => 'One half.', 'options' => [], 'answers' => ['one half']]]);
+        $state = $this->act('next', 0);
+        $this->assertSame(['gap', 'nothing_ready'], [$state['step'], $state['notice']]);
+        $this->assertSame(0, LearningPathItem::count());
+    }
+
+    public function test_path_selects_only_library_questions_it_can_mark(): void
+    {
+        $standard = $this->standard('MATH-SP');
+        DB::table('curriculum_plans')->where('school_id', 1)->update(['standard_id' => $standard->id,
+            'standard_snapshot' => json_encode(['id' => $standard->id, 'framework' => 'CAPS', 'code' => 'MATH-SP', 'name' => $standard->name])]);
+        $topic = $this->libraryTopic('Fractions');
+        $this->publishedItem($topic, ['question_kind' => 'short_text', 'answers' => 'one half', 'prompt' => 'Write half in words.']);
+        $this->publishedItem($topic, ['answers' => '0.5', 'prompt' => 'Write half as a decimal.']);
+        PracticeItem::query()->update(['active' => false]);
+        $this->switchLibrary(1, true);
+        $this->act('next', 0);
+        $state = $this->act('practise');
+        $this->assertCount(1, $state['items']);
+        $this->assertSame('number', $state['items'][0]['question']['kind']);
+        $this->answerAll($state);
+        $done = $this->answerAll($this->act('check'));
+        $this->assertSame(['review', true], [$done['step'], $done['check']['passed']]);
+    }
+
     public function test_full_loop_finds_the_gap_teaches_practises_checks_and_schedules_review_without_answers_on_the_device(): void
     {
         $start = $this->read();

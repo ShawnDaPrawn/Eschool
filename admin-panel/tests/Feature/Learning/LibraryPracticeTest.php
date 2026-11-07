@@ -79,7 +79,9 @@ class LibraryPracticeTest extends TestCase
         $this->assertSame([$this->items['fractions']->id, $this->items['decimals']->id], array_column($set['items'], 'item_id'), 'prerequisites first');
         $this->assertSame([$this->items['fractions']->published_version_id, $this->items['decimals']->published_version_id], array_column($set['items'], 'source_version_id'));
         $this->assertSame([$mirrors[$this->fractions->id], $mirrors[$this->decimals->id]], array_column($set['items'], 'topic_id'));
-        $this->assertSame(['0.5'], $set['items'][0]['definition']['answers']);
+        // A library question reaches the device without its answers too (3.11).
+        $this->assertArrayNotHasKey('answers', $set['items'][0]['question']);
+        $this->assertArrayNotHasKey('explanation', $set['items'][0]['question']);
         $this->assertSame(240, $set['estimated_seconds']);
         $this->assertSame(2, PracticeSetEntry::whereNotNull('library_item_version_id')->whereNull('practice_item_version_id')->count());
         // Mirror nodes stay out of the school's own graph.
