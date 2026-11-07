@@ -28,7 +28,7 @@ trait UsesContentLibrary
 {
     /** Every table of the platform library: none may hold a school_id. */
     protected const LIBRARY_TABLES = ['library_frameworks', 'library_sources', 'library_topics', 'library_topic_prerequisites', 'library_items',
-        'library_item_versions', 'library_reviews', 'library_reviewers'];
+        'library_item_versions', 'library_reviews', 'library_reviewers', 'library_ai_drafts'];
 
     private array $libraryStaff = [];
 

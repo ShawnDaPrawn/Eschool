@@ -56,6 +56,8 @@ class EvaluationCorporaTest extends TestCase
     {
         $config = require dirname(__DIR__, 3).'/config/ai.php';
         $features = array_keys($config['inference']['feature_policies']);
+        // HQ's own model calls (the platform library's AI drafting) need a corpus too.
+        $features = [...$features, ...array_keys($config['platform']['features'])];
         $features[] = 'redteam';
 
         return array_combine($features, array_map(fn ($feature) => [$feature], $features));
