@@ -136,6 +136,8 @@ Schedule::command('activities:prune-material-files')->dailyAt('03:40')->name('ac
 
 Schedule::command('digest:weekly')->hourly()->name('school-local-monday-digests')->withoutOverlapping(55);
 Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-digest-copy-retention')->withoutOverlapping();
+// Gentle practice nudges (Action Plan 3.13): off until a school switches them on; school-day afternoons only.
+Schedule::command('practice:nudges')->hourly()->name('practice-nudges')->withoutOverlapping(55);
 
 // The daily family summary (Action Plan 5.11): each guardian at their own chosen time.
 Schedule::command('family:daily-summary')->everyFifteenMinutes()->name('family-daily-summaries')->withoutOverlapping(14);

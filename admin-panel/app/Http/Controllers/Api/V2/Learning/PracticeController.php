@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V2\Learning;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Learning\PracticeRequest;
 use App\Services\Learning\DailyPractice;
+use App\Services\Learning\Motivation\PracticeMotivation;
 use App\Services\Learning\PracticeAccess;
 use App\Services\Learning\PracticeBank;
 use App\Services\Learning\PracticeChoices;
@@ -110,5 +111,15 @@ class PracticeController extends Controller
     private function bytes(string $bytes, string $mime): Response
     {
         return response($bytes, 200, ['Content-Type' => $mime, 'Content-Length' => (string) strlen($bytes), 'Content-Disposition' => 'inline', 'Cache-Control' => 'private, no-store']);
+    }
+
+    public function motivation(PracticeRequest $r, int $learner): JsonResponse
+    {
+        return $this->result(fn () => app(PracticeMotivation::class)->summary($r->user(), $learner));
+    }
+
+    public function goal(PracticeRequest $r, int $learner): JsonResponse
+    {
+        return $this->result(fn () => app(PracticeMotivation::class)->setGoal($r->user(), $learner, $r->all()));
     }
 }
