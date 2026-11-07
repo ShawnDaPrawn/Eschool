@@ -13748,6 +13748,86 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /open-badges/learners/{learner}/credentials:
+    get:
+      operationId: listLearnerBadgeCredentials
+      tags:
+      - Recognition
+      summary: listLearnerBadgeCredentials
+      description: A learner's current awards and whether each already has an Open Badges 3.0 credential (Action Plan 5.9).
+        For the learner's guardians, and for the learner from the age stage the school allows. available is false until
+        the platform's signing key is configured. Another school's learner is not found.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The learner's awards and credential state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeCredentialListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /open-badges/learners/{learner}/credentials/{presentation}:
+    get:
+      operationId: downloadLearnerBadgeCredential
+      tags:
+      - Recognition
+      summary: downloadLearnerBadgeCredential
+      description: The signed Open Badges 3.0 credential (a W3C Verifiable Credential, JSON-LD, with an eddsa-jcs-2022
+        Data Integrity proof) of one of the learner's current awards, as a file. Issued on the first download and the
+        same document afterwards. A withdrawn award is not found; anyone can check a credential at POST /open-badges/verify.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: presentation
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The signed credential.
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/OpenBadgeCredential'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: The credential was revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Credentials cannot be issued until the signing key is configured.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /recognition/{module}/access:
     get:
       operationId: getRecognitionAccess
@@ -32754,6 +32834,133 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/RecognitionPointHistory'
+    BadgeCredentialListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - available
+          - items
+          properties:
+            available:
+              type: boolean
+            items:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - presentation_id
+                - title
+                - presented_on
+                - kind
+                - issued
+                properties:
+                  presentation_id:
+                    type: integer
+                  title:
+                    type: string
+                  presented_on:
+                    type: string
+                    format: date
+                  kind:
+                    type: string
+                    enum:
+                    - award
+                    - badge
+                  issued:
+                    type: boolean
+    OpenBadgeCredential:
+      type: object
+      description: An Open Badges 3.0 OpenBadgeCredential. The recipient is a salted hash of their name.
+      additionalProperties: true
+      required:
+      - '@context'
+      - id
+      - type
+      - issuer
+      - validFrom
+      - name
+      - credentialSubject
+      - credentialStatus
+      - proof
+      properties:
+        '@context':
+          type: array
+          items:
+            type: string
+        id:
+          type: string
+          pattern: '^urn:uuid:'
+        type:
+          type: array
+          items:
+            type: string
+        issuer:
+          type: object
+          additionalProperties: true
+          required:
+          - id
+          - type
+          - name
+          properties:
+            id:
+              type: string
+            type:
+              type: array
+              items:
+                type: string
+            name:
+              type: string
+        validFrom:
+          type: string
+        name:
+          type: string
+        awardedDate:
+          type: string
+        credentialSubject:
+          type: object
+          additionalProperties: true
+        credentialStatus:
+          type: object
+          additionalProperties: true
+        proof:
+          type: object
+          additionalProperties: true
+          required:
+          - type
+          - cryptosuite
+          - created
+          - verificationMethod
+          - proofPurpose
+          - proofValue
+          properties:
+            type:
+              type: string
+            cryptosuite:
+              type: string
+            created:
+              type: string
+            verificationMethod:
+              type: string
+            proofPurpose:
+              type: string
+            proofValue:
+              type: string
     RecognitionAwardProfileResponse:
       type: object
       additionalProperties: false
