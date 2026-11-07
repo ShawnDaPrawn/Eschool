@@ -280,6 +280,7 @@ class MasteryEngineTest extends TestCase
             foreach ([
                 '2026_11_08_170000_create_practice_tests.php',
                 '2026_11_07_100000_create_diagnostic_attempts.php',
+                '2026_11_07_100000_add_practice_question_types.php',
                 '2026_11_06_110000_create_mastery_growth_snapshots.php',
                 '2026_11_05_130000_add_growth_digest_and_persistence_badges.php',
                 '2026_11_05_100000_scope_practice_items_to_subject_and_grade.php',
