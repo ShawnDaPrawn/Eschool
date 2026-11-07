@@ -182,6 +182,28 @@ class PlatformSchoolHealth
     }
 
     /**
+     * Only the family and learner figures of compute(), as of now: weekly
+     * active families, guardian reach and learners active in the app this
+     * week. Counts only. School groups (school-groups.md) show them across a
+     * group's schools; the caller authorises and suppresses small numbers.
+     *
+     * @return array{families: array{guardians: int, active: int}, reach: array{learners: int, reached: int, by_email: int, by_push: int}, learners_active: int}
+     */
+    public function familyFigures(int $schoolId): array
+    {
+        $school = DB::table('schools')->where('id', $schoolId)->first(['id', 'timezone']);
+        abort_if($school === null, 404);
+        $now = CarbonImmutable::now();
+        $today = $now->setTimezone((string) ($school->timezone ?: 'Africa/Johannesburg'))->toDateString();
+
+        return [
+            ...$this->families($schoolId, $today, $this->lastActive($schoolId, $today), $now->subDays(7)),
+            'learners_active' => DB::table('learner_activity_days')->where('school_id', $schoolId)
+                ->where('on_date', '>', CarbonImmutable::parse($today)->subDays(7)->toDateString())->distinct()->count('learner_id'),
+        ];
+    }
+
+    /**
      * The at-risk rules (config/school_health.php) against these figures and
      * the weekly active families of the four weeks before.
      *
