@@ -52,6 +52,9 @@ as mastery evidence of its own kind, so every learner starts with a filled map.
   (a check, not practice, and answers could otherwise be passed to classmates).
   Marking uses `PracticeAnswers` on the server. Answers are stored encrypted, as
   daily practice answers are.
+- **Question types.** The check plans only choice and number questions, which
+  its answer contract can mark automatically. Written, spoken, diagram and
+  per-part practice questions are omitted before ordering and applying limits.
 - **Evidence.** One `mastery_evidence` row per answered question:
   `source_type = diagnostic`, `audience = practice`, `content_source = library`,
   `library_item_version_id`, `item_key = library_item:<id>` (shared with library
@@ -151,6 +154,7 @@ first):
 | --- | --- | --- |
 | The switch on | Asha starts, answers right, right; right, wrong, wrong; wrong, wrong | Whole numbers first; its third question skipped; Fractions' third asked; 7 diagnostic evidence rows (practice audience, library, item keys, versions) on mirror nodes, the Grade 6 topic mirrored too; records in staff, family and practice; teacher sees bands Secure, Partly there, Start here and learners by name (Asha finished, Ben not started); Asha and her father see "Fractions, Decimals" and no score; library tables unchanged (`test_a_learner_takes_the_starting_check_and_fills_the_mastery_map`) |
 | A ← B ← C, the check lists C first and has no B question | start | A is asked before C (`test_a_prerequisite_chain_through_a_topic_with_no_question_still_orders_the_check`) |
+| A diagnostic lists a short written answer before a number question | start and answer | the number question is offered, the written question is omitted, and the check completes (`test_starting_check_skips_question_kinds_its_answer_contract_cannot_mark`) |
 | An attempt | read and answer | no answers, explanations or right/wrong in any payload; the stored answer is encrypted (`test_the_device_never_receives_answers_or_explanations_and_is_not_told_right_or_wrong`) |
 | An answered question | send it again, a different answer, out of order, malformed; start again after finishing; a skipped question | unchanged; 409; 409; 422; same attempt, nothing new; 409 (`test_submissions_are_idempotent_and_a_retake_never_double_counts`) |
 | Recorded marks | take the check; rebuild from marks | mark evidence and `question_marks` unchanged; diagnostic evidence kept, practice audience only, on its own topics (`test_diagnostic_evidence_never_overwrites_or_masquerades_as_assessment_marks`) |
