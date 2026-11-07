@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool $whatsapp_enabled
  * @property list<string>|null $sms_types
  * @property list<string>|null $whatsapp_types
+ * @property list<string>|null $staff_sms_types
+ * @property list<string>|null $staff_whatsapp_types
  * @property int $revision
  */
 class SchoolMessagingSetting extends Model
@@ -32,6 +34,8 @@ class SchoolMessagingSetting extends Model
             'whatsapp_enabled' => 'boolean',
             'sms_types' => 'array',
             'whatsapp_types' => 'array',
+            'staff_sms_types' => 'array',
+            'staff_whatsapp_types' => 'array',
             'whatsapp_consent_confirmed_at' => 'datetime',
             'changed_by' => 'integer',
             'revision' => 'integer',
