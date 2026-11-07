@@ -8,6 +8,7 @@ use App\Models\Library\LibraryItem;
 use App\Models\Library\LibraryItemVersion;
 use App\Models\Library\LibraryTopic;
 use App\Services\Learning\PracticeAnswers;
+use App\Services\Learning\PracticeMedia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -27,15 +28,26 @@ class LibraryContent
 
     public const QUESTIONS = ['practice_question', 'past_paper_question'];
 
+    /** The answer types a question may have (Action Plan 3.11), as the forms name them. */
+    public const QUESTION_KINDS = ['number' => 'A number', 'choice' => 'Choose an option', 'steps' => 'Worked steps, each marked', 'short_text' => 'A short written answer',
+        'diagram_label' => 'Label a diagram', 'audio' => 'A spoken answer'];
+
     /** The form fields an item's content may arrive in; the kind decides which are required. */
     public static function rules(): array
     {
         return [
-            'question_kind' => ['nullable', 'string', 'in:choice,number'],
+            'question_kind' => ['nullable', 'string', 'in:'.implode(',', PracticeAnswers::KINDS)],
             'prompt' => ['nullable', 'string', 'max:4000'],
             'explanation' => ['nullable', 'string', 'max:4000'],
             'options' => ['nullable', 'string', 'max:7000'],
-            'answers' => ['nullable', 'string', 'max:1100'],
+            'answers' => ['nullable', 'string', 'max:4500'],
+            'steps' => ['nullable', 'string', 'max:12000'],
+            'regions' => ['nullable', 'string', 'max:400'],
+            'labels' => ['nullable', 'string', 'max:4000'],
+            'mapping' => ['nullable', 'string', 'max:400'],
+            'max_seconds' => ['nullable', 'integer', 'between:10,180'],
+            'diagram_id' => ['nullable', 'uuid'],
+            'diagram' => ['nullable', 'file', 'mimes:jpeg,png', 'extensions:jpg,jpeg,png', 'max:4096'],
             'estimated_seconds' => ['nullable', 'integer', 'between:60,300'],
             'paper_year' => ['nullable', 'integer', 'between:2000,2100'],
             'paper_code' => ['nullable', 'string', 'max:32'],
@@ -54,15 +66,15 @@ class LibraryContent
     {
         $data = Validator::make($input, self::rules())->validate();
         if (in_array($kind, self::QUESTIONS, true)) {
-            Validator::make($data, ['question_kind' => ['required'], 'prompt' => ['required'], 'explanation' => ['required'], 'answers' => ['required'], 'estimated_seconds' => ['required']])->validate();
-            $options = [];
-            foreach ($this->lines((string) ($data['options'] ?? '')) as $line) {
-                [$id, $text] = array_pad(array_map('trim', explode(':', $line, 2)), 2, '');
-                $options[] = ['id' => $id, 'text' => $text];
-            }
+            Validator::make($data, ['question_kind' => ['required'], 'prompt' => ['required'], 'explanation' => ['required'], 'estimated_seconds' => ['required'],
+                'answers' => ['required_if:question_kind,choice,number,short_text'], 'steps' => ['required_if:question_kind,steps'],
+                'regions' => ['required_if:question_kind,diagram_label'], 'labels' => ['required_if:question_kind,diagram_label'], 'mapping' => ['required_if:question_kind,diagram_label'],
+                'diagram_id' => ['required_if:question_kind,diagram_label'], 'max_seconds' => ['required_if:question_kind,audio']])->validate();
             try {
-                $definition = app(PracticeAnswers::class)->definition(['kind' => $data['question_kind'], 'prompt' => $data['prompt'], 'explanation' => $data['explanation'],
-                    'options' => $options, 'answers' => $this->lines((string) $data['answers'])]);
+                // The same question types and checks as a school's own questions (Action Plan 3.11).
+                $image = $data['question_kind'] === 'diagram_label'
+                    ? app(PracticeMedia::class)->withLibraryDiagram(['kind' => 'diagram_label', 'diagram' => ['id' => $data['diagram_id']]])['diagram'] : null;
+                $definition = app(PracticeAnswers::class)->fromForm($data, $image);
             } catch (InvalidArgumentException $error) {
                 throw ValidationException::withMessages(['prompt' => $error->getMessage()]);
             }
@@ -97,18 +109,10 @@ class LibraryContent
         $content = $version->content;
         $definition = $content['definition'] ?? null;
         if (is_array($definition)) {
-            return ['question_kind' => $definition['kind'], 'prompt' => $definition['prompt'], 'explanation' => $definition['explanation'],
-                'options' => implode("\n", array_map(fn ($o) => $o['id'].': '.$o['text'], $definition['options'])), 'answers' => implode("\n", $definition['answers']),
-                'estimated_seconds' => $version->estimated_seconds, 'paper_year' => $content['paper']['year'] ?? null, 'paper_code' => $content['paper']['code'] ?? null,
-                'question_number' => $content['paper']['question'] ?? null];
+            return app(PracticeAnswers::class)->toForm($definition) + ['estimated_seconds' => $version->estimated_seconds, 'paper_year' => $content['paper']['year'] ?? null,
+                'paper_code' => $content['paper']['code'] ?? null, 'question_number' => $content['paper']['question'] ?? null];
         }
 
         return ['body' => $content['body'] ?? null, 'instructions' => $content['instructions'] ?? null, 'item_ids' => $content['item_ids'] ?? []];
-    }
-
-    /** @return list<string> */
-    private function lines(string $text): array
-    {
-        return array_values(array_filter(array_map('trim', preg_split('/\R/', $text) ?: []), fn (string $line) => $line !== ''));
     }
 }

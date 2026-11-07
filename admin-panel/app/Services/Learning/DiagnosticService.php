@@ -273,7 +273,9 @@ class DiagnosticService
         foreach ($ids as $id) {
             $item = $items->get($id);
             $itemVersion = $item === null ? null : $versions->get($item->published_version_id);
-            if ($itemVersion === null || (int) $itemVersion->library_item_id !== (int) $item->id || ! is_array($itemVersion->practiceDefinition())) {
+            $definition = $itemVersion?->practiceDefinition();
+            if ($itemVersion === null || (int) $itemVersion->library_item_id !== (int) $item->id || ! is_array($definition)
+                || ! in_array($definition['kind'] ?? null, PracticeAnswers::SINGLE, true)) {
                 continue;
             }
             $byTopic[$item->library_topic_id][] = [$item, $itemVersion, $item->topic];
