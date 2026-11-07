@@ -42,6 +42,7 @@ use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
 use App\Http\Controllers\Panel\Activities\ActivitySeasonController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
+use App\Http\Controllers\Panel\Activities\FixturePanelController;
 use App\Http\Controllers\Panel\Activities\GroupChatPanelController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
@@ -437,6 +438,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::put('/items/{item}/draft', [PlatformLibraryController::class, 'draft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.draft');
             Route::post('/items/{item}/submit', [PlatformLibraryController::class, 'submit'])->middleware('throttle:60,1')->whereNumber('item')->name('items.submit');
             Route::post('/items/{item}/publish', [PlatformLibraryController::class, 'publish'])->middleware('throttle:60,1')->whereNumber('item')->name('items.publish');
+            // The content production pipeline (3.4): AI drafts into review, and items learners' answers flag (counts and rates only).
+            Route::post('/drafts', [PlatformLibraryController::class, 'storeDrafts'])->middleware('throttle:10,1')->name('drafts.store');
+            Route::get('/attention', [PlatformLibraryController::class, 'attention'])->name('attention');
+            Route::post('/items/{item}/redraft', [PlatformLibraryController::class, 'redraft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.redraft');
             Route::post('/reviewers', [PlatformLibraryController::class, 'storeReviewer'])->middleware('throttle:30,1')->name('reviewers.store');
             Route::delete('/reviewers/{assignment}', [PlatformLibraryController::class, 'removeReviewer'])->whereNumber('assignment')->name('reviewers.destroy');
             Route::put('/schools/{school}', [PlatformLibraryController::class, 'switch'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.switch');
@@ -643,6 +648,20 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::middleware(['module:groups', 'can:activity-groups-manage'])->group(function () {
             Route::get('activity-seasons', [ActivitySeasonController::class, 'index'])->name('activity-seasons.index');
             Route::post('activity-seasons', [ActivitySeasonController::class, 'store'])->middleware('throttle:20,1')->name('activity-seasons.store');
+        });
+        // Fixtures and competitions between schools (Action Plan 5.1, 5.2).
+        Route::prefix('activity-fixtures')->name('activity-fixtures.')->middleware(['module:groups', 'can:activity-groups-manage', 'cache.headers:private;no_store'])->group(function () {
+            $c = FixturePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'write'])->middleware('throttle:30,1')->name('create');
+            Route::get('{fixture}', [$c, 'show'])->whereNumber('fixture')->name('show');
+            foreach (['schedule', 'decision', 'side', 'result'] as $action) {
+                Route::post('{fixture}/'.$action, [$c, 'write'])->whereNumber('fixture')->middleware('throttle:30,1')->name($action);
+            }
+            Route::post('competitions', [$c, 'competitionWrite'])->middleware('throttle:30,1')->name('competition-create');
+            Route::get('competitions/{competition}', [$c, 'competition'])->whereNumber('competition')->name('competition-show');
+            Route::post('competitions/{competition}/invitations', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-invite');
+            Route::post('competitions/{competition}/decision', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-decision');
         });
         Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
             $c = ActivityWorkbenchController::class;
