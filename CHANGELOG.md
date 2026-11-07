@@ -3,6 +3,8 @@
 ## 2026-11-07
 
 - Refuse the practice question-type rollback while recorded per-part results remain, including automatically marked answers, so rollback cannot erase their marks.
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 
 ## 2026-11-04
 
