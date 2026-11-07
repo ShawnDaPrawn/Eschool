@@ -33,6 +33,7 @@ use App\Services\Pathways\PathwayPanelScope;
 use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Offboarding\SchoolExit;
+use App\Services\Reading\ReadingAccess;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
 use App\Services\Wellbeing\CheckIns;
@@ -218,6 +219,9 @@ class Navigation
             return false;
         }
         if (($item['early_years_actor'] ?? false) && ! app(EarlyYearsAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['reading_leader'] ?? false) && ! app(ReadingAccess::class)->mayLead($user)) {
             return false;
         }
         // Only while the school is leaving and has an export to collect (SA.11).
