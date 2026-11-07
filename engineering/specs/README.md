@@ -63,3 +63,4 @@ Keep the headings even when a section is "None", so a reviewer can see it was co
 | [platform/profile-files.md](platform/profile-files.md): encrypted person attachments and authenticated panel/app previews | 1, profile fields | Identity |
 | [academics/academic-references.md](academics/academic-references.md): shared grades/phases, seven-point reference and explicit class mapping | 2, foundation of 2.2 | Academics |
 | [academics/school-terms.md](academics/school-terms.md): canonical terms, grade calendars, templates and semester retirement | 2, 2.1 | Academics |
+| [people/learner-passport.md](people/learner-passport.md): read-only learner passport across schools, headed by LURITS; the learner's own download from 18 | 4, Action Plan 4.10 | People |
