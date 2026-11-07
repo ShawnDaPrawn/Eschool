@@ -6,6 +6,7 @@
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 - Keep the check-in test answers on their intended school date when CI starts near midnight.
 - Return the saved school-business receipt on the first response so exact retries retain the same JSON representation on MySQL.
+- Keep invoice installment JSON paths in UTF-8 on MySQL 8, so sealing invoices and applying approved bursaries do not fail on binary JSON conversion. The repair migration retains the existing financial guards.
 
 ## 2026-11-06
 
@@ -16,6 +17,7 @@
 
 ## 2026-11-03
 
+- When an admin panel browser CI part fails, CI now prints the PHP OPcache/JIT settings and the kernel's note on any PHP process it killed, so a panel server that stops without a PHP error can be diagnosed.
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
 - Refresh the strict HQ route inventory while retaining every route authorization assertion.
 - Apply question-bank scope foreign keys after backfill and required-column conversion, preserving the final constraints on MySQL 8 and MariaDB.
