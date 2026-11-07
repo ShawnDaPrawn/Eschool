@@ -12,7 +12,7 @@ product modules (`config/product_modules.php`):
 | Pastoral care | wellbeing, support plans, early warning, discipline, My grade |
 | Family engagement | weekly digest, family forms, meetings and early collection, gallery, consultations, school assistant, live updates, direct messages |
 | Activities and culture | activity groups, house points, awards, peer tutoring |
-| Futures | pathways, school transfers |
+| Futures | pathways, school transfers, learner passport |
 | Leadership and staff | leadership dashboard, relief cover |
 | Finance | fees, wallets, vendors, counter payments, ticketing |
 | Access and admissions | ID cards, online registration |
