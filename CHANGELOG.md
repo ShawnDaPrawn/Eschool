@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
 ## 2026-11-04
 
 - Exam coach memos can now be marked against (Action Plan 3.16). A new marking engine checks a typed answer, step by step, against a memo's mark points: values with their tolerance, units (converting between SI units such as km/h and m/s), equivalent algebra, formulas, key terms, significant figures and consistent-accuracy follow-through. Mathematics and Physical Sciences have their own conventions (for example, Physical Sciences needs the unit and the direction); other subjects use only the memo's rules. Every mark gets a reason and a confidence; method and explanation marks that no rule decides always go to a teacher, as automatic judgement stays off.
