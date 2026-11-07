@@ -2,7 +2,7 @@
 
 @php
     $isCredit = $invoice['kind'] === 'credit_note';
-    $kindLabel = $isCredit ? __('Credit note') : ($invoice['status'] === 'issued' ? __('Tax invoice') : __('Draft invoice'));
+    $kindLabel = $isCredit ? __('Credit note') : match ($invoice['status']) { 'issued' => __('Tax invoice'), 'grouped' => __('Month billed through the school group'), default => __('Draft invoice') };
 @endphp
 @section('title', ($invoice['reference'] ?? $kindLabel).' · '.$school['name'])
 
@@ -19,6 +19,7 @@
 <article class="saas-card saas-invoice" aria-label="{{ $kindLabel }}">
     <h1>{{ $kindLabel }} @if ($invoice['reference']){{ $invoice['reference'] }}@endif</h1>
     @if ($invoice['status'] === 'draft')<p><span class="saas-badge saas-badge--warn">{{ __('Draft: not issued, not sent, no reference yet') }}</span></p>@endif
+    @if ($invoice['status'] === 'grouped')<p><span class="saas-badge">{{ __('These lines are on the school group\'s invoice for the month. The school is not invoiced for this month on its own.') }}</span></p>@endif
     @if ($invoice['status'] === 'discarded')<p><span class="saas-badge saas-badge--warn">{{ __('Discarded: this school is not billed for this month') }}</span></p>@endif
     <div class="saas-grid">
         <div>
