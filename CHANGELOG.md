@@ -15,6 +15,12 @@
 
 - Schools can build an alumni and volunteer pool for career talks and job shadows (API only for now; the module "Alumni and volunteer pool" is off by default). The office invites former learners from its own adult leaver records, and outside volunteers; each person consents when they first sign in, and can withdraw at any time with immediate effect. The school records each person's safety checks, who checked and when the clearance ends, and can book only cleared people, only into staffed group sessions of at least two learners. Pool members get their own sign-in that never reaches learner records, marks or contact details; they see a session's attendance list on the day of the session only.
 
+- HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
+- HQ AI calls go through the AI gateway's own HQ path, with moderation and HQ's own daily spending caps, and are metered apart from every school's AI spend.
+- Each library version now says where it came from (written by staff from a source, or an AI draft with who asked and who reviewed it), on the item page and in the audit log.
+- A new "Needs attention" page lists published library questions that learners find far harder or far easier than expected, from answers across schools, shown only as a percentage and a learner-count band, never a school or a learner, and only for questions answered by at least 20 learners in at least 3 schools. HQ can open a new draft from it.
+- The library review queue can show only AI drafts or only flagged items.
+
 ## 2026-11-03
 
 - When an admin panel browser CI part fails, CI now prints the PHP OPcache/JIT settings and the kernel's note on any PHP process it killed, so a panel server that stops without a PHP error can be diagnosed.

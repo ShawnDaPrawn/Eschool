@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Learning\Library;
 
 use App\Models\Academics\GradeLevel;
+use App\Models\Library\LibraryAiDraft;
 use App\Models\Library\LibraryFramework;
 use App\Models\Library\LibraryItem;
 use App\Models\Library\LibraryItemVersion;
@@ -15,6 +16,8 @@ use App\Models\Library\LibraryTopic;
 use App\Models\Library\LibraryTopicPrerequisite;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /** What the /saas/library pages show (SA.16). Library rows and platform staff names only: never a school's people. */
 class LibraryPages
@@ -22,6 +25,9 @@ class LibraryPages
     public const STATES = ['draft' => 'Draft', 'in_review' => 'Waiting for review', 'approved' => 'Approved', 'rejected' => 'Rejected', 'published' => 'Published'];
 
     public const QUEUE_PER_PAGE = 50;
+
+    /** The review queue's filters (Action Plan 3.4): everything, AI drafts only, or items learners' answers have flagged. */
+    public const QUEUE_FILTERS = ['all' => 'Everything waiting', 'ai_draft' => 'AI drafts', 'attention' => 'Needs attention'];
 
     public function index(User $actor, int $schoolPage = 1): array
     {
@@ -47,6 +53,9 @@ class LibraryPages
             'reviewerChoices' => app(LibraryReviewers::class)->candidates(),
             'waiting' => LibraryItemVersion::query()->where('state', 'in_review')->count(),
             'canReview' => app(LibraryAccess::class)->can($actor, LibraryAccess::REVIEW),
+            'drafting' => app(LibraryDrafting::class)->status(),
+            'recentDrafts' => app(LibraryDrafting::class)->recent(),
+            'attention' => app(LibraryQuality::class)->flaggedCount(),
         ] + app(LibrarySchools::class)->list($schoolPage);
     }
 
@@ -70,11 +79,16 @@ class LibraryPages
                 'prerequisites' => ($edges[$t->id] ?? collect())->map(fn ($e) => (string) $names->get($e->prerequisite_id))->all(),
                 'siblings' => $topics->where('subject_code', $t->subject_code)->where('id', '!=', $t->id)->mapWithKeys(fn ($s) => [(int) $s->id => $s->name.' ('.$gradeNames->get($s->grade_level_id).')'])->all(),
                 'items' => ($items[$t->id] ?? collect())->map(fn ($i) => ['id' => (int) $i->id, 'title' => $i->title, 'kind' => LibraryContent::KINDS[$i->kind] ?? $i->kind,
-                    'state' => self::STATES[$latest[$i->id]->state ?? 'draft'] ?? '', 'published' => $i->published_version_id !== null])->values()->all()])->all(),
+                    'state' => self::STATES[$latest[$i->id]->state ?? 'draft'] ?? '', 'published' => $i->published_version_id !== null,
+                    'ai' => ($latest[$i->id]->origin ?? 'staff') === 'ai_draft'])->values()->all()])->all(),
             'topicChoices' => $topics->mapWithKeys(fn ($t) => [(int) $t->id => $t->subject_code.' · '.$gradeNames->get($t->grade_level_id).' · '.$t->name])->all(),
             'subjectChoices' => app(LibraryCatalogue::class)->subjectChoices($framework),
             'gradeChoices' => $gradeNames->all(),
             'kinds' => LibraryContent::KINDS,
+            'drafting' => app(LibraryDrafting::class)->status(),
+            'draftKinds' => LibraryDrafting::KINDS,
+            'draftMaximum' => LibraryDrafting::MAXIMUM,
+            'operationId' => (string) Str::uuid(),
             'sourceChoices' => LibrarySource::query()->orderBy('title')->limit(500)->get()->mapWithKeys(fn ($s) => [(int) $s->id => $s->title.' · '.$s->licence])->all(),
         ];
     }
@@ -85,7 +99,9 @@ class LibraryPages
         $item = LibraryItem::query()->with('topic.framework', 'source')->findOrFail($id);
         $versions = LibraryItemVersion::query()->where('library_item_id', $item->id)->orderByDesc('number')->get();
         $reviews = LibraryReview::query()->whereIn('library_item_version_id', $versions->pluck('id'))->orderBy('id')->get()->groupBy('library_item_version_id');
-        $names = $this->names($versions->pluck('created_by')->merge($versions->pluck('published_by'))->merge($reviews->flatten()->pluck('reviewer_id'))->filter()->all());
+        $requests = LibraryAiDraft::query()->whereIn('id', $versions->pluck('library_ai_draft_id')->filter()->unique())->get()->keyBy('id');
+        $names = $this->names($versions->pluck('created_by')->merge($versions->pluck('published_by'))->merge($reviews->flatten()->pluck('reviewer_id'))
+            ->merge($requests->pluck('requested_by'))->filter()->all());
         $latest = $versions->first();
 
         return [
@@ -97,10 +113,14 @@ class LibraryPages
             'versions' => $versions->map(fn ($v) => ['id' => (int) $v->id, 'number' => $v->number, 'state' => $v->state, 'state_label' => self::STATES[$v->state] ?? $v->state,
                 'author' => $names[$v->created_by] ?? '', 'published_by' => $v->published_by ? ($names[$v->published_by] ?? '') : null,
                 'published_at' => $v->published_at?->format('Y-m-d H:i'), 'current' => (int) $v->id === (int) $item->published_version_id, 'content' => $this->display($v),
+                'origin' => (string) $v->origin, 'provenance' => $this->provenance($v, $item->source, $reviews[$v->id] ?? collect(), $requests->get($v->library_ai_draft_id), $names),
+                'request' => $v->library_ai_draft_id === null || ! $requests->has($v->library_ai_draft_id) ? null : ['id' => (int) $v->library_ai_draft_id,
+                    'brief' => $requests[$v->library_ai_draft_id]->brief, 'by' => $names[$requests[$v->library_ai_draft_id]->requested_by] ?? ''],
                 'reviews' => ($reviews[$v->id] ?? collect())->map(fn ($r) => ['decision' => $r->decision, 'reason' => $r->reason, 'reviewer' => $names[$r->reviewer_id] ?? '',
                     'at' => $r->created_at?->format('Y-m-d H:i')])->values()->all()])->all(),
-            'latest' => ['id' => (int) $latest->id, 'state' => $latest->state],
+            'latest' => ['id' => (int) $latest->id, 'state' => $latest->state, 'origin' => (string) $latest->origin],
             'fields' => app(LibraryContent::class)->fields($latest),
+            'signal' => $this->signal((int) $item->id),
         ];
     }
 
@@ -110,11 +130,14 @@ class LibraryPages
      * other subjects' queues never push this reviewer's items out of view.
      * Each row says whether this reviewer may decide it, and if not, why.
      */
-    public function reviews(User $actor, int $page = 1): array
+    public function reviews(User $actor, int $page = 1, string $filter = 'all'): array
     {
         $actor = app(LibraryAccess::class)->actor($actor, LibraryAccess::REVIEW);
+        $filter = array_key_exists($filter, self::QUEUE_FILTERS) ? $filter : 'all';
         $assignments = LibraryReviewer::query()->where('user_id', $actor->id)->orderBy('library_framework_id')->orderBy('subject_code')->get();
         $paginator = LibraryItemVersion::query()->with('item.topic.framework', 'item.source')->where('state', 'in_review')
+            ->when($filter === 'ai_draft', fn ($q) => $q->where('origin', 'ai_draft'))
+            ->when($filter === 'attention', fn ($q) => $q->whereIn('library_item_id', app(LibraryQuality::class)->flaggedItemIdsQuery()))
             ->whereHas('item.topic', function ($topic) use ($assignments) {
                 $topic->where(function ($any) use ($assignments) {
                     $any->whereRaw('1 = 0');
@@ -124,21 +147,25 @@ class LibraryPages
                 });
             })
             ->orderBy('submitted_at')->orderBy('id')
-            ->paginate(self::QUEUE_PER_PAGE, ['*'], 'page', max(1, min(100000, $page)))->withPath(route('saas.library.reviews'));
+            ->paginate(self::QUEUE_PER_PAGE, ['*'], 'page', max(1, min(100000, $page)))->withPath(route('saas.library.reviews'))->appends($filter === 'all' ? [] : ['filter' => $filter]);
         $versions = collect($paginator->items());
+        $flagged = app(LibraryQuality::class)->flaggedAmong($versions->pluck('library_item_id')->map(fn ($id) => (int) $id)->unique()->values()->all());
         $names = $this->names($versions->pluck('submitted_by')->filter()->all());
         $grades = GradeLevel::query()->pluck('name', 'id');
         $subjects = $assignments->map(fn ($r) => LibraryFramework::query()->whereKey($r->library_framework_id)->value('code').' · '.$r->subject_code)->all();
 
         return [
             'subjects' => $subjects,
+            'filter' => $filter,
+            'filters' => self::QUEUE_FILTERS,
             'total' => $paginator->total(),
             'page' => $paginator->currentPage(),
             'lastPage' => $paginator->lastPage(),
             'waiting' => $versions->map(fn ($v) => ['id' => (int) $v->id, 'number' => $v->number, 'title' => $v->item->title, 'kind' => LibraryContent::KINDS[$v->item->kind] ?? $v->item->kind,
                 'framework' => $v->item->topic->framework->code, 'subject_code' => $v->item->topic->subject_code, 'grade' => (string) $grades->get($v->item->topic->grade_level_id),
                 'topic' => $v->item->topic->name, 'source' => $v->item->source->title.' · '.$v->item->source->licence, 'submitted_by' => $names[$v->submitted_by] ?? '',
-                'submitted_at' => $v->submitted_at?->format('Y-m-d H:i'), 'content' => $this->display($v), 'refusal' => app(LibraryReviewers::class)->refusal($actor, $v)])->all(),
+                'submitted_at' => $v->submitted_at?->format('Y-m-d H:i'), 'content' => $this->display($v), 'refusal' => app(LibraryReviewers::class)->refusal($actor, $v),
+                'ai' => $v->drafted(), 'attention' => in_array((int) $v->library_item_id, $flagged, true)])->all(),
         ];
     }
 
@@ -158,6 +185,33 @@ class LibraryPages
 
         return ['type' => 'diagnostic', 'instructions' => $content['instructions'] ?? '',
             'items' => LibraryItem::query()->whereIn('id', $content['item_ids'] ?? [])->orderBy('id')->pluck('title')->all()];
+    }
+
+    /**
+     * Where a version's content came from, in words: the source for staff
+     * writing; for an AI draft, who asked and who reviewed it.
+     */
+    private function provenance(LibraryItemVersion $version, LibrarySource $source, Collection $reviews, ?LibraryAiDraft $request, array $names): string
+    {
+        if (! $version->drafted()) {
+            return 'Written by staff from '.$source->title.' ('.$source->licence.')';
+        }
+        $approval = $reviews->where('decision', 'approved')->last();
+        $reviewed = $approval === null ? 'not yet approved by a reviewer' : 'reviewed by '.($names[$approval->reviewer_id] ?? 'a former staff member');
+
+        return 'AI draft from '.$source->title.($request === null ? '' : ', asked for by '.($names[$request->requested_by] ?? 'a former staff member')).' — '.$reviewed;
+    }
+
+    /** The item's learner-answer signal, as HQ may see it, or null. */
+    private function signal(int $itemId): ?array
+    {
+        $signal = app(LibraryQuality::class)->signal($itemId);
+        if ($signal === null) {
+            return null;
+        }
+
+        return ['facility' => intdiv($signal['facility_bp'] + 50, 100), 'learners' => app(LibraryQuality::class)->band($signal['learners']),
+            'label' => $signal['signal'] === null ? null : LibraryQuality::SIGNALS[$signal['signal']]];
     }
 
     /** @return array<int, string> */

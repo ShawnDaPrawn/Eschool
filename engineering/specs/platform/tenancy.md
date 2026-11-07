@@ -305,6 +305,11 @@ rows may point into the library (`mastery_topics.library_topic_id`,
 `practice_set_entries.library_item_version_id`,
 `practice_memories.library_item_id`), never the other way
 ([content library](../learning/content-library.md)).
+`library_ai_drafts` (HQ's requests for AI drafts) and `platform_ai_usage` (HQ's
+own AI metering, for model calls made from `/saas` with no school) are global
+too (Action Plan 3.4). The library's quality signals read school practice
+answers across schools only as counts with a minimum group of 20 learners in 3
+schools, and store nothing ([content pipeline](../learning/content-pipeline.md)).
 
 ### Invitations to join another school
 
