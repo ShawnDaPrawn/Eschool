@@ -122,6 +122,7 @@ use App\Http\Controllers\Panel\People\LeaverController;
 use App\Http\Controllers\Panel\People\LuritsOfficeController;
 use App\Http\Controllers\Panel\People\SchoolImportController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
+use App\Http\Controllers\Panel\Reading\ReadingPanelController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
 use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\Panel\Transfers\TransferPanelController;
@@ -153,6 +154,7 @@ use App\Http\Controllers\Platform\PlatformMessagingController;
 use App\Http\Controllers\Platform\PlatformOffboardingController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
+use App\Http\Controllers\Platform\PlatformReadingController;
 use App\Http\Controllers\Platform\PlatformSchoolGroupController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformSchoolImportController;
@@ -456,6 +458,21 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
         });
+    });
+    // The reading library catalogue (4.4): public-domain books, rights decisions, shelves and questions; never a school's learners.
+    Route::prefix('/reading')->name('reading.')->middleware('platform.can:reading.manage')->group(function () {
+        Route::get('/', [PlatformReadingController::class, 'index'])->name('index');
+        Route::post('/books', [PlatformReadingController::class, 'storeBook'])->middleware('throttle:30,1')->name('books.store');
+        Route::get('/books/{book}', [PlatformReadingController::class, 'book'])->whereNumber('book')->name('books.show');
+        Route::put('/books/{book}', [PlatformReadingController::class, 'updateBook'])->middleware('throttle:30,1')->whereNumber('book')->name('books.update');
+        Route::post('/books/{book}/rights', [PlatformReadingController::class, 'rights'])->middleware('throttle:30,1')->whereNumber('book')->name('books.rights');
+        Route::post('/books/{book}/fetch', [PlatformReadingController::class, 'fetch'])->middleware('throttle:10,1')->whereNumber('book')->name('books.fetch');
+        Route::post('/books/{book}/questions', [PlatformReadingController::class, 'storeQuestion'])->middleware('throttle:60,1')->whereNumber('book')->name('questions.store');
+        Route::post('/questions/{question}/retire', [PlatformReadingController::class, 'retireQuestion'])->middleware('throttle:60,1')->whereNumber('question')->name('questions.retire');
+        Route::post('/shelves', [PlatformReadingController::class, 'storeShelf'])->middleware('throttle:30,1')->name('shelves.store');
+        Route::get('/shelves/{shelf}', [PlatformReadingController::class, 'shelf'])->whereNumber('shelf')->name('shelves.show');
+        Route::put('/shelves/{shelf}', [PlatformReadingController::class, 'updateShelf'])->middleware('throttle:30,1')->whereNumber('shelf')->name('shelves.update');
+        Route::put('/shelves/{shelf}/books', [PlatformReadingController::class, 'shelfBooks'])->middleware('throttle:30,1')->whereNumber('shelf')->name('shelves.books');
     });
     // SMS and WhatsApp pass-through cost per school (2.7): counts and sums only.
     Route::get('/messaging', [PlatformMessagingController::class, 'index'])->middleware('platform.can:messaging.view')->name('messaging');
@@ -1686,6 +1703,13 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::get('unseen', [UnseenLearnersController::class, 'index'])->name('unseen');
     Route::post('unseen/learners/{learner}/adult', [UnseenLearnersController::class, 'assign'])->whereNumber('learner')->middleware('throttle:30,1')->name('unseen.assign');
     Route::post('unseen/settings', [UnseenLearnersController::class, 'configure'])->name('unseen.configure');
+});
+
+// The reading library at a school (Action Plan 4.4): its leaders hide shelves and books and set the reading badges.
+Route::middleware(['auth', 'school.context', 'module:reading'])->prefix('reading-library')->name('reading-library.')->group(function () {
+    Route::get('/', [ReadingPanelController::class, 'index'])->name('index');
+    Route::post('hidden', [ReadingPanelController::class, 'hidden'])->middleware('throttle:60,1')->name('hidden');
+    Route::put('settings', [ReadingPanelController::class, 'settings'])->middleware('throttle:30,1')->name('settings');
 });
 
 // Short private wellbeing check-ins for authorised pastoral staff (Action Plan 4.11).
