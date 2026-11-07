@@ -44,6 +44,7 @@ use App\Http\Controllers\Api\V2\Learning\DiaryController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
+use App\Http\Controllers\Api\V2\Learning\StrengthsMirrorController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
@@ -840,6 +841,20 @@ Route::prefix('diary')->middleware([PrivateDomainResponse::class, 'auth:sanctum'
     Route::delete('entries/{entry}', [$c, 'destroy'])->whereNumber('entry')->middleware('throttle:60,1')->name('entries.destroy');
     Route::put('items/{source}/{item}/state', [$c, 'state'])->whereIn('source', ['homework', 'holiday', 'event'])->whereNumber('item')->middleware('throttle:60,1')->name('items.state');
 });
+
+// The learner's own strengths mirror. Only that learner reads it; a guardian or
+// teacher reads only a read-only copy the learner shared with them by name.
+Route::prefix('strengths')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:strengths_mirror', 'throttle:60,1'])
+    ->name('api.v2.strengths.')->group(function () {
+        $c = StrengthsMirrorController::class;
+        Route::get('/', [$c, 'mirror'])->name('mirror');
+        Route::get('recipients', [$c, 'recipients'])->name('recipients');
+        Route::get('shares', [$c, 'shares'])->name('shares');
+        Route::post('shares', [$c, 'share'])->name('share');
+        Route::post('shares/{share}/revoke', [$c, 'revoke'])->whereNumber('share')->name('revoke');
+        Route::get('shared-with-me', [$c, 'sharedWithMe'])->name('shared-with-me');
+        Route::get('shared-with-me/{share}', [$c, 'shared'])->whereNumber('share')->name('shared');
+    });
 
 Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:tutor'])->name('api.v2.tutor.')->group(function () {
     $c = TutorController::class;
