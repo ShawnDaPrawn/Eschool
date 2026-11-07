@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-07
+
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
 ## 2026-11-04
 
 - SMS and WhatsApp (Action Plan 2.7 follow-ups): a mobile number is now texted only after its owner verifies it in the app with a six-digit code sent by SMS (codes expire after ten minutes, five wrong codes lock it for an hour, one code a minute and three an hour). Numbers recorded before this change are not texted until verified, and a changed number must be verified again; a skipped text is recorded with the reason. Guardians and staff choose SMS, WhatsApp, both or neither for each notice in the app (`/api/v2/me/text-messaging`); the school sees only how many people chose. Schools can now also switch SMS and WhatsApp on for staff (urgent notices and safeguarding alerts), on the number on the staff member's own account. Navigate Ed's monthly invoice to a school now has a line per channel passing on what Twilio charged for the previous month's texts, in rand at a configured exchange rate. **Deploy:** run the migration `2026_11_07_100000`; set `PLATFORM_BILLING_USD_ZAR_RATE` (rands per US dollar, for example `18.50`) before creating invoices for months with texts, or the drafts stay blocked.
