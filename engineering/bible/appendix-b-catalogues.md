@@ -562,3 +562,13 @@ Both link to the school panel's `/support-access` page and name no person, reaso
 or record. No ability, module or permission row is added to schools; HQ adds the
 platform abilities `support.access` (Owner, Operations, Support) and
 `support.emergency` (Owner).
+
+## Fixtures between schools
+
+`fixtures.result_confirmed` belongs to the optional `groups` module, parent
+portal, notice-only, private scope `fixtures.` (`FixtureNotices`). Each school
+sends it inside its own school to the guardians of the learners on its own team
+sheet when both schools (or the host, against an opponent outside NavigateEd)
+confirm a result. It carries the fixture id and result revision only; inbox and
+delivery recheck the team sheet, the guardian link and the revision. No new
+permission: managers use `activity-groups-manage`. No new outbox event type.
