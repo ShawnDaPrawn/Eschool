@@ -379,6 +379,9 @@ class UrgentMessagingTest extends TestCase
     public function test_quiet_hours_are_not_applied_to_urgent_texts(): void
     {
         $this->twilioAccepts();
+        // The fixtures' memberships start on the day they are built; the clock below is
+        // fixed, so they must have started before it whatever day the suite runs.
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
         $this->travelTo(CarbonImmutable::parse('2026-11-03 02:30', 'Africa/Johannesburg'));
         $this->optIn(1, ['comms.urgent', 'attendance.absence']);
 
