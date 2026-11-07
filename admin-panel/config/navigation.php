@@ -400,6 +400,7 @@ return [
                     ['key' => 'group-conversations', 'label' => 'Group conversations', 'route' => 'group-chat-panel.index', 'permissions' => [], 'roles' => ['Teacher', 'Facilitator'], 'module' => 'groups', 'active' => ['group-chat-panel.*'], 'keywords' => ['group', 'conversation', 'private', 'reply']],
                     ['key' => 'activity-groups', 'label' => 'nav_activity_groups', 'route' => 'activity-groups.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-groups.*'], 'keywords' => ['sport', 'coach', 'culture', 'season', 'facilitator']],
                     ['key' => 'activity-seasons', 'label' => 'nav_activity_seasons', 'route' => 'activity-seasons.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-seasons.*'], 'keywords' => ['summer', 'winter', 'new season', 'teams', 'rollover']],
+                    ['key' => 'activity-fixtures', 'label' => 'nav_activity_fixtures', 'route' => 'activity-fixtures.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-fixtures.*'], 'keywords' => ['fixture', 'match', 'league', 'standings', 'score', 'other school']],
                 ]],
                 'events' => [
                     'label' => 'nav_group_events_gallery',
