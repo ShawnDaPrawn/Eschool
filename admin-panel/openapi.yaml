@@ -188,8 +188,8 @@ tags:
   description: Registered source-scoped generic private staff inbox.
 - name: Practice
   description: Approved daily self-study and separate practice evidence.
-- name: Diagnostics
-  description: The starting check from the library, marked on the server, as separate mastery evidence.
+- name: LearningPath
+  description: The guided learning path - find the gap, teach, practise, a server-graded check and a scheduled review.
 - name: LiveUpdates
   description: Ephemeral private school/group invalidations and count-only presence.
 - name: WeeklyDigests
@@ -222,6 +222,8 @@ tags:
   description: Private parent fee shares, receipts and held credits from the NavigateEd ledger.
 - name: Commerce
   description: Private wallet storefronts, reviewed purchases and original order receipts.
+- name: Diagnostics
+  description: The starting check from the library, marked on the server, as separate mastery evidence.
 paths:
   /facilitator/sign-in:
     post:
@@ -2588,6 +2590,165 @@ paths:
                   - in_app
                 enabled:
                   type: boolean
+  /me/notifications:
+    get:
+      operationId: listMyNotifications
+      tags:
+      - Platform
+      summary: Your notifications in this school, newest first
+      description: Three-layer notifications (Action Plan 1.4). Each row has the title, a short excerpt (at most 140
+        characters) and the app path it opens, plus has_body when a fuller text can be read with getMyNotification. Only
+        notices sent to you in the selected school (and older whole-school notices) are listed; private sources are
+        filtered before paging. Private and notice-only types show only their generic text and never have a body. 25 a
+        page.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: One page of your notifications; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationInboxResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/notifications/{notice}:
+    get:
+      operationId: getMyNotification
+      tags:
+      - Platform
+      summary: One of your notifications with its full body
+      description: The full body is returned only after the same fresh access check the notice's delivery uses
+        (membership, the source record and any private-source rule). Another user's notice, another school's notice and a
+        notice whose source no longer allows you all answer 404. Without a stored body (has_body false), body repeats the
+        excerpt; private and notice-only types always answer with their generic text.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: notice
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The notice; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/notification-quiet-hours:
+    get:
+      operationId: getMyQuietHours
+      tags:
+      - Platform
+      summary: Read your push quiet hours
+      description: Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuietHoursResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateMyQuietHours
+      tags:
+      - Platform
+      summary: Set your push quiet hours
+      description: Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held. An end time before the start time means overnight. Without a timezone, the current school's is used.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - enabled
+              - starts_at
+              - ends_at
+              properties:
+                enabled:
+                  type: boolean
+                starts_at:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                ends_at:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                timezone:
+                  type:
+                  - string
+                  - 'null'
+                  description: An IANA time zone such as Africa/Johannesburg.
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuietHoursResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile:
     get:
       operationId: getMyProfile
@@ -5051,6 +5212,115 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AcademicRegisterSyncWrite'
+  /academics/calendar-feeds:
+    get:
+      operationId: listCalendarFeeds
+      tags:
+      - Academics
+      summary: List your calendar subscription links
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Your live calendar links at this school.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createCalendarFeed
+      tags:
+      - Academics
+      summary: Make a calendar subscription link for a learner
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API. At most five live links per person and learner. Not idempotent by design, so a retry makes another link (the response carries the secret, which is never stored for replay); remove extra links with the revoke call.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - learner_id
+              properties:
+                learner_id:
+                  type: integer
+                  minimum: 1
+                include_lessons:
+                  type: boolean
+                  default: false
+                  description: Exams are always included; lessons for the next four weeks only when true.
+      responses:
+        '200':
+          description: The new link, with its URL shown this once.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/calendar-feeds/{feed}:
+    delete:
+      operationId: revokeCalendarFeed
+      tags:
+      - Academics
+      summary: Revoke one of your calendar subscription links
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: feed
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The link no longer works.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedRevokedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /academics/timetable/configuration:
     get:
       operationId: getTimetableConfiguration
@@ -7258,6 +7528,51 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /communication/drafts/{message}/report:
+    get:
+      operationId: schoolMessageDeliveryReport
+      tags:
+      - Communication
+      summary: Delivery report for a published school message
+      description: Private no-store report for the message's author and the staff who may review it. Counts recipients,
+        read acknowledgements and each channel's state per person, and lists recipients by name only, 50 per page. Never
+        includes addresses, device tokens or provider errors. 404 until the message is published.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Delivery report for a published school message.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /communication/drafts/{message}/submit:
     post:
       operationId: submitSchoolMessage
@@ -8163,6 +8478,594 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ActivityAttendanceWrite'
+  /activities/fixtures:
+    get:
+      operationId: listFixtures
+      tags:
+      - Activities
+      summary: List the fixtures this school takes part in
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: List the fixtures this school takes part in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createFixture
+      tags:
+      - Activities
+      summary: Arrange a fixture with another school or an opponent outside NavigateEd
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Arrange a fixture with another school or an opponent outside NavigateEd.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureCreate'
+  /activities/fixture-schools:
+    get:
+      operationId: searchFixtureSchools
+      tags:
+      - Activities
+      summary: Find schools to invite by name
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: search
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 3
+          maxLength: 100
+      responses:
+        '200':
+          description: Find schools to invite by name.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureSchoolListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/learners/{learner}/fixtures:
+    get:
+      operationId: listLearnerFixtures
+      tags:
+      - Activities
+      summary: Fixtures a learner is on the team sheet for, as their family sees them
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fixtures a learner is on the team sheet for, as their family sees them.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureLearnerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/fixtures/{fixture}:
+    get:
+      operationId: readFixture
+      tags:
+      - Activities
+      summary: Read this school's view of a fixture
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read this school's view of a fixture.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: scheduleFixture
+      tags:
+      - Activities
+      summary: Change the date, venue or status (host school)
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Change the date, venue or status (host school).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureSchedule'
+  /activities/fixtures/{fixture}/decision:
+    post:
+      operationId: decideFixture
+      tags:
+      - Activities
+      summary: Accept or decline a fixture invitation
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Accept or decline a fixture invitation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureDecision'
+  /activities/fixtures/{fixture}/side:
+    put:
+      operationId: saveFixtureSide
+      tags:
+      - Activities
+      summary: Save this school's own side and team sheet
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Save this school's own side and team sheet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureSideWrite'
+  /activities/fixtures/{fixture}/result:
+    post:
+      operationId: reportFixtureResult
+      tags:
+      - Activities
+      summary: Report the score; it is confirmed when both schools agree
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: fixture
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Report the score; it is confirmed when both schools agree.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixtureResultWrite'
+  /activities/competitions:
+    get:
+      operationId: listCompetitions
+      tags:
+      - Activities
+      summary: List the competitions this school takes part in
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: List the competitions this school takes part in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createCompetition
+      tags:
+      - Activities
+      summary: Start a competition or league
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Start a competition or league.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionCreate'
+  /activities/competitions/{competition}:
+    get:
+      operationId: readCompetition
+      tags:
+      - Activities
+      summary: Read a competition and, once accepted, its members and standings
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read a competition and, once accepted, its members and standings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/competitions/{competition}/invitations:
+    post:
+      operationId: inviteCompetitionSchool
+      tags:
+      - Activities
+      summary: Invite a school to the competition (organiser)
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Invite a school to the competition (organiser).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionInvite'
+  /activities/competitions/{competition}/decision:
+    post:
+      operationId: decideCompetition
+      tags:
+      - Activities
+      summary: Accept or decline a competition invitation
+      description: Records shared between schools. A school sees a fixture or competition only through its own participant row;
+        until every school taking part has accepted, each sees only the other school's name. Learner ids, groups and notes never
+        leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage)
+        create and answer; assigned group staff keep their own side and report scores.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Accept or decline a competition invitation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionDecision'
   /growth/mastery/configuration:
     get:
       operationId: getMasteryConfiguration
@@ -13435,6 +14338,86 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /open-badges/learners/{learner}/credentials:
+    get:
+      operationId: listLearnerBadgeCredentials
+      tags:
+      - Recognition
+      summary: listLearnerBadgeCredentials
+      description: A learner's current awards and whether each already has an Open Badges 3.0 credential (Action Plan 5.9).
+        For the learner's guardians, and for the learner from the age stage the school allows. available is false until
+        the platform's signing key is configured. Another school's learner is not found.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The learner's awards and credential state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeCredentialListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /open-badges/learners/{learner}/credentials/{presentation}:
+    get:
+      operationId: downloadLearnerBadgeCredential
+      tags:
+      - Recognition
+      summary: downloadLearnerBadgeCredential
+      description: The signed Open Badges 3.0 credential (a W3C Verifiable Credential, JSON-LD, with an eddsa-jcs-2022
+        Data Integrity proof) of one of the learner's current awards, as a file. Issued on the first download and the
+        same document afterwards. A withdrawn award is not found; anyone can check a credential at POST /open-badges/verify.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: presentation
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The signed credential.
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/OpenBadgeCredential'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: The credential was revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Credentials cannot be issued until the signing key is configured.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /recognition/{module}/access:
     get:
       operationId: getRecognitionAccess
@@ -16643,6 +17626,245 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ConsultationVoteInput'
+  /learning/paths/learners/{learner}/groups/{group}:
+    get:
+      operationId: getLearningPath
+      tags:
+      - LearningPath
+      summary: getLearningPath
+      description: 'Own approved learner only, with daily practice and mastery on for the learner''s stage. One path per learner
+        and learning group: gap, teach, practise, a server-graded check, then a review scheduled with FSRS. Approved answers
+        never leave the server; an explanation appears only after the learner answers. Writes accept body fields only; an unknown
+        outcome retries the same operation, and a step action names the revision it expects, so a double submit advances once.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/paths/learners/{learner}/groups/{group}/actions:
+    post:
+      operationId: actOnLearningPath
+      tags:
+      - LearningPath
+      summary: actOnLearningPath
+      description: 'Own approved learner only, with daily practice and mastery on for the learner''s stage. One path per learner
+        and learning group: gap, teach, practise, a server-graded check, then a review scheduled with FSRS. Approved answers
+        never leave the server; an explanation appears only after the learner answers. Writes accept body fields only; an unknown
+        outcome retries the same operation, and a step action names the revision it expects, so a double submit advances once.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningPathActionInput'
+  /learning/paths/learners/{learner}/groups/{group}/items/{item}/answer:
+    post:
+      operationId: answerLearningPathItem
+      tags:
+      - LearningPath
+      summary: answerLearningPathItem
+      description: 'Own approved learner only, with daily practice and mastery on for the learner''s stage. One path per learner
+        and learning group: gap, teach, practise, a server-graded check, then a review scheduled with FSRS. Approved answers
+        never leave the server; an explanation appears only after the learner answers. Writes accept body fields only; an unknown
+        outcome retries the same operation, and a step action names the revision it expects, so a double submit advances once.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningPathAnswerInput'
+  /learning/paths/groups/{group}/learners:
+    get:
+      operationId: getLearningPathGroup
+      tags:
+      - LearningPath
+      summary: getLearningPathGroup
+      description: 'A teacher (or academic leader) who may read the group''s marks: which step each current learner is on, in
+        learner order, with no scores, levels or rankings.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathGroupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/paths/learners/{learner}/summary:
+    get:
+      operationId: getLearningPathFamilySummary
+      tags:
+      - LearningPath
+      summary: getLearningPathFamilySummary
+      description: 'A verified guardian of an approved learner: a plain summary of the child''s learning paths this school year,
+        without questions, answers or tutor conversations.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathFamilySummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /learning/practice/access:
     get:
       operationId: getPracticeAccess
@@ -32585,6 +33807,133 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/RecognitionPointHistory'
+    BadgeCredentialListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - available
+          - items
+          properties:
+            available:
+              type: boolean
+            items:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - presentation_id
+                - title
+                - presented_on
+                - kind
+                - issued
+                properties:
+                  presentation_id:
+                    type: integer
+                  title:
+                    type: string
+                  presented_on:
+                    type: string
+                    format: date
+                  kind:
+                    type: string
+                    enum:
+                    - award
+                    - badge
+                  issued:
+                    type: boolean
+    OpenBadgeCredential:
+      type: object
+      description: An Open Badges 3.0 OpenBadgeCredential. The recipient is a salted hash of their name.
+      additionalProperties: true
+      required:
+      - '@context'
+      - id
+      - type
+      - issuer
+      - validFrom
+      - name
+      - credentialSubject
+      - credentialStatus
+      - proof
+      properties:
+        '@context':
+          type: array
+          items:
+            type: string
+        id:
+          type: string
+          pattern: '^urn:uuid:'
+        type:
+          type: array
+          items:
+            type: string
+        issuer:
+          type: object
+          additionalProperties: true
+          required:
+          - id
+          - type
+          - name
+          properties:
+            id:
+              type: string
+            type:
+              type: array
+              items:
+                type: string
+            name:
+              type: string
+        validFrom:
+          type: string
+        name:
+          type: string
+        awardedDate:
+          type: string
+        credentialSubject:
+          type: object
+          additionalProperties: true
+        credentialStatus:
+          type: object
+          additionalProperties: true
+        proof:
+          type: object
+          additionalProperties: true
+          required:
+          - type
+          - cryptosuite
+          - created
+          - verificationMethod
+          - proofPurpose
+          - proofValue
+          properties:
+            type:
+              type: string
+            cryptosuite:
+              type: string
+            created:
+              type: string
+            verificationMethod:
+              type: string
+            proofPurpose:
+              type: string
+            proofValue:
+              type: string
     RecognitionAwardProfileResponse:
       type: object
       additionalProperties: false
@@ -35713,6 +37062,21 @@ components:
         approved_by_count:
           type: integer
           minimum: 0
+    LearnerPrimaryIdentifier:
+      type: object
+      additionalProperties: false
+      description: A learner's headline number. `lurits` is the LURITS number; `navigateed` is the NavigateEd number (ADR 0005), shown as "NavigateEd number (temporary)" until a LURITS number is recorded.
+      required:
+      - type
+      - value
+      properties:
+        type:
+          type: string
+          enum:
+          - lurits
+          - navigateed
+        value:
+          type: string
     ApprovalLearner:
       type: object
       additionalProperties: false
@@ -35735,6 +37099,11 @@ components:
           type:
           - string
           - 'null'
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
         school:
           $ref: '#/components/schemas/SchoolSummary'
     GuardianConsent:
@@ -36210,6 +37579,44 @@ components:
               $ref: '#/components/schemas/NotificationChannelPreference'
             in_app:
               $ref: '#/components/schemas/NotificationChannelPreference'
+    QuietHoursResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - enabled
+          - starts_at
+          - ends_at
+          - timezone
+          - exempt_types
+          properties:
+            enabled:
+              type: boolean
+            starts_at:
+              type: string
+            ends_at:
+              type: string
+            timezone:
+              type: string
+            exempt_types:
+              type: array
+              description: Notice types that are never held.
+              items:
+                type: string
     NotificationPreferencesResponse:
       type: object
       additionalProperties: false
@@ -36228,6 +37635,150 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NotificationTypePreference'
+        code:
+          type: integer
+          description: Always 200.
+    NotificationInboxItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - title
+      - excerpt
+      - target
+      - has_body
+      - date
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          description: The notification type, for example `academics.exam_changed`.
+        title:
+          type: string
+          maxLength: 128
+        excerpt:
+          type: string
+          maxLength: 140
+          description: The collapsed row's text.
+        target:
+          type: string
+          pattern: ^/(?!/)
+          description: The app path the notice opens, for example `/calendar`.
+        has_body:
+          type: boolean
+          description: Whether getMyNotification has a fuller text than the excerpt.
+        date:
+          type: string
+          format: date-time
+    NotificationDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - title
+      - excerpt
+      - target
+      - has_body
+      - date
+      - body
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          description: The notification type, for example `academics.exam_changed`.
+        title:
+          type: string
+          maxLength: 128
+        excerpt:
+          type: string
+          maxLength: 140
+          description: The collapsed row's text.
+        target:
+          type: string
+          pattern: ^/(?!/)
+          description: The app path the notice opens, for example `/calendar`.
+        has_body:
+          type: boolean
+          description: Whether getMyNotification has a fuller text than the excerpt.
+        date:
+          type: string
+          format: date-time
+        body:
+          type: string
+          maxLength: 5000
+          description: The full text; the excerpt when has_body is false.
+    NotificationInboxPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/NotificationInboxItem'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+    NotificationInboxResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationInboxPage'
+        code:
+          type: integer
+          description: Always 200.
+    NotificationDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationDetail'
         code:
           type: integer
           description: Always 200.
@@ -36401,6 +37952,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFormCategory'
+        primary_identifier:
+          description: For a learner profile, the learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) for other profile types, or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
     ProfileDefinition:
       type: object
       additionalProperties: false
@@ -36850,6 +38406,11 @@ components:
           type:
           - string
           - 'null'
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
         approved:
           type: boolean
         homeroom:
@@ -38022,6 +39583,8 @@ components:
           minimum: 1
         original_teacher_name:
           type: string
+        day_pattern:
+          type: string
         id:
           type: integer
           minimum: 1
@@ -38219,6 +39782,63 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AcademicTimetableLesson'
+        exam_days:
+          type: array
+          items:
+            type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
+        breaks:
+          type: array
+          description: A learner's week only. Named breaks of the bells their lessons follow each day (the replacement bells on a short day).
+          items:
+            type: object
+            additionalProperties: false
+            required: [date, name, starts_at, ends_at]
+            properties:
+              date:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+              name:
+                type: string
+              starts_at:
+                type: string
+                pattern: ^\d{2}:\d{2}$
+              ends_at:
+                type: string
+                pattern: ^\d{2}:\d{2}$
+        activities:
+          type: array
+          description: A learner's week only. Sessions of activity groups they belong to on that day, not cancelled. A session without times is all day.
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, date, starts_at, ends_at, name, group_name, venue, status]
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              date:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+              starts_at:
+                type:
+                - string
+                - 'null'
+                pattern: ^\d{2}:\d{2}$
+              ends_at:
+                type:
+                - string
+                - 'null'
+                pattern: ^\d{2}:\d{2}$
+              name:
+                type: string
+              group_name:
+                type: string
+              venue:
+                type: string
+              status:
+                type: string
+                enum: [scheduled, completed]
     AcademicTimetableNextData:
       type: object
       additionalProperties: false
@@ -38445,6 +40065,123 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/AcademicTimetableCommitData'
+    CalendarFeedListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CalendarFeed'
+    CalendarFeed:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - include_lessons
+      - created_at
+      - last_used_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        include_lessons:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    CalendarFeedCreatedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - learner_id
+          - include_lessons
+          - url
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            learner_id:
+              type: integer
+              minimum: 1
+            include_lessons:
+              type: boolean
+            url:
+              type: string
+              format: uri
+              description: The secret subscription address. Shown only here; treat it like a password.
+    CalendarFeedRevokedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - revoked
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            revoked:
+              type: boolean
     AcademicTimetableWeekResponse:
       type: object
       additionalProperties: false
@@ -42395,6 +44132,28 @@ components:
         audience_revision:
           type: integer
           minimum: 1
+        smart:
+          type: object
+          additionalProperties: false
+          description: A smart group's rules, resolved again at preview and at sending.
+          required:
+          - session_year_id
+          - match
+          - parents
+          - rules
+          properties:
+            session_year_id:
+              type: integer
+              minimum: 1
+            match:
+              type: string
+              enum:
+              - any
+              - all
+            parents:
+              type: boolean
+            rules:
+              $ref: '#/components/schemas/CommunicationSmartRules'
     CommunicationAudience:
       type: object
       additionalProperties: false
@@ -42405,6 +44164,9 @@ components:
       - active
       - editable
       - user_ids
+      - kind
+      - shared
+      - smart
       properties:
         id:
           type: integer
@@ -42424,6 +44186,34 @@ components:
             type: integer
             minimum: 1
           uniqueItems: true
+        kind:
+          type: string
+          enum:
+          - fixed
+          - smart
+        shared:
+          type: boolean
+          description: Shared lists are offered to other staff who may address everyone on them (every rule, for a smart group). Private ones only to their creator and communication managers.
+        smart:
+          description: A smart group's rules (null for a fixed list, whose people are user_ids).
+          type:
+          - object
+          - 'null'
+          additionalProperties: false
+          required:
+          - match
+          - parents
+          - rules
+          properties:
+            match:
+              type: string
+              enum:
+              - any
+              - all
+            parents:
+              type: boolean
+            rules:
+              $ref: '#/components/schemas/CommunicationSmartRules'
     CommunicationAudienceList:
       type: object
       additionalProperties: false
@@ -42443,7 +44233,6 @@ components:
       - session_year_id
       - name
       - active
-      - user_ids
       properties:
         operation_id:
           type: string
@@ -42467,6 +44256,49 @@ components:
           minItems: 0
           maxItems: 1000
           uniqueItems: true
+        kind:
+          type: string
+          enum:
+          - fixed
+          - smart
+          default: fixed
+          description: Fixed for a new audience unless smart. An existing audience keeps its kind.
+        shared:
+          type: boolean
+          default: true
+        match:
+          type: string
+          enum:
+          - any
+          - all
+          description: Smart groups only. Learners in any rule, or only those in all of them.
+        parents:
+          type: boolean
+          description: Smart groups only. The learners, or their parents and guardians.
+        rules:
+          $ref: '#/components/schemas/CommunicationSmartRules'
+    CommunicationSmartRules:
+      type: array
+      minItems: 1
+      maxItems: 10
+      description: Each rule is an audience scope the author may address. Required for a smart group, refused for a fixed list.
+      items:
+        type: object
+        additionalProperties: false
+        required:
+        - kind
+        - target_id
+        properties:
+          kind:
+            type: string
+            enum:
+            - grade
+            - homeroom
+            - group
+            - activity_group
+          target_id:
+            type: integer
+            minimum: 1
     CommunicationAudienceReceipt:
       type: object
       additionalProperties: false
@@ -43272,6 +45104,78 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/CommunicationMessagePreview'
+    CommunicationMessageReportResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageReport'
+    CommunicationMessageReport:
+      type: object
+      additionalProperties: false
+      description: People are counted once per channel by their best result (one reached device is enough for push).
+      required: [id, title, published_at, recipient_count, read_count, not_notified, channels, page, last_page, items]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        published_at: {type: string, format: date-time}
+        recipient_count: {type: integer, minimum: 0}
+        read_count: {type: integer, minimum: 0}
+        not_notified:
+          type: integer
+          minimum: 0
+          description: Recipients whose own choices or access left no notification channel. They can still read the message in the app.
+        channels:
+          type: object
+          additionalProperties: false
+          required: [email, push]
+          properties:
+            email:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+            push:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+        page: {type: integer, minimum: 1}
+        last_page: {type: integer, minimum: 1}
+        items:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, read_at, notice, email, push]
+            properties:
+              name: {type: string}
+              read_at: {type: [string, 'null'], format: date-time}
+              notice: {type: string, enum: [pending, queued, none]}
+              email:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+              push:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+    CommunicationDeliveryCounts:
+          type: object
+          additionalProperties: false
+          required: [delivered, sent, queued, bounced, complained, failed, suppressed]
+          properties:
+            delivered: {type: integer, minimum: 0}
+            sent: {type: integer, minimum: 0}
+            queued: {type: integer, minimum: 0}
+            bounced: {type: integer, minimum: 0}
+            complained: {type: integer, minimum: 0}
+            failed: {type: integer, minimum: 0}
+            suppressed: {type: integer, minimum: 0}
     CommunicationMessageReaderResponse:
       type: object
       additionalProperties: false
@@ -43499,6 +45403,16 @@ components:
         on_date:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
         name:
           type: string
           maxLength: 191
@@ -43840,6 +45754,17 @@ components:
         on_date:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type:
+          - string
+          - 'null'
+          description: Optional; with ends_at.
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
         name:
           type: string
           maxLength: 191
@@ -44097,6 +46022,970 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/ActivityMaterial'
+    FixtureScores:
+      type: object
+      additionalProperties: false
+      required:
+      - host_score
+      - guest_score
+      properties:
+        host_score:
+          type: integer
+        guest_score:
+          type: integer
+    FixtureTeam:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - external
+      - state
+      properties:
+        name:
+          type: string
+        external:
+          type: boolean
+        state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+          - external
+          - ''
+        team_label:
+          type:
+          - string
+          - 'null'
+    FixtureResultState:
+      type: object
+      additionalProperties: false
+      required:
+      - state
+      - host_score
+      - guest_score
+      properties:
+        state:
+          type: string
+          enum:
+          - none
+          - awaiting
+          - disputed
+          - confirmed
+        host_score:
+          type:
+          - integer
+          - 'null'
+        guest_score:
+          type:
+          - integer
+          - 'null'
+        my_report:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/FixtureScores'
+        their_report:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/FixtureScores'
+        waiting_for:
+          type:
+          - string
+          - 'null'
+          enum:
+          - us
+          - them
+          - null
+    FixtureSheetEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - sheet_label
+      - position
+      properties:
+        sheet_label:
+          type: string
+        position:
+          type:
+          - string
+          - 'null'
+    FixtureSide:
+      type: object
+      additionalProperties: false
+      required:
+      - activity_group_id
+      - group_name
+      - team_label
+      - sheet_shared
+      - notes
+      - revision
+      - selections
+      properties:
+        activity_group_id:
+          type: integer
+        group_name:
+          type: string
+        team_label:
+          type: string
+        sheet_shared:
+          type: boolean
+        notes:
+          type:
+          - string
+          - 'null'
+        revision:
+          type: integer
+        selections:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - learner_name
+            - sheet_label
+            - position
+            properties:
+              learner_id:
+                type: integer
+              learner_name:
+                type: string
+              sheet_label:
+                type: string
+              position:
+                type:
+                - string
+                - 'null'
+    FixtureSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - competition
+      - discipline
+      - on_date
+      - starts_at
+      - venue
+      - field
+      - host_is_home
+      - status
+      - revision
+      - my_role
+      - my_state
+      - open
+      - host
+      - guest
+      - result
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        competition:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        discipline:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        field:
+          type:
+          - string
+          - 'null'
+        host_is_home:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+        revision:
+          type: integer
+        my_role:
+          type: string
+          enum:
+          - host
+          - guest
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+        open:
+          type: boolean
+        host:
+          $ref: '#/components/schemas/FixtureTeam'
+        guest:
+          $ref: '#/components/schemas/FixtureTeam'
+        result:
+          $ref: '#/components/schemas/FixtureResultState'
+    Fixture:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - competition
+      - discipline
+      - on_date
+      - starts_at
+      - venue
+      - field
+      - host_is_home
+      - status
+      - revision
+      - my_role
+      - my_state
+      - open
+      - host
+      - guest
+      - result
+      - side
+      - their_sheet
+      - can_decide
+      - can_schedule
+      - can_report
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        competition:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        discipline:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        field:
+          type:
+          - string
+          - 'null'
+        host_is_home:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+        revision:
+          type: integer
+        my_role:
+          type: string
+          enum:
+          - host
+          - guest
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+        open:
+          type: boolean
+        host:
+          $ref: '#/components/schemas/FixtureTeam'
+        guest:
+          $ref: '#/components/schemas/FixtureTeam'
+        result:
+          $ref: '#/components/schemas/FixtureResultState'
+        side:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/FixtureSide'
+        their_sheet:
+          oneOf:
+          - type: 'null'
+          - type: array
+            items:
+              $ref: '#/components/schemas/FixtureSheetEntry'
+        can_decide:
+          type: boolean
+        can_schedule:
+          type: boolean
+        can_report:
+          type: boolean
+    FixtureList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FixtureSummary'
+        page:
+          type: integer
+        last_page:
+          type: integer
+        total:
+          type: integer
+    FixtureListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/FixtureList'
+    FixtureResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/Fixture'
+    FixtureSchoolList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+    FixtureSchoolListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/FixtureSchoolList'
+    LearnerFixture:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - discipline
+      - on_date
+      - starts_at
+      - venue
+      - field
+      - status
+      - competition
+      - team_label
+      - opponent
+      - home
+      - result
+      properties:
+        id:
+          type: integer
+        discipline:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        field:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+        competition:
+          type:
+          - string
+          - 'null'
+        team_label:
+          type: string
+        opponent:
+          type: string
+        home:
+          type: boolean
+        result:
+          type: object
+          additionalProperties: false
+          required:
+          - state
+          - our_score
+          - their_score
+          properties:
+            state:
+              type: string
+              enum:
+              - confirmed
+              - pending
+            our_score:
+              type:
+              - integer
+              - 'null'
+            their_score:
+              type:
+              - integer
+              - 'null'
+    FixtureLearnerList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerFixture'
+    FixtureLearnerListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/FixtureLearnerList'
+    CompetitionSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - name
+      - discipline
+      - season
+      - points_win
+      - points_draw
+      - points_loss
+      - organiser
+      - my_role
+      - my_state
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        name:
+          type: string
+        discipline:
+          type: string
+        season:
+          type: string
+        points_win:
+          type: integer
+        points_draw:
+          type: integer
+        points_loss:
+          type: integer
+        organiser:
+          type: string
+        my_role:
+          type: string
+          enum:
+          - organiser
+          - member
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+    Competition:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - name
+      - discipline
+      - season
+      - points_win
+      - points_draw
+      - points_loss
+      - organiser
+      - my_role
+      - my_state
+      - members
+      - standings
+      - can_invite
+      - can_decide
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        name:
+          type: string
+        discipline:
+          type: string
+        season:
+          type: string
+        points_win:
+          type: integer
+        points_draw:
+          type: integer
+        points_loss:
+          type: integer
+        organiser:
+          type: string
+        my_role:
+          type: string
+          enum:
+          - organiser
+          - member
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+        members:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - name
+            - role
+            - state
+            properties:
+              name:
+                type: string
+              role:
+                type: string
+              state:
+                type: string
+        standings:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - team
+            - played
+            - won
+            - drawn
+            - lost
+            - scored
+            - conceded
+            - difference
+            - points
+            properties:
+              team:
+                type: string
+              played:
+                type: integer
+              won:
+                type: integer
+              drawn:
+                type: integer
+              lost:
+                type: integer
+              scored:
+                type: integer
+              conceded:
+                type: integer
+              difference:
+                type: integer
+              points:
+                type: integer
+        can_invite:
+          type: boolean
+        can_decide:
+          type: boolean
+    CompetitionList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompetitionSummary'
+    CompetitionListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CompetitionList'
+    CompetitionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/Competition'
+    FixtureCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - activity_group_id
+      - team_label
+      - discipline
+      - on_date
+      - venue
+      - host_is_home
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        team_label:
+          type: string
+          maxLength: 100
+        discipline:
+          type: string
+          minLength: 2
+          maxLength: 100
+        shared_competition_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        guest_school_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        external_opponent:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+          minLength: 2
+          maxLength: 191
+        field:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        host_is_home:
+          type: boolean
+    FixtureSchedule:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - on_date
+      - venue
+      - host_is_home
+      - status
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+          minLength: 2
+          maxLength: 191
+        field:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        host_is_home:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+    FixtureDecision:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - decision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        decision:
+          type: string
+          enum:
+          - accept
+          - decline
+        activity_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        team_label:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+    FixtureSideWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - team_label
+      - sheet_shared
+      - selections
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        activity_group_id:
+          type: integer
+          minimum: 1
+        team_label:
+          type: string
+          maxLength: 100
+        sheet_shared:
+          type: boolean
+        notes:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        selections:
+          type: array
+          maxItems: 60
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              sheet_label:
+                type:
+                - string
+                - 'null'
+                maxLength: 60
+              position:
+                type:
+                - string
+                - 'null'
+                maxLength: 40
+    FixtureResultWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - host_score
+      - guest_score
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        host_score:
+          type: integer
+          minimum: 0
+          maximum: 999
+        guest_score:
+          type: integer
+          minimum: 0
+          maximum: 999
+    CompetitionCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - name
+      - kind
+      - discipline
+      - season
+      - points_win
+      - points_draw
+      - points_loss
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 2
+          maxLength: 191
+        kind:
+          type: string
+          enum:
+          - sport
+        discipline:
+          type: string
+          minLength: 2
+          maxLength: 100
+        season:
+          type: string
+          maxLength: 100
+        points_win:
+          type: integer
+          minimum: 0
+          maximum: 10
+        points_draw:
+          type: integer
+          minimum: 0
+          maximum: 10
+        points_loss:
+          type: integer
+          minimum: 0
+          maximum: 10
+    CompetitionInvite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - school_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        school_id:
+          type: integer
+          minimum: 1
+    CompetitionDecision:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - decision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        decision:
+          type: string
+          enum:
+          - accept
+          - decline
     ActivityGroupListResponse:
       type: object
       additionalProperties: false
@@ -46415,6 +49304,11 @@ components:
           type: string
         admission_no:
           type: string
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
     WellbeingCategory:
       type: object
       additionalProperties: false
@@ -51121,6 +54015,556 @@ components:
           type: boolean
         definition:
           $ref: '#/components/schemas/PracticeQuestion'
+    LearningPathActionInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - action
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 0
+        action:
+          type: string
+          enum:
+          - next
+          - open_tutor
+          - practise
+          - check
+    LearningPathAnswerInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - answer
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 100
+    LearningPathLesson:
+      type: object
+      additionalProperties: false
+      required:
+      - source
+      - content_version_id
+      - library_item_version_id
+      - title
+      - body
+      properties:
+        source:
+          type: string
+          enum:
+          - school
+          - library
+        content_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        library_item_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        title:
+          type: string
+        body:
+          type:
+          - string
+          - 'null'
+    LearningPathItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - purpose
+      - position
+      - question
+      - answered
+      - correct
+      - explanation
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        purpose:
+          type: string
+          enum:
+          - practice
+          - check
+        position:
+          type: integer
+          minimum: 1
+          maximum: 10
+        question:
+          type: object
+          additionalProperties: false
+          required:
+          - kind
+          - prompt
+          - options
+          properties:
+            kind:
+              type: string
+            prompt:
+              type: string
+            options:
+              type: array
+              maxItems: 6
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - id
+                - text
+                properties:
+                  id:
+                    type: string
+                  text:
+                    type: string
+        answered:
+          type: boolean
+        correct:
+          type:
+          - boolean
+          - 'null'
+        explanation:
+          type:
+          - string
+          - 'null'
+    LearningPath:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - learner_id
+      - group_id
+      - subject_id
+      - path_id
+      - revision
+      - step
+      - mode
+      - reason
+      - topic
+      - attempt
+      - max_attempts
+      - notice
+      - message
+      - teach
+      - items
+      - check
+      - review_due_on
+      - upcoming_reviews
+      - actions
+      - server_time
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        path_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 0
+        step:
+          type: string
+          enum:
+          - gap
+          - teach
+          - practise
+          - check
+          - review
+        mode:
+          type: string
+          enum:
+          - learn
+          - review
+        reason:
+          type:
+          - string
+          - 'null'
+          enum:
+          - not_yet_assessed
+          - prerequisite_gap
+          - topic_gap
+          - review_due
+          - null
+        topic:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+          - type: 'null'
+        attempt:
+          type: integer
+          minimum: 0
+        max_attempts:
+          type: integer
+          minimum: 1
+        notice:
+          type:
+          - string
+          - 'null'
+          enum:
+          - passed
+          - not_yet
+          - rest
+          - caught_up
+          - nothing_ready
+          - withdrawn
+          - null
+        message:
+          type:
+          - string
+          - 'null'
+        teach:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - lessons
+            - tutor
+            properties:
+              lessons:
+                type: array
+                maxItems: 3
+                items:
+                  $ref: '#/components/schemas/LearningPathLesson'
+              tutor:
+                type: object
+                additionalProperties: false
+                required:
+                - available
+                - session_id
+                - reason
+                properties:
+                  available:
+                    type: boolean
+                  session_id:
+                    type:
+                    - string
+                    - 'null'
+                    format: uuid
+                  reason:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - not_ready
+                    - not_available
+                    - no_school_material
+                    - null
+          - type: 'null'
+        items:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/LearningPathItem'
+        check:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - correct
+            - total
+            - needed
+            - passed
+            properties:
+              correct:
+                type: integer
+                minimum: 0
+              total:
+                type: integer
+                minimum: 1
+              needed:
+                type: integer
+                minimum: 1
+              passed:
+                type: boolean
+          - type: 'null'
+        review_due_on:
+          oneOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
+          - type: 'null'
+        upcoming_reviews:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - topic_id
+            - name
+            - due_on
+            properties:
+              topic_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              due_on:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+        actions:
+          type: array
+          items:
+            type: string
+            enum:
+            - next
+            - open_tutor
+            - practise
+            - check
+            - answer
+        server_time:
+          type: string
+          format: date-time
+    LearningPathGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - group_id
+      - subject_id
+      - current_page
+      - last_page
+      - total
+      - learners
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        learners:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - display_name
+            - step
+            - step_label
+            - topic
+            - resting_topic
+            - needs_support
+            - next_review_on
+            - updated_at
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              display_name:
+                type: string
+              step:
+                type: string
+                enum:
+                - not_started
+                - gap
+                - teach
+                - practise
+                - check
+                - review
+              step_label:
+                type: string
+              topic:
+                oneOf:
+                - type: object
+                  additionalProperties: false
+                  required:
+                  - id
+                  - name
+                  properties:
+                    id:
+                      type: integer
+                      minimum: 1
+                    name:
+                      type: string
+                - type: 'null'
+              resting_topic:
+                type:
+                - string
+                - 'null'
+              needs_support:
+                type: boolean
+              next_review_on:
+                oneOf:
+                - type: string
+                  pattern: ^\d{4}-\d{2}-\d{2}$
+                - type: 'null'
+              updated_at:
+                type:
+                - string
+                - 'null'
+                format: date-time
+    LearningPathFamilySummary:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - learner_id
+      - subjects
+      - suggestion
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        subjects:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - subject_id
+            - subject_name
+            - step
+            - step_label
+            - topic_name
+            - next_review_on
+            - updated_on
+            properties:
+              subject_id:
+                type: integer
+                minimum: 1
+              subject_name:
+                type: string
+              step:
+                type: string
+                enum:
+                - gap
+                - teach
+                - practise
+                - check
+                - review
+              step_label:
+                type: string
+              topic_name:
+                type:
+                - string
+                - 'null'
+              next_review_on:
+                oneOf:
+                - type: string
+                  pattern: ^\d{4}-\d{2}-\d{2}$
+                - type: 'null'
+              updated_on:
+                oneOf:
+                - type: string
+                  pattern: ^\d{4}-\d{2}-\d{2}$
+                - type: 'null'
+        suggestion:
+          type: string
+    LearningPathResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LearningPath'
+        code:
+          type: integer
+    LearningPathGroupResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LearningPathGroup'
+        code:
+          type: integer
+    LearningPathFamilySummaryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LearningPathFamilySummary'
+        code:
+          type: integer
     PracticeIssueInput:
       type: object
       additionalProperties: false
