@@ -351,3 +351,8 @@ No API or OpenAPI change.
 - **Merging the dated cost report into HQ** (see the old page).
 - A monthly cap: the gateway's caps are daily; the page shows the month's
   total without a monthly limit.
+- **HQ's own AI features** (Action Plan 3.4, AI drafts for the platform
+  library) are not on this page. They are configured under
+  `ai.platform.features` with HQ-wide and per-person daily caps, and metered
+  in `platform_ai_usage` apart from every school
+  ([content pipeline](../learning/content-pipeline.md)).
