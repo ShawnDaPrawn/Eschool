@@ -2,6 +2,7 @@
 
 ## 2026-11-07
 
+- Keep starting checks to choice and number questions so extended practice question types cannot leave a diagnostic waiting for an answer it cannot mark.
 - Exclude answers awaiting teacher marking from library quality rates and privacy cohort thresholds.
 - Refuse the practice question-type rollback while recorded per-part results remain, including automatically marked answers, so rollback cannot erase their marks.
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
