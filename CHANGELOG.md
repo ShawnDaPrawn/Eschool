@@ -28,6 +28,22 @@
 
 - Schools can build an alumni and volunteer pool for career talks and job shadows (API only for now; the module "Alumni and volunteer pool" is off by default). The office invites former learners from its own adult leaver records, and outside volunteers; each person consents when they first sign in, and can withdraw at any time with immediate effect. The school records each person's safety checks, who checked and when the clearance ends, and can book only cleared people, only into staffed group sessions of at least two learners. Pool members get their own sign-in that never reaches learner records, marks or contact details; they see a session's attendance list on the day of the session only.
 
+- Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
+  content staff build a catalogue of classic public-domain books in HQ
+  (Reading library), record a copyright decision for each one (who, when and
+  why; only books cleared as public domain in South Africa ever reach
+  learners), put them on shelves by grade and write comprehension questions.
+  The server fetches each book once from a Project Gutenberg mirror, removes
+  the Project Gutenberg licence and name, keeps a private copy and serves it a
+  page at a time. With the new Reading library module switched on, school
+  leaders can hide shelves or books from their learners and switch on two
+  reading badges (finishing a book, reading on several days in a week), given
+  through Awards. Learners' places, reading time and answers are their own and
+  never compared. The learner API is ready; the app screens come later.
+  **Deploy:** run the migrations and set `READING_MIRROR_URL` (nothing is
+  fetched until it is set). The South African copyright rule and the use of the
+  Project Gutenberg name still need legal review before launch.
+
 - School groups: one owner, many schools (Action Plan 5.7, SA.18).
   - HQ creates a group, invites schools and names the group's administrators.
   - A school joins only when its own Super Admin agrees on the new School groups page. The page shows exactly what the group will see. The school can leave at any time, and the group stops seeing it at once.
