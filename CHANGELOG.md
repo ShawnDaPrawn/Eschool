@@ -3,6 +3,8 @@
 ## 2026-11-07
 
 - Bind daily family summaries to the exact children whose facts were collected, rechecking those relationships before saving so a revoked relationship cannot be hidden by a remaining sibling.
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 
 ## 2026-11-09
 
