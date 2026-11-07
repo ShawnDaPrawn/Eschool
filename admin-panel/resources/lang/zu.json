@@ -7360,5 +7360,8 @@
     "This answer has already been marked.": "Le mpendulo isivele imakiwe.",
     "Question approved. Its learners get it in daily practice once its material and topic are published to the group.": "Umbuzo ugunyaziwe. Abafundi bawuthola ekuzijwayezeni kwansuku zonke uma izinto zawo nesihloko sezishicilelwe eqenjini.",
     "Marked. The learner sees the result the next time their practice loads.": "Kumakiwe. Umfundi uzobona umphumela ngokulandelayo lapho ukuzijwayeza kwakhe kulayisha.",
-    "Spoken answer of up to :seconds seconds, marked by the learner's teacher.": "Impendulo ekhulunywayo efika emizuzwaneni engu-:seconds, imakwa uthisha womfundi."
+    "Spoken answer of up to :seconds seconds, marked by the learner's teacher.": "Impendulo ekhulunywayo efika emizuzwaneni engu-:seconds, imakwa uthisha womfundi.",
+    "The tutor remembers which topics were practised in the last :days days, not what was said. It can be cleared at any time.": "Uthisha osizayo ukhumbula izihloko ezaziqhuthwa ezinsukwini ezingu-:days ezedlule, hhayi lokho okwashiwo. Kungasulwa noma nini.",
+    "This tutor version offers only ordinary questions in English.": "Lolu hlobo lukathisha osizayo lunikeza imibuzo evamile ngesiNgisi kuphela.",
+    "This clear request was already used for something else.": "Lesi sicelo sokusula sesivele sisetshenziselwe enye into."
 }
