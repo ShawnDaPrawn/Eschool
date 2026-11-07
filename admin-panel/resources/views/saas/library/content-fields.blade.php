@@ -12,6 +12,10 @@
             <select id="{{ $prefix }}-question-kind" name="question_kind">
                 <option value="number" @selected($value('question_kind') === 'number')>{{ __('A number') }}</option>
                 <option value="choice" @selected($value('question_kind') === 'choice')>{{ __('Choose an option') }}</option>
+                <option value="steps" @selected($value('question_kind') === 'steps')>{{ __('Worked steps, each marked') }}</option>
+                <option value="short_text" @selected($value('question_kind') === 'short_text')>{{ __('A short written answer') }}</option>
+                <option value="diagram_label" @selected($value('question_kind') === 'diagram_label')>{{ __('Label a diagram') }}</option>
+                <option value="audio" @selected($value('question_kind') === 'audio')>{{ __('A spoken answer') }}</option>
             </select>
         </div>
         <div class="saas-field">
@@ -31,8 +35,36 @@
             <textarea id="{{ $prefix }}-options" name="options" maxlength="7000" rows="4">{{ $value('options') }}</textarea>
         </div>
         <div class="saas-field">
-            <label for="{{ $prefix }}-answers">{{ __('Accepted answers, one per line (option codes for choice questions)') }}</label>
-            <textarea id="{{ $prefix }}-answers" name="answers" maxlength="1100" rows="2">{{ $value('answers') }}</textarea>
+            <label for="{{ $prefix }}-answers">{{ __('Accepted answers, one per line (option codes for choice questions; any wording that counts for a short written answer)') }}</label>
+            <textarea id="{{ $prefix }}-answers" name="answers" maxlength="4500" rows="2">{{ $value('answers') }}</textarea>
+        </div>
+        <div class="saas-field">
+            <label for="{{ $prefix }}-steps">{{ __('Worked steps, one per line as: step | answer, or step | answer code | a: option; b: option') }}</label>
+            <textarea id="{{ $prefix }}-steps" name="steps" maxlength="12000" rows="4">{{ $value('steps') }}</textarea>
+        </div>
+        <div class="saas-field">
+            <label for="{{ $prefix }}-diagram">{{ __('Diagram picture (JPEG or PNG; labelling questions only)') }}</label>
+            <input id="{{ $prefix }}-diagram" name="diagram" type="file" accept="image/jpeg,image/png">
+            @if ($value('diagram_id'))
+                <input type="hidden" name="diagram_id" value="{{ $value('diagram_id') }}">
+                <p><a href="{{ route('saas.library.diagrams.show', $value('diagram_id')) }}" target="_blank" rel="noopener">{{ __('Current diagram picture') }}</a> · {{ __('Choose a new picture only to replace it.') }}</p>
+            @endif
+        </div>
+        <div class="saas-field">
+            <label for="{{ $prefix }}-regions">{{ __('Diagram regions, one per line as code: across, down (per cent from the top left)') }}</label>
+            <textarea id="{{ $prefix }}-regions" name="regions" maxlength="400" rows="3">{{ $value('regions') }}</textarea>
+        </div>
+        <div class="saas-field">
+            <label for="{{ $prefix }}-labels">{{ __('Labels to place, one per line as code: text (extra labels are allowed)') }}</label>
+            <textarea id="{{ $prefix }}-labels" name="labels" maxlength="4000" rows="3">{{ $value('labels') }}</textarea>
+        </div>
+        <div class="saas-field">
+            <label for="{{ $prefix }}-mapping">{{ __('Correct label for each region, one per line as region: label') }}</label>
+            <textarea id="{{ $prefix }}-mapping" name="mapping" maxlength="400" rows="3">{{ $value('mapping') }}</textarea>
+        </div>
+        <div class="saas-field">
+            <label for="{{ $prefix }}-max-seconds">{{ __('Longest recording in seconds, 10 to 180 (spoken answers only)') }}</label>
+            <input id="{{ $prefix }}-max-seconds" name="max_seconds" type="number" min="10" max="180" value="{{ $value('max_seconds') }}">
         </div>
         @if ($kind === null || $kind === 'past_paper_question')
         <div class="saas-field">

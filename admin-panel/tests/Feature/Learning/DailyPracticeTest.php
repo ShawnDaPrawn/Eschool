@@ -38,13 +38,16 @@ class DailyPracticeTest extends TestCase
         $this->approve();
         $set = $this->issue();
         $this->assertSame(120, $set['estimated_seconds']);
-        $this->assertSame(['0.5'], $set['items'][0]['definition']['answers']);
+        // The set carries the question only (3.11): the answer and explanation arrive with the result.
+        $this->assertSame(['kind' => 'number', 'prompt' => 'One half as a decimal?', 'options' => []], $set['items'][0]['question']);
+        $this->assertArrayNotHasKey('definition', $set['items'][0]);
         $this->assertStringEndsWith('Z', $set['offline_until']);
         $this->assertFalse($set['completed']);
         $this->assertSame(0, $set['streak_days']);
         $official = DB::table('question_marks')->count();
         $review = $this->review($set);
         $this->assertTrue($review['correct']);
+        $this->assertSame(['explanation' => 'Divide one by two to get 0.5.', 'answers' => ['0.5'], 'steps' => [], 'mapping' => []], $review['solution']);
         $this->assertSame(3, $review['schedule']['rating']);
         $this->assertSame(1, $review['streak_days']);
         $this->assertSame('2026-02-12', PracticeMemory::sole()->due_on->toDateString());
@@ -82,7 +85,7 @@ class DailyPracticeTest extends TestCase
         $this->assertSame($set['id'], $this->issue()['id']);
         $this->approve(['expected_revision' => 1, 'definition' => ['kind' => 'number', 'prompt' => 'One quarter as a decimal?', 'explanation' => 'Divide one by four.', 'options' => [], 'answers' => ['.25']]], $first['id']);
         $saved = app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id']);
-        $this->assertSame(['0.5'], $saved['items'][0]['definition']['answers']);
+        $this->assertSame('One half as a decimal?', $saved['items'][0]['question']['prompt']);
         $this->assertSame(7, PracticeItemVersion::count());
         $this->refuses(fn () => PracticeItemVersion::firstOrFail()->update(['estimated_seconds' => 60]), 409);
     }

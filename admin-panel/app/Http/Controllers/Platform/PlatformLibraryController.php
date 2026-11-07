@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Saas\LibraryRequest;
+use App\Services\Learning\Library\LibraryAccess;
 use App\Services\Learning\Library\LibraryCatalogue;
 use App\Services\Learning\Library\LibraryDrafting;
 use App\Services\Learning\Library\LibraryItems;
@@ -13,13 +14,24 @@ use App\Services\Learning\Library\LibraryPages;
 use App\Services\Learning\Library\LibraryQuality;
 use App\Services\Learning\Library\LibraryReviewers;
 use App\Services\Learning\Library\LibrarySchools;
+use App\Services\Learning\PracticeMedia;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /** HQ: the platform content library and its review (Action Plan 3.3, SA.16). */
 class PlatformLibraryController extends Controller
 {
+    /** A library diagram picture (Action Plan 3.11), for the people who write and review library items. */
+    public function diagram(Request $request, LibraryAccess $access, PracticeMedia $media, string $diagram): Response
+    {
+        abort_unless($access->can($request->user(), LibraryAccess::MANAGE) || $access->can($request->user(), LibraryAccess::REVIEW), 403);
+
+        return response($media->diagram(['source' => 'library', 'id' => $diagram]), 200, ['Content-Type' => 'image/jpeg', 'Content-Disposition' => 'inline',
+            'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
     public function index(Request $request, LibraryPages $pages): View
     {
         return view('saas.library.index', $pages->index($request->user(), (int) $request->query('page', 1)));

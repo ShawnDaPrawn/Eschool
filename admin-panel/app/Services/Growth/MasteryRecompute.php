@@ -176,10 +176,13 @@ class MasteryRecompute
                 PracticeItem::usedIn((int) $group->id)->where('topic_id', $topicId)->findOrFail($version->practice_item_id);
                 $itemKey = 'practice_item:'.$version->practice_item_id;
             }
+            // Marked answers only, by the server or the learner's teacher (3.11): worked steps count their share of correct steps.
+            $marked = PracticeReview::query()->where('state', 'marked')->whereNotNull('maximum_units')->findOrFail($review->id);
+            abort_unless($marked->maximum_units >= 1 && $marked->achieved_units !== null && $marked->achieved_units <= $marked->maximum_units, 409);
             MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $review->learner_id, 'topic_id' => $topicId,
                 'audience' => 'practice', 'source_key' => 'practice:'.$review->id], ['grade_level_id' => $group->grade_level_id,
-                    'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $review->correct ? 1 : 0,
-                    'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => $itemKey] + $source);
+                    'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $marked->achieved_units,
+                    'maximum_units' => $marked->maximum_units, 'observed_at' => $review->created_at, 'item_key' => $itemKey] + $source);
             $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
         });
     }
