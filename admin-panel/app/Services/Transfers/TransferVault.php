@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Transfers;
 
 use App\Models\Transfers\TransferPackage;
+use App\Models\Transfers\TransferReceipt;
 use App\Models\Transfers\TransferStage;
 use App\Models\User;
 use App\Services\Academics\Transitions\ExitSigning;
@@ -115,6 +116,24 @@ class TransferVault
             && (int) ($c['source_learner_id'] ?? 0) === (int) $row->learner_id && (int) ($c['guardian_id'] ?? 0) === (int) $row->guardian_id && (int) ($c['session_year_id'] ?? 0) === (int) $row->session_year_id
             && ($c['last_attended_on'] ?? null) === $row->last_attended_on->toDateString() && ($c['starts_on'] ?? null) === $row->starts_on->toDateString() && ($c['source_enrolment_fingerprint'] ?? null) === $row->source_state_hash
             && ($row->to_school_id !== null || ($c['to_school_name'] ?? null) === $row->external_school), 409, 'Transfer routing or consent verification failed.');
+    }
+
+    /**
+     * A received package: signed by the sending school's key over the frozen
+     * manifest, its contents unchanged, and addressed to the current school.
+     * Pure verification: nothing of the sending school is read.
+     */
+    public function verifyReceipt(TransferReceipt $row): void
+    {
+        $expected = app(ExitSigning::class)->publicKey((int) $row->source_school_id);
+        $sig = $row->signature;
+        $public = base64_decode((string) ($sig['public_key'] ?? ''), true);
+        $signature = base64_decode((string) ($sig['signature'] ?? ''), true);
+        $manifest = json_decode((string) $row->manifest, true, flags: JSON_THROW_ON_ERROR);
+        abort_unless(($sig['algorithm'] ?? null) === 'Ed25519' && hash_equals($expected, (string) ($sig['public_key'] ?? '')) && is_string($public) && strlen($public) === SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
+            && is_string($signature) && strlen($signature) === SODIUM_CRYPTO_SIGN_BYTES && sodium_crypto_sign_verify_detached($signature, (string) $row->manifest, $public)
+            && ($manifest['contents'] ?? null) === $row->contents && (int) ($row->contents['to_school_id'] ?? 0) === app(CurrentSchool::class)->id()
+            && (int) ($row->contents['from_school_id'] ?? 0) === (int) $row->source_school_id && ($row->contents['starts_on'] ?? null) === $row->starts_on->toDateString(), 409, 'Transfer verification failed.');
     }
 
     public function readSource(TransferPackage $row): string
