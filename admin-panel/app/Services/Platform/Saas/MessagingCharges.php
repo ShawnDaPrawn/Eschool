@@ -8,6 +8,7 @@ use App\Models\Platform\PlatformInvoice;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Notifications\DeliveryLog;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -148,21 +149,21 @@ class MessagingCharges
      * made is caught too. A school that never opted in and sent nothing that
      * month is not held back.
      */
-    public function issueProblem(int $schoolId, string $periodStart, ?\DateTimeInterface $computedAt): ?string
+    public function issueProblem(int $schoolId, string $periodStart, ?\DateTimeInterface $computedAt, bool $locking = false): ?string
     {
-        return $this->unclosed($schoolId, $periodStart, $computedAt === null ? null : CarbonImmutable::instance($computedAt));
+        return $this->unclosed($schoolId, $periodStart, $computedAt === null ? null : CarbonImmutable::instance($computedAt), $locking);
     }
 
-    private function unclosed(int $schoolId, string $periodStart, ?CarbonImmutable $computedAt): ?string
+    private function unclosed(int $schoolId, string $periodStart, ?CarbonImmutable $computedAt, bool $locking = false): ?string
     {
         $usage = self::usageMonth($periodStart);
         $closes = $usage->addMonth();
         if ($computedAt !== null && $computedAt->greaterThanOrEqualTo($closes)) {
             return null;
         }
-        $texts = DB::table('school_messaging_settings')->where('school_id', $schoolId)->exists()
-            || DB::table('notification_deliveries')->where('school_id', $schoolId)->whereIn('channel', [DeliveryLog::SMS, DeliveryLog::WHATSAPP])
-                ->where('sent_at', '>=', $usage->setTimezone((string) config('app.timezone')))->exists();
+        $texts = $this->hasRows(DB::table('school_messaging_settings')->where('school_id', $schoolId), $locking)
+            || $this->hasRows(DB::table('notification_deliveries')->where('school_id', $schoolId)->whereIn('channel', [DeliveryLog::SMS, DeliveryLog::WHATSAPP])
+                ->where('sent_at', '>=', $usage->setTimezone((string) config('app.timezone'))), $locking);
         if (! $texts) {
             return null;
         }
@@ -170,6 +171,12 @@ class MessagingCharges
         return __('SMS and WhatsApp for :month are billed once the month has ended. Recompute this draft on or after :date, then issue it.', [
             'month' => $usage->format('F Y'), 'date' => $closes->format('j F Y'),
         ]);
+    }
+
+    /** Issuing must read current rows even after an earlier repeatable-read snapshot. */
+    private function hasRows(Builder $query, bool $locking): bool
+    {
+        return $locking ? $query->lockForUpdate()->first(['id']) !== null : $query->exists();
     }
 
     /** Rands per unit of $currency in millionths, or null when no rate is set. */

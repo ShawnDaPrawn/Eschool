@@ -1,0 +1,10 @@
+/* School group pages (Action Plan 5.7): a plain Material 3 shell with no school menus. Token colours only. */
+.group-shell { background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); margin: 0; }
+.group-shell__bar { align-items: center; border-bottom: 1px solid var(--md-sys-color-outline-variant); display: flex; gap: 16px; justify-content: space-between; padding: 8px 24px; }
+.group-shell__home { color: var(--md-sys-color-on-surface); font-weight: 600; text-decoration: none; }
+.group-shell__main { margin: 0 auto; max-width: 1200px; padding: 24px; }
+.group-tiles { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 16px 0; }
+.group-figure { font-size: 1.75rem; font-weight: 600; margin: 0; }
+.group-note { color: var(--md-sys-color-on-surface-variant); }
+.group-list { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; margin: 0; padding: 0; }
+@media (max-width: 600px) { .group-shell__main { padding: 16px; } }
