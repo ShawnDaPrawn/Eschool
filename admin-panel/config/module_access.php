@@ -62,6 +62,7 @@ return [
             'abilities' => [
                 'sensitive_profiles' => ['label' => 'See and export sensitive profile details', 'permissions' => ['profile-sensitive-view', 'profile-sensitive-export'], 'sensitive' => true],
                 'roles' => ['label' => 'Manage roles and access', 'permissions' => ['role-list', 'role-create', 'role-edit', 'role-delete'], 'sensitive' => true],
+                'roster_export' => ['label' => 'Export the school roster in OneRoster format', 'permissions' => ['oneroster-export'], 'sensitive' => true],
             ],
         ],
 

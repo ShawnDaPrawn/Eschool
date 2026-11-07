@@ -15,6 +15,7 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\OpenStandards\Badges\BadgeCredentials;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\Outbox;
 use Illuminate\Support\Facades\Validator;
@@ -130,6 +131,8 @@ class AwardPresentations
             app(RecognitionCatalog::class)->revision($row, $d);
             abort_unless($row->state === 'active', 409, 'This award already has a retained correction.');
             $row->update(['state' => 'void', 'revision' => $row->revision + 1, 'dedupe_key' => null, 'voided_by' => $actor->id, 'void_reason' => $d['reason'], 'voided_at' => now()]);
+            // A withdrawn award's Open Badges credential is revoked with it (Action Plan 5.9).
+            app(BadgeCredentials::class)->awardWithdrawn($row, $actor);
             $this->audit($row);
 
             return $row;

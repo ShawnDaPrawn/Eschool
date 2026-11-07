@@ -104,6 +104,7 @@ use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
 use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
 use App\Http\Controllers\Panel\Money\WalletPaymentPortalController;
 use App\Http\Controllers\Panel\Money\WalletWithdrawalPanelController;
+use App\Http\Controllers\Panel\OpenStandards\OneRosterController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\CareerGuidancePanelController;
@@ -1574,6 +1575,10 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::get('/school-exit', [SchoolExitController::class, 'index'])->name('school-exit.index');
     Route::get('/school-exit/{offboarding}/download', [SchoolExitController::class, 'download'])->whereNumber('offboarding')->middleware(['signed', 'throttle:10,1'])->name('school-exit.download');
     Route::post('/school-exit/{offboarding}/receipt', [SchoolExitController::class, 'confirm'])->whereNumber('offboarding')->name('school-exit.confirm');
+    // OneRoster 1.2 exports (Action Plan 5.9): OneRosterExports checks the sensitive ability; the ZIP is fetched through a short-lived signed link bound to its requester.
+    Route::get('/open-standards', [OneRosterController::class, 'index'])->middleware('cache.headers:private;no_store')->name('open-standards.index');
+    Route::post('/open-standards/oneroster', [OneRosterController::class, 'store'])->middleware('throttle:10,1')->name('open-standards.store');
+    Route::get('/open-standards/oneroster/{export}/download', [OneRosterController::class, 'download'])->whereNumber('export')->middleware(['signed', 'throttle:10,1'])->name('open-standards.download');
     // Support tickets to Navigate Ed (Action Plan SA.17); SupportTicketRequest checks the right.
     Route::get('/support-tickets', [SupportTicketController::class, 'index'])->name('support-tickets.index');
     Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:10,1')->name('support-tickets.store');
