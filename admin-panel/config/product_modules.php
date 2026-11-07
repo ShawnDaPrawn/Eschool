@@ -63,12 +63,12 @@ return [
     ],
     'finance' => [
         'label' => 'Finance', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'Tuition fees, wallets, vendors, counter payments and ticketing.',
-        'modules' => ['fees', 'wallet', 'vendors', 'wallet_payments', 'ticketing'],
+        'description' => 'Tuition fees, wallets, vendors, counter payments, ticketing, bursaries and alumni giving.',
+        'modules' => ['fees', 'wallet', 'vendors', 'wallet_payments', 'ticketing', 'bursaries', 'giving'],
     ],
     'access' => [
         'label' => 'Access and admissions', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'ID cards and the gate, and online registration and admissions.',
-        'modules' => ['cards', 'intake'],
+        'description' => 'ID cards and the gate, online registration and admissions, and re-enrolment contracts.',
+        'modules' => ['cards', 'intake', 'reenrolment'],
     ],
 ];

@@ -74,6 +74,7 @@ use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
 use App\Http\Controllers\Api\V2\Platform\TextMessagingController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
+use App\Http\Controllers\Api\V2\SchoolBusiness\SchoolBusinessController;
 use App\Http\Controllers\Api\V2\Transfers\TransferController;
 use App\Http\Controllers\Api\V2\Wellbeing\IncidentPhotoController;
 use App\Http\Controllers\Api\V2\Wellbeing\PublicReportingController;
@@ -1057,4 +1058,46 @@ Route::prefix('foundation-learner')->name('api.v2.foundation.learner.')->middlew
 Route::prefix('card-encoder')->name('api.v2.cards.encoder.')->middleware([PrivateDomainResponse::class, CardEncoderContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
     Route::get('plans/{plan}', [CardEncodingController::class, 'download'])->whereUuid('plan')->name('download');
     Route::post('plans/{plan}/confirm', [CardEncodingController::class, 'confirm'])->whereUuid('plan')->name('confirm');
+});
+
+// Independent school business tools (Action Plan 5.10): re-enrolment
+// contracts, bursary applications and alumni giving. Services recheck school,
+// module, role and owner; writes carry an operation_id for exact retries.
+Route::middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->name('api.v2.')->group(function () {
+    $c = SchoolBusinessController::class;
+    Route::prefix('reenrolment')->name('reenrolment.')->group(function () use ($c) {
+        Route::get('contracts', [$c, 'handle'])->name('index');
+        Route::post('contracts', [$c, 'handle'])->middleware('throttle:20,1')->name('publish');
+        Route::post('contracts/{contract}/withdraw', [$c, 'handle'])->whereNumber('contract')->name('withdraw');
+        Route::get('contracts/{contract}/outstanding', [$c, 'handle'])->whereNumber('contract')->name('outstanding');
+        Route::post('contracts/{contract}/reminders', [$c, 'handle'])->whereNumber('contract')->middleware('throttle:10,1')->name('remind');
+        Route::get('learners/{learner}', [$c, 'handle'])->whereNumber('learner')->name('learner');
+        Route::post('learners/{learner}/acceptances', [$c, 'handle'])->whereNumber('learner')->middleware('throttle:20,1')->name('accept');
+    });
+    Route::prefix('bursaries')->name('bursaries.')->group(function () use ($c) {
+        Route::get('applications', [$c, 'handle'])->name('mine');
+        Route::post('applications', [$c, 'handle'])->middleware('throttle:20,1')->name('create');
+        Route::get('applications/{application}', [$c, 'handle'])->whereUuid('application')->name('read');
+        Route::put('applications/{application}', [$c, 'handle'])->whereUuid('application')->middleware('throttle:20,1')->name('update');
+        Route::post('applications/{application}/submit', [$c, 'handle'])->whereUuid('application')->name('submit');
+        Route::post('applications/{application}/withdraw', [$c, 'handle'])->whereUuid('application')->name('withdraw');
+        Route::post('applications/{application}/documents', [$c, 'handle'])->whereUuid('application')->middleware('throttle:20,1')->name('upload');
+        Route::get('applications/{application}/documents/{document}', [$c, 'document'])->whereUuid(['application', 'document'])->name('document');
+        Route::get('committee/applications', [$c, 'handle'])->name('queue');
+        Route::get('committee/applications/{application}', [$c, 'handle'])->whereUuid('application')->name('review');
+        Route::get('committee/applications/{application}/documents/{document}', [$c, 'document'])->whereUuid(['application', 'document'])->name('committee-document');
+        Route::post('committee/applications/{application}/notes', [$c, 'handle'])->whereUuid('application')->name('note');
+        Route::post('committee/applications/{application}/decision', [$c, 'handle'])->whereUuid('application')->name('decide');
+        Route::post('committee/applications/{application}/discount', [$c, 'handle'])->whereUuid('application')->name('discount');
+    });
+    Route::prefix('giving')->name('giving.')->group(function () use ($c) {
+        Route::get('campaigns', [$c, 'handle'])->name('index');
+        Route::post('campaigns', [$c, 'handle'])->name('create');
+        Route::get('campaigns/{campaign}', [$c, 'handle'])->whereNumber('campaign')->name('summary');
+        Route::post('campaigns/{campaign}/close', [$c, 'handle'])->whereNumber('campaign')->name('close');
+        Route::post('campaigns/{campaign}/pledges', [$c, 'handle'])->whereNumber('campaign')->name('pledge');
+        Route::post('campaigns/{campaign}/donations', [$c, 'handle'])->whereNumber('campaign')->name('donate');
+        Route::get('campaigns/{campaign}/donors', [$c, 'handle'])->whereNumber('campaign')->name('donors');
+        Route::get('donations/{donation}/receipt', [$c, 'handle'])->whereNumber('donation')->name('receipt');
+    });
 });

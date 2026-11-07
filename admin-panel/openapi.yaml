@@ -200,8 +200,6 @@ tags:
   description: Private school identity cards and isolated online gate readers.
 - name: Diary
   description: The learner's private diary - notes, to-dos and the school items placed in it automatically.
-- name: Strengths mirror
-  description: The learner's own interests and strengths mirror, and the read-only copies they choose to share by name.
 - name: Tutor
   description: Own-learner subject tutoring, approved private working crops and metadata-only guardian summaries.
 - name: FamilyForms
@@ -224,6 +222,14 @@ tags:
   description: Private parent fee shares, receipts and held credits from the NavigateEd ledger.
 - name: Commerce
   description: Private wallet storefronts, reviewed purchases and original order receipts.
+- name: Reenrolment
+  description: Versioned re-enrolment contracts and guardian acceptances (Action Plan 5.10).
+- name: Bursaries
+  description: Private bursary applications and committee decisions (Action Plan 5.10).
+- name: Giving
+  description: Alumni giving campaigns, pledges and EFT donations on the ledger (Action Plan 5.10).
+- name: Strengths mirror
+  description: The learner's own interests and strengths mirror, and the read-only copies they choose to share by name.
 paths:
   /facilitator/sign-in:
     post:
@@ -30349,6 +30355,2033 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /reenrolment/contracts:
+    get:
+      operationId: getReenrolmentContracts
+      tags:
+      - Reenrolment
+      summary: List re-enrolment contracts
+      description: Staff with reenrolment-manage. Versions, rules and confirmed counts; no guardian data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReenrolmentContractListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: publishReenrolmentContract
+      tags:
+      - Reenrolment
+      summary: Publish a contract version for next year
+      description: Staff with reenrolment-manage. A new version closes the open one for that year; earlier acceptances do not
+        carry over.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReenrolmentContractPublishedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - session_year_id
+              - title
+              - body
+              - acceptance_rule
+              - respond_by
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                session_year_id:
+                  type: integer
+                  minimum: 1
+                title:
+                  type: string
+                  maxLength: 191
+                body:
+                  type: string
+                  minLength: 20
+                  maxLength: 60000
+                acceptance_rule:
+                  type: string
+                  enum:
+                  - all_fee_payers
+                  - fee_payer
+                  - any_guardian
+                respond_by:
+                  type: string
+                  format: date
+  /reenrolment/contracts/{contract}/withdraw:
+    post:
+      operationId: withdrawReenrolmentContract
+      tags:
+      - Reenrolment
+      summary: Withdraw an open contract
+      description: Staff with reenrolment-manage.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: contract
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReenrolmentContractWithdrawnResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - revision
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                revision:
+                  type: integer
+                  minimum: 1
+  /reenrolment/contracts/{contract}/outstanding:
+    get:
+      operationId: getReenrolmentOutstanding
+      tags:
+      - Reenrolment
+      summary: Learners still to re-enrol
+      description: Staff with reenrolment-manage. Current learners without a confirmation, with the fee-responsible guardians
+        the school waits for.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: contract
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReenrolmentOutstandingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reenrolment/contracts/{contract}/reminders:
+    post:
+      operationId: remindReenrolmentContract
+      tags:
+      - Reenrolment
+      summary: Send reminders
+      description: 'Staff with reenrolment-manage. Outstanding learners only, in batches: guardians already reminded today are
+        skipped, so repeating the request moves on. Fee-responsible guardians are asked first; at most one generic notice per
+        guardian, contract and day.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: contract
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReenrolmentRemindedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+  /reenrolment/learners/{learner}:
+    get:
+      operationId: getLearnerReenrolment
+      tags:
+      - Reenrolment
+      summary: A child's open re-enrolment contracts
+      description: An approving guardian of a current learner.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReenrolmentLearnerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reenrolment/learners/{learner}/acceptances:
+    post:
+      operationId: acceptReenrolmentContract
+      tags:
+      - Reenrolment
+      summary: Accept the exact contract version
+      description: An approving guardian. Records who, when, version, text hash, attested name and IP. Under a fee rule another
+        guardian cannot accept before a fee-responsible guardian.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReenrolmentAcceptedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - contract_id
+              - version
+              - text_hash
+              - signed_name
+              - acknowledged
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                contract_id:
+                  type: integer
+                  minimum: 1
+                version:
+                  type: integer
+                  minimum: 1
+                text_hash:
+                  type: string
+                  minLength: 64
+                  maxLength: 64
+                signed_name:
+                  type: string
+                  maxLength: 191
+                acknowledged:
+                  type: boolean
+                  enum:
+                  - true
+  /bursaries/applications:
+    get:
+      operationId: getMyBursaryApplications
+      tags:
+      - Bursaries
+      summary: My bursary applications
+      description: Only the applications this guardian made, for children they may still act for.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryApplicationListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createBursaryApplication
+      tags:
+      - Bursaries
+      summary: Start a bursary application
+      description: An approving guardian, for this school year or next. Household details are encrypted at rest.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - learner_id
+              - session_year_id
+              - household
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                learner_id:
+                  type: integer
+                  minimum: 1
+                session_year_id:
+                  type: integer
+                  minimum: 1
+                household:
+                  $ref: '#/components/schemas/BursaryHouseholdInput'
+  /bursaries/applications/{application}:
+    get:
+      operationId: getBursaryApplication
+      tags:
+      - Bursaries
+      summary: Read my application
+      description: Only the applying guardian; another guardian of the child or family gets 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryApplicationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      operationId: updateBursaryApplication
+      tags:
+      - Bursaries
+      summary: Change a draft application
+      description: Only the applying guardian, while it is a draft.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - revision
+              - household
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                revision:
+                  type: integer
+                  minimum: 1
+                household:
+                  $ref: '#/components/schemas/BursaryHouseholdInput'
+  /bursaries/applications/{application}/submit:
+    post:
+      operationId: submitBursaryApplication
+      tags:
+      - Bursaries
+      summary: Send the application to the committee
+      description: Only the applying guardian.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - revision
+              - confirmed
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                revision:
+                  type: integer
+                  minimum: 1
+                confirmed:
+                  type: boolean
+                  enum:
+                  - true
+  /bursaries/applications/{application}/withdraw:
+    post:
+      operationId: withdrawBursaryApplication
+      tags:
+      - Bursaries
+      summary: Withdraw the application
+      description: Only the applying guardian, before a decision.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - revision
+              - confirmed
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                revision:
+                  type: integer
+                  minimum: 1
+                confirmed:
+                  type: boolean
+                  enum:
+                  - true
+  /bursaries/applications/{application}/documents:
+    post:
+      operationId: uploadBursaryDocument
+      tags:
+      - Bursaries
+      summary: Add a supporting document
+      description: Scanned, photos re-encoded and scanned again, stored encrypted. Only the applying guardian, while a draft.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryDocumentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - category
+              - document
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                category:
+                  type: string
+                  enum:
+                  - income_proof
+                  - bank_statement
+                  - expenses
+                  - other
+                document:
+                  type: string
+                  format: binary
+  /bursaries/applications/{application}/documents/{document}:
+    get:
+      operationId: getBursaryDocument
+      tags:
+      - Bursaries
+      summary: Read my supporting document
+      description: Only the applying guardian.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: The decrypted private document, for this reader only.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Security-Policy:
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /bursaries/committee/applications:
+    get:
+      operationId: getBursaryQueue
+      tags:
+      - Bursaries
+      summary: The committee queue
+      description: Staff with the bursary committee ability (bursaries-review). No household details in the list.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: state
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - submitted
+          - awarded
+          - declined
+          - withdrawn
+          - expired
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryQueueResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /bursaries/committee/applications/{application}:
+    get:
+      operationId: getBursaryReview
+      tags:
+      - Bursaries
+      summary: Review one application
+      description: 'Bursary committee only: household details, documents and the audit trail with reasons.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryReviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /bursaries/committee/applications/{application}/documents/{document}:
+    get:
+      operationId: getBursaryCommitteeDocument
+      tags:
+      - Bursaries
+      summary: Read a supporting document
+      description: Bursary committee only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: The decrypted private document, for this reader only.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Security-Policy:
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /bursaries/committee/applications/{application}/notes:
+    post:
+      operationId: noteBursaryApplication
+      tags:
+      - Bursaries
+      summary: Add a committee note
+      description: Bursary committee; not a guardian of the child.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - reasons
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                reasons:
+                  type: string
+                  minLength: 5
+                  maxLength: 5000
+  /bursaries/committee/applications/{application}/decision:
+    post:
+      operationId: decideBursaryApplication
+      tags:
+      - Bursaries
+      summary: Award or decline
+      description: Bursary committee; not a guardian of the child. An award this year becomes a draft bursary fee discount that
+        a different Finance user approves.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryDecisionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - revision
+              - outcome
+              - reasons
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                revision:
+                  type: integer
+                  minimum: 1
+                outcome:
+                  type: string
+                  enum:
+                  - award
+                  - decline
+                reasons:
+                  type: string
+                  minLength: 10
+                  maxLength: 5000
+                award_kind:
+                  type: string
+                  enum:
+                  - fixed
+                  - percent
+                award_value:
+                  type: integer
+                  minimum: 1
+                  description: Integer cents (fixed) or basis points (percent).
+                currency:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+  /bursaries/committee/applications/{application}/discount:
+    post:
+      operationId: draftBursaryDiscount
+      tags:
+      - Bursaries
+      summary: Draft a next-year award's fee discount
+      description: Bursary committee, once the award year is the current school year.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: application
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BursaryDecisionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+  /giving/campaigns:
+    get:
+      operationId: getGivingCampaigns
+      tags:
+      - Giving
+      summary: Campaigns and totals
+      description: giving-campaigns-manage or giving-donors-manage. Totals come from the ledger; no donor names.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingCampaignListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createGivingCampaign
+      tags:
+      - Giving
+      summary: Start a campaign
+      description: giving-campaigns-manage. Opens the campaign income account in the ledger.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingCampaignChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - name
+              - currency
+              - starts_on
+              - ends_on
+              - public_totals
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                name:
+                  type: string
+                  maxLength: 160
+                description:
+                  type:
+                  - string
+                  - 'null'
+                currency:
+                  type: string
+                  pattern: ^[A-Z]{3}$
+                goal_cents:
+                  type:
+                  - integer
+                  - 'null'
+                starts_on:
+                  type: string
+                  format: date
+                ends_on:
+                  type: string
+                  format: date
+                public_totals:
+                  type: boolean
+  /giving/campaigns/{campaign}:
+    get:
+      operationId: getGivingCampaign
+      tags:
+      - Giving
+      summary: Campaign totals
+      description: Any current member of the school when the school publishes totals; otherwise giving staff. Never donor names.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: campaign
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingCampaignSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /giving/campaigns/{campaign}/close:
+    post:
+      operationId: closeGivingCampaign
+      tags:
+      - Giving
+      summary: Close a campaign
+      description: giving-campaigns-manage.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: campaign
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingCampaignChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - revision
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                revision:
+                  type: integer
+                  minimum: 1
+  /giving/campaigns/{campaign}/pledges:
+    post:
+      operationId: recordGivingPledge
+      tags:
+      - Giving
+      summary: Record a pledge
+      description: giving-donors-manage. A promise with its own reference; it posts nothing.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: campaign
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingPledgedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - donor_name
+              - amount_cents
+              - pledged_on
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                donor_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 160
+                donor_email:
+                  type:
+                  - string
+                  - 'null'
+                  format: email
+                amount_cents:
+                  type: integer
+                  minimum: 1
+                pledged_on:
+                  type: string
+                  format: date
+  /giving/campaigns/{campaign}/donations:
+    post:
+      operationId: recordGivingDonation
+      tags:
+      - Giving
+      summary: Record an EFT donation
+      description: giving-donors-manage. A confirmed bank receipt posts to the ledger with a numbered receipt; a bank reference
+        already recorded anywhere is refused. No online gateway.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: campaign
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingDonatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - donor_name
+              - amount_cents
+              - received_on
+              - method
+              - source_reference
+              - confirmed
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: Retry the same request with the same value.
+                donor_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 160
+                donor_email:
+                  type:
+                  - string
+                  - 'null'
+                  format: email
+                amount_cents:
+                  type: integer
+                  minimum: 1
+                received_on:
+                  type: string
+                  format: date
+                method:
+                  type: string
+                  enum:
+                  - eft
+                source_reference:
+                  type: string
+                  maxLength: 96
+                pledge_id:
+                  type:
+                  - integer
+                  - 'null'
+                confirmed:
+                  type: boolean
+                  enum:
+                  - true
+  /giving/campaigns/{campaign}/donors:
+    get:
+      operationId: getGivingDonors
+      tags:
+      - Giving
+      summary: Donors and pledges
+      description: giving-donors-manage only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: campaign
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingDonorsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /giving/donations/{donation}/receipt:
+    get:
+      operationId: getGivingReceipt
+      tags:
+      - Giving
+      summary: A donation receipt
+      description: giving-donors-manage only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: donation
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GivingReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The record changed, the operation_id holds a different request, or the action is not allowed in this
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: A required financial module is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Document safety checks are temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /strengths:
     get:
       operationId: getStrengthsMirror
@@ -30764,6 +32797,1580 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    BursaryHouseholdInput:
+      type: object
+      additionalProperties: false
+      required:
+      - household_size
+      - dependants
+      - monthly_income_cents
+      - monthly_expenses_cents
+      - explanation
+      properties:
+        household_size:
+          type: integer
+          minimum: 1
+          maximum: 30
+        dependants:
+          type: integer
+          minimum: 0
+          maximum: 30
+        monthly_income_cents:
+          type: integer
+          minimum: 0
+          description: Integer cents.
+        monthly_expenses_cents:
+          type: integer
+          minimum: 0
+          description: Integer cents.
+        other_support:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        explanation:
+          type: string
+          minLength: 10
+          maxLength: 5000
+    ReenrolmentContractList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - session_year_id
+            - session_year
+            - version
+            - title
+            - text_hash
+            - acceptance_rule
+            - respond_by
+            - state
+            - revision
+            - published_at
+            - confirmed
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              session_year_id:
+                type: integer
+                minimum: 1
+              session_year:
+                type: string
+              version:
+                type: integer
+                minimum: 1
+              title:
+                type: string
+              text_hash:
+                type: string
+              acceptance_rule:
+                type: string
+              respond_by:
+                type: string
+                format: date
+              state:
+                type: string
+                enum:
+                - open
+                - superseded
+                - withdrawn
+              revision:
+                type: integer
+                minimum: 1
+              published_at:
+                type: string
+                format: date-time
+              confirmed:
+                type: integer
+    ReenrolmentContractListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReenrolmentContractList'
+        code:
+          type: integer
+          enum:
+          - 200
+    ReenrolmentContractPublished:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - version
+      - text_hash
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        version:
+          type: integer
+          minimum: 1
+        text_hash:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+    ReenrolmentContractPublishedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReenrolmentContractPublished'
+        code:
+          type: integer
+          enum:
+          - 200
+    ReenrolmentContractWithdrawn:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+    ReenrolmentContractWithdrawnResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReenrolmentContractWithdrawn'
+        code:
+          type: integer
+          enum:
+          - 200
+    ReenrolmentOutstanding:
+      type: object
+      additionalProperties: false
+      required:
+      - contract_id
+      - version
+      - state
+      - revision
+      - audience
+      - confirmed
+      - outstanding
+      - page
+      - items
+      properties:
+        contract_id:
+          type: integer
+          minimum: 1
+        version:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        audience:
+          type: integer
+        confirmed:
+          type: integer
+        outstanding:
+          type: integer
+        page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - name
+            - accepted_count
+            - fee_responsible_count
+            - awaiting
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              accepted_count:
+                type: integer
+              fee_responsible_count:
+                type: integer
+              awaiting:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - user_id
+                  - name
+                  properties:
+                    user_id:
+                      type: integer
+                      minimum: 1
+                    name:
+                      type: string
+    ReenrolmentOutstandingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReenrolmentOutstanding'
+        code:
+          type: integer
+          enum:
+          - 200
+    ReenrolmentReminded:
+      type: object
+      additionalProperties: false
+      required:
+      - contract_id
+      - learners
+      - notices
+      - more
+      properties:
+        contract_id:
+          type: integer
+          minimum: 1
+        learners:
+          type: integer
+        notices:
+          type: integer
+        more:
+          type: boolean
+          description: More guardians still wait for today's reminder; send again to continue.
+    ReenrolmentRemindedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReenrolmentReminded'
+        code:
+          type: integer
+          enum:
+          - 200
+    ReenrolmentLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - contracts
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        contracts:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - session_year
+            - version
+            - title
+            - body
+            - text_hash
+            - acceptance_rule
+            - respond_by
+            - status
+            - you_are_fee_responsible
+            - you_accepted_at
+            - can_accept
+            - waiting_for_fee_payer
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              session_year:
+                type: string
+              version:
+                type: integer
+                minimum: 1
+              title:
+                type: string
+              body:
+                type: string
+              text_hash:
+                type: string
+              acceptance_rule:
+                type: string
+              respond_by:
+                type: string
+                format: date
+              status:
+                type: string
+                enum:
+                - confirmed
+                - awaiting
+              you_are_fee_responsible:
+                type: boolean
+              you_accepted_at:
+                type:
+                - string
+                - 'null'
+                format: date-time
+              can_accept:
+                type: boolean
+              waiting_for_fee_payer:
+                type: boolean
+    ReenrolmentLearnerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReenrolmentLearner'
+        code:
+          type: integer
+          enum:
+          - 200
+    ReenrolmentAccepted:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - contract_id
+      - learner_id
+      - version
+      - accepted_at
+      - status
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        contract_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        version:
+          type: integer
+          minimum: 1
+        accepted_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - confirmed
+          - awaiting
+    ReenrolmentAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReenrolmentAccepted'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryChange:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+    BursaryChangeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/BursaryChange'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryDecision:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      - fee_discount_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        fee_discount_id:
+          type:
+          - integer
+          - 'null'
+    BursaryDecisionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/BursaryDecision'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryApplicationList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - learner_id
+            - session_year_id
+            - session_year
+            - state
+            - revision
+            - submitted_at
+            - decided_at
+            - award_kind
+            - award_value
+            - currency
+            - erased
+            - learner_name
+            properties:
+              id:
+                type: string
+                format: uuid
+              learner_id:
+                type: integer
+                minimum: 1
+              session_year_id:
+                type: integer
+                minimum: 1
+              session_year:
+                type: string
+              state:
+                type: string
+                enum:
+                - draft
+                - submitted
+                - awarded
+                - declined
+                - withdrawn
+                - expired
+              revision:
+                type: integer
+                minimum: 1
+              submitted_at:
+                type:
+                - string
+                - 'null'
+                format: date-time
+              decided_at:
+                type:
+                - string
+                - 'null'
+                format: date-time
+              award_kind:
+                type:
+                - string
+                - 'null'
+                enum:
+                - fixed
+                - percent
+                - null
+              award_value:
+                type:
+                - integer
+                - 'null'
+              currency:
+                type:
+                - string
+                - 'null'
+              erased:
+                type: boolean
+              learner_name:
+                type: string
+    BursaryApplicationListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/BursaryApplicationList'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryQueue:
+      type: object
+      additionalProperties: false
+      required:
+      - total
+      - page
+      - items
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - learner_id
+            - session_year_id
+            - session_year
+            - state
+            - revision
+            - submitted_at
+            - decided_at
+            - award_kind
+            - award_value
+            - currency
+            - erased
+            - learner_name
+            properties:
+              id:
+                type: string
+                format: uuid
+              learner_id:
+                type: integer
+                minimum: 1
+              session_year_id:
+                type: integer
+                minimum: 1
+              session_year:
+                type: string
+              state:
+                type: string
+                enum:
+                - draft
+                - submitted
+                - awarded
+                - declined
+                - withdrawn
+                - expired
+              revision:
+                type: integer
+                minimum: 1
+              submitted_at:
+                type:
+                - string
+                - 'null'
+                format: date-time
+              decided_at:
+                type:
+                - string
+                - 'null'
+                format: date-time
+              award_kind:
+                type:
+                - string
+                - 'null'
+                enum:
+                - fixed
+                - percent
+                - null
+              award_value:
+                type:
+                - integer
+                - 'null'
+              currency:
+                type:
+                - string
+                - 'null'
+              erased:
+                type: boolean
+              learner_name:
+                type: string
+    BursaryQueueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/BursaryQueue'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryApplication:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - session_year_id
+      - session_year
+      - state
+      - revision
+      - submitted_at
+      - decided_at
+      - award_kind
+      - award_value
+      - currency
+      - erased
+      - household
+      - documents
+      properties:
+        id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        session_year:
+          type: string
+        state:
+          type: string
+          enum:
+          - draft
+          - submitted
+          - awarded
+          - declined
+          - withdrawn
+          - expired
+        revision:
+          type: integer
+          minimum: 1
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        decided_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        award_kind:
+          type:
+          - string
+          - 'null'
+          enum:
+          - fixed
+          - percent
+          - null
+        award_value:
+          type:
+          - integer
+          - 'null'
+        currency:
+          type:
+          - string
+          - 'null'
+        erased:
+          type: boolean
+        household:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - household_size
+            - dependants
+            - monthly_income_cents
+            - monthly_expenses_cents
+            - explanation
+            properties:
+              household_size:
+                type: integer
+              dependants:
+                type: integer
+              monthly_income_cents:
+                type: integer
+                minimum: 0
+                description: Integer cents.
+              monthly_expenses_cents:
+                type: integer
+                minimum: 0
+                description: Integer cents.
+              other_support:
+                type:
+                - string
+                - 'null'
+              explanation:
+                type: string
+          - type: 'null'
+        documents:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - category
+            - mime
+            - bytes
+            properties:
+              id:
+                type: string
+                format: uuid
+              category:
+                type: string
+              mime:
+                type: string
+              bytes:
+                type: integer
+              revision:
+                type: integer
+                minimum: 1
+    BursaryApplicationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/BursaryApplication'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryReview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - session_year_id
+      - session_year
+      - state
+      - revision
+      - submitted_at
+      - decided_at
+      - award_kind
+      - award_value
+      - currency
+      - erased
+      - learner_name
+      - guardian_name
+      - household
+      - documents
+      - fee_discount_id
+      - events
+      properties:
+        id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        session_year:
+          type: string
+        state:
+          type: string
+          enum:
+          - draft
+          - submitted
+          - awarded
+          - declined
+          - withdrawn
+          - expired
+        revision:
+          type: integer
+          minimum: 1
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        decided_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        award_kind:
+          type:
+          - string
+          - 'null'
+          enum:
+          - fixed
+          - percent
+          - null
+        award_value:
+          type:
+          - integer
+          - 'null'
+        currency:
+          type:
+          - string
+          - 'null'
+        erased:
+          type: boolean
+        learner_name:
+          type: string
+        guardian_name:
+          type: string
+        household:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - household_size
+            - dependants
+            - monthly_income_cents
+            - monthly_expenses_cents
+            - explanation
+            properties:
+              household_size:
+                type: integer
+              dependants:
+                type: integer
+              monthly_income_cents:
+                type: integer
+                minimum: 0
+                description: Integer cents.
+              monthly_expenses_cents:
+                type: integer
+                minimum: 0
+                description: Integer cents.
+              other_support:
+                type:
+                - string
+                - 'null'
+              explanation:
+                type: string
+          - type: 'null'
+        documents:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - category
+            - mime
+            - bytes
+            properties:
+              id:
+                type: string
+                format: uuid
+              category:
+                type: string
+              mime:
+                type: string
+              bytes:
+                type: integer
+              revision:
+                type: integer
+                minimum: 1
+        fee_discount_id:
+          type:
+          - integer
+          - 'null'
+        events:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - action
+            - actor_id
+            - actor_name
+            - reasons
+            - award_kind
+            - award_value
+            - at
+            properties:
+              action:
+                type: string
+              actor_id:
+                type: integer
+                minimum: 1
+              actor_name:
+                type: string
+              reasons:
+                type:
+                - string
+                - 'null'
+              award_kind:
+                type:
+                - string
+                - 'null'
+              award_value:
+                type:
+                - integer
+                - 'null'
+              at:
+                type: string
+                format: date-time
+    BursaryReviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/BursaryReview'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryDocument:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - category
+      - mime
+      - bytes
+      properties:
+        id:
+          type: string
+          format: uuid
+        category:
+          type: string
+        mime:
+          type: string
+        bytes:
+          type: integer
+        revision:
+          type: integer
+          minimum: 1
+    GivingCampaignChange:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+    GivingCampaignChangeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GivingCampaignChange'
+        code:
+          type: integer
+          enum:
+          - 200
+    GivingCampaignList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            - description
+            - currency
+            - goal_cents
+            - starts_on
+            - ends_on
+            - public_totals
+            - state
+            - revision
+            - raised_cents
+            - pledged_cents
+            - donations
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              description:
+                type:
+                - string
+                - 'null'
+              currency:
+                type: string
+              goal_cents:
+                type:
+                - integer
+                - 'null'
+              starts_on:
+                type: string
+                format: date
+              ends_on:
+                type: string
+                format: date
+              public_totals:
+                type: boolean
+              state:
+                type: string
+                enum:
+                - open
+                - closed
+              revision:
+                type: integer
+                minimum: 1
+              raised_cents:
+                type: integer
+              pledged_cents:
+                type: integer
+              donations:
+                type: integer
+    GivingCampaignListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GivingCampaignList'
+        code:
+          type: integer
+          enum:
+          - 200
+    GivingCampaignSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - description
+      - currency
+      - goal_cents
+      - state
+      - raised_cents
+      - donations
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        currency:
+          type: string
+        goal_cents:
+          type:
+          - integer
+          - 'null'
+        state:
+          type: string
+        raised_cents:
+          type: integer
+        donations:
+          type: integer
+    GivingCampaignSummaryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GivingCampaignSummary'
+        code:
+          type: integer
+          enum:
+          - 200
+    GivingPledged:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - reference
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        reference:
+          type: string
+    GivingPledgedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GivingPledged'
+        code:
+          type: integer
+          enum:
+          - 200
+    GivingDonated:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - receipt
+      - ledger_entry_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        receipt:
+          type: string
+        ledger_entry_id:
+          type: integer
+          minimum: 1
+    GivingDonatedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GivingDonated'
+        code:
+          type: integer
+          enum:
+          - 200
+    GivingDonors:
+      type: object
+      additionalProperties: false
+      required:
+      - campaign
+      - donations
+      - pledges
+      properties:
+        campaign:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - name
+          - description
+          - currency
+          - goal_cents
+          - starts_on
+          - ends_on
+          - public_totals
+          - state
+          - revision
+          - raised_cents
+          - pledged_cents
+          - donations
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            name:
+              type: string
+            description:
+              type:
+              - string
+              - 'null'
+            currency:
+              type: string
+            goal_cents:
+              type:
+              - integer
+              - 'null'
+            starts_on:
+              type: string
+              format: date
+            ends_on:
+              type: string
+              format: date
+            public_totals:
+              type: boolean
+            state:
+              type: string
+              enum:
+              - open
+              - closed
+            revision:
+              type: integer
+              minimum: 1
+            raised_cents:
+              type: integer
+            pledged_cents:
+              type: integer
+            donations:
+              type: integer
+        donations:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - receipt
+            - donor_name
+            - donor_email
+            - amount_cents
+            - currency
+            - method
+            - source_reference
+            - received_on
+            - pledge_id
+            - ledger_entry_id
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              receipt:
+                type: string
+              donor_name:
+                type: string
+              donor_email:
+                type:
+                - string
+                - 'null'
+              amount_cents:
+                type: integer
+                minimum: 1
+              currency:
+                type: string
+              method:
+                type: string
+              source_reference:
+                type: string
+              received_on:
+                type: string
+                format: date
+              pledge_id:
+                type:
+                - integer
+                - 'null'
+              ledger_entry_id:
+                type: integer
+                minimum: 1
+        pledges:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - reference
+            - donor_name
+            - donor_email
+            - amount_cents
+            - currency
+            - pledged_on
+            - received_cents
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              reference:
+                type: string
+              donor_name:
+                type: string
+              donor_email:
+                type:
+                - string
+                - 'null'
+              amount_cents:
+                type: integer
+                minimum: 1
+              currency:
+                type: string
+              pledged_on:
+                type: string
+                format: date
+              received_cents:
+                type: integer
+    GivingDonorsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GivingDonors'
+        code:
+          type: integer
+          enum:
+          - 200
+    GivingReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - receipt
+      - donor_name
+      - donor_email
+      - amount_cents
+      - currency
+      - method
+      - source_reference
+      - received_on
+      - pledge_id
+      - ledger_entry_id
+      - campaign
+      - school
+      - issued_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        receipt:
+          type: string
+        donor_name:
+          type: string
+        donor_email:
+          type:
+          - string
+          - 'null'
+        amount_cents:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+        method:
+          type: string
+        source_reference:
+          type: string
+        received_on:
+          type: string
+          format: date
+        pledge_id:
+          type:
+          - integer
+          - 'null'
+        ledger_entry_id:
+          type: integer
+          minimum: 1
+        campaign:
+          type: string
+        school:
+          type: string
+        issued_at:
+          type: string
+          format: date-time
+    GivingReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GivingReceipt'
+        code:
+          type: integer
+          enum:
+          - 200
+    BursaryDocumentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/BursaryDocument'
+        code:
+          type: integer
+          enum:
+          - 200
     GalleryChild:
       type: object
       additionalProperties: false

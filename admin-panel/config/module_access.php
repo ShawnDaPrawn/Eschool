@@ -176,6 +176,31 @@ return [
             ],
         ],
 
+        'reenrolment' => [
+            'view' => [],
+            'contribute' => [],
+            'manage' => ['reenrolment-manage'],
+            'abilities' => [],
+        ],
+
+        'bursaries' => [
+            'view' => [],
+            'contribute' => [],
+            'manage' => [],
+            'abilities' => [
+                'bursary_committee' => ['label' => 'Review bursary applications and decide awards', 'permissions' => ['bursaries-review'], 'sensitive' => true],
+            ],
+        ],
+
+        'giving' => [
+            'view' => [],
+            'contribute' => [],
+            'manage' => ['giving-campaigns-manage'],
+            'abilities' => [
+                'giving_donors' => ['label' => 'Record donations and see donor names', 'permissions' => ['giving-donors-manage'], 'sensitive' => true],
+            ],
+        ],
+
         'consultations' => [
             'view' => [],
             'contribute' => [],

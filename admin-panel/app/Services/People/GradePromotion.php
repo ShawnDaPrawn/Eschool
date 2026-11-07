@@ -14,6 +14,7 @@ use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Audit\Audit;
+use App\Services\SchoolBusiness\ReenrolmentContracts;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,7 @@ class GradePromotion
      *
      * @param  array<int, array{outcome?: string, homeroom_id?: int|string|null}>  $exceptions  learner id => choice
      * @param  array<int, int>  $moves  homeroom id => next year's homeroom id
-     * @return array{homerooms: list<array<string, mixed>>, totals: array<string, int>, unresolved: int, fingerprint: string}
+     * @return array{homerooms: list<array<string, mixed>>, totals: array<string, int>, unresolved: int, reenrolment: array{confirmed: int, awaiting: int}|null, fingerprint: string}
      */
     public function plan(SessionYear $from, SessionYear $to, array $exceptions = [], array $moves = []): array
     {
@@ -102,12 +103,25 @@ class GradePromotion
             ];
         }
         $homerooms = array_values($groups);
+        $fingerprint = $this->fingerprint($from, $to, $homerooms, $placed, $leaving);
+        // Read only (Action Plan 5.10): whether each learner's re-enrolment
+        // contract for $to is confirmed. Never part of the fingerprint and
+        // never an outcome: promotions work exactly as before.
+        $reenrolment = app(ReenrolmentContracts::class)->statuses($to, $enrolments->pluck('learner_id')->map(fn ($id) => (int) $id)->unique()->values()->all());
+        foreach ($homerooms as &$room) {
+            foreach ($room['learners'] as &$row) {
+                $row['reenrolment'] = $reenrolment[$row['id']] ?? null;
+            }
+            unset($row);
+        }
+        unset($room);
 
         return [
             'homerooms' => $homerooms,
             'totals' => $totals,
             'unresolved' => $unresolved,
-            'fingerprint' => $this->fingerprint($from, $to, $homerooms, $placed, $leaving),
+            'reenrolment' => $reenrolment === [] ? null : ['confirmed' => count(array_filter($reenrolment, fn (string $s) => $s === 'confirmed')), 'awaiting' => count(array_filter($reenrolment, fn (string $s) => $s === 'awaiting'))],
+            'fingerprint' => $fingerprint,
         ];
     }
 

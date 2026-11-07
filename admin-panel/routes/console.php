@@ -153,3 +153,7 @@ Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-not
 
 // Privacy cleanup remains enabled when a school or module is paused.
 Schedule::command('chat:prune-groups')->hourly()->name('group-chat-retention')->withoutOverlapping();
+
+// Bursary retention (Action Plan 5.10): household details, reasons and
+// documents are erased on schedule even when the module is off.
+Schedule::command('bursaries:prune')->dailyAt('03:55')->name('bursary-private-retention')->withoutOverlapping();
