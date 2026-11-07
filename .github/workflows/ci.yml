@@ -827,6 +827,9 @@ jobs:
           php-version: '8.3.36'
           extensions: mbstring, intl, gd, zip, sodium, pdo_mysql, bcmath, exif, fileinfo
           coverage: none
+          # Match the application runtime's disabled JIT. A native PHP server
+          # crash was observed with setup-php's default 256M JIT buffer.
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate --force
       - name: Database with the demo school
