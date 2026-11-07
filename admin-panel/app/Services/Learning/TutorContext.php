@@ -7,6 +7,7 @@ namespace App\Services\Learning;
 use App\Models\Academics\ContentVersion;
 use App\Models\Academics\GradeLevel;
 use App\Models\Growth\LearnerNote;
+use App\Models\Learning\LearningPath;
 use App\Models\Learning\TutorMessage;
 use App\Models\Learning\TutorSession;
 use App\Models\Students;
@@ -90,6 +91,13 @@ class TutorContext
             $topic = app(TutorTopics::class)->topic($group, (int) $session->topic_id);
             $manifest['topic'] = ['id' => (int) $topic->id, 'source_id' => (int) $topic->curriculum_topic_id, 'sha256' => hash('sha256', $topic->topic_key.'|'.$topic->name)];
             $context['selected_topic'] = $this->minimize($actor, $topic->name);
+            // A session opened from a guided learning path (3.9) tells the tutor the step, so it leads rather than waits.
+            $path = LearningPath::where('tutor_session_id', $session->id)->where('learner_id', $session->learner_id)
+                ->where('teaching_group_id', $session->teaching_group_id)->where('topic_id', $topic->id)->first(['id', 'step', 'failed_checks']);
+            if ($path !== null) {
+                $manifest['path'] = ['id' => (int) $path->id, 'step' => (string) $path->step];
+                $context['learning_path'] = ['step' => (string) $path->step, 'lead' => $path->step === 'teach', 'attempt' => (int) $path->failed_checks + 1];
+            }
         }
         foreach ($session->source_version_ids as $id) {
             $version = $this->version($actor, $session, $id);
@@ -174,6 +182,11 @@ class TutorContext
             $topic = app(TutorTopics::class)->topic($group, (int) $ref['id']);
             abort_unless((int) $session->topic_id === (int) $topic->id && (int) $topic->curriculum_topic_id === $ref['source_id']
                 && hash_equals($ref['sha256'], hash('sha256', $topic->topic_key.'|'.$topic->name)), 409, 'Tutor topic context changed.');
+        }
+        if (($manifest['path'] ?? null) !== null) {
+            // The step may have moved on since; the path must still be this learner's in this group.
+            abort_unless(LearningPath::whereKey($manifest['path']['id'])->where('learner_id', $session->learner_id)
+                ->where('teaching_group_id', $session->teaching_group_id)->exists(), 409, 'Tutor path context changed.');
         }
         foreach ($manifest['versions'] as $ref) {
             $version = $this->version($actor, $session, $ref['id']);

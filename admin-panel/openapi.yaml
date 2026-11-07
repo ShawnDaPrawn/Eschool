@@ -188,8 +188,8 @@ tags:
   description: Registered source-scoped generic private staff inbox.
 - name: Practice
   description: Approved daily self-study and separate practice evidence.
-- name: Diagnostics
-  description: The starting check from the library, marked on the server, as separate mastery evidence.
+- name: LearningPath
+  description: The guided learning path - find the gap, teach, practise, a server-graded check and a scheduled review.
 - name: LiveUpdates
   description: Ephemeral private school/group invalidations and count-only presence.
 - name: WeeklyDigests
@@ -200,8 +200,6 @@ tags:
   description: Private school identity cards and isolated online gate readers.
 - name: Diary
   description: The learner's private diary - notes, to-dos and the school items placed in it automatically.
-- name: Reading
-  description: The learner's reading library - public-domain books on shelves for their grade, their own progress and comprehension checks.
 - name: Tutor
   description: Own-learner subject tutoring, approved private working crops and metadata-only guardian summaries.
 - name: FamilyForms
@@ -224,8 +222,12 @@ tags:
   description: Private parent fee shares, receipts and held credits from the NavigateEd ledger.
 - name: Commerce
   description: Private wallet storefronts, reviewed purchases and original order receipts.
+- name: Diagnostics
+  description: The starting check from the library, marked on the server, as separate mastery evidence.
 - name: Strengths mirror
   description: The learner's own interests and strengths mirror, and the read-only copies they choose to share by name.
+- name: Reading
+  description: The learner's reading library - public-domain books on shelves for their grade, their own progress and comprehension checks.
 paths:
   /facilitator/sign-in:
     post:
@@ -17776,6 +17778,245 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ConsultationVoteInput'
+  /learning/paths/learners/{learner}/groups/{group}:
+    get:
+      operationId: getLearningPath
+      tags:
+      - LearningPath
+      summary: getLearningPath
+      description: 'Own approved learner only, with daily practice and mastery on for the learner''s stage. One path per learner
+        and learning group: gap, teach, practise, a server-graded check, then a review scheduled with FSRS. Approved answers
+        never leave the server; an explanation appears only after the learner answers. Writes accept body fields only; an unknown
+        outcome retries the same operation, and a step action names the revision it expects, so a double submit advances once.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/paths/learners/{learner}/groups/{group}/actions:
+    post:
+      operationId: actOnLearningPath
+      tags:
+      - LearningPath
+      summary: actOnLearningPath
+      description: 'Own approved learner only, with daily practice and mastery on for the learner''s stage. One path per learner
+        and learning group: gap, teach, practise, a server-graded check, then a review scheduled with FSRS. Approved answers
+        never leave the server; an explanation appears only after the learner answers. Writes accept body fields only; an unknown
+        outcome retries the same operation, and a step action names the revision it expects, so a double submit advances once.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningPathActionInput'
+  /learning/paths/learners/{learner}/groups/{group}/items/{item}/answer:
+    post:
+      operationId: answerLearningPathItem
+      tags:
+      - LearningPath
+      summary: answerLearningPathItem
+      description: 'Own approved learner only, with daily practice and mastery on for the learner''s stage. One path per learner
+        and learning group: gap, teach, practise, a server-graded check, then a review scheduled with FSRS. Approved answers
+        never leave the server; an explanation appears only after the learner answers. Writes accept body fields only; an unknown
+        outcome retries the same operation, and a step action names the revision it expects, so a double submit advances once.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningPathAnswerInput'
+  /learning/paths/groups/{group}/learners:
+    get:
+      operationId: getLearningPathGroup
+      tags:
+      - LearningPath
+      summary: getLearningPathGroup
+      description: 'A teacher (or academic leader) who may read the group''s marks: which step each current learner is on, in
+        learner order, with no scores, levels or rankings.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathGroupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/paths/learners/{learner}/summary:
+    get:
+      operationId: getLearningPathFamilySummary
+      tags:
+      - LearningPath
+      summary: getLearningPathFamilySummary
+      description: 'A verified guardian of an approved learner: a plain summary of the child''s learning paths this school year,
+        without questions, answers or tutor conversations.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private learning path result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathFamilySummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /learning/practice/access:
     get:
       operationId: getPracticeAccess
@@ -18205,261 +18446,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PracticeReviewInput'
-  /learning/diagnostics/groups/{group}:
-    get:
-      operationId: getDiagnosticGroup
-      tags:
-      - Diagnostics
-      summary: getDiagnosticGroup
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: group
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Freshly authorized private starting-check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetDiagnosticGroupResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}:
-    get:
-      operationId: getDiagnosticSummary
-      tags:
-      - Diagnostics
-      summary: getDiagnosticSummary
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: learner
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Freshly authorized private starting-check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetDiagnosticSummaryResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}/groups/{group}/attempts:
-    post:
-      operationId: startDiagnostic
-      tags:
-      - Diagnostics
-      summary: startDiagnostic
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: learner
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: group
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Freshly authorized private starting-check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DiagnosticAttemptResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}/attempts/{attempt}:
-    get:
-      operationId: getDiagnosticAttempt
-      tags:
-      - Diagnostics
-      summary: getDiagnosticAttempt
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: learner
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: attempt
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Freshly authorized private starting-check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DiagnosticAttemptResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /learning/diagnostics/learners/{learner}/attempts/{attempt}/items/{item}/answer:
-    post:
-      operationId: answerDiagnosticQuestion
-      tags:
-      - Diagnostics
-      summary: answerDiagnosticQuestion
-      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
-        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
-        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
-        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
-        Families see only a plain starting-point message. Writes accept body fields only.
-      parameters:
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - $ref: '#/components/parameters/SchoolId'
-      - name: learner
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: attempt
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      - name: item
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: Freshly authorized private starting-check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DiagnosticAttemptResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DiagnosticAnswerInput'
   /gallery/configuration:
     get:
       operationId: getGalleryConfiguration
@@ -30511,6 +30497,481 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/groups/{group}:
+    get:
+      operationId: getDiagnosticGroup
+      tags:
+      - Diagnostics
+      summary: getDiagnosticGroup
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDiagnosticGroupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}:
+    get:
+      operationId: getDiagnosticSummary
+      tags:
+      - Diagnostics
+      summary: getDiagnosticSummary
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDiagnosticSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/groups/{group}/attempts:
+    post:
+      operationId: startDiagnostic
+      tags:
+      - Diagnostics
+      summary: startDiagnostic
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/attempts/{attempt}:
+    get:
+      operationId: getDiagnosticAttempt
+      tags:
+      - Diagnostics
+      summary: getDiagnosticAttempt
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: attempt
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/diagnostics/learners/{learner}/attempts/{attempt}/items/{item}/answer:
+    post:
+      operationId: answerDiagnosticQuestion
+      tags:
+      - Diagnostics
+      summary: answerDiagnosticQuestion
+      description: The starting check (Action Plan 3.7) is a published Navigate Ed library diagnostic, taken once per
+        school year in a group whose school has the library switched on, with the daily practice and mastery modules.
+        Marked on the server, so a question never carries its accepted answers or explanation, and the learner is not told
+        right or wrong. Each answer is mastery evidence of its own provenance (diagnostic), never an assessment mark.
+        Families see only a plain starting-point message. Writes accept body fields only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: attempt
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private starting-check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosticAttemptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Refused in the attempt's current state (already answered differently, skipped, out of order, or started in another group).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiagnosticAnswerInput'
+  /strengths:
+    get:
+      operationId: getStrengthsMirror
+      tags:
+      - Strengths mirror
+      summary: getStrengthsMirror
+      description: The signed-in learner's own interests and strengths mirror, worked out now. Only a current guardian-approved
+        Student of the school, in a stage the module allows (never early years), reads it; guardians, teachers, school leaders,
+        platform staff and other learners are refused. It holds no scores, levels, percentages, counts, ranks or averages, and
+        never tutor conversation content (only the topics a tutor session was started on). A section whose source module is off
+        has available false.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's mirror.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsMirrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /strengths/recipients:
+    get:
+      operationId: listStrengthsRecipients
+      tags:
+      - Strengths mirror
+      summary: listStrengthsRecipients
+      description: Who the signed-in learner may share their mirror with today - guardians with an active approving link, and
+        teachers of this school who currently teach one of the learner's teaching groups. Learner only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The people the learner may choose.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsRecipientsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /strengths/shares:
+    get:
+      operationId: listStrengthsShares
+      tags:
+      - Strengths mirror
+      summary: listStrengthsShares
+      description: The signed-in learner's own shares with whether each is open, revoked or expired and when it was last viewed.
+        Every open share comes first, in full and newest first, so it can always be found and ended; then up to 100 of the most
+        recent revoked or expired shares. Learner only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's shares.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsSharesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    post:
+      operationId: createStrengthsShare
+      tags:
+      - Strengths mirror
+      summary: createStrengthsShare
+      description: Shares a read-only copy of the chosen sections of the learner's mirror, as it is today, with one person from
+        the recipients list, for up to 30 days. Repeating the same operation_id returns the original share; reusing it for a
+        different share is refused with 409. Learner only; audited.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrengthsShareInput'
+      responses:
+        '200':
+          description: The share.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsShareResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The operation_id was already used for another share.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /strengths/shares/{share}/revoke:
+    post:
+      operationId: revokeStrengthsShare
+      tags:
+      - Strengths mirror
+      summary: revokeStrengthsShare
+      description: Ends one of the learner's own shares at once; the viewer can no longer open it. Ending an ended share changes
+        nothing. Another learner's share does not exist (404). Learner only; audited.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: share
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The ended share.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsShareResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /strengths/shared-with-me:
+    get:
+      operationId: listStrengthsSharedWithMe
+      tags:
+      - Strengths mirror
+      summary: listStrengthsSharedWithMe
+      description: Open shares a learner made to the signed-in guardian or teacher by name. A share leaves the list when it is
+        revoked or expires, when the learner is no longer a current approved learner here, or when the viewer no longer holds
+        the approving guardian link or teacher membership it was made for.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Shares made to this person.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsSharedWithMeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /strengths/shared-with-me/{share}:
+    get:
+      operationId: getStrengthsSharedWithMe
+      tags:
+      - Strengths mirror
+      summary: getStrengthsSharedWithMe
+      description: The read-only copy a learner shared with the signed-in guardian or teacher, as it was on the day it was shared
+        (never live data). Anyone but the named viewer, or a revoked or expired share, gets 404. Every view is audited and shown
+        to the learner as last viewed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: share
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The shared copy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrengthsSharedViewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
   /reading/shelves:
     get:
       operationId: getReadingShelves
@@ -30748,226 +31209,6 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
-  /strengths:
-    get:
-      operationId: getStrengthsMirror
-      tags:
-      - Strengths mirror
-      summary: getStrengthsMirror
-      description: The signed-in learner's own interests and strengths mirror, worked out now. Only a current guardian-approved
-        Student of the school, in a stage the module allows (never early years), reads it; guardians, teachers, school leaders,
-        platform staff and other learners are refused. It holds no scores, levels, percentages, counts, ranks or averages, and
-        never tutor conversation content (only the topics a tutor session was started on). A section whose source module is off
-        has available false.
-      parameters:
-      - $ref: '#/components/parameters/SchoolId'
-      - $ref: '#/components/parameters/ExpectedAccount'
-      responses:
-        '200':
-          description: The learner's mirror.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StrengthsMirrorResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /strengths/recipients:
-    get:
-      operationId: listStrengthsRecipients
-      tags:
-      - Strengths mirror
-      summary: listStrengthsRecipients
-      description: Who the signed-in learner may share their mirror with today - guardians with an active approving link, and
-        teachers of this school who currently teach one of the learner's teaching groups. Learner only.
-      parameters:
-      - $ref: '#/components/parameters/SchoolId'
-      - $ref: '#/components/parameters/ExpectedAccount'
-      responses:
-        '200':
-          description: The people the learner may choose.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StrengthsRecipientsResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-  /strengths/shares:
-    get:
-      operationId: listStrengthsShares
-      tags:
-      - Strengths mirror
-      summary: listStrengthsShares
-      description: The signed-in learner's own shares with whether each is open, revoked or expired and when it was last viewed.
-        Every open share comes first, in full and newest first, so it can always be found and ended; then up to 100 of the most
-        recent revoked or expired shares. Learner only.
-      parameters:
-      - $ref: '#/components/parameters/SchoolId'
-      - $ref: '#/components/parameters/ExpectedAccount'
-      responses:
-        '200':
-          description: The learner's shares.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StrengthsSharesResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-    post:
-      operationId: createStrengthsShare
-      tags:
-      - Strengths mirror
-      summary: createStrengthsShare
-      description: Shares a read-only copy of the chosen sections of the learner's mirror, as it is today, with one person from
-        the recipients list, for up to 30 days. Repeating the same operation_id returns the original share; reusing it for a
-        different share is refused with 409. Learner only; audited.
-      parameters:
-      - $ref: '#/components/parameters/SchoolId'
-      - $ref: '#/components/parameters/ExpectedAccount'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StrengthsShareInput'
-      responses:
-        '200':
-          description: The share.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StrengthsShareResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: The operation_id was already used for another share.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /strengths/shares/{share}/revoke:
-    post:
-      operationId: revokeStrengthsShare
-      tags:
-      - Strengths mirror
-      summary: revokeStrengthsShare
-      description: Ends one of the learner's own shares at once; the viewer can no longer open it. Ending an ended share changes
-        nothing. Another learner's share does not exist (404). Learner only; audited.
-      parameters:
-      - $ref: '#/components/parameters/SchoolId'
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - name: share
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: The ended share.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StrengthsShareResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-  /strengths/shared-with-me:
-    get:
-      operationId: listStrengthsSharedWithMe
-      tags:
-      - Strengths mirror
-      summary: listStrengthsSharedWithMe
-      description: Open shares a learner made to the signed-in guardian or teacher by name. A share leaves the list when it is
-        revoked or expires, when the learner is no longer a current approved learner here, or when the viewer no longer holds
-        the approving guardian link or teacher membership it was made for.
-      parameters:
-      - $ref: '#/components/parameters/SchoolId'
-      - $ref: '#/components/parameters/ExpectedAccount'
-      responses:
-        '200':
-          description: Shares made to this person.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StrengthsSharedWithMeResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
-  /strengths/shared-with-me/{share}:
-    get:
-      operationId: getStrengthsSharedWithMe
-      tags:
-      - Strengths mirror
-      summary: getStrengthsSharedWithMe
-      description: The read-only copy a learner shared with the signed-in guardian or teacher, as it was on the day it was shared
-        (never live data). Anyone but the named viewer, or a revoked or expired share, gets 404. Every view is audited and shown
-        to the learner as last viewed.
-      parameters:
-      - $ref: '#/components/parameters/SchoolId'
-      - $ref: '#/components/parameters/ExpectedAccount'
-      - name: share
-        in: path
-        required: true
-        schema:
-          type: integer
-          minimum: 1
-      responses:
-        '200':
-          description: The shared copy.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StrengthsSharedViewResponse'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationFailed'
 components:
   securitySchemes:
     bearerAuth:
@@ -54652,6 +54893,556 @@ components:
           type: boolean
         definition:
           $ref: '#/components/schemas/PracticeQuestion'
+    LearningPathActionInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - action
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 0
+        action:
+          type: string
+          enum:
+          - next
+          - open_tutor
+          - practise
+          - check
+    LearningPathAnswerInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - answer
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 100
+    LearningPathLesson:
+      type: object
+      additionalProperties: false
+      required:
+      - source
+      - content_version_id
+      - library_item_version_id
+      - title
+      - body
+      properties:
+        source:
+          type: string
+          enum:
+          - school
+          - library
+        content_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        library_item_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        title:
+          type: string
+        body:
+          type:
+          - string
+          - 'null'
+    LearningPathItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - purpose
+      - position
+      - question
+      - answered
+      - correct
+      - explanation
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        purpose:
+          type: string
+          enum:
+          - practice
+          - check
+        position:
+          type: integer
+          minimum: 1
+          maximum: 10
+        question:
+          type: object
+          additionalProperties: false
+          required:
+          - kind
+          - prompt
+          - options
+          properties:
+            kind:
+              type: string
+            prompt:
+              type: string
+            options:
+              type: array
+              maxItems: 6
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - id
+                - text
+                properties:
+                  id:
+                    type: string
+                  text:
+                    type: string
+        answered:
+          type: boolean
+        correct:
+          type:
+          - boolean
+          - 'null'
+        explanation:
+          type:
+          - string
+          - 'null'
+    LearningPath:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - learner_id
+      - group_id
+      - subject_id
+      - path_id
+      - revision
+      - step
+      - mode
+      - reason
+      - topic
+      - attempt
+      - max_attempts
+      - notice
+      - message
+      - teach
+      - items
+      - check
+      - review_due_on
+      - upcoming_reviews
+      - actions
+      - server_time
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        path_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 0
+        step:
+          type: string
+          enum:
+          - gap
+          - teach
+          - practise
+          - check
+          - review
+        mode:
+          type: string
+          enum:
+          - learn
+          - review
+        reason:
+          type:
+          - string
+          - 'null'
+          enum:
+          - not_yet_assessed
+          - prerequisite_gap
+          - topic_gap
+          - review_due
+          - null
+        topic:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+          - type: 'null'
+        attempt:
+          type: integer
+          minimum: 0
+        max_attempts:
+          type: integer
+          minimum: 1
+        notice:
+          type:
+          - string
+          - 'null'
+          enum:
+          - passed
+          - not_yet
+          - rest
+          - caught_up
+          - nothing_ready
+          - withdrawn
+          - null
+        message:
+          type:
+          - string
+          - 'null'
+        teach:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - lessons
+            - tutor
+            properties:
+              lessons:
+                type: array
+                maxItems: 3
+                items:
+                  $ref: '#/components/schemas/LearningPathLesson'
+              tutor:
+                type: object
+                additionalProperties: false
+                required:
+                - available
+                - session_id
+                - reason
+                properties:
+                  available:
+                    type: boolean
+                  session_id:
+                    type:
+                    - string
+                    - 'null'
+                    format: uuid
+                  reason:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - not_ready
+                    - not_available
+                    - no_school_material
+                    - null
+          - type: 'null'
+        items:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/LearningPathItem'
+        check:
+          oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - correct
+            - total
+            - needed
+            - passed
+            properties:
+              correct:
+                type: integer
+                minimum: 0
+              total:
+                type: integer
+                minimum: 1
+              needed:
+                type: integer
+                minimum: 1
+              passed:
+                type: boolean
+          - type: 'null'
+        review_due_on:
+          oneOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
+          - type: 'null'
+        upcoming_reviews:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - topic_id
+            - name
+            - due_on
+            properties:
+              topic_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              due_on:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+        actions:
+          type: array
+          items:
+            type: string
+            enum:
+            - next
+            - open_tutor
+            - practise
+            - check
+            - answer
+        server_time:
+          type: string
+          format: date-time
+    LearningPathGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - group_id
+      - subject_id
+      - current_page
+      - last_page
+      - total
+      - learners
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        learners:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - display_name
+            - step
+            - step_label
+            - topic
+            - resting_topic
+            - needs_support
+            - next_review_on
+            - updated_at
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              display_name:
+                type: string
+              step:
+                type: string
+                enum:
+                - not_started
+                - gap
+                - teach
+                - practise
+                - check
+                - review
+              step_label:
+                type: string
+              topic:
+                oneOf:
+                - type: object
+                  additionalProperties: false
+                  required:
+                  - id
+                  - name
+                  properties:
+                    id:
+                      type: integer
+                      minimum: 1
+                    name:
+                      type: string
+                - type: 'null'
+              resting_topic:
+                type:
+                - string
+                - 'null'
+              needs_support:
+                type: boolean
+              next_review_on:
+                oneOf:
+                - type: string
+                  pattern: ^\d{4}-\d{2}-\d{2}$
+                - type: 'null'
+              updated_at:
+                type:
+                - string
+                - 'null'
+                format: date-time
+    LearningPathFamilySummary:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - learner_id
+      - subjects
+      - suggestion
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        subjects:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - subject_id
+            - subject_name
+            - step
+            - step_label
+            - topic_name
+            - next_review_on
+            - updated_on
+            properties:
+              subject_id:
+                type: integer
+                minimum: 1
+              subject_name:
+                type: string
+              step:
+                type: string
+                enum:
+                - gap
+                - teach
+                - practise
+                - check
+                - review
+              step_label:
+                type: string
+              topic_name:
+                type:
+                - string
+                - 'null'
+              next_review_on:
+                oneOf:
+                - type: string
+                  pattern: ^\d{4}-\d{2}-\d{2}$
+                - type: 'null'
+              updated_on:
+                oneOf:
+                - type: string
+                  pattern: ^\d{4}-\d{2}-\d{2}$
+                - type: 'null'
+        suggestion:
+          type: string
+    LearningPathResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LearningPath'
+        code:
+          type: integer
+    LearningPathGroupResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LearningPathGroup'
+        code:
+          type: integer
+    LearningPathFamilySummaryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LearningPathFamilySummary'
+        code:
+          type: integer
     PracticeIssueInput:
       type: object
       additionalProperties: false
@@ -54684,316 +55475,6 @@ components:
           type: integer
           minimum: 2
           maximum: 4
-    DiagnosticAnswerInput:
-      type: object
-      additionalProperties: false
-      required:
-      - answer
-      properties:
-        answer:
-          type: string
-          minLength: 1
-          maxLength: 100
-    DiagnosticStatus:
-      type: string
-      enum:
-      - not_started
-      - in_progress
-      - completed
-    DiagnosticBand:
-      type: string
-      description: How a topic came out in the starting check, from its own answers only (staff only).
-      enum:
-      - secure
-      - developing
-      - gap
-      - not_reached
-    DiagnosticQuestion:
-      type: object
-      additionalProperties: false
-      description: What is needed to answer, never the accepted answers or the explanation.
-      required:
-      - id
-      - position
-      - kind
-      - prompt
-      - options
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        position:
-          type: integer
-          minimum: 1
-          maximum: 20
-        kind:
-          type: string
-          enum:
-          - choice
-          - number
-        prompt:
-          type: string
-          minLength: 1
-          maxLength: 4000
-        options:
-          type: array
-          maxItems: 6
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - id
-            - text
-            properties:
-              id:
-                type: string
-                pattern: ^[a-z][a-z0-9_]{0,19}$
-              text:
-                type: string
-                minLength: 1
-                maxLength: 1000
-    DiagnosticAttempt:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - learner_id
-      - group_id
-      - subject_name
-      - instructions
-      - status
-      - answered
-      - remaining
-      - question
-      - message
-      - focus_topics
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        learner_id:
-          type: integer
-          minimum: 1
-        group_id:
-          type: integer
-          minimum: 1
-        subject_name:
-          type: string
-        instructions:
-          type: string
-          maxLength: 2000
-        status:
-          $ref: '#/components/schemas/DiagnosticStatus'
-        answered:
-          type: integer
-          minimum: 0
-          maximum: 20
-        remaining:
-          type: integer
-          minimum: 0
-          maximum: 20
-          description: Questions still waiting; fewer may be asked, as a topic stops once two answers agree.
-        question:
-          anyOf:
-          - $ref: '#/components/schemas/DiagnosticQuestion'
-          - type: 'null'
-        message:
-          type: string
-        focus_topics:
-          type: array
-          maxItems: 3
-          description: Names of up to three topics practice begins with, once finished. Never a score.
-          items:
-            type: string
-    DiagnosticSummary:
-      type: object
-      additionalProperties: false
-      required:
-      - learner_id
-      - diagnostics
-      properties:
-        learner_id:
-          type: integer
-          minimum: 1
-        diagnostics:
-          type: array
-          maxItems: 50
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - group_id
-            - subject_name
-            - status
-            - attempt_id
-            - can_start
-            - message
-            - focus_topics
-            properties:
-              group_id:
-                type: integer
-                minimum: 1
-              subject_name:
-                type: string
-              status:
-                $ref: '#/components/schemas/DiagnosticStatus'
-              attempt_id:
-                description: The learner's own attempt; always null for a guardian.
-                type:
-                - integer
-                - 'null'
-                minimum: 1
-              can_start:
-                type: boolean
-              message:
-                type: string
-              focus_topics:
-                type: array
-                maxItems: 3
-                items:
-                  type: string
-    DiagnosticGroup:
-      type: object
-      additionalProperties: false
-      required:
-      - group_id
-      - group_name
-      - subject_name
-      - available
-      - title
-      - topics
-      - learners
-      properties:
-        group_id:
-          type: integer
-          minimum: 1
-        group_name:
-          type: string
-        subject_name:
-          type: string
-        available:
-          type: boolean
-        title:
-          type:
-          - string
-          - 'null'
-        topics:
-          type: array
-          maxItems: 100
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - library_topic_id
-            - name
-            - secure
-            - developing
-            - gap
-            - not_reached
-            properties:
-              library_topic_id:
-                type: integer
-                minimum: 1
-              name:
-                type: string
-              secure:
-                type: integer
-                minimum: 0
-              developing:
-                type: integer
-                minimum: 0
-              gap:
-                type: integer
-                minimum: 0
-              not_reached:
-                type: integer
-                minimum: 0
-        learners:
-          type: array
-          maxItems: 1000
-          description: By name, never ranked; no total per learner.
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - learner_id
-            - name
-            - status
-            - topics
-            properties:
-              learner_id:
-                type: integer
-                minimum: 1
-              name:
-                type: string
-              status:
-                $ref: '#/components/schemas/DiagnosticStatus'
-              topics:
-                type: array
-                maxItems: 100
-                items:
-                  type: object
-                  additionalProperties: false
-                  required:
-                  - library_topic_id
-                  - band
-                  properties:
-                    library_topic_id:
-                      type: integer
-                      minimum: 1
-                    band:
-                      $ref: '#/components/schemas/DiagnosticBand'
-    DiagnosticAttemptResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/DiagnosticAttempt'
-        code:
-          type: integer
-    GetDiagnosticSummaryResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/DiagnosticSummary'
-        code:
-          type: integer
-    GetDiagnosticGroupResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/DiagnosticGroup'
-        code:
-          type: integer
     GetPracticeAccessResponse:
       type: object
       additionalProperties: false
@@ -70902,365 +71383,266 @@ components:
           $ref: '#/components/schemas/DiaryDeleted'
         code:
           type: integer
-    ReadingProgress:
+    DiagnosticAnswerInput:
       type: object
       additionalProperties: false
       required:
-      - page
-      - furthest_page
-      - page_count
-      - minutes_read
-      - finished
-      - finished_on
-      properties:
-        page:
-          type: integer
-        furthest_page:
-          type: integer
-        page_count:
-          type:
-          - integer
-          - 'null'
-        minutes_read:
-          type: integer
-        finished:
-          type: boolean
-        finished_on:
-          type:
-          - string
-          - 'null'
-          format: date
-    ReadingBookCard:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - title
-      - author
-      - language
-      - subjects
-      - reading_level
-      - reading_level_label
-      - page_count
-      - progress
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        author:
-          type: string
-        language:
-          type: string
-        subjects:
-          type: array
-          items:
-            type: string
-        reading_level:
-          type: string
-          enum:
-          - beginner
-          - developing
-          - confident
-          - fluent
-        reading_level_label:
-          type: string
-        page_count:
-          type:
-          - integer
-          - 'null'
-          description: 'Known once the text has been fetched.'
-        progress:
-          oneOf:
-          - $ref: '#/components/schemas/ReadingProgress'
-          - type: 'null'
-    ReadingWeek:
-      type: object
-      additionalProperties: false
-      required:
-      - week_start
-      - minutes_this_week
-      - days_this_week
-      - books_finished
-      description: 'The learner''s own reading only; never a comparison.'
-      properties:
-        week_start:
-          type: string
-          format: date
-        minutes_this_week:
-          type: integer
-        days_this_week:
-          type: integer
-        books_finished:
-          type: integer
-    ReadingShelf:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - name
-      - description
-      - books
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        description:
-          type:
-          - string
-          - 'null'
-        books:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReadingBookCard'
-    ReadingShelves:
-      type: object
-      additionalProperties: false
-      required:
-      - grade_set
-      - shelves
-      - reading
-      - ai_checks
-      properties:
-        grade_set:
-          type: boolean
-          description: 'False when the learner''s homeroom has no grade yet, so no shelf applies.'
-        shelves:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReadingShelf'
-        reading:
-          $ref: '#/components/schemas/ReadingWeek'
-        ai_checks:
-          type: boolean
-          description: 'Whether AI-written comprehension checks are available. Always false for now.'
-    ReadingBook:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - title
-      - author
-      - language
-      - subjects
-      - reading_level
-      - reading_level_label
-      - page_count
-      - progress
-      - author_birth_year
-      - author_death_year
-      - summary
-      - word_count
-      - checks
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        author:
-          type: string
-        language:
-          type: string
-        subjects:
-          type: array
-          items:
-            type: string
-        reading_level:
-          type: string
-          enum:
-          - beginner
-          - developing
-          - confident
-          - fluent
-        reading_level_label:
-          type: string
-        page_count:
-          type:
-          - integer
-          - 'null'
-          description: 'Known once the text has been fetched.'
-        progress:
-          oneOf:
-          - $ref: '#/components/schemas/ReadingProgress'
-          - type: 'null'
-        author_birth_year:
-          type:
-          - integer
-          - 'null'
-        author_death_year:
-          type:
-          - integer
-          - 'null'
-        summary:
-          type:
-          - string
-          - 'null'
-        word_count:
-          type:
-          - integer
-          - 'null'
-        checks:
-          type: object
-          additionalProperties: false
-          required:
-          - total
-          - open
-          - answered
-          properties:
-            total:
-              type: integer
-            open:
-              type: integer
-            answered:
-              type: integer
-    ReadingPage:
-      type: object
-      additionalProperties: false
-      required:
-      - book_id
-      - page
-      - page_count
-      - text
-      properties:
-        book_id:
-          type: integer
-        page:
-          type: integer
-        page_count:
-          type: integer
-        text:
-          type: string
-          description: 'Plain text; paragraphs are separated by a blank line.'
-    ReadingProgressInput:
-      type: object
-      additionalProperties: false
-      required:
-      - page
-      - seconds
-      properties:
-        page:
-          type: integer
-          minimum: 1
-        seconds:
-          type: integer
-          minimum: 0
-          maximum: 86400
-          description: 'Seconds read since the last save; the server counts at most 900 per save.'
-    ReadingProgressSaved:
-      type: object
-      additionalProperties: false
-      required:
-      - progress
-      - reading
-      - badges
-      properties:
-        progress:
-          $ref: '#/components/schemas/ReadingProgress'
-        reading:
-          $ref: '#/components/schemas/ReadingWeek'
-        badges:
-          type: array
-          description: 'Titles of the reading badges earned with this save.'
-          items:
-            type: string
-    ReadingResult:
-      type: object
-      additionalProperties: false
-      required:
-      - choice
-      - correct
       - answer
-      - explanation
       properties:
-        choice:
-          type: integer
-        correct:
-          type: boolean
         answer:
-          type: integer
-          description: 'The index of the right option.'
-        explanation:
-          type:
-          - string
-          - 'null'
-    ReadingQuestion:
+          type: string
+          minLength: 1
+          maxLength: 100
+    DiagnosticStatus:
+      type: string
+      enum:
+      - not_started
+      - in_progress
+      - completed
+    DiagnosticBand:
+      type: string
+      description: How a topic came out in the starting check, from its own answers only (staff only).
+      enum:
+      - secure
+      - developing
+      - gap
+      - not_reached
+    DiagnosticQuestion:
       type: object
       additionalProperties: false
+      description: What is needed to answer, never the accepted answers or the explanation.
       required:
       - id
-      - after_page
+      - position
+      - kind
       - prompt
       - options
-      - result
       properties:
         id:
           type: integer
-        after_page:
-          type:
-          - integer
-          - 'null'
-          description: 'The page that unlocks the question; null means the end of the book.'
+          minimum: 1
+        position:
+          type: integer
+          minimum: 1
+          maximum: 20
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
         prompt:
           type: string
+          minLength: 1
+          maxLength: 4000
         options:
           type: array
+          maxItems: 6
           items:
-            type: string
-        result:
-          oneOf:
-          - $ref: '#/components/schemas/ReadingResult'
-          - type: 'null'
-    ReadingQuestions:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - text
+            properties:
+              id:
+                type: string
+                pattern: ^[a-z][a-z0-9_]{0,19}$
+              text:
+                type: string
+                minLength: 1
+                maxLength: 1000
+    DiagnosticAttempt:
       type: object
       additionalProperties: false
       required:
-      - book_id
-      - questions
-      - locked
+      - id
+      - learner_id
+      - group_id
+      - subject_name
+      - instructions
+      - status
+      - answered
+      - remaining
+      - question
+      - message
+      - focus_topics
       properties:
-        book_id:
+        id:
           type: integer
-        questions:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReadingQuestion'
-        locked:
+          minimum: 1
+        learner_id:
           type: integer
-          description: 'How many questions are still locked.'
-    ReadingAnswerInput:
-      type: object
-      additionalProperties: false
-      required:
-      - choice
-      properties:
-        choice:
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        instructions:
+          type: string
+          maxLength: 2000
+        status:
+          $ref: '#/components/schemas/DiagnosticStatus'
+        answered:
           type: integer
           minimum: 0
-          maximum: 4
-    ReadingAnswer:
+          maximum: 20
+        remaining:
+          type: integer
+          minimum: 0
+          maximum: 20
+          description: Questions still waiting; fewer may be asked, as a topic stops once two answers agree.
+        question:
+          anyOf:
+          - $ref: '#/components/schemas/DiagnosticQuestion'
+          - type: 'null'
+        message:
+          type: string
+        focus_topics:
+          type: array
+          maxItems: 3
+          description: Names of up to three topics practice begins with, once finished. Never a score.
+          items:
+            type: string
+    DiagnosticSummary:
       type: object
       additionalProperties: false
       required:
-      - question_id
-      - choice
-      - correct
-      - answer
-      - explanation
+      - learner_id
+      - diagnostics
       properties:
-        question_id:
+        learner_id:
           type: integer
-        choice:
+          minimum: 1
+        diagnostics:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - group_id
+            - subject_name
+            - status
+            - attempt_id
+            - can_start
+            - message
+            - focus_topics
+            properties:
+              group_id:
+                type: integer
+                minimum: 1
+              subject_name:
+                type: string
+              status:
+                $ref: '#/components/schemas/DiagnosticStatus'
+              attempt_id:
+                description: The learner's own attempt; always null for a guardian.
+                type:
+                - integer
+                - 'null'
+                minimum: 1
+              can_start:
+                type: boolean
+              message:
+                type: string
+              focus_topics:
+                type: array
+                maxItems: 3
+                items:
+                  type: string
+    DiagnosticGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - group_name
+      - subject_name
+      - available
+      - title
+      - topics
+      - learners
+      properties:
+        group_id:
           type: integer
-        correct:
+          minimum: 1
+        group_name:
+          type: string
+        subject_name:
+          type: string
+        available:
           type: boolean
-        answer:
-          type: integer
-        explanation:
+        title:
           type:
           - string
           - 'null'
-    ReadingShelvesResponse:
+        topics:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - library_topic_id
+            - name
+            - secure
+            - developing
+            - gap
+            - not_reached
+            properties:
+              library_topic_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              secure:
+                type: integer
+                minimum: 0
+              developing:
+                type: integer
+                minimum: 0
+              gap:
+                type: integer
+                minimum: 0
+              not_reached:
+                type: integer
+                minimum: 0
+        learners:
+          type: array
+          maxItems: 1000
+          description: By name, never ranked; no total per learner.
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - name
+            - status
+            - topics
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              status:
+                $ref: '#/components/schemas/DiagnosticStatus'
+              topics:
+                type: array
+                maxItems: 100
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - library_topic_id
+                  - band
+                  properties:
+                    library_topic_id:
+                      type: integer
+                      minimum: 1
+                    band:
+                      $ref: '#/components/schemas/DiagnosticBand'
+    DiagnosticAttemptResponse:
       type: object
       additionalProperties: false
       required:
@@ -71274,10 +71656,10 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/ReadingShelves'
+          $ref: '#/components/schemas/DiagnosticAttempt'
         code:
           type: integer
-    ReadingBookResponse:
+    GetDiagnosticSummaryResponse:
       type: object
       additionalProperties: false
       required:
@@ -71291,10 +71673,10 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/ReadingBook'
+          $ref: '#/components/schemas/DiagnosticSummary'
         code:
           type: integer
-    ReadingPageResponse:
+    GetDiagnosticGroupResponse:
       type: object
       additionalProperties: false
       required:
@@ -71308,58 +71690,7 @@ components:
         message:
           type: string
         data:
-          $ref: '#/components/schemas/ReadingPage'
-        code:
-          type: integer
-    ReadingProgressResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/ReadingProgressSaved'
-        code:
-          type: integer
-    ReadingQuestionsResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/ReadingQuestions'
-        code:
-          type: integer
-    ReadingAnswerResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - error
-      - message
-      - data
-      - code
-      properties:
-        error:
-          type: boolean
-        message:
-          type: string
-        data:
-          $ref: '#/components/schemas/ReadingAnswer'
+          $ref: '#/components/schemas/DiagnosticGroup'
         code:
           type: integer
     StrengthsSectionKey:
@@ -71977,5 +72308,465 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/StrengthsSharedView'
+        code:
+          type: integer
+    ReadingProgress:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - furthest_page
+      - page_count
+      - minutes_read
+      - finished
+      - finished_on
+      properties:
+        page:
+          type: integer
+        furthest_page:
+          type: integer
+        page_count:
+          type:
+          - integer
+          - 'null'
+        minutes_read:
+          type: integer
+        finished:
+          type: boolean
+        finished_on:
+          type:
+          - string
+          - 'null'
+          format: date
+    ReadingBookCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - author
+      - language
+      - subjects
+      - reading_level
+      - reading_level_label
+      - page_count
+      - progress
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        language:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        reading_level:
+          type: string
+          enum:
+          - beginner
+          - developing
+          - confident
+          - fluent
+        reading_level_label:
+          type: string
+        page_count:
+          type:
+          - integer
+          - 'null'
+          description: 'Known once the text has been fetched.'
+        progress:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingProgress'
+          - type: 'null'
+    ReadingWeek:
+      type: object
+      additionalProperties: false
+      required:
+      - week_start
+      - minutes_this_week
+      - days_this_week
+      - books_finished
+      description: 'The learner''s own reading only; never a comparison.'
+      properties:
+        week_start:
+          type: string
+          format: date
+        minutes_this_week:
+          type: integer
+        days_this_week:
+          type: integer
+        books_finished:
+          type: integer
+    ReadingShelf:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - description
+      - books
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        books:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingBookCard'
+    ReadingShelves:
+      type: object
+      additionalProperties: false
+      required:
+      - grade_set
+      - shelves
+      - reading
+      - ai_checks
+      properties:
+        grade_set:
+          type: boolean
+          description: 'False when the learner''s homeroom has no grade yet, so no shelf applies.'
+        shelves:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingShelf'
+        reading:
+          $ref: '#/components/schemas/ReadingWeek'
+        ai_checks:
+          type: boolean
+          description: 'Whether AI-written comprehension checks are available. Always false for now.'
+    ReadingBook:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - author
+      - language
+      - subjects
+      - reading_level
+      - reading_level_label
+      - page_count
+      - progress
+      - author_birth_year
+      - author_death_year
+      - summary
+      - word_count
+      - checks
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        author:
+          type: string
+        language:
+          type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        reading_level:
+          type: string
+          enum:
+          - beginner
+          - developing
+          - confident
+          - fluent
+        reading_level_label:
+          type: string
+        page_count:
+          type:
+          - integer
+          - 'null'
+          description: 'Known once the text has been fetched.'
+        progress:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingProgress'
+          - type: 'null'
+        author_birth_year:
+          type:
+          - integer
+          - 'null'
+        author_death_year:
+          type:
+          - integer
+          - 'null'
+        summary:
+          type:
+          - string
+          - 'null'
+        word_count:
+          type:
+          - integer
+          - 'null'
+        checks:
+          type: object
+          additionalProperties: false
+          required:
+          - total
+          - open
+          - answered
+          properties:
+            total:
+              type: integer
+            open:
+              type: integer
+            answered:
+              type: integer
+    ReadingPage:
+      type: object
+      additionalProperties: false
+      required:
+      - book_id
+      - page
+      - page_count
+      - text
+      properties:
+        book_id:
+          type: integer
+        page:
+          type: integer
+        page_count:
+          type: integer
+        text:
+          type: string
+          description: 'Plain text; paragraphs are separated by a blank line.'
+    ReadingProgressInput:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - seconds
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        seconds:
+          type: integer
+          minimum: 0
+          maximum: 86400
+          description: 'Seconds read since the last save; the server counts at most 900 per save.'
+    ReadingProgressSaved:
+      type: object
+      additionalProperties: false
+      required:
+      - progress
+      - reading
+      - badges
+      properties:
+        progress:
+          $ref: '#/components/schemas/ReadingProgress'
+        reading:
+          $ref: '#/components/schemas/ReadingWeek'
+        badges:
+          type: array
+          description: 'Titles of the reading badges earned with this save.'
+          items:
+            type: string
+    ReadingResult:
+      type: object
+      additionalProperties: false
+      required:
+      - choice
+      - correct
+      - answer
+      - explanation
+      properties:
+        choice:
+          type: integer
+        correct:
+          type: boolean
+        answer:
+          type: integer
+          description: 'The index of the right option.'
+        explanation:
+          type:
+          - string
+          - 'null'
+    ReadingQuestion:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - after_page
+      - prompt
+      - options
+      - result
+      properties:
+        id:
+          type: integer
+        after_page:
+          type:
+          - integer
+          - 'null'
+          description: 'The page that unlocks the question; null means the end of the book.'
+        prompt:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        result:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingResult'
+          - type: 'null'
+    ReadingQuestions:
+      type: object
+      additionalProperties: false
+      required:
+      - book_id
+      - questions
+      - locked
+      properties:
+        book_id:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingQuestion'
+        locked:
+          type: integer
+          description: 'How many questions are still locked.'
+    ReadingAnswerInput:
+      type: object
+      additionalProperties: false
+      required:
+      - choice
+      properties:
+        choice:
+          type: integer
+          minimum: 0
+          maximum: 4
+    ReadingAnswer:
+      type: object
+      additionalProperties: false
+      required:
+      - question_id
+      - choice
+      - correct
+      - answer
+      - explanation
+      properties:
+        question_id:
+          type: integer
+        choice:
+          type: integer
+        correct:
+          type: boolean
+        answer:
+          type: integer
+        explanation:
+          type:
+          - string
+          - 'null'
+    ReadingShelvesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingShelves'
+        code:
+          type: integer
+    ReadingBookResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingBook'
+        code:
+          type: integer
+    ReadingPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingPage'
+        code:
+          type: integer
+    ReadingProgressResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingProgressSaved'
+        code:
+          type: integer
+    ReadingQuestionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingQuestions'
+        code:
+          type: integer
+    ReadingAnswerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ReadingAnswer'
         code:
           type: integer

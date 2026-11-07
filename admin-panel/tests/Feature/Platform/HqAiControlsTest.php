@@ -114,7 +114,7 @@ class HqAiControlsTest extends TestCase
 
         $response = $this->get('/saas/ai')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $response->assertSee('AI control centre')->assertSee('Not qualified')->assertSee('No evaluation result recorded')
-            ->assertSee('19 cases in its corpus')->assertDontSee('Switch an AI feature for a school')->assertSee('Spending caps')->assertDontSee('Save caps for')
+            ->assertSee('20 cases in its corpus')->assertDontSee('Switch an AI feature for a school')->assertSee('Spending caps')->assertDontSee('Save caps for')
             ->assertDontSee(self::PRIVATE_OUTPUT)->assertDontSee(self::PRIVATE_SOURCE)->assertDontSee('synthetic_self_harm_signal');
 
         $schools = collect($response->viewData('schools'))->keyBy('id');
