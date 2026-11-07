@@ -51,6 +51,11 @@ school's part after `retention_days` (7).
   in its own school and shows it only while the reader is still that school's
   guardian of every child it is about. A removed guardian loses that school's
   part at once. Another person's, an expired or an emptied summary is 404.
+- Each part keeps the identities from the same collection that produced its
+  facts, with those relationships checked again before saving. A later child
+  list cannot substitute a remaining sibling for a child whose relationship
+  was removed. The internal identity binding is kept out of stored facts and
+  model input.
 - The notice is private (`family.` in `config/private_notices.php`):
   `FamilySummaryNotices` filters the inbox and rechecks delivery against the
   owner, the school it was filed in, the state and expiry.
@@ -84,7 +89,8 @@ or notice-only type, plus marks, reports and fees (`private_types`).
 ## Tests
 
 `tests/Feature/FamilySummary/FamilyDailySummaryTest.php`: two schools, timetable
-and forms facts, a guardian at one school, a non-guardian, a removed guardian,
+and forms facts, a guardian at one school, a non-guardian, a removed guardian
+(including removal between collecting facts and saving the part),
 no private detail in the model input, four fallbacks, quiet hours, once per
 day (with crash recovery and retention), wrong role and wrong owner.
 

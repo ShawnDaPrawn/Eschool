@@ -36,6 +36,7 @@ use App\Services\Ai\Inference\ProviderResponse;
 use App\Services\Ai\Providers\OpenAiModerator;
 use App\Services\FamilyForms\Consents;
 use App\Services\FamilySummary\FamilyDailySummaries;
+use App\Services\FamilySummary\FamilySummaryFacts;
 use App\Services\FamilySummary\FamilySummaryPreferences;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Notifications\Notifier;
@@ -258,6 +259,41 @@ class FamilyDailySummaryTest extends TestCase
         $this->assertSame(1, $this->summarise()['sent']);
         $second = FamilyDailySummary::query()->where('user_id', $this->farid->id)->whereDate('summary_date', '2026-02-11')->sole();
         $this->assertSame([1], array_keys($this->parts($second)));
+    }
+
+    public function test_a_relationship_removed_after_collecting_facts_cannot_leave_an_authorised_summary_about_that_child(): void
+    {
+        $this->ai(false);
+        $revoke = function (): void {
+            GuardianLink::query()->updateOrCreate(
+                ['learner_id' => $this->schoolA->ids['asha'], 'guardian_user_id' => $this->farid->id],
+                ['relationship' => 'father', 'status' => 'ended', 'can_approve' => false],
+            );
+        };
+        $this->app->instance(FamilySummaryFacts::class, new class($revoke) extends FamilySummaryFacts
+        {
+            public function __construct(private readonly \Closure $revoke) {}
+
+            public function collect(User $guardian, CarbonImmutable $now): ?array
+            {
+                $facts = parent::collect($guardian, $now);
+                if (app(CurrentSchool::class)->id() === 1) {
+                    ($this->revoke)();
+                }
+
+                return $facts;
+            }
+        });
+
+        // Farid still has Cara here, so a fresh child list alone would
+        // authorise Asha's earlier text under Cara's identity.
+        $this->assertSame(1, $this->summarise()['sent']);
+        $summary = $this->summary($this->farid);
+        $response = $this->asA('farid')->getJson('/api/v2/me/family-summaries/'.$summary->id)->assertOk();
+        $this->assertSame([self::SCHOOL_B_ID], array_column($response->json('data.sections'), 'school_id'));
+        $response->assertDontSee('Fraction worksheet two');
+        $this->assertSame([self::SCHOOL_B_ID], array_keys($this->parts($summary)));
+        $this->assertSame([], FamilySummaryFakeProvider::$inputs);
     }
 
     public function test_no_private_detail_reaches_the_model_and_private_updates_are_only_counted(): void

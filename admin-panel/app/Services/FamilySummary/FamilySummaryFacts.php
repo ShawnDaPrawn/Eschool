@@ -39,7 +39,7 @@ class FamilySummaryFacts
 {
     public const TYPE = 'family.daily_summary';
 
-    /** @return array{school: string, date: string, children: list<array>, unread_messages: int, private_updates: int}|null null when the guardian has no current child here */
+    /** @return array{learner_ids: list<int>, school: string, date: string, children: list<array>, unread_messages: int, private_updates: int}|null null when the guardian has no current child here */
     public function collect(User $guardian, CarbonImmutable $now): ?array
     {
         $authority = app(FamilySummaryAuthority::class);
@@ -47,6 +47,7 @@ class FamilySummaryFacts
         $school = app(CurrentSchool::class)->school();
         $today = $now->setTimezone($school?->timezone ?: 'Africa/Johannesburg')->startOfDay();
         $children = [];
+        $learnerIds = [];
         foreach ($authority->children($fresh) as $learner) {
             $learner = $authority->child($fresh, (int) $learner->id);
             $children[] = [
@@ -55,11 +56,14 @@ class FamilySummaryFacts
                 'homework' => $this->homework($learner, $today),
                 'forms' => $this->forms($fresh, $learner, $now),
             ];
+            $learnerIds[] = (int) $learner->id;
         }
         if ($children === []) {
             return null;
         }
         $facts = [
+            // Internal authority binding: removed before facts are stored or sent to the model.
+            'learner_ids' => $learnerIds,
             'school' => Str::limit((string) ($school?->short_name ?: $school?->name), 100, ''),
             'date' => $today->toDateString(),
             'children' => $children,
@@ -67,7 +71,10 @@ class FamilySummaryFacts
             'private_updates' => $this->privateUpdates($fresh, $now),
         ];
         // The relationship is checked again after the reads, as the digests do.
-        $authority->guardian($fresh);
+        $fresh = $authority->guardian($fresh);
+        foreach ($learnerIds as $learnerId) {
+            $authority->child($fresh, $learnerId);
+        }
 
         return $facts;
     }

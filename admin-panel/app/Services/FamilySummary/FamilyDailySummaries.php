@@ -128,16 +128,21 @@ class FamilyDailySummaries
 
             return null;
         }
+        // Bind later reads to the children whose facts were actually collected.
+        // Re-querying the child list could instead authorise an earlier child's
+        // text under a remaining sibling after a relationship was removed.
+        $learners = $facts['learner_ids'];
+        unset($facts['learner_ids']);
+        $authority = app(FamilySummaryAuthority::class);
+        $fresh = $authority->guardian($user);
+        foreach ($learners as $learnerId) {
+            $authority->child($fresh, $learnerId);
+        }
         $hash = hash('sha256', json_encode($facts, JSON_THROW_ON_ERROR));
         $part = $existing ?? new FamilyDailySummaryPart(['family_daily_summary_id' => $summary->id, 'user_id' => $user->id]);
         if ($existing === null || ! hash_equals((string) $existing->facts_hash, $hash)) {
             // A new receipt for new facts; a retry of the same facts reuses the stored one.
             $part->operation_id = (string) Str::uuid();
-        }
-        $learners = [];
-        $fresh = app(FamilySummaryAuthority::class)->guardian($user);
-        foreach (app(FamilySummaryAuthority::class)->children($fresh) as $learner) {
-            $learners[] = (int) $learner->id;
         }
         $part->fill(['facts' => $facts, 'facts_hash' => $hash, 'learner_ids' => $learners, 'expires_at' => $summary->expires_at,
             'text' => $existing?->text ?? '', 'wording' => $existing?->wording ?? 'template'])->save();
