@@ -57,6 +57,9 @@ class PlatformServiceProvider extends ServiceProvider
         // a burst after a bulk send stays well under this.
         RateLimiter::for('mail-webhook', fn (Request $request) => Limit::perMinute(600)->by('mail-webhook:'.$request->ip()));
         RateLimiter::for('messaging-webhook', fn (Request $request) => Limit::perMinute(600)->by('messaging-webhook:'.$request->ip()));
+        // Your SMS and WhatsApp choices and number verification (Action Plan 2.7): a backstop per person and
+        // action; TextNumbers keeps its own stricter limits on codes and wrong tries.
+        RateLimiter::for('text-messaging', fn (Request $request) => Limit::perMinute(20)->by('text-messaging:'.($request->user()?->getAuthIdentifier() ?? $request->ip()).':'.$request->method().':'.$request->path()));
 
         $this->bootTenancy();
     }
