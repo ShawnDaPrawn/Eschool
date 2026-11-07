@@ -210,8 +210,8 @@ service in `app/Services/Learning/Library` that checks it and validates again.
 ## Not in this step
 
 - **Content itself** (3.5): no topics, questions or lessons are seeded.
-- **AI drafting into the library** (3.4): `TeachingDrafts` is not pointed at the
-  library, and there is no teacher panel.
+- **AI drafting into the library** (3.4): now in the
+  [content production pipeline](content-pipeline.md).
 - **`TutorContext::capture`** reading the library. The tutor's context manifest
   is hashed and re-authorised on every turn against school content versions;
   adding library sources there needs its own change and tests.
@@ -225,6 +225,7 @@ service in `app/Services/Learning/Library` that checks it and validates again.
   attestation are 3.19.
 - **Mastery map**: mirror topics are not shown on the school's mastery map, and
   library topics are not linked to the school's own curriculum topics.
-- **SA.16, later parts**: quality signals from learner data (weak items),
-  retiring a published item, and a school-side switch (only HQ switches it).
+- **SA.16, later parts**: retiring a published item, and a school-side switch
+  (only HQ switches it). Quality signals from learner data are in the
+  [content production pipeline](content-pipeline.md).
 - **Teacher-to-teacher sharing** (5.4).

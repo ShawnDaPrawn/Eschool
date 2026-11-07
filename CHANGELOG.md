@@ -16,10 +16,26 @@
 - Finance can run alumni giving campaigns: pledges and EFT donations are recorded with numbered receipts on the school ledger, donor names stay with Finance, and a school may share campaign totals (Action Plan 5.10).
 - **Deploy:** run migrations and the installation seeder (new permissions); the new daily `bursaries:prune` job runs from the scheduler.
 
+## 2026-11-08
+
+- Schools on NavigateEd can now arrange fixtures with each other. An activity manager invites another school (found by name) or types the name of a team that is not on NavigateEd, sets the date, venue and field, and the invited school accepts for one of its own groups or declines. Until a school accepts, the other sees only its name.
+- Each school keeps its own team sheet and private notes. The other school sees the team name and, only if the school chooses to share it, each player's label and position, never learners' names or anything else.
+- Both schools report the score; the result counts once the two reports agree, and each school sees the other's report while they differ. Against a team not on NavigateEd, the host's report is the result. Guardians of the learners on the team sheet get a private notice that a result is ready and can see their child's team's results.
+- Leagues and competitions between schools, with a running table from confirmed results for every school that joined. New panel page: Fixtures between schools, next to Activity groups. New API: /api/v2/activities/fixtures and /competitions.
+- Developers: records shared between schools follow a new pattern (engineering/specs/platform/shared-records.md): a shared row that names no school, each school's own participant row, and one service that reads only the columns a school chose to share.
+
 ## 2026-11-06
 
 - Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
 - Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
+
+## 2026-11-04
+
+- HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
+- HQ AI calls go through the AI gateway's own HQ path, with moderation and HQ's own daily spending caps, and are metered apart from every school's AI spend.
+- Each library version now says where it came from (written by staff from a source, or an AI draft with who asked and who reviewed it), on the item page and in the audit log.
+- A new "Needs attention" page lists published library questions that learners find far harder or far easier than expected, from answers across schools, shown only as a percentage and a learner-count band, never a school or a learner, and only for questions answered by at least 20 learners in at least 3 schools. HQ can open a new draft from it.
+- The library review queue can show only AI drafts or only flagged items.
 
 ## 2026-11-03
 
