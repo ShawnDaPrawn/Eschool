@@ -6,10 +6,12 @@ namespace App\Models;
 
 use App\Models\Platform\GuardianInvitation;
 use App\Models\Platform\LearnerInvitation;
+use App\Models\Platform\MessagingNumber;
 use App\Models\Platform\RolePivot;
 use App\Models\Platform\SchoolMembership;
 use App\Services\Platform\Audit\Auditable;
 use App\Services\Platform\Identity\SharedAccounts;
+use App\Services\Platform\Notifications\TextNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\MemberScope;
 use Illuminate\Database\Eloquent\Builder;
@@ -119,6 +121,10 @@ class User extends Authenticatable
         });
 
         static::updated(function (User $user) {
+            // A new number on the account is not verified at any school (Action Plan 2.7).
+            if ($user->wasChanged('mobile') && ! app(CurrentSchool::class)->isMigrating()) {
+                TextNumbers::numberChanged((int) $user->id, MessagingNumber::ACCOUNT);
+            }
             if ($user->wasChanged('email') && ! app(CurrentSchool::class)->isMigrating()) {
                 GuardianInvitation::acrossSchools()->where('guardian_user_id', $user->id)->whereNull('used_at')->update(['used_at' => now()]);
                 LearnerInvitation::query()->where('guardian_user_id', $user->id)->where('channel', LearnerInvitation::LINK)

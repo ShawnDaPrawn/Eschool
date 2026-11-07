@@ -61,10 +61,19 @@ class DeliveryGuard
                 return false;
             }
             if (in_array($channel, UrgentMessaging::CHANNELS, true)) {
-                // The number the school office has on record now, and the school's opt-in now.
+                // The number on record now, verified by its owner, the school's opt-in and the person's own choice now.
                 $messaging = app(UrgentMessaging::class);
+                if (! hash_equals((string) $messaging->number($user), $address)) {
+                    return false;
+                }
+                if ($type === TextNumbers::TYPE) {
+                    // A verification code: only while it is still the latest code waiting for this number.
+                    $generation = $context['code_generation'] ?? null;
 
-                return hash_equals((string) $messaging->number($user), $address) && $messaging->allows($user, $type, $channel);
+                    return $channel === DeliveryLog::SMS && app(TextNumbers::class)->pending($user, $address, is_string($generation) ? $generation : null);
+                }
+
+                return $messaging->allows($user, $type, $channel) && app(TextNumbers::class)->verified($user, $address);
             }
             $current = $channel === 'email'
                 ? is_string($user->email) && hash_equals($user->email, $address)
