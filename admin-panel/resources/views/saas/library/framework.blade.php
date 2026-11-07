@@ -86,7 +86,7 @@
 @if ($topicChoices === [] || $sourceChoices === [])
     <p class="saas-card">{{ __('Add a topic here and a source on the library page first.') }}</p>
 @else
-<form method="POST" action="{{ route('saas.library.items.store') }}" class="saas-card" aria-label="{{ __('Add an item') }}">
+<form method="POST" action="{{ route('saas.library.items.store') }}" enctype="multipart/form-data" class="saas-card" aria-label="{{ __('Add an item') }}">
     @csrf
     <p>{{ __('An item starts as a draft. Send it for review from its page; a reviewer for its subject approves it, and then it can be published.') }}</p>
     <div class="saas-grid">

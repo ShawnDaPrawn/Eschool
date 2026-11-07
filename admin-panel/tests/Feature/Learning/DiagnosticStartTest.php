@@ -131,6 +131,26 @@ class DiagnosticStartTest extends TestCase
         return $attempt;
     }
 
+    public function test_starting_check_skips_question_kinds_its_answer_contract_cannot_mark(): void
+    {
+        $written = $this->publishedItem($this->topics['whole'], ['question_kind' => 'short_text', 'answers' => 'seven', 'prompt' => 'Write seven in words.']);
+        $this->asHq(function () use ($written): void {
+            $items = app(LibraryItems::class);
+            $content = $this->libraryStaff('content');
+            $items->saveDraft($content, $this->diagnostic->id, ['revision' => $this->diagnostic->fresh()->revision, 'title' => 'Mixed starting check',
+                'instructions' => 'Answer what you can.', 'item_ids' => [$written->id, $this->items['w1']->id]]);
+            $version = $items->submit($content, $this->diagnostic->id, ['revision' => $this->diagnostic->fresh()->revision]);
+            $items->review($this->libraryStaff('reviewer'), $version->id, ['decision' => 'approved']);
+            $items->publish($content, $this->diagnostic->id, ['version_id' => $version->id, 'revision' => $this->diagnostic->fresh()->revision]);
+        });
+        $this->switchLibrary(1, true);
+        $attempt = $this->start();
+        $this->assertSame('number', $attempt['question']['kind']);
+        $this->assertSame('Synthetic question w1?', $attempt['question']['prompt']);
+        $this->assertSame(1, $attempt['remaining']);
+        $this->assertSame('completed', $this->answer($attempt, '7')['status']);
+    }
+
     public function test_a_learner_takes_the_starting_check_and_fills_the_mastery_map(): void
     {
         $this->switchLibrary(1, true);
