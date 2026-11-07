@@ -52,6 +52,7 @@ use App\Http\Controllers\Api\V2\Money\WalletController;
 use App\Http\Controllers\Api\V2\Money\WalletDepositController;
 use App\Http\Controllers\Api\V2\Money\WalletTransferController;
 use App\Http\Controllers\Api\V2\Money\WalletWithdrawalController;
+use App\Http\Controllers\Api\V2\OpenStandards\BadgeCredentialController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
@@ -714,6 +715,13 @@ Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'award
         foreach (['points' => 'issue', 'points/{record}/reverse' => 'reverse', 'nominations' => 'nominate', 'nominations/{record}/review' => 'review', 'nominations/{record}/withdraw' => 'withdraw', 'presentations' => 'present', 'outside-awards' => 'outside', 'presentations/{record}/void' => 'void'] as $path => $method) {
             Route::post($path, [$c, $method])->whereNumber('record')->name($method);
         }
+    });
+
+// Open Badges 3.0 credentials of a learner's awards (Action Plan 5.9): guardians, and the learner from the allowed age stage.
+Route::prefix('open-badges/learners/{learner}/credentials')->name('api.v2.open-badges.')
+    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved'])->group(function () {
+        Route::get('/', [BadgeCredentialController::class, 'index'])->whereNumber('learner')->name('index');
+        Route::get('{presentation}', [BadgeCredentialController::class, 'show'])->whereNumber(['learner', 'presentation'])->name('show');
     });
 
 // Dedicated staff purpose: exact registered private types and source grants;
