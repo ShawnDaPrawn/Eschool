@@ -37,6 +37,8 @@
 
 ## 2026-11-04
 
+- Learners can take a short starting check for a subject when their school has the Navigate Ed library switched on (Action Plan 3.7). It asks a few questions per topic, one at a time, marked on the server: the app never receives the answers or explanations, and the learner is not told right or wrong. Each answer fills the mastery map as its own kind of evidence ("diagnostic"), never as a mark. Learners and guardians see a plain starting point; teachers see who has finished and the starting map per topic on the new Starting checks page. API: new `/api/v2/learning/diagnostics` endpoints in `openapi.yaml` (the Dart client needs regenerating). **Deploy:** run migrations (two new school tables).
+
 - HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
 - HQ AI calls go through the AI gateway's own HQ path, with moderation and HQ's own daily spending caps, and are metered apart from every school's AI spend.
 - Each library version now says where it came from (written by staff from a source, or an AI draft with who asked and who reviewed it), on the item page and in the audit log.
