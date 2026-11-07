@@ -17,6 +17,7 @@ use App\Services\Ai\Inference\Capability;
 use App\Services\Ai\Inference\FeatureInferenceRequest;
 use App\Services\Ai\Inference\InferenceGateway;
 use App\Services\Ai\Inference\InferenceRequest;
+use App\Services\Ai\Inference\PlatformInference;
 use App\Services\Ai\Inference\ProviderResponse;
 use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Platform\Audit\Audit;
@@ -31,6 +32,12 @@ class AiGateway
     public function runFeature(User $actor, Capability $capability, FeatureInferenceRequest $request): ProviderResponse
     {
         return app(InferenceGateway::class)->runFeature($actor, $capability, $request);
+    }
+
+    /** HQ's own model calls, made from /saas with no school (Action Plan 3.4): metered against HQ's caps. */
+    public function runPlatform(User $actor, Capability $capability, InferenceRequest $request): ProviderResponse
+    {
+        return app(PlatformInference::class)->run($actor, $capability, $request);
     }
 
     public function complete(User $actor, InferenceRequest $request): ProviderResponse

@@ -18,6 +18,12 @@
 - Memo mark points gain three rules: an expression or formula, terms, and significant figures.
 - Learner marking stays off for every subject until it passes the accuracy check against teacher marking (`config/marking.php`).
 
+- HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
+- HQ AI calls go through the AI gateway's own HQ path, with moderation and HQ's own daily spending caps, and are metered apart from every school's AI spend.
+- Each library version now says where it came from (written by staff from a source, or an AI draft with who asked and who reviewed it), on the item page and in the audit log.
+- A new "Needs attention" page lists published library questions that learners find far harder or far easier than expected, from answers across schools, shown only as a percentage and a learner-count band, never a school or a learner, and only for questions answered by at least 20 learners in at least 3 schools. HQ can open a new draft from it.
+- The library review queue can show only AI drafts or only flagged items.
+
 ## 2026-11-03
 
 - When an admin panel browser CI part fails, CI now prints the PHP OPcache/JIT settings and the kernel's note on any PHP process it killed, so a panel server that stops without a PHP error can be diagnosed.
