@@ -97,7 +97,8 @@
       const response = await fetch(safeUrl(path), {
         method: serialized === null ? 'GET' : 'POST', credentials: 'omit', redirect: 'error', cache: 'no-store',
         mode: 'same-origin', referrerPolicy: 'no-referrer', signal: controller.signal,
-        headers: {Accept: 'application/json', Authorization: `Bearer ${learnerRequest ? `${learner}~` : ''}${device}`,
+        // The tablet reads the answer-free practice contract: questions only, results after each answer.
+        headers: {Accept: 'application/json', 'X-Practice-Contract': '2', Authorization: `Bearer ${learnerRequest ? `${learner}~` : ''}${device}`,
           ...(serialized === null ? {} : {'Content-Type': 'application/json'})},
         ...(serialized === null ? {} : {body: serialized}),
       });
@@ -123,9 +124,12 @@
     return data;
   }
   function verifiedReview(data, entry) {
-    if (!plain(data) || !positive(data.id) || data.entry_id !== entry || typeof data.correct !== 'boolean'
-      || !/^\d{4}-\d{2}-\d{2}$/.test(data.reviewed_on) || !plain(data.schedule)
-      || !Number.isSafeInteger(data.schedule.interval_days) || data.schedule.interval_days < 1 || data.schedule.interval_days > 36500) throw new Error('Unverified saved review');
+    // A recorded result carries its solution; an answer waiting for a teacher has no mark or schedule yet.
+    if (!plain(data) || !positive(data.id) || data.entry_id !== entry || !['marked', 'awaiting_teacher'].includes(data.state)
+      || (data.state === 'marked' ? typeof data.correct !== 'boolean' || !plain(data.schedule)
+        || !Number.isSafeInteger(data.schedule.interval_days) || data.schedule.interval_days < 1 || data.schedule.interval_days > 36500
+        : data.correct !== null)
+      || !/^\d{4}-\d{2}-\d{2}$/.test(data.reviewed_on) || !plain(data.solution) || !bounded(data.solution.explanation, 4000)) throw new Error('Unverified saved review');
     return data;
   }
   function verifiedSet(data) {
@@ -137,21 +141,22 @@
       || !Array.isArray(data.items) || data.items.length < 1 || data.items.length > 10) throw new Error('Unverified practice set');
     const seen = new Set();
     data.items.forEach((item) => {
-      const definition = item.definition;
+      // The set carries questions only: the server marks answers and sends the explanation afterwards.
+      const question = item.question;
       if (!positive(item.id) || seen.has(item.id) || !positive(item.item_id) || !positive(item.topic_id) || !positive(item.source_version_id)
-        || !plain(definition) || !['choice', 'number'].includes(definition.kind) || !bounded(definition.prompt, 4000)
-        || !bounded(definition.explanation, 4000) || !Array.isArray(definition.options) || !Array.isArray(definition.answers)
-        || definition.answers.length < 1 || definition.answers.length > 10 || definition.answers.some((answer) => !bounded(answer, 100))) throw new Error('Unverified practice question');
+        || !plain(question) || typeof question.kind !== 'string' || !bounded(question.prompt, 4000) || !Array.isArray(question.options)
+        || 'answers' in question || 'explanation' in question) throw new Error('Unverified practice question');
       seen.add(item.id);
-      if (definition.kind === 'choice') {
+      // Other question types are answered in the learner's own app; the tablet offers choice and number questions.
+      item.tablet = ['choice', 'number'].includes(question.kind);
+      if (question.kind === 'choice') {
         const ids = new Set();
-        if (definition.options.length < 2 || definition.options.length > 6) throw new Error('Unverified practice choices');
-        definition.options.forEach((option) => {
+        if (question.options.length < 2 || question.options.length > 6) throw new Error('Unverified practice choices');
+        question.options.forEach((option) => {
           if (!plain(option) || !/^[a-z][a-z0-9_]{0,19}$/.test(option.id) || ids.has(option.id) || !bounded(option.text, 1000)) throw new Error('Unverified practice choices');
           ids.add(option.id);
         });
-        if (definition.answers.some((answer) => !ids.has(answer))) throw new Error('Unverified approved choice');
-      } else if (definition.options.length !== 0 || definition.answers.some((answer) => !decimal.test(answer))) throw new Error('Unverified practice number');
+      } else if (question.kind === 'number' && question.options.length !== 0) throw new Error('Unverified practice number');
       if (item.review !== null) verifiedReview(item.review, item.id);
     });
     reader = data.reader_id;
@@ -199,15 +204,15 @@
   }
   function renderPractice() {
     const box = q('questions'); box.replaceChildren();
-    const item = set.items.find((candidate) => candidate.review === null);
+    const item = set.items.find((candidate) => candidate.review === null && candidate.tablet);
     if (!item) { box.append(node('h2', t('Great practice today!')), node('p', t('Your saved practice is ready for your next lesson.'))); return; }
-    const heading = node('h2', item.definition.prompt); heading.tabIndex = -1; box.append(heading);
+    const heading = node('h2', item.question.prompt); heading.tabIndex = -1; box.append(heading);
     const form = document.createElement('form'); form.autocomplete = 'off';
     // A browser that loses JavaScript must never put an answer in a GET URL.
     form.method = 'POST'; form.action = safeUrl('/api/v2/foundation-learner/practice').href;
     const answers = node('fieldset'); answers.append(node('legend', t('Choose your answer')));
-    if (item.definition.kind === 'choice') {
-      item.definition.options.forEach((option) => {
+    if (item.question.kind === 'choice') {
+      item.question.options.forEach((option) => {
         const label = node('label', undefined, 'foundation-choice'), input = document.createElement('input');
         input.type = 'radio'; input.name = 'answer'; input.value = option.id; input.required = true;
         input.setAttribute('data-foundation-write', ''); label.append(input, node('span', option.text)); answers.append(label);
@@ -229,8 +234,8 @@
     form.addEventListener('submit', (event) => {
       event.preventDefault(); if (pending || busy || !context || !set) return;
       const data = new FormData(form), answer = String(data.get('answer') || '').trim(), rating = Number(data.get('rating'));
-      if (!bounded(answer, 100) || ![2, 3, 4].includes(rating) || (item.definition.kind === 'number' && !decimal.test(answer))
-        || (item.definition.kind === 'choice' && !item.definition.options.some((option) => option.id === answer))) {
+      if (!bounded(answer, 100) || ![2, 3, 4].includes(rating) || (item.question.kind === 'number' && !decimal.test(answer))
+        || (item.question.kind === 'choice' && !item.question.options.some((option) => option.id === answer))) {
         status('Choose an answer or enter a number using a dot.'); return;
       }
       newWrite('review', `/api/v2/foundation-learner/practice/${set.id}/entries/${item.id}/review`, {operation_id: crypto.randomUUID(), answer, rating}, true, item.id);
@@ -239,7 +244,7 @@
   }
   function renderFeedback(item) {
     const box = q('questions'); box.replaceChildren();
-    box.append(node('h2', t(item.review.correct ? 'Well done!' : 'Let us learn together.')), node('p', item.definition.explanation));
+    box.append(node('h2', t(item.review.correct ? 'Well done!' : 'Let us learn together.')), node('p', item.review.solution.explanation));
     const next = node('button', t('Next question'), 'm3-button m3-button--filled'); next.type = 'button';
     next.addEventListener('click', () => refreshSet()); box.append(next);
   }

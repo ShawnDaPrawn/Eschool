@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * platform.can:{ability}: after platform.staff, the staff member's role must
+ * platform.can:{ability}[,{ability}...]: after platform.staff, the staff member's role must
  * hold the ability (config/platform_roles.php). Every /saas route but the
  * operator's own password names one. engineering/specs/platform/platform-roles.md.
  * Two-factor sign-in is checked here again (SA.2), so no ability opens
@@ -24,10 +24,12 @@ class EnsurePlatformAbility
     /**
      * @param  Closure(Request): Response  $next
      */
-    public function handle(Request $request, Closure $next, string $ability): Response
+    public function handle(Request $request, Closure $next, string $ability, string ...$alternatives): Response
     {
         $user = $request->user();
-        abort_unless($user !== null && $this->access->can($user, $ability) && $this->twoFactor->passed($request->hasSession() ? $request->session() : null, $user), 403);
+        // platform.can:a,b lets a role holding either ability through (a library picture is for writers and reviewers alike).
+        $holds = $user !== null && collect([$ability, ...$alternatives])->contains(fn (string $one) => $this->access->can($user, $one));
+        abort_unless($holds && $this->twoFactor->passed($request->hasSession() ? $request->session() : null, $user), 403);
 
         return $next($request);
     }
