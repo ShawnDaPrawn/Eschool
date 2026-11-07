@@ -129,6 +129,8 @@ Schedule::call(function () {
 })->everyMinute()->name('consultations-advance')->withoutOverlapping();
 
 Schedule::command('gallery:prune-copies')->dailyAt('03:30')->name('gallery-private-retention')->withoutOverlapping();
+// OneRoster exports (Action Plan 5.9): stored files are deleted when their download window ends.
+Schedule::command('open-standards:prune-exports')->dailyAt('03:40')->name('oneroster-export-retention')->withoutOverlapping();
 
 Schedule::command('activities:prune-material-files')->dailyAt('03:40')->name('activity-private-file-retention')->withoutOverlapping();
 
