@@ -72,6 +72,7 @@ use App\Http\Controllers\Api\V2\Platform\NotificationInboxController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
 use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
+use App\Http\Controllers\Api\V2\Platform\TextMessagingController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Controllers\Api\V2\Transfers\TransferController;
@@ -460,6 +461,11 @@ Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approv
     Route::get('me/family-summary/preferences', [FamilySummaryController::class, 'preferences'])->middleware('cache.headers:private;no_store');
     Route::put('me/family-summary/preferences', [FamilySummaryController::class, 'savePreferences']);
     Route::get('me/family-summaries/{summary}', [FamilySummaryController::class, 'show'])->whereNumber('summary')->middleware('cache.headers:private;no_store');
+    // Your SMS and WhatsApp at this school (Action Plan 2.7): verify your number, choose per notice.
+    Route::get('me/text-messaging', [TextMessagingController::class, 'show'])->middleware('cache.headers:private;no_store');
+    Route::put('me/text-messaging', [TextMessagingController::class, 'update'])->middleware('throttle:text-messaging');
+    Route::post('me/text-messaging/verification', [TextMessagingController::class, 'code'])->middleware('throttle:text-messaging');
+    Route::post('me/text-messaging/verification/confirm', [TextMessagingController::class, 'confirm'])->middleware('throttle:text-messaging');
     Route::get('me/handle', [HandleController::class, 'show']);
     Route::put('me/handle', [HandleController::class, 'update'])->middleware('throttle:auth');
 });
