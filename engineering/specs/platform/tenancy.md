@@ -189,6 +189,14 @@ current-group/source checks. `tutor_sessions.topic_id` remains nullable for olde
 subject-only sessions. School-scoped immutable issue/answer receipts and verified
 practice-provenance evidence are retained, without official mark writes.
 
+Guided learning path (Action Plan 3.9): `learning_paths`, `learning_path_items`
+and `learning_path_reviews` are required school-owned tables with scoped
+models. A path belongs to one learner and learning group; its items point at
+the school's own approved question versions or published library versions
+(never the other way round), and its reviews hold the FSRS state per topic.
+Only the owning approved learner reads or moves a path; teachers of the group
+and the child's guardians read summaries. Answers are encrypted and immutable.
+
 ## Parent meetings and early collection
 
 `family_visit_rules`, `meeting_slots`, `gate_passes`,
