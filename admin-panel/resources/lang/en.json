@@ -7276,5 +7276,8 @@
     "This answer has already been marked.": "This answer has already been marked.",
     "Question approved. Its learners get it in daily practice once its material and topic are published to the group.": "Question approved. Its learners get it in daily practice once its material and topic are published to the group.",
     "Marked. The learner sees the result the next time their practice loads.": "Marked. The learner sees the result the next time their practice loads.",
-    "Spoken answer of up to :seconds seconds, marked by the learner's teacher.": "Spoken answer of up to :seconds seconds, marked by the learner's teacher."
+    "Spoken answer of up to :seconds seconds, marked by the learner's teacher.": "Spoken answer of up to :seconds seconds, marked by the learner's teacher.",
+    "The tutor remembers which topics were practised in the last :days days, not what was said. It can be cleared at any time.": "The tutor remembers which topics were practised in the last :days days, not what was said. It can be cleared at any time.",
+    "This tutor version offers only ordinary questions in English.": "This tutor version offers only ordinary questions in English.",
+    "This clear request was already used for something else.": "This clear request was already used for something else."
 }
