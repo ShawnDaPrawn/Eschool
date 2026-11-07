@@ -37,6 +37,12 @@ final class SchoolOwnedTables
         // (written inside it from /saas); only HQ reads them, never the school.
         // platform_billing_reminders logs each overdue reminder sent to it.
         'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
+        // School groups (5.7, SA.18): each school's own membership of a group
+        // (HQ's invitation and the school's agreement), and its month on a
+        // group invoice (the claim on its own draft, and the lines copied
+        // from it). Written inside the school; HQ and the group read them
+        // across schools, the group only while the membership is active.
+        'school_group_members', 'school_group_invoice_schools', 'school_group_invoice_lines',
         'support_access_grants', 'support_access_views',
         'platform_announcement_schools', 'platform_announcement_reads',
         'school_health_snapshots',
@@ -172,6 +178,10 @@ final class SchoolOwnedTables
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
         'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
+        'school_groups' => 'a group of schools with one owner, written only from /saas; which schools are in it is each school\'s own school_group_members row, agreed by the school',
+        'school_group_admins' => 'group-level roles: who may see a group\'s counts across its current schools; grants nothing inside any school, written only from /saas',
+        'school_group_invoices' => 'Navigate Ed\'s monthly invoice to a school group, written only from /saas; each school\'s part is a row of school_group_invoice_schools',
+        'school_group_payments' => 'EFT payments a school group made against its group invoice, written only from /saas; names no school',
         'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
         'platform_package_modules' => 'which product modules each version of a package includes; names no school',
         'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
