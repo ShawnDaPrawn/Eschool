@@ -33,6 +33,7 @@ return [
     'house_points' => ['name' => 'House points', 'default' => false, 'dependencies' => ['people', 'academics']],
     'awards' => ['name' => 'Awards', 'default' => false, 'dependencies' => ['people', 'academics']],
     'school_transfers' => ['name' => 'School transfers', 'default' => false, 'dependencies' => ['people', 'academics']],
+    'passport' => ['name' => 'Learner passport', 'default' => false, 'dependencies' => ['people', 'academics']],
     'leadership_dashboard' => ['name' => 'Leadership dashboard', 'default' => false, 'dependencies' => ['academics']],
     'discipline' => ['name' => 'Discipline', 'default' => false, 'dependencies' => ['people', 'academics']],
     'early_warning' => ['name' => 'Early warning and interventions', 'default' => false, 'dependencies' => ['people', 'academics']],
