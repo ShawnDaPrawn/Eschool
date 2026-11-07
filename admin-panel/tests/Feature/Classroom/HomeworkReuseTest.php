@@ -103,10 +103,12 @@ class HomeworkReuseTest extends TestCase
         $this->taraAlsoTeachesGradeSix();
         $source = Assignment::query()->findOrFail($this->school->ids['assignment']);
         $before = Assignment::query()->count();
+        // Read the clock once, so a minute boundary between the request and the check can't change the expected value.
+        $dueDate = $this->dueDate();
 
         $response = $this->actingAs($this->user('tara'), 'web')->postJson("/assignment/{$source->id}/copy", [
             'targets' => [$this->sectionKey('c')],
-            'due_date' => $this->dueDate(),
+            'due_date' => $dueDate,
         ])->assertOk();
         $this->assertFalse($response->json('error'), (string) $response->json('message'));
         $this->assertSame($before + 1, Assignment::query()->count());
@@ -116,7 +118,7 @@ class HomeworkReuseTest extends TestCase
         $this->assertSame($source->name, $copy->name);
         $this->assertSame($source->instructions, $copy->instructions);
         $this->assertSame(10, (int) $copy->points);
-        $this->assertSame(now()->addDays(5)->format('Y-m-d H:i'), substr((string) $copy->due_date, 0, 16));
+        $this->assertSame(str_replace('T', ' ', $dueDate), substr((string) $copy->due_date, 0, 16));
         $this->assertSame(0, AssignmentSubmission::query()->where('assignment_id', $copy->id)->count());
 
         // The copy's file is stored separately: deleting the copy leaves the original's file in place.

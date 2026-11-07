@@ -71,6 +71,7 @@ use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Learning\ExamMemoPanelController;
 use App\Http\Controllers\Panel\Learning\PracticeMotivationController;
 use App\Http\Controllers\Panel\Learning\QuestionBankController;
+use App\Http\Controllers\Panel\Learning\StartingCheckController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\CashHandoverPanelController;
@@ -708,6 +709,8 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('items/{item}/use', [$c, 'use'])->whereNumber('item')->middleware('throttle:60,1')->name('use');
             Route::post('items/{item}/stop', [$c, 'stop'])->whereNumber('item')->middleware('throttle:60,1')->name('stop');
         });
+        // Who has done the starting check, and the starting map per topic (Action Plan 3.7).
+        Route::get('starting-checks', [StartingCheckController::class, 'index'])->middleware(['module:daily_practice', 'module:mastery', PrivateMastery::class])->name('starting-checks.index');
         Route::prefix('fee-items')->name('fee-items.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             Route::get('{item}/rules', [FeeItemRulePanelController::class, 'form'])->whereNumber('item')->name('rules');
             Route::post('{item}/rules', [FeeItemRulePanelController::class, 'save'])->whereNumber('item')->name('rules-save');

@@ -12,6 +12,8 @@ use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryRecord;
 use App\Models\Growth\MasteryScope;
 use App\Models\Growth\MasteryTopic;
+use App\Models\Learning\DiagnosticAttempt;
+use App\Models\Learning\DiagnosticAttemptItem;
 use App\Models\Learning\PracticeDailySet;
 use App\Models\Learning\PracticeItem;
 use App\Models\Learning\PracticeItemVersion;
@@ -176,6 +178,26 @@ class MasteryRecompute
                     'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $review->correct ? 1 : 0,
                     'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => $itemKey] + $source);
             $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
+        });
+    }
+
+    /**
+     * A diagnostic answer (Action Plan 3.7): its own provenance (`diagnostic`),
+     * in the practice audience like other self-study evidence, never a mark.
+     * One row per planned question, so a repeated submission never counts twice.
+     */
+    public function diagnostic(DiagnosticAttemptItem $row, TeachingGroup $group): void
+    {
+        $this->serialised((int) $group->subject_id, function () use ($row, $group) {
+            $item = DiagnosticAttemptItem::query()->where('state', DiagnosticAttemptItem::ANSWERED)->whereNotNull('answered_at')->findOrFail($row->id);
+            $attempt = DiagnosticAttempt::query()->where('teaching_group_id', $group->id)->where('subject_id', $group->subject_id)->findOrFail($item->diagnostic_attempt_id);
+            MasteryTopic::query()->where('subject_id', $group->subject_id)->where('library_topic_id', $item->library_topic_id)->findOrFail($item->topic_id);
+            MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $attempt->learner_id, 'topic_id' => $item->topic_id,
+                'audience' => 'practice', 'source_key' => 'diagnostic:'.$item->id], ['grade_level_id' => $attempt->grade_level_id,
+                    'session_year_id' => $attempt->session_year_id, 'source_type' => 'diagnostic', 'achieved_units' => $item->correct ? 1 : 0,
+                    'maximum_units' => 1, 'observed_at' => $item->answered_at->setTimezone(app(CurrentSchool::class)->school()->timezone),
+                    'item_key' => 'library_item:'.$item->library_item_id, 'content_source' => 'library', 'library_item_version_id' => $item->library_item_version_id]);
+            $this->aggregate((int) $attempt->learner_id, (int) $group->subject_id);
         });
     }
 

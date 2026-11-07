@@ -69,9 +69,20 @@ class TopicGraph
         })->orderBy('id')->limit(5001)->get();
         abort_if($topics->count() > 5000, 422, 'The library subject exceeds its bounded catalogue.');
         foreach ($topics as $topic) {
-            MasteryTopic::updateOrCreate(['subject_id' => $subjectId, 'topic_key' => $topic->topic_key],
-                ['library_topic_id' => $topic->id, 'curriculum_topic_id' => null, 'grade_level_id' => $topic->grade_level_id, 'name' => $topic->name]);
+            $this->mirror($subjectId, $topic);
         }
+    }
+
+    /**
+     * The school's mirror node of one library topic, made if missing. The
+     * caller has checked the school's library switch and that the topic
+     * belongs to the subject's framework and code (a diagnostic may reach a
+     * prerequisite topic of an earlier grade, which overlay() does not mirror).
+     */
+    public function mirror(int $subjectId, LibraryTopic $topic): MasteryTopic
+    {
+        return MasteryTopic::updateOrCreate(['subject_id' => $subjectId, 'topic_key' => $topic->topic_key],
+            ['library_topic_id' => $topic->id, 'curriculum_topic_id' => null, 'grade_level_id' => $topic->grade_level_id, 'name' => $topic->name]);
     }
 
     public function nodes(int $subjectId): Collection
