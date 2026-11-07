@@ -2,6 +2,8 @@
 
 ## 2026-11-07
 
+- Prevent SMS or WhatsApp activation during a usage month whose invoice was already issued early; show when it can be enabled and retain the sealed invoice unchanged.
+
 - Run the browser CI server without JIT, matching the application runtime, after a native PHP crash stopped the server during report tests. The browser assertions and failure checks stay in place.
 - Refuse OneRoster exports containing formula-like spreadsheet values instead of changing names or identifiers; show the requester how to correct the source data and remove partial temporary archives.
 - Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
@@ -39,6 +41,8 @@
   **Deploy:** run the migrations and set `READING_MIRROR_URL` (nothing is
   fetched until it is set). The South African copyright rule and the use of the
   Project Gutenberg name still need legal review before launch.
+
+- SMS and WhatsApp (Action Plan 2.7 follow-ups): a mobile number is now texted only after its owner verifies it in the app with a six-digit code sent by SMS (codes expire after ten minutes, five wrong codes lock it for an hour, one code a minute and three an hour). Numbers recorded before this change are not texted until verified, and a changed number must be verified again; a skipped text is recorded with the reason. Guardians and staff choose SMS, WhatsApp, both or neither for each notice in the app (`/api/v2/me/text-messaging`); the school sees only how many people chose. Schools can now also switch SMS and WhatsApp on for staff (urgent notices and safeguarding alerts), on the number on the staff member's own account. Navigate Ed's monthly invoice to a school now has a line per channel passing on what Twilio charged for the previous month's texts, in rand at a configured exchange rate. **Deploy:** run the migration `2026_11_07_100000`; set `PLATFORM_BILLING_USD_ZAR_RATE` (rands per US dollar, for example `18.50`) before creating invoices for months with texts, or the drafts stay blocked.
 
 - New "My strengths" mirror for learners (Action Plan 4.8, server and API; the app screens follow): the topics a learner is growing in fastest, what they remember well from daily practice, the topics they chose to explore with the tutor (never anything said in a conversation), their activities and the skills from them, and a few career ideas with their sources. No scores, ranks or comparisons. Only the learner sees it. They can share a read-only copy with an approving guardian or a teacher who teaches them, for up to 30 days, end it at any time, and see when it was last viewed; every share and view is audited. Nothing else in NavigateEd can read it, so it is never used for streaming or placement. Schools switch it on with the new "Interests and strengths mirror" module (off by default, not for early years). Reading will appear once the reading library is built.
 
