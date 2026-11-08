@@ -161,3 +161,6 @@ Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-not
 
 // Privacy cleanup remains enabled when a school or module is paused.
 Schedule::command('chat:prune-groups')->hourly()->name('group-chat-retention')->withoutOverlapping();
+
+// Visitor details from gate sign-in are erased after the school's retention period (Action Plan 5.8).
+Schedule::command('emergency:purge-visitors')->dailyAt('04:15')->name('emergency-visitor-retention')->withoutOverlapping();

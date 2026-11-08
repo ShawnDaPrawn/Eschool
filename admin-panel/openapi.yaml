@@ -208,6 +208,8 @@ tags:
   description: Private reviewed teaching drafts and deterministic task insights.
 - name: ExamCoach
   description: School-reviewed licensed papers and private exam study plans.
+- name: Emergency
+  description: Critical alerts and lockdowns, roll call and reunification during an emergency.
 - name: FamilyVisits
   description: Private parent meeting bookings and staff-approved online early collection.
 - name: LearnerPassport
@@ -23474,6 +23476,315 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ExamCoachOperationWrite'
+  /emergency/status:
+    get:
+      operationId: getEmergencyStatus
+      tags:
+      - Emergency
+      summary: getEmergencyStatus
+      description: School-scoped emergency management. Only roles the school named (emergency-alert-send) prepare, confirm and
+        clear alerts; an alert is sent only when its confirmation word is typed in a second step, to staff and guardians (never
+        learners), by every channel and through quiet hours. Exact operation UUID/body retries return their first receipt and
+        never send or release twice. Guardians see only their own children.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorised emergency result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /emergency/alerts:
+    post:
+      operationId: prepareEmergencyAlert
+      tags:
+      - Emergency
+      summary: prepareEmergencyAlert
+      description: School-scoped emergency management. Only roles the school named (emergency-alert-send) prepare, confirm and
+        clear alerts; an alert is sent only when its confirmation word is typed in a second step, to staff and guardians (never
+        learners), by every channel and through quiet hours. Exact operation UUID/body retries return their first receipt and
+        never send or release twice. Guardians see only their own children.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorised emergency result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlertResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmergencyAlertPrepare'
+  /emergency/alerts/{alert}/confirm:
+    post:
+      operationId: confirmEmergencyAlert
+      tags:
+      - Emergency
+      summary: confirmEmergencyAlert
+      description: School-scoped emergency management. Only roles the school named (emergency-alert-send) prepare, confirm and
+        clear alerts; an alert is sent only when its confirmation word is typed in a second step, to staff and guardians (never
+        learners), by every channel and through quiet hours. Exact operation UUID/body retries return their first receipt and
+        never send or release twice. Guardians see only their own children.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: alert
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised emergency result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlertResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmergencyAlertConfirm'
+  /emergency/alerts/{alert}/all-clear:
+    post:
+      operationId: sendEmergencyAllClear
+      tags:
+      - Emergency
+      summary: sendEmergencyAllClear
+      description: School-scoped emergency management. Only roles the school named (emergency-alert-send) prepare, confirm and
+        clear alerts; an alert is sent only when its confirmation word is typed in a second step, to staff and guardians (never
+        learners), by every channel and through quiet hours. Exact operation UUID/body retries return their first receipt and
+        never send or release twice. Guardians see only their own children.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: alert
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised emergency result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlertResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmergencyAllClear'
+  /emergency/alerts/{alert}/roll-call:
+    get:
+      operationId: getEmergencyRollCall
+      tags:
+      - Emergency
+      summary: getEmergencyRollCall
+      description: School-scoped emergency management. Only roles the school named (emergency-alert-send) prepare, confirm and
+        clear alerts; an alert is sent only when its confirmation word is typed in a second step, to staff and guardians (never
+        learners), by every channel and through quiet hours. Exact operation UUID/body retries return their first receipt and
+        never send or release twice. Guardians see only their own children.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: alert
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: class_section_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorised emergency result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyRollCallResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: markEmergencyRollCall
+      tags:
+      - Emergency
+      summary: markEmergencyRollCall
+      description: School-scoped emergency management. Only roles the school named (emergency-alert-send) prepare, confirm and
+        clear alerts; an alert is sent only when its confirmation word is typed in a second step, to staff and guardians (never
+        learners), by every channel and through quiet hours. Exact operation UUID/body retries return their first receipt and
+        never send or release twice. Guardians see only their own children.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: alert
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised emergency result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyRollCallMarkedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmergencyRollCallMark'
+  /emergency/alerts/{alert}/releases:
+    post:
+      operationId: releaseEmergencyLearner
+      tags:
+      - Emergency
+      summary: releaseEmergencyLearner
+      description: School-scoped emergency management. Only roles the school named (emergency-alert-send) prepare, confirm and
+        clear alerts; an alert is sent only when its confirmation word is typed in a second step, to staff and guardians (never
+        learners), by every channel and through quiet hours. Exact operation UUID/body retries return their first receipt and
+        never send or release twice. Guardians see only their own children.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: alert
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised emergency result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyReleaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmergencyReleaseCreate'
   /family-visits/configuration:
     get:
       operationId: getFamilyVisitConfiguration
@@ -61352,6 +61663,673 @@ components:
         revision:
           type: integer
           minimum: 1
+    EmergencyAlert:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - audience
+      - drill
+      - status
+      - title
+      - message
+      - revision
+      - drill_id
+      - prepared_by
+      - prepared_at
+      - confirmed_by
+      - activated_at
+      - all_clear_by
+      - all_clear_at
+      - all_clear_message
+      - cancelled_at
+      - recipient_count
+      - confirmation_word
+      - confirm_by
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - lockdown
+          - evacuation
+          - shelter
+          - critical
+        audience:
+          type: string
+          enum:
+          - everyone
+          - staff
+        drill:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - pending
+          - active
+          - all_clear
+          - cancelled
+        title:
+          type: string
+        message:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        drill_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        prepared_by:
+          type: integer
+          minimum: 1
+        prepared_at:
+          type: string
+          format: date-time
+        confirmed_by:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        activated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        all_clear_by:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        all_clear_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        all_clear_message:
+          type:
+          - string
+          - 'null'
+        cancelled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        recipient_count:
+          type: integer
+          minimum: 0
+        confirmation_word:
+          type:
+          - string
+          - 'null'
+          description: The word to type to confirm a pending alert (step two); null once it is sent or cancelled.
+        confirm_by:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: A pending alert must be confirmed before this time.
+    EmergencyAlertResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/EmergencyAlert'
+        code:
+          type: integer
+          enum:
+          - 200
+    EmergencyPublicAlert:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - drill
+      - status
+      - title
+      - message
+      - activated_at
+      - all_clear_at
+      - all_clear_message
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - lockdown
+          - evacuation
+          - shelter
+          - critical
+        drill:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - active
+          - all_clear
+        title:
+          type: string
+          description: Starts with "DRILL:" for a drill.
+        message:
+          type: string
+          description: Starts with "This is a drill. There is no emergency." for a drill.
+        activated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        all_clear_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        all_clear_message:
+          type:
+          - string
+          - 'null'
+    EmergencyChildStatus:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - status
+      - released_at
+      - released_to
+      - released_to_name
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - accounted
+          - unaccounted
+          - released
+          - null
+          description: null when there is no current alert.
+        released_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        released_to:
+          type:
+          - string
+          - 'null'
+          enum:
+          - guardian
+          - collector
+          - null
+        released_to_name:
+          type:
+          - string
+          - 'null'
+    EmergencyStatus:
+      type: object
+      additionalProperties: false
+      required:
+      - alert
+      - children
+      - can_alert
+      - can_respond
+      - takes_roll_call
+      properties:
+        alert:
+          anyOf:
+          - $ref: '#/components/schemas/EmergencyPublicAlert'
+          - type: 'null'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmergencyChildStatus'
+        can_alert:
+          type: boolean
+        can_respond:
+          type: boolean
+        takes_roll_call:
+          type: boolean
+    EmergencyStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/EmergencyStatus'
+        code:
+          type: integer
+          enum:
+          - 200
+    EmergencyRollCallLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - status
+      - marked_at
+      - released_at
+      - released_to
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        status:
+          type: string
+          enum:
+          - accounted
+          - unaccounted
+          - released
+        marked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        released_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        released_to:
+          type:
+          - string
+          - 'null'
+          enum:
+          - guardian
+          - collector
+          - null
+    EmergencyRollCallClass:
+      type: object
+      additionalProperties: false
+      required:
+      - class_section_id
+      - name
+      - accounted
+      - unaccounted
+      - released
+      - learners
+      properties:
+        class_section_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        accounted:
+          type: integer
+          minimum: 0
+        unaccounted:
+          type: integer
+          minimum: 0
+        released:
+          type: integer
+          minimum: 0
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmergencyRollCallLearner'
+    EmergencyRollCall:
+      type: object
+      additionalProperties: false
+      required:
+      - alert_id
+      - drill
+      - status
+      - classes
+      - totals
+      - visitors_on_site
+      properties:
+        alert_id:
+          type: string
+          format: uuid
+        drill:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - active
+          - all_clear
+        classes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmergencyRollCallClass'
+        totals:
+          type: object
+          additionalProperties: false
+          required:
+          - accounted
+          - unaccounted
+          - released
+          properties:
+            accounted:
+              type: integer
+              minimum: 0
+            unaccounted:
+              type: integer
+              minimum: 0
+            released:
+              type: integer
+              minimum: 0
+        visitors_on_site:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          description: Only for staff who see every class.
+    EmergencyRollCallResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/EmergencyRollCall'
+        code:
+          type: integer
+          enum:
+          - 200
+    EmergencyRollCallMarked:
+      type: object
+      additionalProperties: false
+      required:
+      - alert_id
+      - status
+      - learner_ids
+      - already_released
+      properties:
+        alert_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - accounted
+          - unaccounted
+        learner_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        already_released:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+    EmergencyRollCallMarkedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/EmergencyRollCallMarked'
+        code:
+          type: integer
+          enum:
+          - 200
+    EmergencyReleaseRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - alert_id
+      - learner_id
+      - released_to
+      - released_to_name
+      - verification
+      - released_at
+      - released_by
+      properties:
+        id:
+          type: string
+          format: uuid
+        alert_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        released_to:
+          type: string
+          enum:
+          - guardian
+          - collector
+        released_to_name:
+          type: string
+        verification:
+          type: string
+          enum:
+          - card_scan
+          - id_document
+        released_at:
+          type: string
+          format: date-time
+        released_by:
+          type: integer
+          minimum: 1
+    EmergencyReleaseResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/EmergencyReleaseRecord'
+        code:
+          type: integer
+          enum:
+          - 200
+    EmergencyAlertPrepare:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - kind
+      - audience
+      - drill
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - lockdown
+          - evacuation
+          - shelter
+          - critical
+        audience:
+          type: string
+          enum:
+          - everyone
+          - staff
+        drill:
+          type: boolean
+        drill_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        title:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        message:
+          type:
+          - string
+          - 'null'
+          maxLength: 1000
+          description: Required for a general emergency alert (kind critical).
+    EmergencyAlertConfirm:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - confirmation
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        confirmation:
+          type: string
+          maxLength: 20
+          description: The alert's confirmation_word.
+    EmergencyAllClear:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        message:
+          type:
+          - string
+          - 'null'
+          maxLength: 1000
+    EmergencyRollCallMark:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_ids
+      - status
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_ids:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            type: integer
+            minimum: 1
+        status:
+          type: string
+          enum:
+          - accounted
+          - unaccounted
+    EmergencyReleaseCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - released_to
+      - verification
+      - identity_checked
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        released_to:
+          type: string
+          enum:
+          - guardian
+          - collector
+        guardian_user_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          description: Required when released_to is guardian.
+        gate_pass_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: An early collection request approved for today; required when released_to is collector.
+        collector_name:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+          description: As on the collector's identity document; must match the request.
+        verification:
+          type: string
+          enum:
+          - card_scan
+          - id_document
+        scan_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: A guardian card scan at a gate reader in the last two minutes; required for card_scan.
+        identity_checked:
+          type: boolean
+          enum:
+          - true
+        notes:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
     FamilyGatePass:
       type: object
       additionalProperties: false

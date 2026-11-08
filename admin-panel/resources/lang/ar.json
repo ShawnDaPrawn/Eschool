@@ -6241,5 +6241,7 @@
     "Value, expression, terms or figures": "Value, expression, terms or figures",
     "Expression: :value": "Expression: :value",
     "Terms: :value": "Terms: :value",
-    "Significant figures: :value": "Significant figures: :value"
+    "Significant figures: :value": "Significant figures: :value",
+    "Emergency management": "إدارة الطوارئ",
+    "Emergency alerts and lockdowns go to guardians by every channel switched on here. For staff texts, choose the staff channels below. Number verification and each person’s own choices still apply.": "Emergency alerts and lockdowns go to guardians by every channel switched on here. For staff texts, choose the staff channels below. Number verification and each person’s own choices still apply."
 }

@@ -16,6 +16,18 @@ class FamilyVisitMigrationTest extends TestCase
 
     public function test_empty_visit_tables_can_roll_back_and_recreate_with_school_foreign_keys(): void
     {
+        // Roll back later migrations whose tables reference gate passes first,
+        // just as the migration runner does, and reapply them afterwards.
+        $dependents = [];
+        foreach (['2026_11_08_150000_create_emergency_management.php'] as $file) {
+            $path = database_path('migrations/'.$file);
+            if (is_file($path)) {
+                $dependents[] = require $path;
+            }
+        }
+        foreach ($dependents as $dependent) {
+            $dependent->down();
+        }
         $migration = require database_path('migrations/2026_10_25_241000_create_family_visits.php');
         $tables = ['meeting_slots', 'gate_passes', 'family_visit_rules', 'family_visit_operations', 'family_visit_events'];
         $migration->down();
@@ -23,6 +35,10 @@ class FamilyVisitMigrationTest extends TestCase
             $this->assertFalse(Schema::hasTable($table));
         }
         $migration->up();
+        foreach (array_reverse($dependents) as $dependent) {
+            $dependent->up();
+        }
+        $this->assertTrue(Schema::hasTable('emergency_releases'));
         foreach ($tables as $table) {
             $this->assertTrue(Schema::hasTable($table));
             $foreignKeys = Schema::getForeignKeys($table);

@@ -23,19 +23,19 @@ return [
         'label' => 'Principal',
         'description' => 'Sees most of the school, runs communication, consultations and activities. Sign-off abilities are granted separately.',
         'levels' => ['people' => 'view', 'academics' => 'view', 'communication' => 'manage', 'intake' => 'manage', 'consultations' => 'manage',
-            'groups' => 'manage', 'family_visits' => 'manage', 'pathway' => 'manage'],
-        'abilities' => ['academics' => ['marks_view_all']],
+            'groups' => 'manage', 'family_visits' => 'manage', 'pathway' => 'manage', 'emergency' => 'manage'],
+        'abilities' => ['academics' => ['marks_view_all'], 'emergency' => ['alert_send']],
     ],
     'deputy_principal' => [
         'label' => 'Deputy principal',
         'description' => 'Like the principal, with less configuration.',
-        'levels' => ['people' => 'view', 'academics' => 'view', 'communication' => 'contribute', 'consultations' => 'manage', 'groups' => 'manage', 'family_visits' => 'manage'],
-        'abilities' => ['academics' => ['marks_view_all']],
+        'levels' => ['people' => 'view', 'academics' => 'view', 'communication' => 'contribute', 'consultations' => 'manage', 'groups' => 'manage', 'family_visits' => 'manage', 'emergency' => 'manage'],
+        'abilities' => ['academics' => ['marks_view_all'], 'emergency' => ['alert_send']],
     ],
     'school_office' => [
         'label' => 'School office',
         'description' => 'Manages people, admissions, communication, visits and forms. No marks release or finance approval.',
-        'levels' => ['people' => 'manage', 'intake' => 'manage', 'communication' => 'manage', 'family_visits' => 'manage', 'family_forms' => 'manage', 'cards' => 'contribute'],
+        'levels' => ['people' => 'manage', 'intake' => 'manage', 'communication' => 'manage', 'family_visits' => 'manage', 'family_forms' => 'manage', 'cards' => 'contribute', 'emergency' => 'contribute'],
         'abilities' => [],
     ],
     'bursar' => [
@@ -64,8 +64,8 @@ return [
     ],
     'reception' => [
         'label' => 'Reception and gate',
-        'description' => 'Visits, early collection and ID cards.',
-        'levels' => ['people' => 'view', 'family_visits' => 'manage', 'cards' => 'contribute'],
+        'description' => 'Visits, early collection, ID cards, visitor sign-in and reunification.',
+        'levels' => ['people' => 'view', 'family_visits' => 'manage', 'cards' => 'contribute', 'emergency' => 'contribute'],
         'abilities' => [],
     ],
     'it_administrator' => [
