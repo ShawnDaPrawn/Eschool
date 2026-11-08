@@ -32569,6 +32569,708 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PracticeGoalInput'
+  /learning/practice-tests/groups/{group}/options:
+    get:
+      operationId: getPracticeTestOptions
+      tags:
+      - Practice
+      summary: getPracticeTestOptions
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeTestOptionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice-tests/groups/{group}/blueprints:
+    get:
+      operationId: listPracticeTestBlueprints
+      tags:
+      - Practice
+      summary: listPracticeTestBlueprints
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPracticeTestBlueprintsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createPracticeTestBlueprint
+      tags:
+      - Practice
+      summary: createPracticeTestBlueprint
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePracticeTestBlueprintResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeTestBlueprintInput'
+  /learning/practice-tests/groups/{group}/blueprints/{blueprint}/results:
+    get:
+      operationId: getPracticeTestResults
+      tags:
+      - Practice
+      summary: getPracticeTestResults
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: blueprint
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeTestResultsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice-tests/groups/{group}/blueprints/{blueprint}/withdraw:
+    post:
+      operationId: withdrawPracticeTestBlueprint
+      tags:
+      - Practice
+      summary: withdrawPracticeTestBlueprint
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: blueprint
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithdrawPracticeTestBlueprintResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeTestWithdrawInput'
+  /learning/practice-tests/learners/{learner}/tests:
+    get:
+      operationId: listPracticeTests
+      tags:
+      - Practice
+      summary: listPracticeTests
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPracticeTestsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice-tests/learners/{learner}/groups/{group}/quiz-topics:
+    get:
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      operationId: getPracticeQuizTopics
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - in: path
+        name: learner
+        required: true
+        schema:
+          minimum: 1
+          type: integer
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeQuizTopicsResponse'
+          description: Freshly scoped private practice test result.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: The test changed, is not open, was already handed in, or time is up.
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Historical school year is read-only.
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      summary: getPracticeQuizTopics
+      tags:
+      - Practice
+  /learning/practice-tests/learners/{learner}/groups/{group}/quick-quizzes:
+    post:
+      operationId: startPracticeQuickQuiz
+      tags:
+      - Practice
+      summary: startPracticeQuickQuiz
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartPracticeQuickQuizResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeQuickQuizInput'
+  /learning/practice-tests/learners/{learner}/blueprints/{blueprint}/start:
+    post:
+      operationId: startPracticeTest
+      tags:
+      - Practice
+      summary: startPracticeTest
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: blueprint
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartPracticeTestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeTestStartInput'
+  /learning/practice-tests/learners/{learner}/tests/{test}:
+    get:
+      operationId: getPracticeTest
+      tags:
+      - Practice
+      summary: getPracticeTest
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: test
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeTestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice-tests/learners/{learner}/tests/{test}/answers:
+    post:
+      operationId: savePracticeTestAnswers
+      tags:
+      - Practice
+      summary: savePracticeTestAnswers
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: test
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavePracticeTestAnswersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeTestAnswersInput'
+  /learning/practice-tests/learners/{learner}/tests/{test}/submit:
+    post:
+      operationId: submitPracticeTest
+      tags:
+      - Practice
+      summary: submitPracticeTest
+      description: 'Timed practice tests from the school question bank and the platform library, never official assessment marks.
+        Fresh learner approval/ownership or dated Teacher allocation authorize every read, write and receipt replay; a guardian,
+        another learner or another school is not found. The server holds the deadline: before hand-in a sitting carries prompts
+        and options only, never accepted answers or worked explanations. Writes accept body fields only; an unknown outcome
+        retries the same operation.'
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: test
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice test result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitPracticeTestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The test changed, is not open, was already handed in, or time is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeTestSubmitInput'
 components:
   securitySchemes:
     bearerAuth:
@@ -76836,5 +77538,1178 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/PracticeMotivation'
+        code:
+          type: integer
+    PracticeTestTopicShare:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - weight
+      - questions
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        weight:
+          type: integer
+          minimum: 1
+        questions:
+          type: integer
+          minimum: 1
+    PracticeTestTopicOption:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - source
+      - available
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        source:
+          type: string
+          enum:
+          - school
+          - library
+        available:
+          type: integer
+          minimum: 0
+    PracticeTestPaperOption:
+      type: object
+      additionalProperties: false
+      required:
+      - version_id
+      - title
+      - paper_year
+      - paper_code
+      properties:
+        version_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        paper_year:
+          type: integer
+          minimum: 1
+        paper_code:
+          type: string
+    PracticeTestOptions:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - topics
+      - papers
+      - weightings
+      - limits
+      - writable
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestTopicOption'
+          maxItems: 400
+        papers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestPaperOption'
+          maxItems: 25
+        weightings:
+          type: array
+          items:
+            type: string
+            enum:
+            - even
+            - past_papers
+        limits:
+          type: object
+          additionalProperties: false
+          required:
+          - topics_max
+          - questions_min
+          - questions_max
+          - minutes_min
+          - minutes_max
+          - window_days_max
+          properties:
+            topics_max:
+              type: integer
+              minimum: 1
+            questions_min:
+              type: integer
+              minimum: 1
+            questions_max:
+              type: integer
+              minimum: 1
+            minutes_min:
+              type: integer
+              minimum: 1
+            minutes_max:
+              type: integer
+              minimum: 1
+            window_days_max:
+              type: integer
+              minimum: 1
+        writable:
+          type: boolean
+    PracticeTestBlueprint:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - group_id
+      - title
+      - question_count
+      - time_limit_minutes
+      - opens_at
+      - closes_at
+      - weighting
+      - topic_shares
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - quick_quiz
+          - cycle_test
+        group_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        question_count:
+          type: integer
+          minimum: 1
+        time_limit_minutes:
+          type: integer
+          minimum: 0
+        opens_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        closes_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        weighting:
+          type: string
+          enum:
+          - even
+          - past_papers
+        topic_shares:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestTopicShare'
+          maxItems: 20
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    PracticeTestBlueprintListItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - group_id
+      - title
+      - question_count
+      - time_limit_minutes
+      - opens_at
+      - closes_at
+      - weighting
+      - topic_shares
+      - active
+      - revision
+      - started
+      - handed_in
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - quick_quiz
+          - cycle_test
+        group_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        question_count:
+          type: integer
+          minimum: 1
+        time_limit_minutes:
+          type: integer
+          minimum: 0
+        opens_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        closes_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        weighting:
+          type: string
+          enum:
+          - even
+          - past_papers
+        topic_shares:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestTopicShare'
+          maxItems: 20
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        started:
+          type: integer
+          minimum: 0
+        handed_in:
+          type: integer
+          minimum: 0
+    PracticeTestBlueprintPage:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - tests
+      - page
+      - has_more
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestBlueprintListItem'
+          maxItems: 25
+        page:
+          type: integer
+          minimum: 1
+        has_more:
+          type: boolean
+    PracticeTestBlueprintReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - active
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+    PracticeTestLearnerResult:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - state
+      - correct_count
+      - marked_count
+      - closed_by
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        state:
+          type: string
+          enum:
+          - not_started
+          - open
+          - time_up
+          - handed_in
+        correct_count:
+          type:
+          - integer
+          - 'null'
+        marked_count:
+          type:
+          - integer
+          - 'null'
+        closed_by:
+          type:
+          - string
+          - 'null'
+          enum:
+          - learner
+          - time
+          - null
+    PracticeTestGroupTopic:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - name
+      - correct
+      - answered
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        correct:
+          type: integer
+          minimum: 0
+        answered:
+          type: integer
+          minimum: 0
+    PracticeTestResults:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - group_id
+      - title
+      - question_count
+      - time_limit_minutes
+      - opens_at
+      - closes_at
+      - weighting
+      - topic_shares
+      - active
+      - revision
+      - learners
+      - topics
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - quick_quiz
+          - cycle_test
+        group_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        question_count:
+          type: integer
+          minimum: 1
+        time_limit_minutes:
+          type: integer
+          minimum: 0
+        opens_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        closes_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        weighting:
+          type: string
+          enum:
+          - even
+          - past_papers
+        topic_shares:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestTopicShare'
+          maxItems: 20
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestLearnerResult'
+          maxItems: 1000
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestGroupTopic'
+          maxItems: 400
+    PracticeTestListingSitting:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - deadline_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - open
+          - time_up
+          - handed_in
+        deadline_at:
+          type: string
+          format: date-time
+    PracticeTestListingItem:
+      type: object
+      additionalProperties: false
+      required:
+      - blueprint_id
+      - kind
+      - group_id
+      - title
+      - question_count
+      - time_limit_minutes
+      - opens_at
+      - closes_at
+      - window
+      - test
+      properties:
+        blueprint_id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - quick_quiz
+          - cycle_test
+        group_id:
+          type: integer
+          minimum: 1
+        title:
+          type:
+          - string
+          - 'null'
+        question_count:
+          type: integer
+          minimum: 1
+        time_limit_minutes:
+          type:
+          - integer
+          - 'null'
+        opens_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        closes_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        window:
+          type: string
+          enum:
+          - upcoming
+          - open
+          - closed
+        test:
+          oneOf:
+          - $ref: '#/components/schemas/PracticeTestListingSitting'
+          - type: 'null'
+    PracticeTestListing:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - server_time
+      - tests
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        server_time:
+          type: string
+          format: date-time
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestListingItem'
+          maxItems: 70
+    PracticeTestOption:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - text
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,19}$
+        text:
+          type: string
+    PracticeTestQuestion:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - position
+      - topic_id
+      - kind
+      - prompt
+      - options
+      - answer
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        position:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        prompt:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestOption'
+          maxItems: 6
+        answer:
+          type:
+          - string
+          - 'null'
+        marking:
+          type:
+          - string
+          - 'null'
+          enum:
+          - auto
+          - awaiting_marker
+          - null
+        correct:
+          type:
+          - boolean
+          - 'null'
+        accepted_answers:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        explanation:
+          type: string
+    PracticeTestResultTopic:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - name
+      - correct
+      - answered
+      - total
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        correct:
+          type: integer
+          minimum: 0
+        answered:
+          type: integer
+          minimum: 0
+        total:
+          type: integer
+          minimum: 1
+    PracticeTestTutorReview:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - topic_id
+      - source_version_ids
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        source_version_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 3
+    PracticeTestReview:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_ids
+      - tutor
+      properties:
+        topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 40
+        tutor:
+          oneOf:
+          - $ref: '#/components/schemas/PracticeTestTutorReview'
+          - type: 'null'
+    PracticeTestResult:
+      type: object
+      additionalProperties: false
+      required:
+      - correct_count
+      - marked_count
+      - question_count
+      - unanswered_count
+      - awaiting_marker_count
+      - memo_available
+      - memo_available_at
+      - topics
+      - review
+      properties:
+        correct_count:
+          type: integer
+          minimum: 0
+        marked_count:
+          type: integer
+          minimum: 0
+        question_count:
+          type: integer
+          minimum: 1
+        unanswered_count:
+          type: integer
+          minimum: 0
+        awaiting_marker_count:
+          type: integer
+          minimum: 0
+        memo_available:
+          type: boolean
+        memo_available_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestResultTopic'
+          maxItems: 40
+        review:
+          $ref: '#/components/schemas/PracticeTestReview'
+    PracticeTestSitting:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - group_id
+      - blueprint_id
+      - kind
+      - title
+      - state
+      - server_time
+      - started_at
+      - deadline_at
+      - seconds_left
+      - time_limit_seconds
+      - submitted_at
+      - closed_by
+      - questions
+      - result
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        blueprint_id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - quick_quiz
+          - cycle_test
+        title:
+          type:
+          - string
+          - 'null'
+        state:
+          type: string
+          enum:
+          - open
+          - time_up
+          - handed_in
+        server_time:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+        deadline_at:
+          type: string
+          format: date-time
+        seconds_left:
+          type: integer
+          minimum: 0
+        time_limit_seconds:
+          type: integer
+          minimum: 1
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        closed_by:
+          type:
+          - string
+          - 'null'
+          enum:
+          - learner
+          - time
+          - null
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestQuestion'
+          minItems: 1
+          maxItems: 40
+        result:
+          oneOf:
+          - $ref: '#/components/schemas/PracticeTestResult'
+          - type: 'null'
+    PracticeTestAnswerReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - saved
+      - server_time
+      - deadline_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        saved:
+          type: integer
+          minimum: 0
+        server_time:
+          type: string
+          format: date-time
+        deadline_at:
+          type: string
+          format: date-time
+    PracticeQuizTopics:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - group_id
+      - topics
+      - topics_max
+      - questions_min
+      - questions_max
+      - writable
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestTopicOption'
+          maxItems: 400
+        topics_max:
+          type: integer
+          minimum: 1
+        questions_min:
+          type: integer
+          minimum: 1
+        questions_max:
+          type: integer
+          minimum: 1
+        writable:
+          type: boolean
+    GetPracticeQuizTopicsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeQuizTopics'
+        code:
+          type: integer
+    PracticeTestBlueprintInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - title
+      - topic_ids
+      - question_count
+      - time_limit_minutes
+      - opens_at
+      - closes_at
+      - weighting
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 3
+          maxLength: 120
+        topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+        question_count:
+          type: integer
+          minimum: 5
+          maximum: 40
+        time_limit_minutes:
+          type: integer
+          minimum: 5
+          maximum: 180
+        opens_at:
+          type: string
+          format: date-time
+        closes_at:
+          type: string
+          format: date-time
+        weighting:
+          type: string
+          enum:
+          - even
+          - past_papers
+        paper_version_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 5
+          uniqueItems: true
+    PracticeTestWithdrawInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+    PracticeQuickQuizInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - topic_ids
+      - question_count
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 3
+          uniqueItems: true
+        question_count:
+          type: integer
+          minimum: 3
+          maximum: 10
+    PracticeTestStartInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    PracticeTestAnswer:
+      type: object
+      additionalProperties: false
+      required:
+      - question_id
+      - answer
+      properties:
+        question_id:
+          type: integer
+          minimum: 1
+        answer:
+          type:
+          - string
+          - 'null'
+          maxLength: 4000
+    PracticeTestAnswersInput:
+      type: object
+      additionalProperties: false
+      required:
+      - answers
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestAnswer'
+          maxItems: 40
+    PracticeTestSubmitInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeTestAnswer'
+          maxItems: 40
+    GetPracticeTestOptionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestOptions'
+        code:
+          type: integer
+    ListPracticeTestBlueprintsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestBlueprintPage'
+        code:
+          type: integer
+    CreatePracticeTestBlueprintResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestBlueprintReceipt'
+        code:
+          type: integer
+    GetPracticeTestResultsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestResults'
+        code:
+          type: integer
+    WithdrawPracticeTestBlueprintResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestBlueprintReceipt'
+        code:
+          type: integer
+    ListPracticeTestsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestListing'
+        code:
+          type: integer
+    StartPracticeQuickQuizResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestSitting'
+        code:
+          type: integer
+    StartPracticeTestResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestSitting'
+        code:
+          type: integer
+    GetPracticeTestResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestSitting'
+        code:
+          type: integer
+    SavePracticeTestAnswersResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestAnswerReceipt'
+        code:
+          type: integer
+    SubmitPracticeTestResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeTestSitting'
         code:
           type: integer
