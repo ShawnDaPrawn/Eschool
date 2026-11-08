@@ -8,12 +8,14 @@ use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryTopic;
 use App\Models\Learning\PracticeMemory;
 use App\Models\Learning\PracticeSetEntry;
+use App\Models\Learning\Tests\PracticeTestQuestion;
 use App\Models\Library\LibraryItem;
 use App\Models\Library\LibrarySchoolSetting;
 use App\Models\Library\LibraryTopic;
 use App\Services\Growth\TopicGraph;
 use App\Services\Learning\DailyPractice;
 use App\Services\Learning\Library\LibraryCatalogue;
+use App\Services\Learning\Tests\PracticeTests;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -79,7 +81,9 @@ class LibraryPracticeTest extends TestCase
         $this->assertSame([$this->items['fractions']->id, $this->items['decimals']->id], array_column($set['items'], 'item_id'), 'prerequisites first');
         $this->assertSame([$this->items['fractions']->published_version_id, $this->items['decimals']->published_version_id], array_column($set['items'], 'source_version_id'));
         $this->assertSame([$mirrors[$this->fractions->id], $mirrors[$this->decimals->id]], array_column($set['items'], 'topic_id'));
-        $this->assertSame(['0.5'], $set['items'][0]['definition']['answers']);
+        // A library question reaches the device without its answers too (3.11).
+        $this->assertArrayNotHasKey('answers', $set['items'][0]['question']);
+        $this->assertArrayNotHasKey('explanation', $set['items'][0]['question']);
         $this->assertSame(240, $set['estimated_seconds']);
         $this->assertSame(2, PracticeSetEntry::whereNotNull('library_item_version_id')->whereNull('practice_item_version_id')->count());
         // Mirror nodes stay out of the school's own graph.
@@ -137,5 +141,28 @@ class LibraryPracticeTest extends TestCase
         $this->refuses(fn () => app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id']), 404);
         $this->refuses(fn () => $this->review($set), 404);
         $this->assertSame(0, MasteryEvidence::count());
+    }
+
+    public function test_a_quick_quiz_draws_on_the_library_and_its_evidence_says_so(): void
+    {
+        $this->switchLibrary(1, true);
+        $before = $this->libraryCounts();
+        $quizzes = app(PracticeTests::class);
+        $learner = $this->schoolA->ids['asha'];
+        $topics = collect($quizzes->quizTopics($this->actor('asha'), $learner, $this->group)['topics'])->keyBy('id');
+        $mirror = (int) MasteryTopic::where('library_topic_id', $this->fractions->id)->value('id');
+        $this->assertSame(['library', 1], [$topics[$mirror]['source'], $topics[$mirror]['available']]);
+        $quiz = $quizzes->quickQuiz($this->actor('asha'), $learner, $this->group, ['operation_id' => (string) Str::uuid(), 'topic_ids' => [$mirror], 'question_count' => 3]);
+        $this->assertCount(1, $quiz['questions'], 'only what the library holds');
+        $this->assertArrayNotHasKey('accepted_answers', $quiz['questions'][0]);
+        $this->assertSame($this->items['fractions']->published_version_id, (int) PracticeTestQuestion::sole()->library_item_version_id);
+        $done = $quizzes->submit($this->actor('asha'), $learner, $quiz['id'], ['operation_id' => (string) Str::uuid(),
+            'answers' => [['question_id' => $quiz['questions'][0]['id'], 'answer' => '.5']]]);
+        $this->assertSame(1, $done['result']['correct_count']);
+        $this->assertNull($done['result']['review']['tutor'], 'library topics hand no review to the tutor');
+        $evidence = MasteryEvidence::where('source_type', 'practice_test')->sole();
+        $this->assertSame(['library', $this->items['fractions']->published_version_id, 'library_item:'.$this->items['fractions']->id, $mirror],
+            [$evidence->content_source, (int) $evidence->library_item_version_id, $evidence->item_key, (int) $evidence->topic_id]);
+        $this->assertSame($before, $this->libraryCounts());
     }
 }

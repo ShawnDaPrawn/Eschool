@@ -7,11 +7,16 @@
 <h1>#{{ $item['id'] }} {{ $item['title'] }}</h1>
 <p class="saas-lead">{{ $item['kind_label'] }} · {{ $topic['subject_code'] }} · {{ $topic['grade'] }} · {{ $topic['name'] }}</p>
 <p>{{ __('Source') }}: {{ $source['title'] }} · {{ $source['licence'] }} · {{ $source['attribution'] }}</p>
+@if ($signal)
+    <p class="saas-card">{{ __('Learners\' answers to the published version: :facility% right, from :learners learners across at least three schools.', ['facility' => $signal['facility'], 'learners' => $signal['learners']]) }}@if ($signal['label']) <span class="saas-badge saas-badge--warn">{{ $signal['label'] }}</span>@endif</p>
+@endif
 
 <h2>{{ __('Versions') }}</h2>
 @foreach ($versions as $version)
     <section class="saas-card" aria-label="{{ __('Version :number', ['number' => $version['number']]) }}">
         <h3>{{ __('Version :number', ['number' => $version['number']]) }} · <span class="saas-badge {{ $version['state'] === 'rejected' ? 'saas-badge--warn' : '' }}">{{ $version['state_label'] }}</span>@if ($version['current']) · {{ __('what learners see') }}@endif</h3>
+        <p>@if ($version['origin'] === 'ai_draft')<span class="saas-badge saas-badge--warn">{{ __('AI draft') }}</span> @endif{{ $version['provenance'] }}</p>
+        @if ($version['request'])<p>{{ __('Brief') }}: {{ $version['request']['brief'] }}</p>@endif
         <p>{{ __('Written by :name', ['name' => $version['author']]) }}@if ($version['published_at']) · {{ __('published :at by :name', ['at' => $version['published_at'], 'name' => $version['published_by']]) }}@endif</p>
         @include('saas.library.content', ['content' => $version['content']])
         @foreach ($version['reviews'] as $review)
@@ -41,7 +46,7 @@
     <p class="saas-card">{{ __('The latest version is waiting for review. It can change again once a reviewer has decided.') }}</p>
 @else
 <h2>{{ $latest['state'] === 'draft' ? __('Change the draft') : __('Start a new draft') }}</h2>
-<form method="POST" action="{{ route('saas.library.items.draft', $item['id']) }}" class="saas-card" aria-label="{{ __('Draft') }}">
+<form method="POST" action="{{ route('saas.library.items.draft', $item['id']) }}" enctype="multipart/form-data" class="saas-card" aria-label="{{ __('Draft') }}">
     @csrf @method('PUT')
     <input type="hidden" name="revision" value="{{ $item['revision'] }}">
     @if ($latest['state'] !== 'draft')<p>{{ __('Published and reviewed versions never change: saving starts version :number as a new draft.', ['number' => $versions[0]['number'] + 1]) }}</p>@endif

@@ -22,7 +22,10 @@ final class SchoolOwnedTables
      */
     public const REQUIRED = [
         'library_school_settings',
+        'reading_hidden_items', 'reading_settings', 'reading_progress', 'reading_days', 'reading_answers',
         'school_messaging_settings',
+        // Each person's verified number and own SMS and WhatsApp choice at one school (Action Plan 2.7).
+        'messaging_numbers', 'messaging_choices',
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
@@ -34,9 +37,18 @@ final class SchoolOwnedTables
         // (written inside it from /saas); only HQ reads them, never the school.
         // platform_billing_reminders logs each overdue reminder sent to it.
         'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
+        // School groups (5.7, SA.18): each school's own membership of a group
+        // (HQ's invitation and the school's agreement), and its month on a
+        // group invoice (the claim on its own draft, and the lines copied
+        // from it). Written inside the school; HQ and the group read them
+        // across schools, the group only while the membership is active.
+        'school_group_members', 'school_group_invoice_schools', 'school_group_invoice_lines',
         'support_access_grants', 'support_access_views',
         'platform_announcement_schools', 'platform_announcement_reads',
         'school_health_snapshots',
+        // Anonymous benchmarking (5.5): the school's choice to take part and its
+        // own school-level figures each week (never a learner).
+        'benchmark_participations', 'benchmark_school_values',
         'platform_feature_flag_schools',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
@@ -54,25 +66,41 @@ final class SchoolOwnedTables
         'school_knowledge_documents', 'school_support_threads', 'school_support_messages', 'school_assistance_operations', 'school_assistance_turns',
         'admission_requirements', 'admission_requirement_versions', 'pathway_operations',
         'career_profiles', 'career_profile_versions',
+        'people_pool_members', 'people_pool_vettings', 'people_pool_bookings', 'people_pool_operations',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'diary_entries', 'diary_item_states',
+        // Independent school business tools (5.10): re-enrolment contracts and
+        // acceptances, private bursary applications, alumni giving receipts.
+        'school_business_operations', 'reenrolment_contracts', 'reenrolment_acceptances', 'reenrolment_confirmations',
+        'bursary_applications', 'bursary_documents', 'bursary_events', 'giving_campaigns', 'giving_pledges', 'giving_donations',
+        'strengths_mirror_shares',
         'early_years_development_areas', 'early_years_diary_entries', 'early_years_observations', 'early_years_concerns',
-        'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
+        'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints', 'tutor_memories', 'tutor_memory_clears',
         'past_papers', 'past_paper_versions', 'past_paper_memos', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
         'ai_school_limits', 'ai_settings_operations',
         'ai_flag_reviews',
         'ai_quarantine_snapshots',
         'digest_language_templates', 'digest_preferences', 'weekly_parent_digests', 'digest_operations', 'learner_growth_weeks',
+        // One school's part of a guardian's daily family summary (Action Plan 5.11).
+        'family_daily_summary_parts',
         'family_visit_rules', 'meeting_slots', 'gate_passes', 'family_visit_operations', 'family_visit_events',
+        'emergency_settings', 'emergency_drills', 'emergency_alerts', 'emergency_roll_calls', 'emergency_releases', 'emergency_visitors', 'emergency_operations', 'emergency_events',
         'consent_requests', 'consent_recipients', 'consent_responses', 'family_form_operations',
         'cards', 'card_keys', 'card_portraits', 'card_reader_devices', 'card_chip_profiles', 'card_qr_uses', 'card_scan_logs', 'card_classroom_sessions', 'card_events', 'card_operations',
         'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
         'practice_items', 'practice_item_groups', 'practice_item_versions', 'practice_daily_sets', 'practice_set_entries', 'practice_memories', 'practice_reviews', 'practice_operations',
+        'practice_test_blueprints', 'practice_tests', 'practice_test_questions',
+        'practice_motivation_settings', 'practice_goals', 'practice_goal_weeks', 'practice_nudges', 'mastery_topic_gaps', 'mastery_gap_closures',
+        'practice_audio_answers', 'practice_diagrams',
+        'learning_paths', 'learning_path_items', 'learning_path_reviews',
+        'diagnostic_attempts', 'diagnostic_attempt_items',
         'intakes', 'intake_grades', 'applications', 'application_documents', 'application_links', 'application_events', 'offers', 'admission_operations',
         'consultations', 'consultation_questions', 'consultation_options', 'consultation_candidates', 'consultation_participation', 'consultation_responses', 'consultation_configuration_events', 'consultation_operations',
         'discipline_operations', 'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',
         'discipline_acknowledgements', 'discipline_notice_intents', 'detention_sessions', 'detention_entries', 'detention_versions',
         'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations', 'recognition_badge_settings', 'recognition_badges',
+        // Open standards (5.9): the school's OneRoster exports and the Open Badges credentials issued for its awards.
+        'oneroster_exports', 'open_badge_credentials',
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
         'exam_periods', 'calendar_feeds',
@@ -85,6 +113,12 @@ final class SchoolOwnedTables
         'cover_absences', 'cover_assignments', 'cover_operations',
         'mastery_settings', 'mastery_topics', 'topic_links', 'mastery_evidence', 'mastery_records', 'mastery_scopes', 'mastery_growth_snapshots',
         'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_material_files', 'activity_operations',
+        // Records shared between schools (Action Plan 5.1): each school's own link
+        // to a shared record (its role and whether it accepted) and its write
+        // receipts. Fixtures (5.2): each school's own side of a fixture (its
+        // group, team label, notes and score report) and its team sheet, whose
+        // learner ids never leave the school (specs/platform/shared-records.md).
+        'shared_participants', 'shared_record_operations', 'shared_fixture_sides', 'shared_fixture_selections',
         'audiences', 'communication_role_rules', 'communication_operations', 'messages', 'message_recipients', 'message_reads',
         'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
@@ -146,14 +180,29 @@ final class SchoolOwnedTables
         'library_topic_prerequisites' => 'prerequisite edges between platform library topics, written only from /saas/library',
         'library_items' => 'platform library items (practice and past-paper questions, lessons, diagnostics), written only from /saas/library; never a school\'s own material',
         'library_item_versions' => 'versioned library item content; a published version is immutable; written only from /saas/library',
+        'library_diagrams' => 'the platform library\'s diagram pictures for labelling questions, written only from /saas/library; a school reads one only through a published library question in a learner\'s own practice set',
         'library_reviews' => 'HQ reviewers\' decisions on library item versions; names platform staff only',
         'library_reviewers' => 'which platform staff review which library framework and subject; no school role or record',
+        'reading_books' => 'the reading library\'s public-domain book catalogue, written only from /saas/reading; names no school or learner',
+        'reading_rights_decisions' => 'HQ\'s recorded copyright decision for each book (who, when, on what basis); names platform staff only',
+        'reading_book_texts' => 'the state of each book\'s one cached public-domain text, written only by the server\'s fetcher; holds no school or learner data',
+        'reading_shelves' => 'HQ-curated reading shelves by grade, written only from /saas/reading; a school hides a shelf in its own reading_hidden_items',
+        'reading_shelf_books' => 'which books are on each HQ shelf, written only from /saas/reading',
+        'reading_questions' => 'HQ-written comprehension questions per book, written only from /saas/reading; learners\' answers are school-owned in reading_answers',
+        'library_ai_drafts' => 'HQ requests for AI drafts of library items (topic, source, brief, outcome), written only from /saas/library; the model is given library data only, never a school\'s',
+        'platform_ai_usage' => 'HQ\'s own AI metering for model calls made from /saas with no school (tokens, cents, hashes and flag codes, never a prompt or an answer); a school\'s calls stay in its own ai_usage',
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
         'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
+        'school_groups' => 'a group of schools with one owner, written only from /saas; which schools are in it is each school\'s own school_group_members row, agreed by the school',
+        'school_group_admins' => 'group-level roles: who may see a group\'s counts across its current schools; grants nothing inside any school, written only from /saas',
+        'school_group_invoices' => 'Navigate Ed\'s monthly invoice to a school group, written only from /saas; each school\'s part is a row of school_group_invoice_schools',
+        'school_group_payments' => 'EFT payments a school group made against its group invoice, written only from /saas; names no school',
         'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
         'platform_package_modules' => 'which product modules each version of a package includes; names no school',
         'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
+        'shared_fixtures' => 'a fixture between schools: date, venue, field, the opponent\'s name when it is not on NavigateEd and the result both schools confirmed; names no school and holds no learner or group; each school reaches it only through its own shared_participants row',
+        'shared_competitions' => 'a league or competition between schools: name, kind, season and points rules; names no school; members reach it only through their own shared_participants row',
         'platform_announcements' => 'Navigate Ed\'s own announcements to schools, written only from /saas; a school reads one only through its own platform_announcement_schools row, and the audience list is never shown to a school',
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_ai_caps' => 'Navigate Ed\'s own daily AI spending caps per feature, set only from /saas/ai; a school\'s own lower limits stay in ai_school_limits',
@@ -161,11 +210,15 @@ final class SchoolOwnedTables
         'platform_support_views' => 'when each HQ staff member last opened the support queue; one row per staff user, no school data',
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'platform_staff_two_factor' => 'a platform staff member\'s own authenticator app (encrypted secret, hashed recovery codes) for signing in to /saas; platform staff belong to no school',
+        'benchmark_releases' => 'anonymous benchmarking (5.5): the published lower quartile, median and upper quartile of each comparison group, written only by the weekly platform snapshot from at least k schools\' school-level figures; names no school, holds no school\'s own value and no learner data',
+        'benchmark_runs' => 'anonymous benchmarking (5.5): the period end and completion time of each weekly platform snapshot, so the latest week is known even when it published nothing; names no school',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',
         'notification_preferences' => 'a human controls their own channel choices across schools; each schools mandatory rules override these choices',
         'notification_quiet_hours' => 'a human chooses their own push quiet hours once, for every school; safety notices are never held',
+        'family_summary_preferences' => 'a guardian chooses once, for every school, whether and when they get the daily family summary (Action Plan 5.11), like their quiet hours',
+        'family_daily_summaries' => 'one daily family summary per guardian per day across every school they are linked at; it holds no school content (each school\'s part is a school-owned family_daily_summary_parts row, read only inside that school) and names the school its notice was filed in',
         'handle_claims' => 'global unique handles and temporary reservations; locked by handle and accessed only through the identity service',
         'handle_changes' => 'one human identity across schools; change limit and history queried only by the authenticated or authorised learner user id',
         'learner_identifiers' => 'one immutable student number and the LURITS number per human across schools; accessed by user id under a lock',

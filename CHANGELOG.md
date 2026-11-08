@@ -1,7 +1,150 @@
 # Changelog
 
+## 2026-11-07
+
+- Bind daily family summaries to the exact children whose facts were collected, rechecking those relationships before saving so a revoked relationship cannot be hidden by a remaining sibling.
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
+## 2026-11-09
+
+- Daily family summary (Action Plan 5.11): a guardian can opt in to one short summary a day, at a time they choose outside their quiet hours, covering all their children at all their schools: today's and tomorrow's timetable changes, homework due, forms waiting for them, unread school messages and how many private updates are waiting (never what they say). Each school's part is read and written inside that school. The wording comes from the AI gateway when a school has it switched on, and from a plain template otherwise. New API: `GET`/`PUT /api/v2/me/family-summary/preferences`, `GET /api/v2/me/family-summaries/{summary}`. **Deploy:** run migrations; the scheduler runs `family:daily-summary` every 15 minutes and its retention daily.
+
+- Keep starting checks to choice and number questions so extended practice question types cannot leave a diagnostic waiting for an answer it cannot mark.
+- Exclude answers awaiting teacher marking from library quality rates and privacy cohort thresholds.
+- Refuse the practice question-type rollback while recorded per-part results remain, including automatically marked answers, so rollback cannot erase their marks.
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
+## 2026-11-04
+
+- Daily practice has four new question types: worked steps with a mark per step, short written answers, labelling a diagram, and spoken answers. Teachers write them on the new "Write a practice question" page or in the API, and HQ writes them in the content library (Action Plan 3.11).
+- Downloaded practice sets no longer carry the answers or worked explanations for apps that ask for the new practice contract (`X-Practice-Contract: 2`): answers are marked on the server when they sync, and the result and explanation appear only after the answer is saved. This applies to school and library questions and to the classroom tablet, which already asks for it. Apps that do not ask yet keep today's sets (choice and number questions, answers included) until `practice.legacy_set_contract` is switched off.
+- Short written answers that match no accepted answer, and spoken answers, wait for the learner's own teachers on the new practice marking page; their mark counts towards the learner's practice once. AI help with marking stays switched off until an AI provider is qualified.
+- Recorded answers are encrypted in the school's private storage, heard only by the learner's teachers, and deleted after 90 days (30 days after marking). **Deploy:** run migrations; the new daily `learning:prune-practice-audio` job runs at 03:55.
+- **Apps:** the new practice contract (`question` instead of `definition`, and a `solution` with each saved answer) is opt-in, so installed apps keep working unchanged. Regenerate the Dart client and update the apps to send `X-Practice-Contract: 2`, then switch off `PRACTICE_LEGACY_SET_CONTRACT` to close the old answer loophole for everyone.
+
+- Prevent SMS or WhatsApp activation during a usage month whose invoice was already issued early; show when it can be enabled and retain the sealed invoice unchanged.
+
+- Run the browser CI server without JIT, matching the application runtime, after a native PHP crash stopped the server during report tests. The browser assertions and failure checks stay in place.
+- Refuse OneRoster exports containing formula-like spreadsheet values instead of changing names or identifiers; show the requester how to correct the source data and remove partial temporary archives.
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+- Keep the check-in test answers on their intended school date when CI starts near midnight.
+- Return the saved school-business receipt on the first response so exact retries retain the same JSON representation on MySQL.
+- Keep invoice installment JSON paths in UTF-8 on MySQL 8, so sealing invoices and applying approved bursaries do not fail on binary JSON conversion. The repair migration retains the existing financial guards.
+
+## 2026-11-06
+
+- Independent schools can publish a versioned re-enrolment contract for next year. Guardians accept the exact wording online; the school sees who has not yet re-enrolled and can send reminders, and the promotion page shows which learners are confirmed (Action Plan 5.10).
+- Families can apply for a bursary with household details and supporting documents that only they and the school's bursary committee can see. The committee's award becomes a fee discount that Finance approves; private details are erased on a fixed schedule (Action Plan 5.10).
+- Finance can run alumni giving campaigns: pledges and EFT donations are recorded with numbered receipts on the school ledger, donor names stay with Finance, and a school may share campaign totals (Action Plan 5.10).
+- **Deploy:** run migrations and the installation seeder (new permissions); the new daily `bursaries:prune` job runs from the scheduler.
+
+## 2026-11-08
+
+- Schools on NavigateEd can now arrange fixtures with each other. An activity manager invites another school (found by name) or types the name of a team that is not on NavigateEd, sets the date, venue and field, and the invited school accepts for one of its own groups or declines. Until a school accepts, the other sees only its name.
+- Each school keeps its own team sheet and private notes. The other school sees the team name and, only if the school chooses to share it, each player's label and position, never learners' names or anything else.
+- Both schools report the score; the result counts once the two reports agree, and each school sees the other's report while they differ. Against a team not on NavigateEd, the host's report is the result. Guardians of the learners on the team sheet get a private notice that a result is ready and can see their child's team's results.
+- Leagues and competitions between schools, with a running table from confirmed results for every school that joined. New panel page: Fixtures between schools, next to Activity groups. New API: /api/v2/activities/fixtures and /competitions.
+- Developers: records shared between schools follow a new pattern (engineering/specs/platform/shared-records.md): a shared row that names no school, each school's own participant row, and one service that reads only the columns a school chose to share.
+
+## 2026-11-06
+
+- The homework reuse test now reads the clock once, so it no longer fails when a minute ticks over between the copy request and the due-date check.
+- The wellbeing check-in context test now spreads its answers from a fixed time of day, so it no longer fails when run in the last minutes before midnight.
+- Schools can export their classes, learners and teachers in the OneRoster 1.2 CSV format from the panel (Open standards, OneRoster export). It needs the new sensitive ability "Export the school roster in OneRoster format" and a reason, is built in the background into private encrypted storage, and is downloaded through a short-lived link that works only for the person who asked. Learners are identified by their LURITS number first. Birth dates and sex are left out unless asked for. Every step is audited.
+- Recognition awards can be downloaded as signed Open Badges 3.0 credentials by the learner's guardians (and by high school learners themselves) through API v2. Anyone can check a credential at /open-badges/verify; withdrawing an award revokes its credential. **Deploy:** set OPEN_BADGES_SIGNING_KEY (32 random bytes, base64, from Secret Manager) before credentials can be issued.
+
+## 2026-11-04
+
+- Schools can build an alumni and volunteer pool for career talks and job shadows (API only for now; the module "Alumni and volunteer pool" is off by default). The office invites former learners from its own adult leaver records, and outside volunteers; each person consents when they first sign in, and can withdraw at any time with immediate effect. The school records each person's safety checks, who checked and when the clearance ends, and can book only cleared people, only into staffed group sessions of at least two learners. Pool members get their own sign-in that never reaches learner records, marks or contact details; they see a session's attendance list on the day of the session only.
+
+- Leadership dashboard: a school can choose to take part in anonymous benchmarking and then see its own attendance, results movement (learner-topics that rose a mastery level this term) and guardian reach next to the median and quartiles of comparable schools (same sector, same mix of school stages, similar number of learners). Only schools that take part are compared and only they see the comparison; a group of fewer than five schools shows nothing; no school is ever named. Figures are worked out weekly (Mondays) into a platform snapshot, and a group's figures are kept unchanged until at least three schools have joined or left, so one school's value cannot be worked out from week-to-week changes. HQ sees the same published figures under School health, Benchmarks. **Deploy:** run migrations; the weekly `benchmarking:snapshot` schedule entry is added.
+
+- Practice tests (Action Plan 3.17): teachers set timed cycle tests for a group from their question bank (and the Navigate Ed library where it is on) on the new Practice tests page, sharing the questions between topics evenly or like chosen past papers; learners start quick quizzes and cycle tests through the v2 API. The server holds the deadline and the answers: nothing about the right answers reaches the device before hand-in, late saves are refused and a late hand-in counts only answers saved in time. Results count as practice evidence on the mastery map (labelled practice test), point to the topics to look at next and can hand a review to the tutor. Typed and photographed answers, mock exams and the app screens follow.
+
+- Exam coach memos can now be marked against (Action Plan 3.16). A new marking engine checks a typed answer, step by step, against a memo's mark points: values with their tolerance, units (converting between SI units such as km/h and m/s), equivalent algebra, formulas, key terms, significant figures and consistent-accuracy follow-through. Mathematics and Physical Sciences have their own conventions (for example, Physical Sciences needs the unit and the direction); other subjects use only the memo's rules. Every mark gets a reason and a confidence; method and explanation marks that no rule decides always go to a teacher, as automatic judgement stays off.
+- Teachers can try it from a memo with "Try marking an answer against this memo". Nothing is saved and learners do not see it.
+- Memo mark points gain three rules: an expression or formula, terms, and significant figures.
+- Learner marking stays off for every subject until it passes the accuracy check against teacher marking (`config/marking.php`).
+
+- Practice runs are counted kindly: weekends, holidays, school closures and one missed school day a week no longer break a learner's run, and practising on a weekend still counts. The practice screen's day count follows the new rule.
+- Learners can set their own weekly practice goal (1 to 7 days) and get one short "well done" note the week they reach it. Guardians can see the goal; only the learner sets it.
+- When a topic that needed more practice becomes secure on the family-visible mastery map, the learner and their guardians get one short "something to celebrate" note, at most once per topic each term. It never shows a score, and staff-only marks are never used.
+- Schools can switch on gentle practice reminders for guardians and learners (both off by default) under Academics, Practice reminders: at most one a week, school-day afternoons only, never during quiet hours, and never naming a child or a count.
+- Awards managers can switch on practice run badges (off by default), presented with the other persistence badges once a school year for runs of 5, 10, 20 and 40 days.
+- The weekly parent update can now say when a child reached their weekly practice goal and how long their practice run is; it never says a goal was missed.
+- API: `GET /api/v2/learning/practice/learners/{learner}/motivation` and `POST /api/v2/learning/practice/learners/{learner}/practice-goal` (the Dart client needs regenerating).
+
+- Tutor teaching quality (Action Plan 3.10): a second tutor prompt (v2) that explains at the learner's stage and grade, shows worked examples of similar problems and common mistakes, lets a learner "explain it back" in their own words, and answers more warmly in the same structured form. The first prompt stays selectable.
+- The tutor now remembers which topics a learner practised in earlier sessions (topics and counts only, never the chat, and never anything flagged for safeguarding). The learner and their guardians can see and clear it; it only uses the last 90 days of the current school year.
+- The tutor can read the section of a document that answers the question, chosen with embeddings through the AI gateway; when that is off or unavailable it reads the opening, as before. Explanations in Afrikaans or isiZulu are built but stay off until each language's safeguarding phrases are reviewed. **Deploy:** `AI_TUTOR_PROMPT` (default `tutor-v2`), `AI_TUTOR_EMBEDDING_MODEL`, `AI_TUTOR_HOME_LANGUAGES`; new migration.
+
+- Learners get a guided learning path for each subject (Action Plan 3.9): the server finds the topic to work on next, shows the school's lesson (or a library lesson), gives a few practice questions, then a short check it marks itself, and plans a review for a later day. A check that does not go well yet leads back to the lesson with a kind message; after three tries the topic rests until tomorrow. Answers are never sent to the device before the learner answers. Teachers see which step each learner in their group is on (no scores or rankings), and guardians see a plain summary for their own child. When the tutor and the AI are switched on, the tutor opens on the topic and leads the lesson. API: new `/api/v2/learning/paths` endpoints; the Dart client needs regenerating.
+
+- Reading library (Action Plan 4.4), server, HQ and admin panel. Navigate Ed's
+  content staff build a catalogue of classic public-domain books in HQ
+  (Reading library), record a copyright decision for each one (who, when and
+  why; only books cleared as public domain in South Africa ever reach
+  learners), put them on shelves by grade and write comprehension questions.
+  The server fetches each book once from a Project Gutenberg mirror, removes
+  the Project Gutenberg licence and name, keeps a private copy and serves it a
+  page at a time. With the new Reading library module switched on, school
+  leaders can hide shelves or books from their learners and switch on two
+  reading badges (finishing a book, reading on several days in a week), given
+  through Awards. Learners' places, reading time and answers are their own and
+  never compared. The learner API is ready; the app screens come later.
+  **Deploy:** run the migrations and set `READING_MIRROR_URL` (nothing is
+  fetched until it is set). The South African copyright rule and the use of the
+  Project Gutenberg name still need legal review before launch.
+
+- Learner passport (Action Plan 4.10). With the new Learner passport module on, a learner, and a guardian who approves for them, can see one read-only record across the NavigateEd schools the learner attended, headed by their LURITS number: awards and badges, activity groups, supervised peer tutoring minutes, and the results that came with a signed school transfer. A reading section waits for the school library. School staff with profile permission see the same page for their own learners in the panel (People, Learner passports), limited to what their school holds and what arrived in a signed transfer to it; they never see another school's records, and learners are found by name, never by LURITS number. Health, counselling, wellbeing, discipline, support plans, safeguarding, house points and private notes are never part of a passport. From their 18th birthday (by the school's calendar) a learner can download their passport as JSON or PDF; each download is audited. API: `GET /api/v2/passport/me`, `/me/export` and `/learners/{learner}`; regenerate the Dart client. The app screens come later.
+
+- School groups: one owner, many schools (Action Plan 5.7, SA.18).
+  - HQ creates a group, invites schools and names the group's administrators.
+  - A school joins only when its own Super Admin agrees on the new School groups page. The page shows exactly what the group will see. The school can leave at any time, and the group stops seeing it at once.
+  - Group administrators sign in to a group page with each school's learners, weekly active families, guardian reach, learners active in the app and recorded attendance, plus the group's totals. Numbers under 10 are hidden, as is any total that would reveal one. The role gives no access inside any school, and no learner record is ever shown.
+  - HQ Finance can bill a school through its group. One invoice a month then rolls up the schools' own monthly lines, and a school's month is never billed both on its own and through the group.
+  - **Deploy:** run the migrations.
+
+- SMS and WhatsApp (Action Plan 2.7 follow-ups): a mobile number is now texted only after its owner verifies it in the app with a six-digit code sent by SMS (codes expire after ten minutes, five wrong codes lock it for an hour, one code a minute and three an hour). Numbers recorded before this change are not texted until verified, and a changed number must be verified again; a skipped text is recorded with the reason. Guardians and staff choose SMS, WhatsApp, both or neither for each notice in the app (`/api/v2/me/text-messaging`); the school sees only how many people chose. Schools can now also switch SMS and WhatsApp on for staff (urgent notices and safeguarding alerts), on the number on the staff member's own account. Navigate Ed's monthly invoice to a school now has a line per channel passing on what Twilio charged for the previous month's texts, in rand at a configured exchange rate. **Deploy:** run the migration `2026_11_07_100000`; set `PLATFORM_BILLING_USD_ZAR_RATE` (rands per US dollar, for example `18.50`) before creating invoices for months with texts, or the drafts stay blocked.
+
+- New "My strengths" mirror for learners (Action Plan 4.8, server and API; the app screens follow): the topics a learner is growing in fastest, what they remember well from daily practice, the topics they chose to explore with the tutor (never anything said in a conversation), their activities and the skills from them, and a few career ideas with their sources. No scores, ranks or comparisons. Only the learner sees it. They can share a read-only copy with an approving guardian or a teacher who teaches them, for up to 30 days, end it at any time, and see when it was last viewed; every share and view is audited. Nothing else in NavigateEd can read it, so it is never used for streaming or placement. Schools switch it on with the new "Interests and strengths mirror" module (off by default, not for early years). Reading will appear once the reading library is built.
+
+- Learners can take a short starting check for a subject when their school has the Navigate Ed library switched on (Action Plan 3.7). It asks a few questions per topic, one at a time, marked on the server: the app never receives the answers or explanations, and the learner is not told right or wrong. Each answer fills the mastery map as its own kind of evidence ("diagnostic"), never as a mark. Learners and guardians see a plain starting point; teachers see who has finished and the starting map per topic on the new Starting checks page. API: new `/api/v2/learning/diagnostics` endpoints in `openapi.yaml` (the Dart client needs regenerating). **Deploy:** run migrations (two new school tables).
+
+- HQ content library (Action Plan 3.4): Content staff can ask AI for practice questions or a lesson for a library topic, from a chosen source. The drafts arrive as drafts marked "AI draft" and are published only after a reviewer for the subject, who did not ask for them, approves. While AI is switched off across the platform (as now, with no provider qualified), HQ is told so and nothing is written.
+- HQ AI calls go through the AI gateway's own HQ path, with moderation and HQ's own daily spending caps, and are metered apart from every school's AI spend.
+- Each library version now says where it came from (written by staff from a source, or an AI draft with who asked and who reviewed it), on the item page and in the audit log.
+- A new "Needs attention" page lists published library questions that learners find far harder or far easier than expected, from answers across schools, shown only as a percentage and a learner-count band, never a school or a learner, and only for questions answered by at least 20 learners in at least 3 schools. HQ can open a new draft from it.
+- The library review queue can show only AI drafts or only flagged items.
+
 ## 2026-11-03
 
+- Admin panel and API: Emergency management (Action Plan 5.8), a new module,
+  off until the school switches it on. Roles the school names (the new "Send
+  emergency alerts and lockdowns" ability; principal and deputy principal
+  templates have it) send a lockdown, evacuation, shelter-in-place or general
+  emergency alert to all staff and every family, or to staff only, in two
+  steps: prepare it, then type its confirmation word to send it. Learners are
+  never sent alerts. Alerts go by push, email and in-app, and by SMS and
+  WhatsApp wherever the school switched them on, and are never held for quiet
+  hours. The all-clear goes to the same people, and who prepared, sent and
+  cleared each alert is recorded. A drill says "DRILL" and "This is a drill.
+  There is no emergency." in every message, and fills in the drill log
+  (planned and actual times, type and notes). Gate staff sign visitors in with
+  a guardian card at the gate reader or by hand; the visitors on site show in
+  the roll call, and their details are erased after the school's retention
+  period (30 days unless the school changes it). During an alert, class
+  teachers take their class's roll call, and a child is released only to one
+  of their guardians (checked by guardian card or identity document) or to the
+  named collector of an early collection request approved for today; anyone
+  else is refused and every release is logged. Guardians see only their own
+  children's status. App screens come later.
+  engineering/specs/community/emergency-management.md. **Deploy:** run the
+  migrations; the daily `emergency:purge-visitors` task is scheduled.
+- When an admin panel browser CI part fails, CI now prints the PHP OPcache/JIT settings and the kernel's note on any PHP process it killed, so a panel server that stops without a PHP error can be diagnosed.
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
 - Refresh the strict HQ route inventory while retaining every route authorization assertion.
 - Apply question-bank scope foreign keys after backfill and required-column conversion, preserving the final constraints on MySQL 8 and MariaDB.

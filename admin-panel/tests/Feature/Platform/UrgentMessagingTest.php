@@ -7,6 +7,7 @@ namespace Tests\Feature\Platform;
 use App\Jobs\Platform\SendText;
 use App\Models\Notification;
 use App\Models\Platform\AuditLog;
+use App\Models\Platform\MessagingNumber;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
@@ -77,6 +78,10 @@ class UrgentMessagingTest extends TestCase
         // The school office's record of each School A guardian's number.
         DB::table('parents')->where('school_id', 1)->where('user_id', $this->schoolA->ids['farid_user'])->update(['mobile' => '082 123 4567']);
         DB::table('parents')->where('school_id', 2)->update(['mobile' => '083 999 0000']);
+        // Farid has verified that number at School A (texts go only to verified numbers).
+        app(CurrentSchool::class)->run(1, fn () => MessagingNumber::query()->create([
+            'user_id' => $this->schoolA->ids['farid_user'], 'source' => MessagingNumber::PARENT, 'number_hash' => DeliveryLog::hash(self::NUMBER), 'verified_at' => now(),
+        ]));
     }
 
     /** Twilio accepts every message. Call it before anything is sent: the first fake that matches wins. */
@@ -379,6 +384,9 @@ class UrgentMessagingTest extends TestCase
     public function test_quiet_hours_are_not_applied_to_urgent_texts(): void
     {
         $this->twilioAccepts();
+        // The fixtures' memberships start on the day they are built; the clock below is
+        // fixed, so they must have started before it whatever day the suite runs.
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
         $this->travelTo(CarbonImmutable::parse('2026-11-03 02:30', 'Africa/Johannesburg'));
         $this->optIn(1, ['comms.urgent', 'attendance.absence']);
 

@@ -64,7 +64,7 @@ class TutorController extends Controller
     public function send(TutorRequest $r, string $session): JsonResponse
     {
         return $this->result($r, fn () => app(TutorSessions::class)->send($r->user(), $session, $r->validated('operation_id'), $r->validated('question'),
-            (string) $r->validated('working', ''), $r->validated('photo_ids', [])));
+            (string) $r->validated('working', ''), $r->validated('photo_ids', []), (string) $r->validated('turn_type', 'ask'), $r->validated('language')));
     }
 
     public function turn(TutorRequest $r, string $session, string $operation): JsonResponse

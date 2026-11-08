@@ -42,6 +42,7 @@ use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
 use App\Http\Controllers\Panel\Activities\ActivitySeasonController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
+use App\Http\Controllers\Panel\Activities\FixturePanelController;
 use App\Http\Controllers\Panel\Activities\GroupChatPanelController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
@@ -55,20 +56,27 @@ use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\EarlyYears\EarlyYearsPanelController;
+use App\Http\Controllers\Panel\Emergency\EmergencyPanelController;
 use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
 use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
+use App\Http\Controllers\Panel\Groups\GroupDashboardController;
 use App\Http\Controllers\Panel\Growth\CaseloadRenewalController;
 use App\Http\Controllers\Panel\Growth\InterventionLibraryController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Growth\UnseenLearnersController;
+use App\Http\Controllers\Panel\Leadership\BenchmarkingController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Leadership\MasteryImpactController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Learning\ExamMemoPanelController;
+use App\Http\Controllers\Panel\Learning\PracticeMarkingController;
+use App\Http\Controllers\Panel\Learning\PracticeMotivationController;
+use App\Http\Controllers\Panel\Learning\PracticeTestPanelController;
 use App\Http\Controllers\Panel\Learning\QuestionBankController;
+use App\Http\Controllers\Panel\Learning\StartingCheckController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\CashHandoverPanelController;
@@ -103,6 +111,8 @@ use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
 use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
 use App\Http\Controllers\Panel\Money\WalletPaymentPortalController;
 use App\Http\Controllers\Panel\Money\WalletWithdrawalPanelController;
+use App\Http\Controllers\Panel\OpenStandards\OneRosterController;
+use App\Http\Controllers\Panel\Passport\PassportPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\CareerGuidancePanelController;
@@ -117,6 +127,7 @@ use App\Http\Controllers\Panel\People\LeaverController;
 use App\Http\Controllers\Panel\People\LuritsOfficeController;
 use App\Http\Controllers\Panel\People\SchoolImportController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
+use App\Http\Controllers\Panel\Reading\ReadingPanelController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
 use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\Panel\Transfers\TransferPanelController;
@@ -135,6 +146,7 @@ use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAnnouncementController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformBenchmarksController;
 use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformFeatureFlagController;
 use App\Http\Controllers\Platform\PlatformHomeController;
@@ -147,6 +159,8 @@ use App\Http\Controllers\Platform\PlatformMessagingController;
 use App\Http\Controllers\Platform\PlatformOffboardingController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
+use App\Http\Controllers\Platform\PlatformReadingController;
+use App\Http\Controllers\Platform\PlatformSchoolGroupController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformSchoolImportController;
 use App\Http\Controllers\Platform\PlatformStaffController;
@@ -158,6 +172,7 @@ use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
 use App\Http\Controllers\Platform\SchoolAnnouncementController;
 use App\Http\Controllers\Platform\SchoolExitController;
+use App\Http\Controllers\Platform\SchoolGroupMembershipController;
 use App\Http\Controllers\Platform\SchoolJoinInvitationController;
 use App\Http\Controllers\Platform\SchoolStageController;
 use App\Http\Controllers\Platform\SchoolSupportAccessController;
@@ -202,6 +217,7 @@ use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
+use App\Http\Requests\Emergency\EmergencyPanelRequest;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -367,6 +383,8 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     // School health and usage (SA.10): counts and shares only, never a person.
     Route::get('/schools/{school}/health', [PlatformSchoolHealthController::class, 'show'])->middleware('platform.can:health.view')->whereNumber('school')->name('schools.health');
     Route::get('/health', [PlatformSchoolHealthController::class, 'index'])->middleware('platform.can:health.view')->name('health');
+    // Anonymous benchmarking (5.5): the published medians and quartiles only, never a school.
+    Route::get('/benchmarks', [PlatformBenchmarksController::class, 'index'])->middleware('platform.can:health.view')->name('benchmarks');
     // HQ's own record of the school (contacts, stage, contracts, timeline): never the school's people.
     Route::prefix('/schools/{school}')->whereNumber('school')->middleware('platform.can:accounts.manage')->name('schools.')->group(function () {
         Route::get('account', [SchoolAccountController::class, 'show'])->name('account');
@@ -434,14 +452,35 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::put('/items/{item}/draft', [PlatformLibraryController::class, 'draft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.draft');
             Route::post('/items/{item}/submit', [PlatformLibraryController::class, 'submit'])->middleware('throttle:60,1')->whereNumber('item')->name('items.submit');
             Route::post('/items/{item}/publish', [PlatformLibraryController::class, 'publish'])->middleware('throttle:60,1')->whereNumber('item')->name('items.publish');
+            // The content production pipeline (3.4): AI drafts into review, and items learners' answers flag (counts and rates only).
+            Route::post('/drafts', [PlatformLibraryController::class, 'storeDrafts'])->middleware('throttle:10,1')->name('drafts.store');
+            Route::get('/attention', [PlatformLibraryController::class, 'attention'])->name('attention');
+            Route::post('/items/{item}/redraft', [PlatformLibraryController::class, 'redraft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.redraft');
             Route::post('/reviewers', [PlatformLibraryController::class, 'storeReviewer'])->middleware('throttle:30,1')->name('reviewers.store');
             Route::delete('/reviewers/{assignment}', [PlatformLibraryController::class, 'removeReviewer'])->whereNumber('assignment')->name('reviewers.destroy');
             Route::put('/schools/{school}', [PlatformLibraryController::class, 'switch'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.switch');
         });
+        // A labelling question's diagram picture (3.11), for library writers and reviewers alike.
+        Route::get('/diagrams/{diagram}', [PlatformLibraryController::class, 'diagram'])->middleware('platform.can:library.manage,library.review')->whereUuid('diagram')->name('diagrams.show');
         Route::middleware('platform.can:library.review')->group(function () {
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
         });
+    });
+    // The reading library catalogue (4.4): public-domain books, rights decisions, shelves and questions; never a school's learners.
+    Route::prefix('/reading')->name('reading.')->middleware('platform.can:reading.manage')->group(function () {
+        Route::get('/', [PlatformReadingController::class, 'index'])->name('index');
+        Route::post('/books', [PlatformReadingController::class, 'storeBook'])->middleware('throttle:30,1')->name('books.store');
+        Route::get('/books/{book}', [PlatformReadingController::class, 'book'])->whereNumber('book')->name('books.show');
+        Route::put('/books/{book}', [PlatformReadingController::class, 'updateBook'])->middleware('throttle:30,1')->whereNumber('book')->name('books.update');
+        Route::post('/books/{book}/rights', [PlatformReadingController::class, 'rights'])->middleware('throttle:30,1')->whereNumber('book')->name('books.rights');
+        Route::post('/books/{book}/fetch', [PlatformReadingController::class, 'fetch'])->middleware('throttle:10,1')->whereNumber('book')->name('books.fetch');
+        Route::post('/books/{book}/questions', [PlatformReadingController::class, 'storeQuestion'])->middleware('throttle:60,1')->whereNumber('book')->name('questions.store');
+        Route::post('/questions/{question}/retire', [PlatformReadingController::class, 'retireQuestion'])->middleware('throttle:60,1')->whereNumber('question')->name('questions.retire');
+        Route::post('/shelves', [PlatformReadingController::class, 'storeShelf'])->middleware('throttle:30,1')->name('shelves.store');
+        Route::get('/shelves/{shelf}', [PlatformReadingController::class, 'shelf'])->whereNumber('shelf')->name('shelves.show');
+        Route::put('/shelves/{shelf}', [PlatformReadingController::class, 'updateShelf'])->middleware('throttle:30,1')->whereNumber('shelf')->name('shelves.update');
+        Route::put('/shelves/{shelf}/books', [PlatformReadingController::class, 'shelfBooks'])->middleware('throttle:30,1')->whereNumber('shelf')->name('shelves.books');
     });
     // SMS and WhatsApp pass-through cost per school (2.7): counts and sums only.
     Route::get('/messaging', [PlatformMessagingController::class, 'index'])->middleware('platform.can:messaging.view')->name('messaging');
@@ -498,6 +537,28 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::post('/{announcement}/publish', [PlatformAnnouncementController::class, 'publish'])->middleware('throttle:20,1')->whereNumber('announcement')->name('publish');
         Route::post('/{announcement}/withdraw', [PlatformAnnouncementController::class, 'withdraw'])->middleware('throttle:20,1')->whereNumber('announcement')->name('withdraw');
     });
+    // School groups (Action Plan 5.7, SA.18): one owner, many schools. Counts only; each school agrees in its own panel.
+    Route::prefix('/groups')->name('groups.')->group(function () {
+        $c = PlatformSchoolGroupController::class;
+        Route::get('/', [$c, 'index'])->middleware('platform.can:groups.view')->name('index');
+        Route::post('/', [$c, 'store'])->middleware(['platform.can:groups.manage', 'throttle:20,1'])->name('store');
+        Route::get('/{group}', [$c, 'show'])->middleware('platform.can:groups.view')->whereNumber('group')->name('show');
+        Route::post('/{group}/schools', [$c, 'invite'])->middleware(['platform.can:groups.manage', 'throttle:30,1'])->whereNumber('group')->name('schools.store');
+        Route::post('/{group}/schools/{member}/end', [$c, 'end'])->middleware(['platform.can:groups.manage', 'throttle:30,1'])->whereNumber(['group', 'member'])->name('schools.end');
+        Route::put('/{group}/schools/{member}/billing', [$c, 'billing'])->middleware(['platform.can:billing.manage', 'throttle:30,1'])->whereNumber(['group', 'member'])->name('schools.billing');
+        Route::post('/{group}/admins', [$c, 'addAdmin'])->middleware(['platform.can:groups.manage', 'throttle:20,1'])->whereNumber('group')->name('admins.store');
+        Route::post('/{group}/admins/{admin}/revoke', [$c, 'revokeAdmin'])->middleware(['platform.can:groups.manage', 'throttle:20,1'])->whereNumber(['group', 'admin'])->name('admins.revoke');
+        Route::get('/{group}/invoices', [$c, 'invoices'])->middleware('platform.can:billing.view')->whereNumber('group')->name('invoices');
+        Route::get('/{group}/invoices/{invoice}', [$c, 'invoice'])->middleware('platform.can:billing.view')->whereNumber(['group', 'invoice'])->name('invoices.show');
+        Route::middleware(['platform.can:billing.manage', 'throttle:30,1'])->name('invoices.')->group(function () use ($c) {
+            Route::post('/{group}/invoices', [$c, 'compose'])->whereNumber('group')->name('store');
+            Route::post('/{group}/invoices/{invoice}/recompute', [$c, 'recompute'])->whereNumber(['group', 'invoice'])->name('recompute');
+            Route::post('/{group}/invoices/{invoice}/issue', [$c, 'issue'])->whereNumber(['group', 'invoice'])->name('issue');
+            Route::post('/{group}/invoices/{invoice}/discard', [$c, 'discard'])->whereNumber(['group', 'invoice'])->name('discard');
+            Route::post('/{group}/invoices/{invoice}/payments', [$c, 'pay'])->whereNumber(['group', 'invoice'])->name('payments.store');
+            Route::post('/{group}/invoices/{invoice}/payments/{payment}/reverse', [$c, 'reverse'])->whereNumber(['group', 'invoice', 'payment'])->name('payments.reverse');
+        });
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -516,6 +577,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'support.session'])->pr
     // A read sent as a POST (the search words stay out of the URL); the only POST support.session lets through.
     Route::post('/people', [SupportSessionController::class, 'search'])->whereNumber('grant')->middleware('throttle:60,1')->name('people.search');
     Route::get('/people/{person}', [SupportSessionController::class, 'person'])->whereNumber(['grant', 'person'])->name('person');
+});
+
+// A school group's administrators (Action Plan 5.7): the group's counts and shares across its
+// current schools. No school.context: the dashboard reads each school inside that school, and
+// a group role grants nothing inside any school.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'cache.headers:private;no_store'])->prefix('group')->name('group.')->group(function () {
+    Route::get('/', [GroupDashboardController::class, 'index'])->name('index');
+    Route::get('/{group}', [GroupDashboardController::class, 'show'])->whereNumber('group')->name('show');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
@@ -641,6 +710,20 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('activity-seasons', [ActivitySeasonController::class, 'index'])->name('activity-seasons.index');
             Route::post('activity-seasons', [ActivitySeasonController::class, 'store'])->middleware('throttle:20,1')->name('activity-seasons.store');
         });
+        // Fixtures and competitions between schools (Action Plan 5.1, 5.2).
+        Route::prefix('activity-fixtures')->name('activity-fixtures.')->middleware(['module:groups', 'can:activity-groups-manage', 'cache.headers:private;no_store'])->group(function () {
+            $c = FixturePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'write'])->middleware('throttle:30,1')->name('create');
+            Route::get('{fixture}', [$c, 'show'])->whereNumber('fixture')->name('show');
+            foreach (['schedule', 'decision', 'side', 'result'] as $action) {
+                Route::post('{fixture}/'.$action, [$c, 'write'])->whereNumber('fixture')->middleware('throttle:30,1')->name($action);
+            }
+            Route::post('competitions', [$c, 'competitionWrite'])->middleware('throttle:30,1')->name('competition-create');
+            Route::get('competitions/{competition}', [$c, 'competition'])->whereNumber('competition')->name('competition-show');
+            Route::post('competitions/{competition}/invitations', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-invite');
+            Route::post('competitions/{competition}/decision', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-decision');
+        });
         Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
             $c = ActivityWorkbenchController::class;
             Route::get('/', [$c, 'index'])->name('index');
@@ -674,6 +757,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        // Gentle practice reminders (Action Plan 3.13): school managers only, both off by default.
+        Route::prefix('practice-motivation')->name('practice-motivation.')->middleware(['module:daily_practice', 'cache.headers:private;no_store'])->group(function () {
+            Route::get('/', [PracticeMotivationController::class, 'index'])->name('index');
+            Route::put('/', [PracticeMotivationController::class, 'update'])->middleware('throttle:30,1')->name('update');
+        });
         // Teachers' question banks by subject and grade (Action Plan 3.6).
         Route::prefix('question-banks')->name('question-banks.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
             $c = QuestionBankController::class;
@@ -681,7 +769,24 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('items/{item}', [$c, 'update'])->whereNumber('item')->middleware('throttle:60,1')->name('update');
             Route::post('items/{item}/use', [$c, 'use'])->whereNumber('item')->middleware('throttle:60,1')->name('use');
             Route::post('items/{item}/stop', [$c, 'stop'])->whereNumber('item')->middleware('throttle:60,1')->name('stop');
+            // Question types (Action Plan 3.11): write any type, see a diagram, and mark answers waiting for a teacher.
+            Route::get('write', [$c, 'write'])->name('write');
+            Route::post('write', [$c, 'create'])->middleware('throttle:30,1')->name('create');
+            Route::get('diagrams/{diagram}', [$c, 'diagram'])->whereUuid('diagram')->name('diagram');
+            Route::get('marking', [PracticeMarkingController::class, 'index'])->name('marking');
+            Route::get('marking/{group}/{review}/audio', [PracticeMarkingController::class, 'audio'])->whereNumber(['group', 'review'])->name('marking.audio');
+            Route::post('marking/{group}/{review}', [PracticeMarkingController::class, 'mark'])->whereNumber(['group', 'review'])->middleware('throttle:120,1')->name('marking.mark');
         });
+        // Cycle tests teachers set for their groups (Action Plan 3.17).
+        Route::prefix('practice-tests')->name('practice-tests.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
+            $c = PracticeTestPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('groups/{group}', [$c, 'create'])->whereNumber('group')->middleware('throttle:30,1')->name('create');
+            Route::get('groups/{group}/tests/{blueprint}', [$c, 'show'])->whereNumber(['group', 'blueprint'])->name('show');
+            Route::post('groups/{group}/tests/{blueprint}/withdraw', [$c, 'withdraw'])->whereNumber(['group', 'blueprint'])->middleware('throttle:30,1')->name('withdraw');
+        });
+        // Who has done the starting check, and the starting map per topic (Action Plan 3.7).
+        Route::get('starting-checks', [StartingCheckController::class, 'index'])->middleware(['module:daily_practice', 'module:mastery', PrivateMastery::class])->name('starting-checks.index');
         Route::prefix('fee-items')->name('fee-items.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             Route::get('{item}/rules', [FeeItemRulePanelController::class, 'form'])->whereNumber('item')->name('rules');
             Route::post('{item}/rules', [FeeItemRulePanelController::class, 'save'])->whereNumber('item')->name('rules-save');
@@ -1023,6 +1128,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('actions/{operation}/{record}', [$c, 'write'])->whereIn('operation', ['reverse', 'review', 'withdraw', 'void'])->whereNumber('record')->name('change');
         });
         Route::get('leadership-dashboard', [DashboardController::class, 'index'])->middleware(['module:leadership_dashboard', 'cache.headers:private;no_store'])->name('leadership-dashboard.index');
+        Route::post('leadership-dashboard/benchmarking', [BenchmarkingController::class, 'update'])->middleware(['module:leadership_dashboard', 'throttle:10,1'])->name('leadership-benchmarking.update');
         Route::get('leadership-dashboard/mastery-impact', [MasteryImpactController::class, 'index'])->middleware(['module:leadership_dashboard', 'module:mastery', 'cache.headers:private;no_store'])->name('mastery-impact.index');
         Route::prefix('academic-transitions')->name('academic-transitions.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
             $controller = TransitionWorkbenchController::class;
@@ -1553,6 +1659,11 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/support-access/{grant}/approve', [SchoolSupportAccessController::class, 'approve'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.approve');
     Route::post('/support-access/{grant}/decline', [SchoolSupportAccessController::class, 'decline'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.decline');
     Route::post('/support-access/{grant}/end', [SchoolSupportAccessController::class, 'end'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.end');
+    // School groups (Action Plan 5.7): this school's Super Admin agrees to join, declines or leaves.
+    Route::get('/school-groups', [SchoolGroupMembershipController::class, 'index'])->name('school-groups.index');
+    Route::post('/school-groups/{member}/agree', [SchoolGroupMembershipController::class, 'agree'])->whereNumber('member')->middleware('throttle:30,1')->name('school-groups.agree');
+    Route::post('/school-groups/{member}/decline', [SchoolGroupMembershipController::class, 'decline'])->whereNumber('member')->middleware('throttle:30,1')->name('school-groups.decline');
+    Route::post('/school-groups/{member}/leave', [SchoolGroupMembershipController::class, 'leave'])->whereNumber('member')->middleware('throttle:30,1')->name('school-groups.leave');
     Route::get('/family-reach', FamilyReachController::class)->name('family-reach.index');
     Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
     Route::post('/people-profiles/{person}/invitation', [ProfileFormController::class, 'invite'])->whereNumber('person')->middleware('throttle:20,1')->name('people-profiles.invitation');
@@ -1572,6 +1683,10 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::get('/school-exit', [SchoolExitController::class, 'index'])->name('school-exit.index');
     Route::get('/school-exit/{offboarding}/download', [SchoolExitController::class, 'download'])->whereNumber('offboarding')->middleware(['signed', 'throttle:10,1'])->name('school-exit.download');
     Route::post('/school-exit/{offboarding}/receipt', [SchoolExitController::class, 'confirm'])->whereNumber('offboarding')->name('school-exit.confirm');
+    // OneRoster 1.2 exports (Action Plan 5.9): OneRosterExports checks the sensitive ability; the ZIP is fetched through a short-lived signed link bound to its requester.
+    Route::get('/open-standards', [OneRosterController::class, 'index'])->middleware('cache.headers:private;no_store')->name('open-standards.index');
+    Route::post('/open-standards/oneroster', [OneRosterController::class, 'store'])->middleware('throttle:10,1')->name('open-standards.store');
+    Route::get('/open-standards/oneroster/{export}/download', [OneRosterController::class, 'download'])->whereNumber('export')->middleware(['signed', 'throttle:10,1'])->name('open-standards.download');
     // Support tickets to Navigate Ed (Action Plan SA.17); SupportTicketRequest checks the right.
     Route::get('/support-tickets', [SupportTicketController::class, 'index'])->name('support-tickets.index');
     Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:10,1')->name('support-tickets.store');
@@ -1616,6 +1731,13 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::get('unseen', [UnseenLearnersController::class, 'index'])->name('unseen');
     Route::post('unseen/learners/{learner}/adult', [UnseenLearnersController::class, 'assign'])->whereNumber('learner')->middleware('throttle:30,1')->name('unseen.assign');
     Route::post('unseen/settings', [UnseenLearnersController::class, 'configure'])->name('unseen.configure');
+});
+
+// The reading library at a school (Action Plan 4.4): its leaders hide shelves and books and set the reading badges.
+Route::middleware(['auth', 'school.context', 'module:reading'])->prefix('reading-library')->name('reading-library.')->group(function () {
+    Route::get('/', [ReadingPanelController::class, 'index'])->name('index');
+    Route::post('hidden', [ReadingPanelController::class, 'hidden'])->middleware('throttle:60,1')->name('hidden');
+    Route::put('settings', [ReadingPanelController::class, 'settings'])->middleware('throttle:30,1')->name('settings');
 });
 
 // Short private wellbeing check-ins for authorised pastoral staff (Action Plan 4.11).
@@ -1678,6 +1800,13 @@ Route::middleware(['Role', 'auth', 'school.context'])->prefix('navigate-ed-annou
     Route::post('/{announcement}/read', [SchoolAnnouncementController::class, 'read'])->middleware('throttle:60,1')->whereNumber('announcement')->name('read');
 });
 
+// Emergency management (Action Plan 5.8): engineering/specs/community/emergency-management.md.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('emergency')->name('emergency-panel.')->group(function () {
+    $controller = EmergencyPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::post('{operation}', [$controller, 'write'])->whereIn('operation', EmergencyPanelRequest::OPERATIONS)->middleware('throttle:60,1')->name('write');
+});
+
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('family-visits')->name('family-visits-panel.')->group(function () {
     $controller = VisitPanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
@@ -1699,6 +1828,12 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::get('guidance', [CareerGuidancePanelController::class, 'show'])->name('guidance');
 });
 
+// The learner passport (Action Plan 4.10): engineering/specs/people/learner-passport.md.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:passport,read'])->prefix('learner-passports')->name('passport-panel.')->group(function () {
+    Route::get('/', [PassportPanelController::class, 'index'])->name('index');
+    Route::get('learners/{learner}', [PassportPanelController::class, 'show'])->whereNumber('learner')->name('show');
+});
+
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:ask_school,read', EnforceReadOnlyYears::class])->prefix('ask-school')->name('assistance-panel.')->group(function () {
     $controller = AssistancePanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
@@ -1709,13 +1844,17 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::post('turns/{turn}/run', [$controller, 'write'])->whereUuid('turn')->defaults('operation', 'run')->name('run');
 });
 
-// Structured exam coach memos (Action Plan 3.15): engineering/specs/ai/structured-memos.md.
+// Structured exam coach memos (Action Plan 3.15): engineering/specs/ai/structured-memos.md;
+// marking preview (3.16): engineering/specs/learning/marking-engine.md.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:exam_coach,read', EnforceReadOnlyYears::class])->prefix('exam-memos')->name('exam-memos.')->group(function () {
     $controller = ExamMemoPanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
     Route::get('groups/{group}/versions/{version}', [$controller, 'show'])->whereNumber('group')->whereUuid('version')->name('show');
     Route::post('groups/{group}/versions/{version}', [$controller, 'save'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('save');
     Route::post('groups/{group}/versions/{version}/review', [$controller, 'review'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('review');
+    // Mark a typed answer against the memo (Action Plan 3.16): a read, nothing stored.
+    Route::get('groups/{group}/versions/{version}/marking', [$controller, 'marking'])->whereNumber('group')->whereUuid('version')->name('marking');
+    Route::post('groups/{group}/versions/{version}/marking', [$controller, 'preview'])->whereNumber('group')->whereUuid('version')->middleware('throttle:60,1')->name('marking.preview');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:peer_tutoring,read'])->prefix('peer-tutoring')->name('peer-tutoring-panel.')->group(function () {

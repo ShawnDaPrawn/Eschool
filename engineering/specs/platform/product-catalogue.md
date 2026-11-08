@@ -7,15 +7,15 @@ product modules (`config/product_modules.php`):
 | Product module | Technical modules |
 | --- | --- |
 | Core (always included) | school, people, academics, communication, the four web portals |
-| Learning | online exams, mastery map, daily practice, exam coach, teaching assistant, test insights, learner diary, early years tools |
+| Learning | online exams, mastery map, daily practice, exam coach, teaching assistant, test insights, learner diary, strengths mirror, early years tools, reading library |
 | AI tutor | subject tutor |
 | Pastoral care | wellbeing, support plans, early warning, discipline, My grade |
 | Family engagement | weekly digest, family forms, meetings and early collection, gallery, consultations, school assistant, live updates, direct messages |
 | Activities and culture | activity groups, house points, awards, peer tutoring |
-| Futures | pathways, school transfers |
+| Futures | pathways, school transfers, learner passport |
 | Leadership and staff | leadership dashboard, relief cover |
-| Finance | fees, wallets, vendors, counter payments, ticketing |
-| Access and admissions | ID cards, online registration |
+| Finance | fees, wallets, vendors, counter payments, ticketing, bursary applications, alumni giving |
+| Access and admissions | ID cards, emergency management, online registration, re-enrolment contracts |
 
 Each has a **readiness level** (1 designed, 2 partly built, 3 built but
 unproven, 4 verified on staging with real services, 5 used by a real school)

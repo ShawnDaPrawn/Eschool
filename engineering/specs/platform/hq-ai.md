@@ -214,9 +214,10 @@ Token caps (`*_daily_tokens`) and the per-feature output limit stay in
 
 Owner decision, 31 October 2026: the AI tutor in Mastery is a personal service
 to one learner, not a school service, so it does not count against the school's
-AI cap. `ai.inference.personal_features` lists the personal features; only
-`tutor` belongs to the tutor in `config/ai.php` (the tutor calls the gateway
-with no other feature), so it is the only one.
+AI cap. `ai.inference.personal_features` lists the personal features: `tutor`
+and, since Action Plan 3.10, `tutor_retrieval` (the embeddings that choose the
+tutor's content section). They share one personal pool, so retrieval spend
+counts towards the learner's tutor caps and never towards the school's.
 
 The gateway keeps two pools of the day's metered spend:
 
@@ -350,3 +351,8 @@ No API or OpenAPI change.
 - **Merging the dated cost report into HQ** (see the old page).
 - A monthly cap: the gateway's caps are daily; the page shows the month's
   total without a monthly limit.
+- **HQ's own AI features** (Action Plan 3.4, AI drafts for the platform
+  library) are not on this page. They are configured under
+  `ai.platform.features` with HQ-wide and per-person daily caps, and metered
+  in `platform_ai_usage` apart from every school
+  ([content pipeline](../learning/content-pipeline.md)).

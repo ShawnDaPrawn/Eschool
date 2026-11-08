@@ -44,3 +44,8 @@ Legacy removals adjust the original receipt amount/date; this projection is not
 a bank balance or a refund-date ledger, and changes no payment postings. Phase 5
 financial products remain separate. Missing metrics never appear as zero. No clinical needs,
 counselling notes, names, incident bodies or per-learner risk labels are returned.
+
+The dashboard also carries the school's anonymous benchmarking section (Action
+Plan 5.5): its own attendance, results movement and reach next to the median
+and quartiles of comparable schools, for schools that take part only
+([anonymous benchmarking](benchmarking.md)).

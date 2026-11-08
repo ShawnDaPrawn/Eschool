@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace App\Services\Learning;
 
 use App\Models\Academics\ContentVersion;
+use App\Models\Academics\GradeLevel;
 use App\Models\Growth\LearnerNote;
+use App\Models\Learning\LearningPath;
 use App\Models\Learning\TutorMessage;
 use App\Models\Learning\TutorSession;
+use App\Models\Students;
 use App\Models\User;
 use App\Policies\Academics\ContentPolicy;
 use App\Policies\Growth\LearnerNotesPolicy;
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Growth\MasteryService;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Stages\SchoolStages;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -59,21 +63,59 @@ class TutorContext
         return LearnerNote::findOrFail($meta->id);
     }
 
-    public function capture(User $actor, TutorSession $session): array
+    /**
+     * The approved context for one turn. v1 keeps its original shape (the first
+     * 3,000 characters of each source). v2 (Action Plan 3.10) adds the learner's
+     * stage and grade, their memory in this subject, and the content section
+     * chosen by TutorRetrieval; a section whose hash no longer matches falls
+     * back to the v1 opening.
+     *
+     * @param  array<int, array{method: string, index: int, sha256: string}>  $sections
+     */
+    public function capture(User $actor, TutorSession $session, string $prompt = TutorPrompts::V1, array $sections = []): array
     {
         app(TutorAccess::class)->session($actor, $session->id);
+        $v2 = $prompt === TutorPrompts::V2;
         $manifest = ['versions' => [], 'notes' => [], 'mastery_marks' => null, 'topic' => null];
         $context = ['curriculum' => [], 'learning_guidance' => [], 'mastery_priorities' => []];
+        if ($v2) {
+            $manifest['prompt'] = TutorPrompts::V2;
+            $group = app(TutorAccess::class)->group($actor, (int) $session->teaching_group_id);
+            $grade = $group->grade_level_id === null ? null : GradeLevel::whereKey($group->grade_level_id)->value('name');
+            // Stage and grade only: no age or date of birth is ever sent.
+            $context['learner'] = ['stage' => app(SchoolStages::class)->forLearner(Students::findOrFail($session->learner_id)), 'grade' => is_string($grade) ? $grade : null];
+            $manifest['learner'] = $context['learner'];
+        }
         if ($session->topic_id !== null) {
             $group = app(TutorAccess::class)->group($actor, (int) $session->teaching_group_id);
             $topic = app(TutorTopics::class)->topic($group, (int) $session->topic_id);
             $manifest['topic'] = ['id' => (int) $topic->id, 'source_id' => (int) $topic->curriculum_topic_id, 'sha256' => hash('sha256', $topic->topic_key.'|'.$topic->name)];
             $context['selected_topic'] = $this->minimize($actor, $topic->name);
+            // A session opened from a guided learning path (3.9) tells the tutor the step, so it leads rather than waits.
+            $path = LearningPath::where('tutor_session_id', $session->id)->where('learner_id', $session->learner_id)
+                ->where('teaching_group_id', $session->teaching_group_id)->where('topic_id', $topic->id)->first(['id', 'step', 'failed_checks']);
+            if ($path !== null) {
+                $manifest['path'] = ['id' => (int) $path->id, 'step' => (string) $path->step];
+                $context['learning_path'] = ['step' => (string) $path->step, 'lead' => $path->step === 'teach', 'attempt' => (int) $path->failed_checks + 1];
+            }
         }
         foreach ($session->source_version_ids as $id) {
             $version = $this->version($actor, $session, $id);
-            $manifest['versions'][] = ['id' => $id, 'sha256' => hash('sha256', $version->markdown)];
-            $context['curriculum'][] = $this->minimize($actor, mb_strcut($version->markdown, 0, 3000, 'UTF-8'));
+            $ref = ['id' => $id, 'sha256' => hash('sha256', $version->markdown)];
+            $text = TutorSections::opening($version->markdown);
+            if ($v2) {
+                $all = TutorSections::split($version->markdown);
+                $choice = $sections[$id] ?? null;
+                $index = is_array($choice) ? (int) $choice['index'] : -1;
+                if (is_array($choice) && isset($all[$index]) && hash_equals((string) $choice['sha256'], hash('sha256', $all[$index])) && $choice['method'] === 'embeddings') {
+                    $text = $all[$index];
+                    $ref['section'] = ['method' => 'embeddings', 'index' => $index, 'count' => count($all), 'sha256' => $choice['sha256']];
+                } else {
+                    $ref['section'] = ['method' => count($all) > 1 ? 'opening' : 'single_section', 'index' => 0, 'count' => count($all), 'sha256' => hash('sha256', $text)];
+                }
+            }
+            $manifest['versions'][] = $ref;
+            $context['curriculum'][] = $this->minimize($actor, $text);
         }
         $metas = LearnerNote::where('learner_id', $session->learner_id)->where('subject_id', $session->subject_id)->where('session_year_id', $session->session_year_id)
             ->where('visibility', 'tutor')->whereNull('archived_at')->orderByDesc('id')->limit(8)->get(['id', 'revision']);
@@ -99,14 +141,36 @@ class TutorContext
         // Image-derived earlier turns require their own renewed crop/source approval.
         $context['recent_dialogue'] = [];
         foreach (TutorMessage::where('tutor_session_id', $session->id)->where('state', 'completed')->whereNull('purged_at')->latest('created_at')->limit(2)->get() as $prior) {
-            if ($prior->media_ids === [] && $prior->source_manifest === $manifest) {
-                $context['recent_dialogue'][] = ['question' => $this->minimize($actor, mb_strcut($prior->learner_text, 0, 1000, 'UTF-8')),
+            if ($prior->media_ids === [] && $this->sources($prior->source_manifest ?? []) === $this->sources($manifest)) {
+                $turn = ['question' => $this->minimize($actor, mb_strcut($prior->learner_text, 0, 1000, 'UTF-8')),
                     'working' => $this->minimize($actor, mb_strcut((string) $prior->working, 0, 1000, 'UTF-8')),
                     'hint' => $this->minimize($actor, (string) ($prior->response['text'] ?? ''))];
+                $context['recent_dialogue'][] = $v2 ? $turn + ['turn_type' => $prior->turn_type ?? 'ask'] : $turn;
             }
+        }
+        if ($v2) {
+            // Derived metadata only (topics and counts), never earlier chat text.
+            $context['memory'] = app(TutorMemory::class)->forContext($actor, $session);
+            $manifest['memory'] = $context['memory'] === null ? null
+                : hash('sha256', json_encode($context['memory'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
         }
 
         return ['manifest' => $manifest, 'text' => json_encode($context, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)];
+    }
+
+    /**
+     * The authorized sources of a manifest. The chosen section, the learner's
+     * stage and the memory digest describe the turn, not its sources, so
+     * dialogue from the same sources is still reused when they change.
+     */
+    private function sources(array $manifest): array
+    {
+        unset($manifest['learner'], $manifest['memory']);
+        foreach ($manifest['versions'] ?? [] as $i => $ref) {
+            unset($manifest['versions'][$i]['section']);
+        }
+
+        return $manifest;
     }
 
     public function reauthorize(User $actor, TutorSession $session, array $manifest): void
@@ -118,6 +182,11 @@ class TutorContext
             $topic = app(TutorTopics::class)->topic($group, (int) $ref['id']);
             abort_unless((int) $session->topic_id === (int) $topic->id && (int) $topic->curriculum_topic_id === $ref['source_id']
                 && hash_equals($ref['sha256'], hash('sha256', $topic->topic_key.'|'.$topic->name)), 409, 'Tutor topic context changed.');
+        }
+        if (($manifest['path'] ?? null) !== null) {
+            // The step may have moved on since; the path must still be this learner's in this group.
+            abort_unless(LearningPath::whereKey($manifest['path']['id'])->where('learner_id', $session->learner_id)
+                ->where('teaching_group_id', $session->teaching_group_id)->exists(), 409, 'Tutor path context changed.');
         }
         foreach ($manifest['versions'] as $ref) {
             $version = $this->version($actor, $session, $ref['id']);

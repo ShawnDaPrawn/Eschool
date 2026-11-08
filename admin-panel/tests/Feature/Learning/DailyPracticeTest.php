@@ -38,13 +38,16 @@ class DailyPracticeTest extends TestCase
         $this->approve();
         $set = $this->issue();
         $this->assertSame(120, $set['estimated_seconds']);
-        $this->assertSame(['0.5'], $set['items'][0]['definition']['answers']);
+        // The set carries the question only (3.11): the answer and explanation arrive with the result.
+        $this->assertSame(['kind' => 'number', 'prompt' => 'One half as a decimal?', 'options' => []], $set['items'][0]['question']);
+        $this->assertArrayNotHasKey('definition', $set['items'][0]);
         $this->assertStringEndsWith('Z', $set['offline_until']);
         $this->assertFalse($set['completed']);
         $this->assertSame(0, $set['streak_days']);
         $official = DB::table('question_marks')->count();
         $review = $this->review($set);
         $this->assertTrue($review['correct']);
+        $this->assertSame(['explanation' => 'Divide one by two to get 0.5.', 'answers' => ['0.5'], 'steps' => [], 'mapping' => []], $review['solution']);
         $this->assertSame(3, $review['schedule']['rating']);
         $this->assertSame(1, $review['streak_days']);
         $this->assertSame('2026-02-12', PracticeMemory::sole()->due_on->toDateString());
@@ -82,7 +85,7 @@ class DailyPracticeTest extends TestCase
         $this->assertSame($set['id'], $this->issue()['id']);
         $this->approve(['expected_revision' => 1, 'definition' => ['kind' => 'number', 'prompt' => 'One quarter as a decimal?', 'explanation' => 'Divide one by four.', 'options' => [], 'answers' => ['.25']]], $first['id']);
         $saved = app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id']);
-        $this->assertSame(['0.5'], $saved['items'][0]['definition']['answers']);
+        $this->assertSame('One half as a decimal?', $saved['items'][0]['question']['prompt']);
         $this->assertSame(7, PracticeItemVersion::count());
         $this->refuses(fn () => PracticeItemVersion::firstOrFail()->update(['estimated_seconds' => 60]), 409);
     }
@@ -100,7 +103,8 @@ class DailyPracticeTest extends TestCase
         $this->refuses(fn () => $this->review($set, ['operation_id' => (string) Str::uuid()]), 409);
     }
 
-    public function test_streak_counts_distinct_calendar_days_across_many_subject_sets(): void
+    /** Action Plan 3.13: a run counts practice days; only a second missed school day in a week ends it. */
+    public function test_streak_counts_distinct_practice_days_across_many_subject_sets(): void
     {
         $this->approve();
         $set = $this->issue();
@@ -131,8 +135,12 @@ class DailyPracticeTest extends TestCase
         $this->assertSame(1000, PracticeDailySet::count());
         $view = app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id']);
         $this->assertSame(100, $view['streak_days']);
+        // 2026-01-01 (Thursday) is the term's first school day: one missed school day is a rest day.
         PracticeDailySet::whereDate('completed_on', now()->subDays(40)->toDateString())->update(['completed_on' => null, 'completed_at' => null]);
-        $this->assertSame(40, app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id'])['streak_days']);
+        $this->assertSame(99, app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id'])['streak_days']);
+        // A second missed school day in the same week (Friday 2 January) ends the run.
+        PracticeDailySet::whereDate('completed_on', now()->subDays(39)->toDateString())->update(['completed_on' => null, 'completed_at' => null]);
+        $this->assertSame(39, app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id'])['streak_days']);
     }
 
     public function test_withdrawn_guardian_approval_and_source_hide_downloads_and_replays(): void

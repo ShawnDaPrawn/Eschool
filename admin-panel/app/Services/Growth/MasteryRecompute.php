@@ -12,13 +12,20 @@ use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryRecord;
 use App\Models\Growth\MasteryScope;
 use App\Models\Growth\MasteryTopic;
+use App\Models\Learning\DiagnosticAttempt;
+use App\Models\Learning\DiagnosticAttemptItem;
+use App\Models\Learning\LearningPath;
+use App\Models\Learning\LearningPathItem;
 use App\Models\Learning\PracticeDailySet;
 use App\Models\Learning\PracticeItem;
 use App\Models\Learning\PracticeItemVersion;
 use App\Models\Learning\PracticeReview;
 use App\Models\Learning\PracticeSetEntry;
+use App\Models\Learning\Tests\PracticeTest;
+use App\Models\Learning\Tests\PracticeTestQuestion;
 use App\Models\Learning\TutorCheckpoint;
 use App\Models\Learning\TutorSession;
+use App\Models\Library\LibraryItemVersion;
 use App\Models\Subject;
 use App\Services\Academics\MarkInputs;
 use App\Services\Learning\Library\LibraryPractice;
@@ -171,11 +178,64 @@ class MasteryRecompute
                 PracticeItem::usedIn((int) $group->id)->where('topic_id', $topicId)->findOrFail($version->practice_item_id);
                 $itemKey = 'practice_item:'.$version->practice_item_id;
             }
+            // Marked answers only, by the server or the learner's teacher (3.11): worked steps count their share of correct steps.
+            $marked = PracticeReview::query()->where('state', 'marked')->whereNotNull('maximum_units')->findOrFail($review->id);
+            abort_unless($marked->maximum_units >= 1 && $marked->achieved_units !== null && $marked->achieved_units <= $marked->maximum_units, 409);
             MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $review->learner_id, 'topic_id' => $topicId,
                 'audience' => 'practice', 'source_key' => 'practice:'.$review->id], ['grade_level_id' => $group->grade_level_id,
-                    'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $review->correct ? 1 : 0,
-                    'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => $itemKey] + $source);
+                    'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $marked->achieved_units,
+                    'maximum_units' => $marked->maximum_units, 'observed_at' => $review->created_at, 'item_key' => $itemKey] + $source);
             $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
+        });
+    }
+
+    /**
+     * A handed-in practice test (Action Plan 3.17): each automatically marked
+     * answer is one piece of practice evidence labelled practice_test. Unanswered
+     * questions and answers still waiting for a marker are not evidence.
+     */
+    public function practiceTest(PracticeTest $test, TeachingGroup $group): void
+    {
+        $this->serialised((int) $group->subject_id, function () use ($test, $group) {
+            $row = PracticeTest::where('learner_id', $test->learner_id)->where('teaching_group_id', $group->id)->whereNotNull('submitted_at')->findOrFail($test->id);
+            $observed = $row->submitted_at->setTimezone(app(CurrentSchool::class)->school()->timezone);
+            foreach (PracticeTestQuestion::where('practice_test_id', $row->id)->where('marking', 'auto')->whereNotNull('correct')->orderBy('position')->get() as $question) {
+                if ($question->library_item_version_id !== null) {
+                    $version = LibraryItemVersion::query()->findOrFail($question->library_item_version_id);
+                    $source = ['content_source' => 'library', 'library_item_version_id' => (int) $version->id];
+                    $itemKey = 'library_item:'.$version->library_item_id;
+                } else {
+                    $version = PracticeItemVersion::findOrFail($question->practice_item_version_id);
+                    PracticeItem::where('topic_id', $question->topic_id)->findOrFail($version->practice_item_id);
+                    $source = ['content_source' => 'school', 'library_item_version_id' => null];
+                    $itemKey = 'practice_item:'.$version->practice_item_id;
+                }
+                MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $row->learner_id, 'topic_id' => $question->topic_id,
+                    'audience' => 'practice', 'source_key' => 'practice_test:'.$question->id], ['grade_level_id' => $group->grade_level_id,
+                        'session_year_id' => $group->session_year_id, 'source_type' => 'practice_test', 'achieved_units' => $question->correct ? 1 : 0,
+                        'maximum_units' => 1, 'observed_at' => $observed, 'item_key' => $itemKey] + $source);
+            }
+            $this->aggregate((int) $row->learner_id, (int) $group->subject_id);
+        });
+    }
+
+    /**
+     * A diagnostic answer (Action Plan 3.7): its own provenance (`diagnostic`),
+     * in the practice audience like other self-study evidence, never a mark.
+     * One row per planned question, so a repeated submission never counts twice.
+     */
+    public function diagnostic(DiagnosticAttemptItem $row, TeachingGroup $group): void
+    {
+        $this->serialised((int) $group->subject_id, function () use ($row, $group) {
+            $item = DiagnosticAttemptItem::query()->where('state', DiagnosticAttemptItem::ANSWERED)->whereNotNull('answered_at')->findOrFail($row->id);
+            $attempt = DiagnosticAttempt::query()->where('teaching_group_id', $group->id)->where('subject_id', $group->subject_id)->findOrFail($item->diagnostic_attempt_id);
+            MasteryTopic::query()->where('subject_id', $group->subject_id)->where('library_topic_id', $item->library_topic_id)->findOrFail($item->topic_id);
+            MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $attempt->learner_id, 'topic_id' => $item->topic_id,
+                'audience' => 'practice', 'source_key' => 'diagnostic:'.$item->id], ['grade_level_id' => $attempt->grade_level_id,
+                    'session_year_id' => $attempt->session_year_id, 'source_type' => 'diagnostic', 'achieved_units' => $item->correct ? 1 : 0,
+                    'maximum_units' => 1, 'observed_at' => $item->answered_at->setTimezone(app(CurrentSchool::class)->school()->timezone),
+                    'item_key' => 'library_item:'.$item->library_item_id, 'content_source' => 'library', 'library_item_version_id' => $item->library_item_version_id]);
+            $this->aggregate((int) $attempt->learner_id, (int) $group->subject_id);
         });
     }
 
@@ -194,6 +254,34 @@ class MasteryRecompute
                     'session_year_id' => $group->session_year_id, 'source_type' => 'tutor_checkpoint', 'achieved_units' => $row->correct ? 1 : 0,
                     'maximum_units' => 1, 'observed_at' => $row->answered_at->setTimezone(app(CurrentSchool::class)->school()->timezone),
                     'item_key' => 'practice_item:'.$version->practice_item_id]);
+            $this->aggregate((int) $row->learner_id, (int) $group->subject_id);
+        });
+    }
+
+    /**
+     * A guided learning path answer (Action Plan 3.9): self-study evidence on
+     * the path's own topic, from its practice or its server-graded check.
+     */
+    public function learningPath(LearningPathItem $item, TeachingGroup $group): void
+    {
+        $this->serialised((int) $group->subject_id, function () use ($item, $group) {
+            $row = LearningPathItem::whereNotNull('answered_at')->findOrFail($item->id);
+            $path = LearningPath::where('teaching_group_id', $group->id)->where('learner_id', $row->learner_id)->findOrFail($row->learning_path_id);
+            abort_unless((int) $path->subject_id === (int) $group->subject_id && (int) $path->session_year_id === (int) $group->session_year_id, 404);
+            if ($row->library_item_version_id !== null) {
+                $version = LibraryItemVersion::query()->where('state', 'published')->findOrFail($row->library_item_version_id);
+                $source = ['content_source' => 'library', 'library_item_version_id' => (int) $version->id];
+                $itemKey = 'library_item:'.$version->library_item_id;
+            } else {
+                $version = PracticeItemVersion::findOrFail($row->practice_item_version_id);
+                PracticeItem::usedIn((int) $group->id)->where('topic_id', $row->topic_id)->findOrFail($version->practice_item_id);
+                $source = ['content_source' => 'school', 'library_item_version_id' => null];
+                $itemKey = 'practice_item:'.$version->practice_item_id;
+            }
+            MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $row->learner_id, 'topic_id' => $row->topic_id,
+                'audience' => 'practice', 'source_key' => 'path:'.$row->id], ['grade_level_id' => $group->grade_level_id,
+                    'session_year_id' => $group->session_year_id, 'source_type' => $row->purpose === 'check' ? 'path_check' : 'path_practice',
+                    'achieved_units' => $row->correct ? 1 : 0, 'maximum_units' => 1, 'observed_at' => $row->answered_at, 'item_key' => $itemKey] + $source);
             $this->aggregate((int) $row->learner_id, (int) $group->subject_id);
         });
     }
@@ -220,6 +308,8 @@ class MasteryRecompute
                 }
             }
         }
+        // Action Plan 3.13: a family-visible gap that reached secure is celebrated once a term.
+        app(GapClosures::class)->observe($learnerId, $subjectId);
     }
 
     private function inputs(): MasteryV2Inputs

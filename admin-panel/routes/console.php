@@ -129,21 +129,35 @@ Schedule::call(function () {
 })->everyMinute()->name('consultations-advance')->withoutOverlapping();
 
 Schedule::command('gallery:prune-copies')->dailyAt('03:30')->name('gallery-private-retention')->withoutOverlapping();
+// OneRoster exports (Action Plan 5.9): stored files are deleted when their download window ends.
+Schedule::command('open-standards:prune-exports')->dailyAt('03:40')->name('oneroster-export-retention')->withoutOverlapping();
 
 Schedule::command('activities:prune-material-files')->dailyAt('03:40')->name('activity-private-file-retention')->withoutOverlapping();
 
 Schedule::command('digest:weekly')->hourly()->name('school-local-monday-digests')->withoutOverlapping(55);
 Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-digest-copy-retention')->withoutOverlapping();
+// Gentle practice nudges (Action Plan 3.13): off until a school switches them on; school-day afternoons only.
+Schedule::command('practice:nudges')->hourly()->name('practice-nudges')->withoutOverlapping(55);
+
+// The daily family summary (Action Plan 5.11): each guardian at their own chosen time.
+Schedule::command('family:daily-summary')->everyFifteenMinutes()->name('family-daily-summaries')->withoutOverlapping(14);
+Schedule::command('family:daily-summary --retention')->dailyAt('03:45')->name('family-daily-summary-retention')->withoutOverlapping();
 
 Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-retention')->withoutOverlapping();
 
 Schedule::command('exam-coach:prune-working')->dailyAt('04:00')->name('exam-working-retention')->withoutOverlapping();
 // Temporary teaching proposals/crops expire independently of module availability.
 Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOverlapping();
+// Recorded practice answers (3.11): deleted 90 days after recording, or 30 days after the teacher marks them.
+Schedule::command('learning:prune-practice-audio')->dailyAt('03:55')->name('practice-audio-retention')->withoutOverlapping();
 
 // Term growth snapshots (Action Plan 3.14): queued per school, idempotent;
 // the start of a term is written once, the latest is refreshed each night.
 Schedule::command('mastery:growth-snapshots')->dailyAt('04:25')->name('mastery-growth-snapshots')->withoutOverlapping();
+
+// Anonymous benchmarking (Action Plan 5.5): weekly, after Sunday night's
+// health and mastery figures; the week is the one that ended on Sunday.
+Schedule::command('benchmarking:snapshot')->weeklyOn(1, '05:10')->name('benchmark-snapshots')->withoutOverlapping();
 
 Schedule::command('assistance:prune-private')->dailyAt('04:10')->name('school-support-private-retention')->withoutOverlapping();
 // Recovery also reaches a guardian verified after the original publication.
@@ -151,3 +165,10 @@ Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-not
 
 // Privacy cleanup remains enabled when a school or module is paused.
 Schedule::command('chat:prune-groups')->hourly()->name('group-chat-retention')->withoutOverlapping();
+
+// Bursary retention (Action Plan 5.10): household details, reasons and
+// documents are erased on schedule even when the module is off.
+Schedule::command('bursaries:prune')->dailyAt('03:55')->name('bursary-private-retention')->withoutOverlapping();
+
+// Visitor details from gate sign-in are erased after the school's retention period (Action Plan 5.8).
+Schedule::command('emergency:purge-visitors')->dailyAt('04:15')->name('emergency-visitor-retention')->withoutOverlapping();

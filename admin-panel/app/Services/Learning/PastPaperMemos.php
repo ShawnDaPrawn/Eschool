@@ -10,6 +10,8 @@ use App\Models\Learning\PastPaperVersion;
 use App\Models\Platform\School;
 use App\Models\User;
 use App\Services\Academics\AcademicNumbers;
+use App\Services\Learning\Marking\AnswerText;
+use App\Services\Learning\Marking\Expression;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -32,7 +34,10 @@ class PastPaperMemos
 {
     public const TYPES = ['method', 'answer', 'accuracy', 'consistent_accuracy', 'explanation'];
 
-    public const RULES = ['none', 'exact_value', 'units_required'];
+    /** Rule kinds; the marking engine (Action Plan 3.16, App\Services\Learning\Marking) evaluates each. */
+    public const RULES = ['none', 'exact_value', 'units_required', 'expression', 'keywords', 'significant_figures'];
+
+    public const MAX_TERMS = 10;
 
     public const MAX_POINTS = 20;
 
@@ -54,7 +59,7 @@ class PastPaperMemos
             'questions.*.points.*.type' => ['required', Rule::in(self::TYPES)],
             'questions.*.points.*.marks' => ['required', 'string', 'regex:/^\d{1,5}(?:\.\d{1,2})?$/D'],
             'questions.*.points.*.rule_kind' => ['required', Rule::in(self::RULES)],
-            'questions.*.points.*.rule_value' => ['nullable', 'string', 'regex:'.self::DECIMAL],
+            'questions.*.points.*.rule_value' => ['nullable', 'string', 'max:200'],
             'questions.*.points.*.rule_tolerance' => ['nullable', 'string', 'regex:'.self::TOLERANCE],
             'questions.*.points.*.rule_unit' => ['nullable', 'string', 'max:32'],
         ];
@@ -125,13 +130,45 @@ class PastPaperMemos
         $tolerance = trim((string) ($point['rule_tolerance'] ?? ''));
         $unit = trim((string) ($point['rule_unit'] ?? ''));
 
+        $valueOnly = $tolerance === '' && $unit === '';
+
         return match ($point['rule_kind']) {
             'exact_value' => $value === '' ? [null, __('an exact value rule needs the value.')]
-                : [['kind' => 'exact_value', 'value' => $value, 'tolerance' => $tolerance === '' ? '0' : $tolerance, 'unit' => $unit === '' ? null : $unit], null],
+                : (! preg_match(self::DECIMAL, $value) ? [null, __('an exact value is a number with a dot for decimals, like 12.5.')]
+                : [['kind' => 'exact_value', 'value' => $value, 'tolerance' => $tolerance === '' ? '0' : $tolerance, 'unit' => $unit === '' ? null : $unit], null]),
             'units_required' => $unit === '' || $value !== '' || $tolerance !== '' ? [null, __('a units rule needs the unit only.')]
                 : [['kind' => 'units_required', 'unit' => $unit], null],
+            'expression' => $value === '' || ! $valueOnly ? [null, __('an expression rule needs the expression only.')]
+                : (Expression::parse($value) === null && Expression::equation($value) === null ? [null, __('the expression could not be read. Use numbers, letters, + - * / ^ and brackets.')]
+                : [['kind' => 'expression', 'value' => $value], null]),
+            'keywords' => $value === '' || ! $valueOnly ? [null, __('a terms rule needs the terms only.')] : $this->terms($value),
+            'significant_figures' => ! preg_match('/^(?:[1-9]|1[0-5])$/D', $value) || ! $valueOnly ? [null, __('a significant figures rule needs a whole number from 1 to 15 only.')]
+                : [['kind' => 'significant_figures', 'value' => $value, 'figures' => (int) $value], null],
             default => $value !== '' || $tolerance !== '' || $unit !== '' ? [null, __('choose a rule for the value or unit, or clear them.')] : [null, null],
         };
+    }
+
+    /** Terms separated by commas or semicolons; alternatives of a term separated by a slash (oxygen/O2, catalyst). */
+    private function terms(string $value): array
+    {
+        $terms = [];
+        foreach (preg_split('/[,;]/', $value) ?: [] as $term) {
+            $alternatives = array_values(array_filter(array_map('trim', explode('/', $term)), fn ($a) => $a !== ''));
+            if ($alternatives === []) {
+                continue;
+            }
+            foreach ($alternatives as $alternative) {
+                if (mb_strlen($alternative) > 60 || AnswerText::words($alternative) === '') {
+                    return [null, __('each term has letters or numbers and at most 60 characters.')];
+                }
+            }
+            $terms[] = $alternatives;
+        }
+        if ($terms === [] || count($terms) > self::MAX_TERMS) {
+            return [null, __('a terms rule needs one to ten terms.')];
+        }
+
+        return [['kind' => 'keywords', 'value' => $value, 'terms' => $terms], null];
     }
 
     private function sumMessage(string $number, int $sum, int $total): string

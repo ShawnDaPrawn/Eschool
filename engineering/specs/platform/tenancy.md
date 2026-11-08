@@ -189,6 +189,14 @@ current-group/source checks. `tutor_sessions.topic_id` remains nullable for olde
 subject-only sessions. School-scoped immutable issue/answer receipts and verified
 practice-provenance evidence are retained, without official mark writes.
 
+Guided learning path (Action Plan 3.9): `learning_paths`, `learning_path_items`
+and `learning_path_reviews` are required school-owned tables with scoped
+models. A path belongs to one learner and learning group; its items point at
+the school's own approved question versions or published library versions
+(never the other way round), and its reviews hold the FSRS state per topic.
+Only the owning approved learner reads or moves a path; teachers of the group
+and the child's guardians read summaries. Answers are encrypted and immutable.
+
 ## Parent meetings and early collection
 
 `family_visit_rules`, `meeting_slots`, `gate_passes`,
@@ -199,6 +207,19 @@ snapshots and exact-operation receipts retain appointment and collection
 history. Platform staff and impersonation are excluded; only fresh verified
 guardians, scoped meeting hosts, explicitly authorised school staff and
 purpose-bound online gate readers can enter their respective workflows.
+
+## Emergency management
+
+`emergency_settings`, `emergency_drills`, `emergency_alerts`,
+`emergency_roll_calls`, `emergency_releases`, `emergency_visitors`,
+`emergency_operations` and `emergency_events` require an indexed, non-null
+school foreign key and scoped models. Learner, alert, drill, gate pass and card
+scan references also use composite school foreign keys. Alert recipients are
+worked out from this school's active memberships only, so a school's alert
+never reaches another school's people. Visitor details, collector names and
+operation receipts are encrypted. See
+[emergency-management.md](../community/emergency-management.md).
+
 # School assistance records
 
 `school_knowledge_documents`, `school_support_threads`,
@@ -216,9 +237,13 @@ bounded tenant purge removes message bodies while retaining minimal receipts.
 
 `career_profiles` and `career_profile_versions` (Action Plan 4.9) are school-owned in the same way: required indexed foreign keys, scoped models and a composite current-version foreign key. A career profile can link only the school's own subjects, mastery topics and programme sources. The catalogue is not shared between schools; each school reviews and publishes its own sourced entries.
 
+`people_pool_members`, `people_pool_vettings`, `people_pool_bookings` and `people_pool_operations` (Action Plan 5.6) are school-owned: each school's pool, vetting history and bookings. Vettings and bookings reference members by `(school_id, pool_member_id)`. Pool accounts hold no school membership; their token is bound to one school and opens only the pool member routes. Nothing is shared between schools in this step (see engineering/specs/community/people-pools.md).
+
 Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_hours` and reference-only `peer_tutoring_operations`. All models use the existing school boundary.
 
 The learner diary adds school-owned `diary_entries` and `diary_item_states`, each bound to one learner's `user_id`. Text is encrypted with a key derived per school and learner, so a row copied into another school's context cannot be read there either. School items are computed per read from the current school's own homework, holidays and events; nothing is copied across schools.
+
+The learner passport (Action Plan 4.10, [learner passport](../people/learner-passport.md)) adds no tables. It reads one learner across schools only for that learner and their approving guardians: their learner rows are found by their own `user_id` (`Students::acrossSchools()`), and each school's awards, activity memberships and service minutes are then read inside that school (`CurrentSchool::run`). A staff view never leaves the current school: it shows the school's own rows and the transfer receipts addressed to it, verified with the sending school's public key (`ExitSigning::publicKey`, derived without switching school). There is no lookup by LURITS number.
 
 Foundation classroom eligibility and device/Teacher delegations (`foundation_classroom_groups`, `foundation_classroom_leases`) are school-owned. Existing classroom learner sessions additionally reference a same-school delegation, never a gate scan.
 
@@ -303,6 +328,34 @@ rows may point into the library (`mastery_topics.library_topic_id`,
 `practice_set_entries.library_item_version_id`,
 `practice_memories.library_item_id`), never the other way
 ([content library](../learning/content-library.md)).
+`library_ai_drafts` (HQ's requests for AI drafts) and `platform_ai_usage` (HQ's
+own AI metering, for model calls made from `/saas` with no school) are global
+too (Action Plan 3.4). The library's quality signals read school practice
+answers across schools only as counts with a minimum group of 20 learners in 3
+schools, and store nothing ([content pipeline](../learning/content-pipeline.md)).
+
+### Practice question types (Action Plan 3.11)
+
+`library_diagrams` (the library's diagram pictures for labelling questions) is
+global like the other library tables and written only from `/saas/library`.
+`practice_diagrams` (a school's own diagram pictures) and
+`practice_audio_answers` (learners' recorded spoken answers, encrypted in the
+school's private storage with a retention date) are required school-owned. A
+school reads a library diagram only through a published library question in a
+learner's own practice set ([question types](../learning/question-types.md)).
+
+### Reading library (Action Plan 4.4)
+
+The reading library catalogue (`reading_books`, `reading_rights_decisions`,
+`reading_shelves`, `reading_shelf_books`, `reading_questions`) is global:
+Navigate Ed's own public-domain books, written only from `/saas/reading`; their
+models refuse any write while a school is the current school.
+`reading_book_texts` is global too: the state of each book's one cached text,
+written only by the server's fetcher (also during a learner's first read of a
+book), holding no school or learner data. A school's hidden shelves and books
+(`reading_hidden_items`), badge switches (`reading_settings`) and its learners'
+`reading_progress`, `reading_days` and `reading_answers` are required
+school-owned ([reading library](../learning/reading-library.md)).
 
 ### Invitations to join another school
 
@@ -361,6 +414,19 @@ nightly health figures (counts and shares only), so it carries a not-null
 `school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
 and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
 school reads it ([HQ school health](hq-school-health.md)).
+### Anonymous benchmarking
+
+`benchmark_participations` and `benchmark_school_values` are required school-owned:
+the school's own choice to take part, and its own school-level figures for each
+week (attendance, results movement and reach as basis points, its comparison
+group and whether it was counted), never a learner. A school reads only its own
+rows; the weekly platform snapshot reads them across schools explicitly.
+`benchmark_releases` is global: each row is the published lower quartile, median
+and upper quartile of one comparison group, written only from at least k schools'
+figures. It names no school and holds no school's own value.
+`benchmark_runs` is global too: the period end and completion time of each
+weekly snapshot, naming no school
+([anonymous benchmarking](../leadership/benchmarking.md)).
 ### Packages and prices
 
 `platform_packages`, `platform_package_modules` and `platform_prices` are global:
@@ -378,6 +444,14 @@ and concern belongs to the learner's school. Observation photographs stay in the
 school's private gallery tables and storage prefix; a concern's words stay in
 the school's encrypted intervention ([early years](../learning/early-years.md)).
 
+
+### Strengths mirror
+
+`strengths_mirror_shares` is required school-owned: a learner's own shares of
+their strengths mirror with one named guardian or teacher of the same school.
+The encrypted copy is read only by that learner (to list or end it) or that
+viewer, inside the school it was made in; another school's share id is not
+found ([strengths mirror](../learning/strengths-mirror.md)).
 
 ### Structured memos
 
@@ -460,3 +534,44 @@ current school's rows ([mastery impact](../leadership/mastery-impact.md)).
 `wellbeing_check_ins` are required school-owned: a school's library, the
 progress against its own interventions and its learners' check-ins. Another
 school's ids are not found ([check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)).
+
+### Independent school business tools
+
+`school_business_operations`, `reenrolment_contracts`,
+`reenrolment_acceptances`, `reenrolment_confirmations`, `bursary_applications`,
+`bursary_documents`, `bursary_events`, `giving_campaigns`, `giving_pledges` and
+`giving_donations` are required school-owned. Contracts, acceptances,
+applications and donations reference their school's own session years,
+learners, fee discounts and ledger rows through composite `(school_id, id)`
+foreign keys, so a row can never point into another school. Another school's
+ids are not found ([school business tools](../money/school-business-tools.md)).
+
+### School groups
+
+`school_groups`, `school_group_admins`, `school_group_invoices` and
+`school_group_payments` are global: a group of schools with one owner, its
+group-level roles (which grant nothing inside a school), Navigate Ed's monthly
+invoice to the group and the group's payments, all written only from `/saas`.
+`school_group_members` is required school-owned: each school's own membership,
+agreed by its Super Admin in the school panel (another school's id is not
+found). `school_group_invoice_schools` and `school_group_invoice_lines` are
+required school-owned: each school's month on a group invoice and the lines
+copied from its own draft. The group's dashboard reads a school only while its
+membership is active, inside that school, and shows counts with small numbers
+hidden ([school groups](school-groups.md)).
+
+### Records shared between schools (Action Plan 5.1, 5.2)
+
+`shared_fixtures` and `shared_competitions` are global: the facts of a fixture
+or league that every accepted participant shares (date, venue, field, an
+outside opponent's name, the agreed result, points rules). They name no school
+and hold no learner, group or note. `shared_participants` is required
+school-owned: each school's own link to a shared record (role and whether it
+accepted), so a school finds shared records only through its own rows and a
+third school finds nothing. `shared_record_operations`, `shared_fixture_sides`
+and `shared_fixture_selections` are required school-owned: each school's write
+receipts, its own side of a fixture (group, team name, notes, score report) and
+its team sheet, with composite school foreign keys to its own group and
+learners. Another school's rows are read only through `SharedRecords`, and only
+the columns declared in `config/shared_records.php` once the schools accepted
+([shared records](shared-records.md)).

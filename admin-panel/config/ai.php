@@ -1,10 +1,13 @@
 <?php
 
+use App\Services\Ai\Providers\OpenAiModerator;
 use App\Services\Ai\Providers\OpenAiProvider;
 use App\Services\Assistance\AssistanceModeration;
 use App\Services\Assistance\AssistanceQuarantine;
 use App\Services\Assistance\AssistantFeaturePolicy;
 use App\Services\Assistance\TranslationFeaturePolicy;
+use App\Services\FamilySummary\FamilySummaryFeaturePolicy;
+use App\Services\FamilySummary\FamilySummaryModeration;
 use App\Services\Learning\ExamAnswerFeaturePolicy;
 use App\Services\Learning\ExamAnswerModeration;
 use App\Services\Learning\ExamAnswerQuarantine;
@@ -19,6 +22,8 @@ use App\Services\Learning\TutorFeaturePolicy;
 use App\Services\Learning\TutorModeration;
 use App\Services\Learning\TutorQuarantineMedia;
 use App\Services\Learning\TutorQuarantineParticipant;
+use App\Services\Learning\TutorRetrievalFeaturePolicy;
+use App\Services\Learning\TutorRetrievalModeration;
 use App\Services\Learning\TutorVisionResolver;
 
 // Offline transcription is unchanged; inference has no active production feature/provider.
@@ -64,24 +69,69 @@ return [
                 'school_daily_cents' => 1000, 'actor_daily_cents' => 100, 'learner_daily_cents' => 50],
             'tutor' => ['enabled' => false, 'roles' => ['Student'], 'capabilities' => ['complete', 'vision'],
                 'provider' => 'openai', 'provider_class' => OpenAiProvider::class,
-                'moderator' => TutorModeration::class, 'model' => env('AI_TUTOR_MODEL', ''), 'prompt' => 'tutor',
+                // Prompt version (Action Plan 3.10): 'tutor-v2' teaches by stage and grade, with
+                // worked examples, "explain it back", memory and home-language explanations;
+                // 'tutor' keeps v1 selectable. App\Services\Learning\TutorPrompts allows only these two.
+                'moderator' => TutorModeration::class, 'model' => env('AI_TUTOR_MODEL', ''), 'prompt' => env('AI_TUTOR_PROMPT', 'tutor-v2'),
                 'maximum_output_tokens' => 768, 'cents_per_million_tokens' => null,
                 'school_daily_tokens' => 1000000, 'actor_daily_tokens' => 50000, 'learner_daily_tokens' => 50000,
+                'school_daily_cents' => 1000, 'actor_daily_cents' => 50, 'learner_daily_cents' => 50],
+            // Action Plan 5.11: the children's lines of one school's part of a
+            // guardian's daily family summary, from that part's minimised facts.
+            // Off, capped or failing, the plain template is sent instead.
+            'family_summary' => ['enabled' => false, 'roles' => ['Parent'], 'capabilities' => ['complete'],
+                'provider' => 'openai', 'provider_class' => OpenAiProvider::class, 'moderator' => FamilySummaryModeration::class,
+                'model' => env('AI_FAMILY_SUMMARY_MODEL', ''), 'prompt' => 'family-summary',
+                'maximum_output_tokens' => 512, 'cents_per_million_tokens' => null, 'school_daily_tokens' => 500000, 'actor_daily_tokens' => 10000, 'learner_daily_tokens' => 10000,
+                'school_daily_cents' => 300, 'actor_daily_cents' => 5, 'learner_daily_cents' => 5],
+            // Embeddings that choose the most relevant section of the learner's selected content
+            // for tutor v2. Off by default; when off, or on any failure, the tutor reads the first
+            // 3,000 characters as v1 does. Its spend joins the tutor's personal pool.
+            'tutor_retrieval' => ['enabled' => false, 'roles' => ['Student'], 'capabilities' => ['embed'],
+                'provider' => 'openai', 'provider_class' => OpenAiProvider::class,
+                'moderator' => TutorRetrievalModeration::class, 'model' => env('AI_TUTOR_EMBEDDING_MODEL', ''), 'prompt' => 'tutor-retrieval',
+                'maximum_output_tokens' => 16, 'cents_per_million_tokens' => null,
+                'school_daily_tokens' => 1000000, 'actor_daily_tokens' => 200000, 'learner_daily_tokens' => 200000,
                 'school_daily_cents' => 1000, 'actor_daily_cents' => 50, 'learner_daily_cents' => 50],
         ],
         // Server-owned feature => InferenceFeaturePolicy class allowlist; never a client setting.
         'staff_actor_policies' => ['message_translation' => TranslationFeaturePolicy::class],
-        'feature_policies' => ['school_assistant' => AssistantFeaturePolicy::class, 'message_translation' => TranslationFeaturePolicy::class, 'teaching_assistant' => TeachingDraftFeaturePolicy::class, 'exam_coach' => ExamAnswerFeaturePolicy::class, 'tutor' => TutorFeaturePolicy::class],
+        'feature_policies' => ['school_assistant' => AssistantFeaturePolicy::class, 'message_translation' => TranslationFeaturePolicy::class, 'teaching_assistant' => TeachingDraftFeaturePolicy::class, 'exam_coach' => ExamAnswerFeaturePolicy::class, 'tutor' => TutorFeaturePolicy::class, 'family_summary' => FamilySummaryFeaturePolicy::class, 'tutor_retrieval' => TutorRetrievalFeaturePolicy::class],
         // The school module (config/modules.php) each feature runs in: a school
         // switches the feature on or off by switching that module (HQ /saas/ai).
-        'school_modules' => ['school_assistant' => 'ask_school', 'message_translation' => 'ask_school', 'teaching_assistant' => 'teaching_assistant', 'exam_coach' => 'exam_coach', 'tutor' => 'tutor'],
+        'school_modules' => ['school_assistant' => 'ask_school', 'message_translation' => 'ask_school', 'teaching_assistant' => 'teaching_assistant', 'exam_coach' => 'exam_coach', 'tutor' => 'tutor', 'tutor_retrieval' => 'tutor'],
         // Personal services (owner decision, 31 October 2026): the Mastery tutor is a
         // service to one learner, not to the school. Its spend is neither checked
         // against nor added to a school's daily total; it keeps its own per-person
         // and per-learner caps (engineering/specs/platform/hq-ai.md).
-        'personal_features' => ['tutor'],
+        'personal_features' => ['tutor', 'tutor_retrieval'],
         // Only explicit feature-owned resolvers may load approved private derivatives.
         'vision_resolvers' => ['teaching_assistant' => TeachingDraftVisionResolver::class, 'exam_coach' => ExamAnswerVisionResolver::class, 'tutor' => TutorVisionResolver::class],
+    ],
+    // HQ's own model calls (Action Plan 3.4), made from /saas with no school:
+    // AI drafts for the platform content library. They pass the same
+    // switches as school features (inference.enabled and a qualified
+    // provider) and are metered in platform_ai_usage against HQ's own daily
+    // caps, never a school's. Ability: the platform staff ability that may ask.
+    'platform' => [
+        'features' => [
+            'library_drafting' => ['enabled' => false, 'ability' => 'library.manage', 'capabilities' => ['complete'],
+                'provider' => 'openai', 'provider_class' => OpenAiProvider::class, 'moderator' => OpenAiModerator::class,
+                'model' => env('AI_LIBRARY_DRAFTING_MODEL', ''), 'prompt' => 'library-drafting', 'maximum_output_tokens' => 4096,
+                'cents_per_million_tokens' => null, 'platform_daily_tokens' => 2000000, 'actor_daily_tokens' => 500000,
+                'platform_daily_cents' => 2000, 'actor_daily_cents' => 500],
+        ],
+    ],
+
+    // Tutor teaching quality (Action Plan 3.10).
+    'tutor' => [
+        // The per-learner memory uses only turns from the current school year and
+        // the last memory_days days; older turns are never shown or used.
+        'memory_days' => 90,
+        // Home-language explanations, limited to the languages the platform offers
+        // (af, zu; see TutorLanguages). Empty until each language's safeguarding
+        // phrase list is professionally reviewed (Action Plan 3.2).
+        'home_languages' => array_values(array_filter(explode(',', (string) env('AI_TUTOR_HOME_LANGUAGES', '')))),
     ],
     'transcribe' => [
         'provider' => 'local-whisper-base',

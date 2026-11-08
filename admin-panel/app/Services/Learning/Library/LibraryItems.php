@@ -10,7 +10,10 @@ use App\Models\Library\LibraryReview;
 use App\Models\Library\LibrarySource;
 use App\Models\Library\LibraryTopic;
 use App\Models\User;
+use App\Services\Learning\PracticeMedia;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -68,7 +71,7 @@ class LibraryItems
         if ($data['kind'] === 'past_paper_question' && ! in_array($source->kind, LibraryContent::PAST_PAPER_SOURCES, true)) {
             throw ValidationException::withMessages(['library_source_id' => 'A past-paper question needs a DBE, IEB or licensed source.']);
         }
-        $content = app(LibraryContent::class)->normalise($data['kind'], $topic, $input);
+        $content = app(LibraryContent::class)->normalise($data['kind'], $topic, $this->diagram($actor, $data['kind'], $input));
 
         return DB::transaction(function () use ($actor, $topic, $source, $data, $content) {
             $item = LibraryItem::create(['library_topic_id' => $topic->id, 'library_source_id' => $source->id, 'kind' => $data['kind'],
@@ -90,6 +93,8 @@ class LibraryItems
     {
         $actor = app(LibraryAccess::class)->actor($actor, LibraryAccess::MANAGE);
         $data = Validator::make($input, self::draftRules())->validate();
+        $kind = (string) LibraryItem::query()->whereKey($itemId)->value('kind');
+        $input = $this->diagram($actor, $kind, $input);
 
         return DB::transaction(function () use ($actor, $itemId, $data, $input) {
             $item = $this->locked($itemId, (int) $data['revision']);
@@ -105,13 +110,46 @@ class LibraryItems
 
                 return $latest;
             }
-            // A new draft starts from the content before it, so that version's editors carry forward.
-            $draft = LibraryItemVersion::create(['library_item_id' => $item->id, 'number' => $latest->number + 1, 'state' => 'draft', 'content' => $content['content'],
-                'estimated_seconds' => $content['estimated_seconds'], 'created_by' => $actor->id, 'editor_ids' => array_values(array_unique([...$latest->editors(), (int) $actor->id]))]);
+            $draft = $this->nextDraft($actor, $item, $latest, $content['content'], $content['estimated_seconds']);
             Audit::record('library_draft_started', $item, ['version_id' => $latest->id, 'state' => $latest->state], ['version_id' => $draft->id, 'number' => $draft->number, 'changed_by' => $actor->id]);
 
             return $draft;
         });
+    }
+
+    /**
+     * Start the next draft from the latest version's content unchanged (Action
+     * Plan 3.4): how HQ opens a new version of an item learners' answers have
+     * flagged. Refused while a draft or a version waiting for review exists.
+     */
+    public function redraft(User $actor, int $itemId, array $input): LibraryItemVersion
+    {
+        $actor = app(LibraryAccess::class)->actor($actor, LibraryAccess::MANAGE);
+        $data = Validator::make($input, self::stepRules())->validate();
+
+        return DB::transaction(function () use ($actor, $itemId, $data) {
+            $item = $this->locked($itemId, (int) $data['revision']);
+            $latest = $this->latest($item);
+            abort_if(in_array($latest->state, ['draft', 'in_review'], true), 409, 'This item already has a draft or a version waiting for review. Open the item to work on it.');
+            $item->update(['revision' => $item->revision + 1]);
+            $draft = $this->nextDraft($actor, $item, $latest, $latest->content, $latest->estimated_seconds);
+            Audit::record('library_draft_started', $item, ['version_id' => $latest->id, 'state' => $latest->state], ['version_id' => $draft->id, 'number' => $draft->number,
+                'reason' => 'needs_attention', 'changed_by' => $actor->id]);
+
+            return $draft;
+        });
+    }
+
+    /**
+     * A new draft starts from the content before it, so that version's editors
+     * carry forward, and so does its origin: content that began as an AI draft
+     * stays labelled as one, however it is edited.
+     */
+    private function nextDraft(User $actor, LibraryItem $item, LibraryItemVersion $latest, array $content, ?int $seconds): LibraryItemVersion
+    {
+        return LibraryItemVersion::create(['library_item_id' => $item->id, 'number' => $latest->number + 1, 'state' => 'draft', 'content' => $content,
+            'estimated_seconds' => $seconds, 'created_by' => $actor->id, 'editor_ids' => array_values(array_unique([...$latest->editors(), (int) $actor->id])),
+            'origin' => (string) ($latest->origin ?? 'staff'), 'library_ai_draft_id' => $latest->library_ai_draft_id]);
     }
 
     public function submit(User $actor, int $itemId, array $input): LibraryItemVersion
@@ -148,7 +186,8 @@ class LibraryItems
                 'reason' => isset($data['reason']) ? trim((string) $data['reason']) : null]);
             $version->update(['state' => $data['decision']]);
             $item->update(['revision' => $item->revision + 1]);
-            Audit::record('library_reviewed', $item, ['state' => 'in_review'], ['version_id' => $version->id, 'review_id' => $review->id, 'state' => $data['decision'], 'changed_by' => $actor->id]);
+            Audit::record('library_reviewed', $item, ['state' => 'in_review'], ['version_id' => $version->id, 'review_id' => $review->id, 'state' => $data['decision'],
+                'origin' => $version->origin, 'changed_by' => $actor->id] + ($version->drafted() ? ['reviewed_by' => $this->name((int) $actor->id)] : []));
 
             return $review;
         });
@@ -170,15 +209,42 @@ class LibraryItems
             $before = $item->published_version_id;
             $version->update(['state' => 'published', 'published_by' => $actor->id, 'published_at' => now()]);
             $item->update(['published_version_id' => $version->id, 'revision' => $item->revision + 1]);
-            Audit::record('library_published', $item, ['published_version_id' => $before], ['published_version_id' => $version->id, 'number' => $version->number, 'changed_by' => $actor->id]);
+            $approval = LibraryReview::query()->where('library_item_version_id', $version->id)->where('decision', 'approved')->latest('id')->first();
+            Audit::record('library_published', $item, ['published_version_id' => $before], ['published_version_id' => $version->id, 'number' => $version->number,
+                'origin' => $version->origin, 'changed_by' => $actor->id] + ($version->drafted() ? ['reviewed_by' => $this->name((int) $approval?->reviewer_id)] : []));
 
             return $version;
         });
     }
 
+    /**
+     * A labelling question's new diagram picture (Action Plan 3.11) is
+     * checked and stored first; the content then names it by id. Without a
+     * new picture, a draft keeps the one it names.
+     */
+    private function diagram(User $actor, string $kind, array $input): array
+    {
+        $file = $input['diagram'] ?? null;
+        unset($input['diagram']);
+        if ($file instanceof UploadedFile && in_array($kind, LibraryContent::QUESTIONS, true) && ($input['question_kind'] ?? null) === 'diagram_label') {
+            Validator::make(['diagram' => $file], PracticeMedia::diagramRules('diagram'))->validate();
+            $input['diagram_id'] = (string) app(PracticeMedia::class)->storeLibraryDiagram($actor, $file)->id;
+        }
+
+        return $input;
+    }
+
     public function latest(LibraryItem $item): LibraryItemVersion
     {
         return LibraryItemVersion::query()->where('library_item_id', $item->id)->orderByDesc('number')->firstOrFail();
+    }
+
+    /** A platform staff member's name, for the audit of an AI draft's review. */
+    private function name(int $userId): string
+    {
+        $user = app(CurrentSchool::class)->acrossSchools(fn () => User::query()->find($userId, ['id', 'first_name', 'last_name']));
+
+        return $user === null ? '' : trim($user->first_name.' '.$user->last_name);
     }
 
     private function locked(int $itemId, int $revision): LibraryItem

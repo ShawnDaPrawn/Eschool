@@ -32,3 +32,12 @@ across new sessions/UUIDs. It creates self-study (`practice` audience) mastery
 evidence; chat confidence and official question marks are never used as proof.
 Checkpoints require current daily-practice permission as well as Tutor, while
 ordinary subject chat remains available independently.
+
+Tutor teaching quality (Action Plan 3.10, `tutor-teaching-quality.md`) adds prompt
+v2 (`tutor-v2`) beside the unchanged v1 (`tutor`), selected by
+`ai.inference.features.tutor.prompt`. v2 adapts to the learner's stage and grade,
+offers worked examples, misconceptions and "explain it back" turns, reads a
+derived per-learner memory that the learner and guardians can see and clear,
+reads the content section chosen by the separate `tutor_retrieval` embedding
+feature (falling back to the first 3,000 characters), and can explain in an
+enabled home language, all within the same four-field answer.

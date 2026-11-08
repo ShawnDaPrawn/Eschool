@@ -19,6 +19,8 @@ return [
     'approval.handle_requested' => ['label' => 'Handle approval request', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent'], 'notice_only' => true],
     'consent.requested' => ['label' => 'Consent request', 'module' => 'people', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'notice_only' => true, 'push_actions' => ['consent_yes', 'consent_no']],
     'safeguarding.alert' => ['label' => 'Safeguarding alert', 'module' => 'wellbeing', 'portals' => ['admin', 'teacher'], 'channels' => $required, 'locked' => ['admin', 'teacher'], 'permission' => 'safeguarding-alerts', 'notice_only' => true, 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
+    // Emergency alerts and lockdowns (Action Plan 5.8): sent only by roles the school named, never to learners, every channel, through quiet hours.
+    'safety.critical' => ['label' => 'Emergency alert', 'module' => 'communication', 'portals' => ['parent', 'teacher', 'admin'], 'channels' => $required, 'locked' => ['parent', 'teacher', 'admin'], 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
     'comms.notice' => ['label' => 'School notice', 'module' => 'communication', 'portals' => $all, 'channels' => $on],
     'comms.urgent' => ['label' => 'Urgent school notice', 'module' => 'communication', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
     'communication.message' => ['label' => 'School message', 'module' => 'communication', 'portals' => $all, 'channels' => $on, 'full_content' => true, 'push_actions' => ['reply']],
@@ -38,6 +40,8 @@ return [
     'academics.register_amended' => ['label' => 'Register amended', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'academics.timetable_changed' => ['label' => 'Timetable changes', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'attendance.absence' => ['label' => 'Absence alert', 'module' => 'academics', 'portals' => $all, 'channels' => $on, 'locked' => ['parent'], 'mandatory_channels' => ['push', 'email', 'in_app'], 'quiet_hours_exempt' => true],
+    'reenrolment.requested' => ['label' => 'Re-enrolment for next year', 'module' => 'reenrolment', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
+    'bursary.updated' => ['label' => 'Bursary application updates', 'module' => 'bursaries', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'fees.ledger_reminder' => ['label' => 'Fee statement reminders', 'module' => 'fees', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'fees.invoice' => ['label' => 'Fee invoice', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],
     'fees.reminder' => ['label' => 'Fee reminder', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],
@@ -58,9 +62,16 @@ return [
     'discipline.hearing_requested' => ['label' => 'Principal hearing review', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'discipline.detention_updated' => ['label' => 'Supervised detention updates', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'digest.weekly' => ['label' => 'Weekly learning update', 'module' => 'digest', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
+    // Action Plan 5.11: says only that the guardian's summary is ready; the summary itself is read through its own family authority.
+    'family.daily_summary' => ['label' => 'Daily family summary', 'module' => 'communication', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     // In-app only: the learner's own topic names never go to push or email.
     // locked_off_channels: a school rule can never switch these channels on.
     'growth.weekly' => ['label' => 'Weekly growth', 'module' => 'digest', 'portals' => ['learner'], 'channels' => ['push' => 'off', 'email' => 'off', 'in_app' => 'default_on'], 'locked_off_channels' => ['push', 'email'], 'notice_only' => true],
+    // Action Plan 3.13: gentle, private and never comparative. Each names no
+    // topic, score or child, so a lock screen or mailbox shows nothing private.
+    'practice.goal_met' => ['label' => 'Weekly practice goal reached', 'module' => 'daily_practice', 'portals' => ['learner'], 'channels' => ['push' => 'default_on', 'email' => 'off', 'in_app' => 'default_on'], 'notice_only' => true],
+    'practice.nudge' => ['label' => 'Gentle practice reminders', 'module' => 'daily_practice', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
+    'mastery.gap_closed' => ['label' => 'A topic is now secure', 'module' => 'mastery', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
     'school_assistance.parent_update' => ['label' => 'School support replies', 'module' => 'ask_school', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'group_chat.staff_update' => ['label' => 'Staff group conversations', 'module' => 'groups', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
@@ -72,4 +83,6 @@ return [
     'growth.unseen_adult_assigned' => ['label' => 'Learner to check in with', 'module' => 'early_warning', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     // School offboarding (SA.11): the leaving school's Super Admins, who must collect the export.
     'school.offboarding_export' => ['label' => 'School data export ready', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
+    // Inter-school fixtures (Action Plan 5.2): guardians of learners on the team sheet; says only that a result is ready.
+    'fixtures.result_confirmed' => ['label' => 'Match results', 'module' => 'groups', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
 ];

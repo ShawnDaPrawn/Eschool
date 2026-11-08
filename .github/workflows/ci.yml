@@ -827,6 +827,9 @@ jobs:
           php-version: '8.3.36'
           extensions: mbstring, intl, gd, zip, sodium, pdo_mysql, bcmath, exif, fileinfo
           coverage: none
+          # Match the application runtime's disabled JIT. A native PHP server
+          # crash was observed with setup-php's default 256M JIT buffer.
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate --force
       - name: Database with the demo school
@@ -875,6 +878,14 @@ jobs:
             python3 ../tool/ci/playwright_partition.py --verify
           fi
           python3 ../tool/ci/playwright_partition.py --part '${{ matrix.part }}'
+      # Diagnostics only. A PHP process the kernel kills (out of memory or a
+      # segfault) writes nothing to serve.log, so show the kernel's own note and
+      # the OPcache/JIT settings the built-in server ran with.
+      - name: Show why a panel server process stopped
+        if: failure()
+        run: |
+          php -i | grep -E '^opcache\.(enable|enable_cli|jit|jit_buffer_size) ' || true
+          sudo dmesg -T 2>/dev/null | grep -iE 'php|out of memory|oom-kill|segfault|general protection|traps:' | tail -n 40 || true
       - name: Upload the report
         if: failure()
         uses: actions/upload-artifact@v7

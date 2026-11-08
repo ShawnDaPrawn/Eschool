@@ -31,7 +31,10 @@ return [
     'disks' => [
         'activity_private' => ['driver' => 'local', 'root' => storage_path('app/private/activity-materials'), 'visibility' => 'private', 'directory_visibility' => 'private', 'throw' => true],
         'cards_private' => ['driver' => 'local', 'root' => storage_path('app/private/cards'), 'visibility' => 'private', 'throw' => true],
+        'business_private' => ['driver' => 'local', 'root' => storage_path('app/private/school-business'), 'visibility' => 'private', 'directory_visibility' => 'private', 'throw' => true],
         'gallery_private' => ['driver' => 'local', 'root' => storage_path('app/private/gallery'), 'visibility' => 'private', 'throw' => true],
+        // Reading library texts (Action Plan 4.4): one cached copy per book, served only through the API.
+        'reading_private' => ['driver' => 'local', 'root' => storage_path('app/private/reading'), 'visibility' => 'private', 'directory_visibility' => 'private', 'throw' => true],
         'admissions_private' => [
             'driver' => 'local',
             'root' => storage_path('app/private/admissions'),
@@ -42,6 +45,15 @@ return [
         'academic_private' => [
             'driver' => 'local',
             'root' => storage_path('app/private/academics'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+        ],
+
+        // The platform content library's private files (Action Plan 3.11 diagrams); no school's data.
+        'library_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/library'),
             'visibility' => 'private',
             'directory_visibility' => 'private',
             'throw' => true,

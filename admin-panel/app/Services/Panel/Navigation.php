@@ -16,6 +16,7 @@ use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
 use App\Services\EarlyYears\EarlyYearsAuthority;
+use App\Services\Emergency\EmergencyAccess;
 use App\Services\FamilyForms\FamilyPanelScope;
 use App\Services\FamilyVisits\VisitPanelScope;
 use App\Services\Gallery\GalleryPanelScope;
@@ -25,6 +26,7 @@ use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Leadership\MasteryImpact;
 use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Learning\ExamCoachAccess;
+use App\Services\Passport\PassportAuthority;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Pathways\CareerGuidance;
@@ -32,6 +34,7 @@ use App\Services\Pathways\PathwayPanelScope;
 use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Offboarding\SchoolExit;
+use App\Services\Reading\ReadingAccess;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
 use App\Services\Wellbeing\CheckIns;
@@ -192,6 +195,9 @@ class Navigation
         if (($item['card_actor'] ?? false) && ! app(CardPanelScope::class)->available($user, (bool) ($item['card_readers'] ?? false))) {
             return false;
         }
+        if (($item['passport_actor'] ?? false) && ! app(PassportAuthority::class)->available($user)) {
+            return false;
+        }
         if (($item['pathway_manager'] ?? false) && ! app(PathwayPanelScope::class)->available($user)) {
             return false;
         }
@@ -207,6 +213,9 @@ class Navigation
         if (($item['family_visit_actor'] ?? false) && ! app(VisitPanelScope::class)->available($user)) {
             return false;
         }
+        if (($item['emergency_actor'] ?? false) && ! app(EmergencyAccess::class)->available($user)) {
+            return false;
+        }
         if (($item['family_form_actor'] ?? false) && ! app(FamilyPanelScope::class)->available($user)) {
             return false;
         }
@@ -214,6 +223,9 @@ class Navigation
             return false;
         }
         if (($item['early_years_actor'] ?? false) && ! app(EarlyYearsAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['reading_leader'] ?? false) && ! app(ReadingAccess::class)->mayLead($user)) {
             return false;
         }
         // Only while the school is leaving and has an export to collect (SA.11).

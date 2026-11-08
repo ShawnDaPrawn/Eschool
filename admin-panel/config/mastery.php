@@ -17,12 +17,22 @@ return [
         'recency_ratio' => 0.95,
 
         // Marks are teacher-set and teacher-marked; practice is self-study with
-        // the answer available offline, so it counts for half.
+        // the answer available offline, so it counts for half. A practice test
+        // is timed and its answers never reach the device before hand-in, but
+        // it is still practice, not a teacher's mark: three quarters.
         'source_weights' => [
             'question_mark' => 1.0,
             'released_question_mark' => 1.0,
             'practice_review' => 0.5,
             'tutor_checkpoint' => 0.5,
+            'practice_test' => 0.75,
+            // Guided learning path (Action Plan 3.9): self-study, like daily practice.
+            'path_practice' => 0.5,
+            'path_check' => 0.5,
+            // A diagnostic answer is marked on the server, but it is a short,
+            // one-off starting check: it counts as practice does, and newer
+            // marks and practice soon outweigh it.
+            'diagnostic' => 0.5,
         ],
         'default_source_weight' => 0.5,
 

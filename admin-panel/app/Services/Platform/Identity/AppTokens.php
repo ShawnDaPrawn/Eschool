@@ -37,6 +37,13 @@ final class AppTokens
 
     public const VENDOR = 'vendor-app';
 
+    /**
+     * The alumni and volunteer pool (Action Plan 5.6): a dedicated account
+     * with no role, so it is not in APPS. PoolSignIn issues it, bound to one
+     * school, and it is never taken for an older unnamed token.
+     */
+    public const POOL = 'people-pool-app';
+
     /** The role each app is for. */
     public const APPS = [
         self::STUDENT => 'Student',
@@ -83,7 +90,7 @@ final class AppTokens
     {
         // This new profile has no legacy tokens; never revoke another app's
         // pre-profile tokens, and allow its logout after school-role revocation.
-        if (in_array($app, [self::FACILITATOR, self::VENDOR], true)) {
+        if (in_array($app, [self::FACILITATOR, self::VENDOR, self::POOL], true)) {
             return $user->tokens()->where('name', $app)->delete();
         }
         $legacyAreThisApps = ! self::usesAnotherApp($user, $app);
@@ -92,7 +99,7 @@ final class AppTokens
             ->where(function ($query) use ($app, $legacyAreThisApps) {
                 $query->where('name', $app);
                 if ($legacyAreThisApps) {
-                    $query->orWhereNotIn('name', array_keys(self::APPS));
+                    $query->orWhereNotIn('name', self::named());
                 }
             })
             ->delete();
@@ -117,7 +124,13 @@ final class AppTokens
         if (in_array($app, [self::FACILITATOR, self::VENDOR], true) || self::usesAnotherApp($user, $app)) {
             return;
         }
-        $user->tokens()->whereNotIn('name', array_keys(self::APPS))->delete();
+        $user->tokens()->whereNotIn('name', self::named())->delete();
+    }
+
+    /** @return list<string> every token name an app gives; any other name is an older unnamed token */
+    private static function named(): array
+    {
+        return [...array_keys(self::APPS), self::POOL];
     }
 
     /** Revokes every token of the account, optionally keeping one. */

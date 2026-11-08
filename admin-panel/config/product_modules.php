@@ -28,8 +28,8 @@ return [
     ],
     'learning' => [
         'label' => 'Learning', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'Online exams, the mastery map, daily practice, exam coach, teaching assistant, test insights, the learner diary and the early years tools.',
-        'modules' => ['online_exams', 'mastery', 'daily_practice', 'exam_coach', 'teaching_assistant', 'test_insights', 'diary', 'early_years'],
+        'description' => 'Online exams, the mastery map, daily practice, exam coach, teaching assistant, test insights, the learner diary, the strengths mirror, the early years tools and the reading library.',
+        'modules' => ['online_exams', 'mastery', 'daily_practice', 'exam_coach', 'teaching_assistant', 'test_insights', 'diary', 'early_years', 'reading', 'strengths_mirror'],
     ],
     'ai_tutor' => [
         'label' => 'AI tutor', 'always_included' => false, 'readiness' => 2, 'price_cents' => null,
@@ -53,8 +53,8 @@ return [
     ],
     'futures' => [
         'label' => 'Futures', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'Subject choice and pathways, and school transfers.',
-        'modules' => ['pathway', 'school_transfers'],
+        'description' => 'Subject choice and pathways, school transfers, the learner passport, and the alumni and volunteer pool for career talks and job shadows.',
+        'modules' => ['pathway', 'school_transfers', 'people_pool', 'passport'],
     ],
     'leadership' => [
         'label' => 'Leadership and staff', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
@@ -63,12 +63,12 @@ return [
     ],
     'finance' => [
         'label' => 'Finance', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'Tuition fees, wallets, vendors, counter payments and ticketing.',
-        'modules' => ['fees', 'wallet', 'vendors', 'wallet_payments', 'ticketing'],
+        'description' => 'Tuition fees, wallets, vendors, counter payments, ticketing, bursaries and alumni giving.',
+        'modules' => ['fees', 'wallet', 'vendors', 'wallet_payments', 'ticketing', 'bursaries', 'giving'],
     ],
     'access' => [
         'label' => 'Access and admissions', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
-        'description' => 'ID cards and the gate, and online registration and admissions.',
-        'modules' => ['cards', 'intake'],
+        'description' => 'ID cards and the gate, emergency alerts, drills, visitors and reunification, online registration and admissions, and re-enrolment contracts.',
+        'modules' => ['cards', 'emergency', 'intake', 'reenrolment'],
     ],
 ];

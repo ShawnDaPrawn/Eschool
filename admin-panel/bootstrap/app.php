@@ -83,6 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('protected/profile-files')->name('profile-files.')->group(__DIR__.'/../routes/profile_files.php');
             Route::group([], __DIR__.'/../routes/public_wellbeing.php');
             Route::group([], __DIR__.'/../routes/public_admissions.php');
+            Route::group([], __DIR__.'/../routes/public_open_badges.php');
             ModuleRoutes::apply(Route::getRoutes());
         },
     )

@@ -520,6 +520,15 @@ permanent awards with source `badge` and use the existing
 `recognition.award_presented` notice. No new outbox event type.
 
 
+## Daily family summary (Action Plan 5.11)
+
+`family.daily_summary` (communication module, parent portal, push/email/in-app
+on by default, notice-only) tells a guardian who opted in that their one daily
+summary across all their children and schools is ready. It names no one and
+carries only an opaque `summary_id`; the inbox and delivery recheck the owner,
+the school it was filed in and the summary's expiry. The summary is read
+through `GET /api/v2/me/family-summaries/{summary}`. No new outbox event type.
+
 ## School offboarding
 
 School data export ready: `school.offboarding_export` (people module, admin
@@ -562,3 +571,13 @@ Both link to the school panel's `/support-access` page and name no person, reaso
 or record. No ability, module or permission row is added to schools; HQ adds the
 platform abilities `support.access` (Owner, Operations, Support) and
 `support.emergency` (Owner).
+
+## Fixtures between schools
+
+`fixtures.result_confirmed` belongs to the optional `groups` module, parent
+portal, notice-only, private scope `fixtures.` (`FixtureNotices`). Each school
+sends it inside its own school to the guardians of the learners on its own team
+sheet when both schools (or the host, against an opponent outside NavigateEd)
+confirm a result. It carries the fixture id and result revision only; inbox and
+delivery recheck the team sheet, the guardian link and the revision. No new
+permission: managers use `activity-groups-manage`. No new outbox event type.

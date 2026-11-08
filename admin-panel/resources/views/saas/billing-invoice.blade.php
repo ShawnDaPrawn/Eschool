@@ -2,7 +2,7 @@
 
 @php
     $isCredit = $invoice['kind'] === 'credit_note';
-    $kindLabel = $isCredit ? __('Credit note') : ($invoice['status'] === 'issued' ? __('Tax invoice') : __('Draft invoice'));
+    $kindLabel = $isCredit ? __('Credit note') : match ($invoice['status']) { 'issued' => __('Tax invoice'), 'grouped' => __('Month billed through the school group'), default => __('Draft invoice') };
 @endphp
 @section('title', ($invoice['reference'] ?? $kindLabel).' · '.$school['name'])
 
@@ -19,6 +19,7 @@
 <article class="saas-card saas-invoice" aria-label="{{ $kindLabel }}">
     <h1>{{ $kindLabel }} @if ($invoice['reference']){{ $invoice['reference'] }}@endif</h1>
     @if ($invoice['status'] === 'draft')<p><span class="saas-badge saas-badge--warn">{{ __('Draft: not issued, not sent, no reference yet') }}</span></p>@endif
+    @if ($invoice['status'] === 'grouped')<p><span class="saas-badge">{{ __('These lines are on the school group\'s invoice for the month. The school is not invoiced for this month on its own.') }}</span></p>@endif
     @if ($invoice['status'] === 'discarded')<p><span class="saas-badge saas-badge--warn">{{ __('Discarded: this school is not billed for this month') }}</span></p>@endif
     <div class="saas-grid">
         <div>
@@ -64,6 +65,9 @@
     </table>
     </div>
     <p>{{ __('Rounding: each line\'s VAT is rounded to the cent (half a cent up) on the line, and the totals add up the lines.') }}</p>
+    @if (collect($lines)->contains('kind', 'messaging'))
+        <p>{{ __('SMS and WhatsApp lines pass on, at cost, what Twilio charged for the messages the school sent in the month before this invoice. A price in another currency is converted at the rate shown on the line.') }}</p>
+    @endif
     @if (! $isCredit && $invoice['status'] === 'issued')
         <p>{{ __('Pay by EFT using the reference :reference.', ['reference' => $invoice['reference']]) }}@if (($seller['bank'] ?? '') !== '') {{ $seller['bank'] }}@endif</p>
         <p>{{ $invoice['outstanding_cents'] === 0 ? __('Paid in full.') : __('Unpaid: :amount', ['amount' => $rands($invoice['outstanding_cents'])]) }}</p>
