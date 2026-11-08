@@ -16,6 +16,7 @@ use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
 use App\Services\EarlyYears\EarlyYearsAuthority;
+use App\Services\Emergency\EmergencyAccess;
 use App\Services\FamilyForms\FamilyPanelScope;
 use App\Services\FamilyVisits\VisitPanelScope;
 use App\Services\Gallery\GalleryPanelScope;
@@ -210,6 +211,9 @@ class Navigation
             return false;
         }
         if (($item['family_visit_actor'] ?? false) && ! app(VisitPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['emergency_actor'] ?? false) && ! app(EmergencyAccess::class)->available($user)) {
             return false;
         }
         if (($item['family_form_actor'] ?? false) && ! app(FamilyPanelScope::class)->available($user)) {

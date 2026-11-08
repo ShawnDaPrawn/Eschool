@@ -159,6 +159,15 @@ return [
             'abilities' => [],
         ],
 
+        'emergency' => [
+            'view' => [],
+            'contribute' => ['emergency-respond'],
+            'manage' => ['emergency-manage'],
+            'abilities' => [
+                'alert_send' => ['label' => 'Send emergency alerts and lockdowns', 'permissions' => ['emergency-alert-send'], 'sensitive' => false],
+            ],
+        ],
+
         'family_visits' => [
             'view' => [],
             'contribute' => [],

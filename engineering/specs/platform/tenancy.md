@@ -207,6 +207,19 @@ snapshots and exact-operation receipts retain appointment and collection
 history. Platform staff and impersonation are excluded; only fresh verified
 guardians, scoped meeting hosts, explicitly authorised school staff and
 purpose-bound online gate readers can enter their respective workflows.
+
+## Emergency management
+
+`emergency_settings`, `emergency_drills`, `emergency_alerts`,
+`emergency_roll_calls`, `emergency_releases`, `emergency_visitors`,
+`emergency_operations` and `emergency_events` require an indexed, non-null
+school foreign key and scoped models. Learner, alert, drill, gate pass and card
+scan references also use composite school foreign keys. Alert recipients are
+worked out from this school's active memberships only, so a school's alert
+never reaches another school's people. Visitor details, collector names and
+operation receipts are encrypted. See
+[emergency-management.md](../community/emergency-management.md).
+
 # School assistance records
 
 `school_knowledge_documents`, `school_support_threads`,

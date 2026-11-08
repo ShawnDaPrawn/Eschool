@@ -164,7 +164,7 @@ return [
         // Notification types sent on the account stream. Every mail that is
         // not a notice (passwords, invitations, welcome mails, admissions
         // replies) is account mail too. Other notices are bulk.
-        'account_types' => ['account.*', 'approval.*', 'safeguarding.alert', 'comms.urgent', 'attendance.absence'],
+        'account_types' => ['account.*', 'approval.*', 'safeguarding.alert', 'comms.urgent', 'safety.critical', 'attendance.absence'],
 
         // VDM engagement tracking (opens and clicks) per stream. Off for the
         // account stream, so sign-in, password and invitation links are never
