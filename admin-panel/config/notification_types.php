@@ -60,6 +60,8 @@ return [
     'discipline.hearing_requested' => ['label' => 'Principal hearing review', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'discipline.detention_updated' => ['label' => 'Supervised detention updates', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'digest.weekly' => ['label' => 'Weekly learning update', 'module' => 'digest', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
+    // Action Plan 5.11: says only that the guardian's summary is ready; the summary itself is read through its own family authority.
+    'family.daily_summary' => ['label' => 'Daily family summary', 'module' => 'communication', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     // In-app only: the learner's own topic names never go to push or email.
     // locked_off_channels: a school rule can never switch these channels on.
     'growth.weekly' => ['label' => 'Weekly growth', 'module' => 'digest', 'portals' => ['learner'], 'channels' => ['push' => 'off', 'email' => 'off', 'in_app' => 'default_on'], 'locked_off_channels' => ['push', 'email'], 'notice_only' => true],
