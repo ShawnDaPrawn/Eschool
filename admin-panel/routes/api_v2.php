@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V2\Commerce\WalletPaymentController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
+use App\Http\Controllers\Api\V2\Emergency\EmergencyController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\FamilyForms\FamilyFormController;
 use App\Http\Controllers\Api\V2\FamilyVisits\VisitController;
@@ -1010,6 +1011,18 @@ Route::prefix('test-insights')->name('api.v2.test-insights.')->middleware([Priva
     Route::get('configuration', [$c, 'insightConfiguration'])->name('configuration');
     Route::get('groups/{group}', [$c, 'insightChoices'])->whereNumber('group')->name('choices');
     Route::get('groups/{group}/tasks/{task}', [$c, 'insights'])->whereNumber('group')->whereNumber('task')->name('show');
+});
+
+// Emergency management (Action Plan 5.8): the services check role, school and owner.
+Route::prefix('emergency')->name('api.v2.emergency.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'throttle:120,1'])->group(function () {
+    $controller = EmergencyController::class;
+    Route::get('status', [$controller, 'read'])->name('status');
+    Route::post('alerts', [$controller, 'write'])->name('alerts.prepare');
+    Route::post('alerts/{alert}/confirm', [$controller, 'write'])->whereUuid('alert')->name('alerts.confirm');
+    Route::post('alerts/{alert}/all-clear', [$controller, 'write'])->whereUuid('alert')->name('alerts.all-clear');
+    Route::get('alerts/{alert}/roll-call', [$controller, 'read'])->whereUuid('alert')->name('roll-call.show');
+    Route::post('alerts/{alert}/roll-call', [$controller, 'write'])->whereUuid('alert')->name('roll-call.mark');
+    Route::post('alerts/{alert}/releases', [$controller, 'write'])->whereUuid('alert')->name('releases.create');
 });
 
 // Family visits have a separate module; cancellation remains possible after shutdown.

@@ -74,6 +74,7 @@ final class SchoolOwnedTables
         'ai_quarantine_snapshots',
         'digest_language_templates', 'digest_preferences', 'weekly_parent_digests', 'digest_operations', 'learner_growth_weeks',
         'family_visit_rules', 'meeting_slots', 'gate_passes', 'family_visit_operations', 'family_visit_events',
+        'emergency_settings', 'emergency_drills', 'emergency_alerts', 'emergency_roll_calls', 'emergency_releases', 'emergency_visitors', 'emergency_operations', 'emergency_events',
         'consent_requests', 'consent_recipients', 'consent_responses', 'family_form_operations',
         'cards', 'card_keys', 'card_portraits', 'card_reader_devices', 'card_chip_profiles', 'card_qr_uses', 'card_scan_logs', 'card_classroom_sessions', 'card_events', 'card_operations',
         'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
