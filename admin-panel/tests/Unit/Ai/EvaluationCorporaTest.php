@@ -178,6 +178,20 @@ class EvaluationCorporaTest extends TestCase
         $this->application->make(Factory::class)->assertNothingSent();
     }
 
+    /** The tutor corpus is scored against the configured prompt, v2 by default, which must carry the case's instruction. */
+    public function test_tutor_learning_path_case_is_scored_against_the_default_v2_prompt_that_carries_its_rule(): void
+    {
+        $case = collect($this->cases('tutor'))->firstWhere('id', 'learning_path_tutor_leads');
+        $this->assertIsArray($case);
+        $this->assertStringContainsString('learning_path', $case['input']);
+        $this->assertContains('PATH-CHECK-ANSWER-CANARY', $case['forbidden']);
+        $this->assertSame('tutor-v2', config('ai.inference.features.tutor.prompt'));
+        $prompt = json_decode((string) file_get_contents(resource_path('ai/prompts/tutor-v2.json')), true, 8, JSON_THROW_ON_ERROR);
+        $this->assertSame(['tutor-v2', '2.1.0'], [$prompt['key'], $prompt['version']]);
+        $this->assertStringContainsString('When approved_context.learning_path is provided', $prompt['system']);
+        $this->assertStringContainsString('never give their answers', $prompt['system']);
+    }
+
     public function test_shared_redteam_covers_required_attack_classes_and_only_registered_purposes(): void
     {
         $cases = $this->cases('redteam');

@@ -123,7 +123,7 @@ class TutorTeachingQualityTest extends TestCase
         $this->assertSame(['stage' => 'junior', 'grade' => 'Grade 7'], $this->context()['learner']);
         $this->assertNull($this->context()['memory']);
         $usage = AiUsage::where('feature', 'tutor')->sole();
-        $this->assertSame(['tutor-v2', '2.0.0'], [$usage->prompt_key, $usage->prompt_version]);
+        $this->assertSame(['tutor-v2', '2.1.0'], [$usage->prompt_key, $usage->prompt_version]);
         $this->assertSame('tutor-v2', TutorMessage::sole()->prompt_key);
         $this->assertStringNotContainsString('date_of_birth', json_encode($this->inputs));
         $config = app(TutorQueries::class)->configuration($this->actor('asha'));
