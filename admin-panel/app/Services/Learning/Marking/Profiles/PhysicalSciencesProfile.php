@@ -23,6 +23,11 @@ final class PhysicalSciencesProfile extends SubjectProfile
         return __('Physical Sciences');
     }
 
+    public function version(): string
+    {
+        return 'physical_sciences-v1';
+    }
+
     public function acceptsEquivalentForms(): bool
     {
         return true;

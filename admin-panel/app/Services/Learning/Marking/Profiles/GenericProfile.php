@@ -19,6 +19,11 @@ final class GenericProfile extends SubjectProfile
         return __('Other subjects');
     }
 
+    public function version(): string
+    {
+        return 'generic-v1';
+    }
+
     public function conventions(): array
     {
         return [

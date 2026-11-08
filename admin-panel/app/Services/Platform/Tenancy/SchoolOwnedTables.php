@@ -190,6 +190,11 @@ final class SchoolOwnedTables
         'reading_shelf_books' => 'which books are on each HQ shelf, written only from /saas/reading',
         'reading_questions' => 'HQ-written comprehension questions per book, written only from /saas/reading; learners\' answers are school-owned in reading_answers',
         'library_ai_drafts' => 'HQ requests for AI drafts of library items (topic, source, brief, outcome), written only from /saas/library; the model is given library data only, never a school\'s',
+        // The marking accuracy gate (Action Plan 3.18): Navigate Ed's own evaluation data, written only from /saas/marking-accuracy.
+        'marking_evaluation_papers' => 'HQ evaluation papers: a memo\'s questions and mark points per subject, written only from /saas/marking-accuracy; no school paper or memo',
+        'marking_evaluation_scripts' => 'de-identified, teacher-marked evaluation scripts (answers, marks per mark point, a marker code, the source), never linked to a learner or a school; the source\'s reference is kept only as a keyed hash',
+        'marking_evaluation_runs' => 'the marking engine\'s agreement with teachers over the evaluation scripts, per subject, engine and profile version; names platform staff only',
+        'marking_subject_gates' => 'whether learners receive engine marking in each subject, switched on by an HQ approver against a passing run; platform-wide, names platform staff only',
         'platform_ai_usage' => 'HQ\'s own AI metering for model calls made from /saas with no school (tokens, cents, hashes and flag codes, never a prompt or an answer); a school\'s calls stay in its own ai_usage',
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
