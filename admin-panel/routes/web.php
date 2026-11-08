@@ -160,6 +160,7 @@ use App\Http\Controllers\Platform\PlatformOffboardingController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
 use App\Http\Controllers\Platform\PlatformReadingController;
+use App\Http\Controllers\Platform\PlatformSafeguardingPhrasesController;
 use App\Http\Controllers\Platform\PlatformSchoolGroupController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformSchoolImportController;
@@ -218,6 +219,7 @@ use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Requests\Emergency\EmergencyPanelRequest;
+use App\Services\Learning\SafeguardingPhrases;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -438,6 +440,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // Safeguarding phrase lists (3.2): each language's read-only list and its professional review; never a learner's message.
+    Route::get('/safeguarding-phrases', [PlatformSafeguardingPhrasesController::class, 'index'])->middleware('platform.can:safeguarding.phrases')->name('safeguarding-phrases');
+    Route::post('/safeguarding-phrases/{language}/reviews', [PlatformSafeguardingPhrasesController::class, 'review'])->middleware(['platform.can:safeguarding.phrases', 'throttle:20,1'])
+        ->whereIn('language', array_keys(SafeguardingPhrases::LANGUAGES))->name('safeguarding-phrases.review');
     // The platform content library (3.3) and its review (SA.16): library rows only, never a school's material or people.
     Route::prefix('/library')->name('library.')->group(function () {
         Route::middleware('platform.can:library.manage')->group(function () {

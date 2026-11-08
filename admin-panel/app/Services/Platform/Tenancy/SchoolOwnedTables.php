@@ -207,6 +207,7 @@ final class SchoolOwnedTables
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_ai_caps' => 'Navigate Ed\'s own daily AI spending caps per feature, set only from /saas/ai; a school\'s own lower limits stay in ai_school_limits',
         'platform_ai_cap_changes' => 'the history of HQ AI cap changes (who, when, old and new cents, reason), written only from /saas/ai; names no school',
+        'safeguarding_phrase_reviews' => 'professional reviews of each language\'s safeguarding phrase list (language, outcome, list hash, reviewer, date, note), written only from /saas/safeguarding-phrases; names no school and holds no learner message or phrase',
         'platform_support_views' => 'when each HQ staff member last opened the support queue; one row per staff user, no school data',
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'platform_staff_two_factor' => 'a platform staff member\'s own authenticator app (encrypted secret, hashed recovery codes) for signing in to /saas; platform staff belong to no school',

@@ -8,6 +8,8 @@
 
 ## 2026-11-09
 
+- The tutor's safeguarding guard now works in Afrikaans and isiZulu as well as English, and in messages that mix them (Action Plan 3.2). Each language has its own phrase list; every message is checked against all of them on the server before any AI call, so a message that signals risk never reaches an AI provider. Matching allows for capitals, accents, repeated letters, words run together or split, and look-alike digits. The Afrikaans and isiZulu lists are drafts until safeguarding professionals and fluent speakers review them. A draft list still protects learners, but the tutor will not offer that language for explanations until a review is recorded in HQ (new "Safeguarding phrases" page, ability `safeguarding.phrases` for Content staff and Owners); any change to a list makes it draft again. **Deploy:** run migrations.
+
 - Daily family summary (Action Plan 5.11): a guardian can opt in to one short summary a day, at a time they choose outside their quiet hours, covering all their children at all their schools: today's and tomorrow's timetable changes, homework due, forms waiting for them, unread school messages and how many private updates are waiting (never what they say). Each school's part is read and written inside that school. The wording comes from the AI gateway when a school has it switched on, and from a plain template otherwise. New API: `GET`/`PUT /api/v2/me/family-summary/preferences`, `GET /api/v2/me/family-summaries/{summary}`. **Deploy:** run migrations; the scheduler runs `family:daily-summary` every 15 minutes and its retention daily.
 
 - Keep starting checks to choice and number questions so extended practice question types cannot leave a diagnostic waiting for an answer it cannot mark.

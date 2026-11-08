@@ -62229,6 +62229,8 @@ components:
           type: boolean
         home_languages:
           type: array
+          description: Home languages the tutor offers now. A language appears only when the deployment enables it and
+            its safeguarding phrase list has a recorded professional review; a draft list keeps it out.
           maxItems: 2
           items:
             $ref: '#/components/schemas/TutorHomeLanguage'
@@ -62716,7 +62718,8 @@ components:
           - explain_back
         language:
           description: Ask for the explanation in a home language listed in the configuration's home_languages (tutor
-            v2 only).
+            v2 only). Any other language, including one whose safeguarding phrase list is still a draft, is refused
+            with 422.
           anyOf:
           - type: string
             enum:

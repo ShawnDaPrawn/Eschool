@@ -129,8 +129,9 @@ return [
         // the last memory_days days; older turns are never shown or used.
         'memory_days' => 90,
         // Home-language explanations, limited to the languages the platform offers
-        // (af, zu; see TutorLanguages). Empty until each language's safeguarding
-        // phrase list is professionally reviewed (Action Plan 3.2).
+        // (af, zu; see TutorLanguages). A listed language is offered only once its
+        // safeguarding phrase list has a professional review recorded in HQ
+        // (Action Plan 3.2: /saas/safeguarding-phrases); a draft list keeps it out.
         'home_languages' => array_values(array_filter(explode(',', (string) env('AI_TUTOR_HOME_LANGUAGES', '')))),
     ],
     'transcribe' => [

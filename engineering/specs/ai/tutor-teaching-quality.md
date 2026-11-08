@@ -59,7 +59,7 @@ The first tutor prompt gives a short hint, a question and a correction, the same
 ## Home-language explanations
 
 - `language` on a turn may be one of the platform's offered languages besides English (`af`, `zu`, `TutorLanguages::OFFERED`) that the deployment lists in `ai.tutor.home_languages` (`AI_TUTOR_HOME_LANGUAGES`, empty by default). Anything else is refused with 422.
-- The default is empty because Action Plan 3.2 requires each language's safeguarding phrase list to be professionally reviewed before it is offered in the tutor.
+- A listed language is offered only while its safeguarding phrase list has a recorded professional review for the list as it is now (Action Plan 3.2, [safeguarding phrases](safeguarding-phrases.md)); a draft list keeps it out of the configuration, the turn validation and the send-time check. The default list is empty.
 - The tutor writes `text` and `question` in that language, with the English subject term in brackets the first time. A language switched off after a turn was written fails that turn (`tutor_language_unavailable`) rather than sending it.
 
 ## Data changes
@@ -107,7 +107,7 @@ The existing tutor suites run on v2 by default and still pass; `HqAiControlsTest
 
 - App screens for explain-back, memory and the language choice (Flutter cannot be built here), and the regenerated Dart client.
 - Real-model qualification of v2 and of the embedding model (Action Plan 3.1), and teacher-panel rating of teaching quality.
-- Switching on Afrikaans or isiZulu explanations: waits for the reviewed safeguarding phrase lists (Action Plan 3.2).
+- Switching on Afrikaans or isiZulu explanations: the draft lists now exist and the tutor enforces the review (Action Plan 3.2); the professional reviews themselves are still to be done.
 - Voice for home-language explanations (Action Plan 3.12).
 - A shared per-school cache of section vectors: vectors are replayed per learner session.
 - Telling the tutor the learner's current learning-path step (Action Plan 3.9, open in another pull request): it would join the v2 context next to `learner`.

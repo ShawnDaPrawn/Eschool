@@ -32,6 +32,8 @@ declare(strict_types=1);
  *  library.manage   the platform content library: frameworks, topics, sources, items, publishing, reviewers, each school's library switch
  *  library.review   approve or reject library items, for the subjects the reviewer is assigned to
  *  reading.manage   the reading library: books, rights decisions, fetching, shelves and comprehension questions
+ *  safeguarding.phrases each language's safeguarding phrase list (read-only) and its review
+ *                   state; record a professional review, which decides whether the tutor may offer the language
  *  health.view      platform health on the HQ home page: queue backlog, failed jobs, delivery failures
  *  messaging.view   SMS and WhatsApp counts and pass-through cost per school
  *  billing.view     invoices, statements, and overdue school accounts
@@ -51,7 +53,7 @@ return [
     'operations' => ['label' => 'Operations', 'abilities' => ['health.view', 'schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'announcements.manage', 'flags.manage', 'ai.view', 'support.access', 'billing.view', 'mail.view', 'mail.manage', 'support.manage', 'messaging.view', 'offboarding.view', 'offboarding.manage', 'imports.run', 'groups.view', 'groups.manage']],
     'support' => ['label' => 'Support', 'abilities' => ['health.view', 'schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'ai.view', 'support.access', 'mail.view', 'support.manage']],
     'finance' => ['label' => 'Finance', 'abilities' => ['health.view', 'schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'audit.view', 'audit.export', 'billing.view', 'billing.manage', 'messaging.view', 'groups.view']],
-    'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view', 'library.manage', 'reading.manage']],
+    'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view', 'library.manage', 'reading.manage', 'safeguarding.phrases']],
     'reviewer' => ['label' => 'Content reviewer', 'abilities' => ['schools.view', 'library.review']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],
 ];

@@ -281,6 +281,14 @@ open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 daily AI caps per feature and their history, read and written only from
 `/saas/ai`. They name no school. A school's own lower limits stay in the
 school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+
+### Safeguarding phrase reviews
+
+`safeguarding_phrase_reviews` is global: HQ's record of each professional
+review of a language's safeguarding phrase list (language, outcome, list hash,
+reviewer, date, note), written only from `/saas/safeguarding-phrases`. It names
+no school and holds no learner message and no phrase; the lists themselves are
+files in `resources/ai/safeguarding` ([safeguarding phrases](../ai/safeguarding-phrases.md)).
 ### HQ feature flags
 
 `platform_feature_flags` is global: platform-wide switches written only from

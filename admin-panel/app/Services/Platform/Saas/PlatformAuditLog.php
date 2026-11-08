@@ -49,6 +49,7 @@ class PlatformAuditLog
         'ai.platform_cost_access_changed' => 'AI cost access changed',
         'platform_ai_feature_switched' => 'AI feature switched',
         'platform_ai_caps_changed' => 'AI spending caps changed',
+        'platform_safeguarding_phrase_review_recorded' => 'Safeguarding phrase list review recorded',
         'platform_import_previewed' => 'Import checked for a school',
         'platform_import_requested' => 'Import sent for the school\'s approval',
         'platform_import_approved' => 'Import approved by the school',

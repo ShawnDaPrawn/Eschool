@@ -13,12 +13,14 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\SchoolModule;
 use App\Models\User;
+use App\Services\Learning\SafeguardingPhrases;
 use App\Services\Learning\TutorMemory;
 use App\Services\Learning\TutorQueries;
 use App\Services\Learning\TutorSessions;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\Client\Factory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -107,6 +109,13 @@ class TutorTeachingQualityTest extends TestCase
         $version->saveQuietly();
     }
 
+    /** A recorded professional review of the language's safeguarding phrase list as it is now. */
+    private function reviewLanguage(string $code): void
+    {
+        DB::table('safeguarding_phrase_reviews')->insert(['language' => $code, 'outcome' => 'reviewed', 'list_sha256' => app(SafeguardingPhrases::class)->sha256($code),
+            'reviewer' => 'Synthetic reviewer', 'reviewed_on' => '2026-02-01', 'note' => 'Synthetic review for this test only.', 'created_at' => now()]);
+    }
+
     private function retrieval(): void
     {
         config(['ai.inference.features.tutor_retrieval.enabled' => true]);
@@ -133,6 +142,8 @@ class TutorTeachingQualityTest extends TestCase
     public function test_v1_stays_selectable_with_its_original_context_and_refuses_v2_options(): void
     {
         config(['ai.inference.features.tutor.prompt' => 'tutor', 'ai.tutor.home_languages' => ['af']]);
+        // Afrikaans is enabled and reviewed (Action Plan 3.2), so only the v1 rule refuses it below.
+        $this->reviewLanguage('af');
         $this->retrieval();
         $this->sections();
         $session = $this->open();
@@ -171,6 +182,10 @@ class TutorTeachingQualityTest extends TestCase
         $session = $this->open();
         $this->assertThrows(fn () => $this->turn($session, language: 'af'), ValidationException::class);
         config(['ai.tutor.home_languages' => ['af', 'zu', 'fr']]);
+        // Listed but still draft (Action Plan 3.2): not offered until each list has a recorded review.
+        $this->assertSame([], app(TutorQueries::class)->configuration($this->actor('asha'))['home_languages']);
+        $this->reviewLanguage('af');
+        $this->reviewLanguage('zu');
         $choices = app(TutorQueries::class)->configuration($this->actor('asha'))['home_languages'];
         $this->assertSame([['code' => 'af', 'name' => 'Afrikaans'], ['code' => 'zu', 'name' => 'isiZulu']], $choices);
         $this->assertThrows(fn () => $this->turn($session, language: 'fr'), ValidationException::class);
