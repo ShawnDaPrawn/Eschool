@@ -230,6 +230,8 @@ tags:
   description: Private wallet storefronts, reviewed purchases and original order receipts.
 - name: PeoplePool
   description: The school's alumni and volunteer pool, vetting and group-session bookings, and the pool member's own restricted profile.
+- name: ChildMode
+  description: Child mode in the parent app - the child's PIN, short child sessions bound to one child and school, and what the child may open.
 - name: Reading
   description: The learner's reading library - public-domain books on shelves for their grade, their own progress and comprehension checks.
 - name: LearningPath
@@ -840,6 +842,222 @@ paths:
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/children/{child}:
+    get:
+      operationId: getChildMode
+      tags:
+      - ChildMode
+      summary: getChildMode
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Whether child mode is open for this child, why not, whether a PIN is set or locked, and what the child may open.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/children/{child}/pin:
+    put:
+      operationId: setChildModePin
+      tags:
+      - ChildMode
+      summary: setChildModePin
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Sets or changes the PIN (4 to 6 digits, typed twice, not one digit repeated or a straight run). It is stored only as a hash; changing it ends every child session for this child at once.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildModePinInput'
+  /child-mode/children/{child}/sessions:
+    post:
+      operationId: startChildMode
+      tags:
+      - ChildMode
+      summary: startChildMode
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Starts a child session with the PIN and returns the child token, short-lived and bound to this child and school. Wrong PINs are counted per child; after five the PIN locks for 15 minutes (429). Starting again from the same parent-app sign-in ends the earlier child session.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeStartResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildModePinEntry'
+  /child-mode/children/{child}/sessions/end:
+    post:
+      operationId: endChildModeForGuardian
+      tags:
+      - ChildMode
+      summary: endChildModeForGuardian
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Ends this guardian''s child sessions for this child on every device, without the PIN.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeEndedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/session:
+    get:
+      operationId: getChildModeSession
+      tags:
+      - ChildMode
+      summary: getChildModeSession
+      description: 'Child mode in the parent app (Action Plan 4.2), child side: only a child token, bound to the child and school it was issued for (an X-School-Id naming another school is refused). The guardian link, approval right, approval, PIN, stage and the parent-app sign-in that started it are re-read on every request; a session that is no longer allowed ends with 401. A child token authenticates on no other route. Private, never cached. The child''s first name, school, what the child may open now (my_day, practice from Grade 3, tutor from Grade 4, library; each only while its module is on) and when the session expires.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/session/end:
+    post:
+      operationId: endChildMode
+      tags:
+      - ChildMode
+      summary: endChildMode
+      description: 'Child mode in the parent app (Action Plan 4.2), child side: only a child token, bound to the child and school it was issued for (an X-School-Id naming another school is refused). The guardian link, approval right, approval, PIN, stage and the parent-app sign-in that started it are re-read on every request; a session that is no longer allowed ends with 401. A child token authenticates on no other route. Private, never cached. Leaves child mode with the PIN (counted towards the lock like any other try); the child token is deleted at once.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeLeftResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildModePinEntry'
   /academics/teaching-groups:
     get:
       operationId: getTeachingGroups
@@ -40613,6 +40831,247 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/PoolWithdrawal'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeStatus:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - first_name
+      - available
+      - reason
+      - message
+      - pin_set
+      - pin_locked_until
+      - opens
+      - session_minutes
+      properties:
+        learner_id:
+          type: integer
+        first_name:
+          type: string
+        available:
+          type: boolean
+        reason:
+          description: Why child mode is closed for this guardian and child; null when it is open.
+          anyOf:
+          - type: string
+            enum:
+            - not_approving
+            - guardian_unverified
+            - approval_needed
+            - early_years
+            - high_school
+            - grade_unknown
+          - type: 'null'
+        message:
+          type:
+          - string
+          - 'null'
+        pin_set:
+          type: boolean
+        pin_locked_until:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        opens:
+          type: array
+          description: What the child may open, in the order the app shows it.
+          items:
+            type: string
+            enum:
+            - my_day
+            - practice
+            - tutor
+            - library
+        session_minutes:
+          type: integer
+          minimum: 5
+          maximum: 120
+    ChildModeSession:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - first_name
+      - school
+      - opens
+      - started_at
+      - expires_at
+      properties:
+        learner_id:
+          type: integer
+        first_name:
+          type: string
+        school:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - name
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        opens:
+          type: array
+          description: What the child may open, in the order the app shows it.
+          items:
+            type: string
+            enum:
+            - my_day
+            - practice
+            - tutor
+            - library
+        started_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+    ChildModePinInput:
+      type: object
+      additionalProperties: false
+      required:
+      - pin
+      - pin_confirmation
+      properties:
+        pin:
+          type: string
+          pattern: ^[0-9]{4,6}$
+        pin_confirmation:
+          type: string
+    ChildModePinEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - pin
+      properties:
+        pin:
+          type: string
+          pattern: ^[0-9]{4,6}$
+    ChildModeStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ChildModeStatus'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeSessionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ChildModeSession'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeStartResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - token
+          - session
+          properties:
+            token:
+              type: string
+              description: The child token. Send it as the bearer token on the child mode session routes only.
+            session:
+              $ref: '#/components/schemas/ChildModeSession'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeEndedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - ended
+          properties:
+            ended:
+              type: integer
+              minimum: 0
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeLeftResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          anyOf:
+          - type: object
+            additionalProperties: false
+            maxProperties: 0
+          - type: 'null'
         code:
           anyOf:
           - type: integer
