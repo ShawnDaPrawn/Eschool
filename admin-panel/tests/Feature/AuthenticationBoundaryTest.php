@@ -135,6 +135,14 @@ class AuthenticationBoundaryTest extends TestCase
         $this->get('/home')->assertRedirect('/resetpassword');
     }
 
+    public function test_required_password_change_preserves_vendor_portal_sign_out(): void
+    {
+        $user = $this->person('teacher');
+        $user->forceFill(['password_change_required' => true])->save();
+        $this->actingAs($user)->post('/vendor-counter/sign-out')->assertRedirect('/vendor-counter/sign-in');
+        $this->assertGuest();
+    }
+
     public function test_panel_login_with_a_default_password_also_restricts_the_api(): void
     {
         $teacher = $this->person('teacher');

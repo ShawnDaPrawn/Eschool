@@ -25,6 +25,7 @@ class EnforcePasswordChange
         'api/change-password', 'api/logout', 'api/v2/me/context',
         'api/parent/policy-acceptance', 'api/teacher/policy-acceptance',
         'api/v2/facilitator/sign-out', 'api/v2/vendor/sign-out',
+        'api/v2/pool/sign-out', 'api/v2/pool/consent/withdraw',
     ];
 
     public function handle(Request $request, Closure $next)
