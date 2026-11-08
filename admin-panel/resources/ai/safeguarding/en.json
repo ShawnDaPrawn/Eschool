@@ -1,0 +1,18 @@
+{
+    "language": "en",
+    "name": "English",
+    "purpose": "Detection phrases only, for the local safeguarding guard. Never sent to an AI provider, never logged, read-only in HQ.",
+    "categories": {
+        "self_harm": [
+            "kill myself",
+            "end my life",
+            "hurt myself"
+        ],
+        "abuse": [
+            "being abused"
+        ],
+        "sexual_violence": [
+            "sexually assaulted"
+        ]
+    }
+}
