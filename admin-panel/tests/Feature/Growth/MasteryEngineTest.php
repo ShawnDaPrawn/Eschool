@@ -278,6 +278,7 @@ class MasteryEngineTest extends TestCase
             // just as the migration runner does. Keep foreign-key checks active.
             $dependents = [];
             foreach ([
+                '2026_11_08_170000_create_practice_tests.php',
                 '2026_11_07_131300_create_practice_motivation.php',
                 '2026_11_07_100000_create_diagnostic_attempts.php',
                 '2026_11_07_100000_add_practice_question_types.php',

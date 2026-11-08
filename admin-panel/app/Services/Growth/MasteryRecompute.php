@@ -21,6 +21,8 @@ use App\Models\Learning\PracticeItem;
 use App\Models\Learning\PracticeItemVersion;
 use App\Models\Learning\PracticeReview;
 use App\Models\Learning\PracticeSetEntry;
+use App\Models\Learning\Tests\PracticeTest;
+use App\Models\Learning\Tests\PracticeTestQuestion;
 use App\Models\Learning\TutorCheckpoint;
 use App\Models\Learning\TutorSession;
 use App\Models\Library\LibraryItemVersion;
@@ -184,6 +186,36 @@ class MasteryRecompute
                     'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $marked->achieved_units,
                     'maximum_units' => $marked->maximum_units, 'observed_at' => $review->created_at, 'item_key' => $itemKey] + $source);
             $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
+        });
+    }
+
+    /**
+     * A handed-in practice test (Action Plan 3.17): each automatically marked
+     * answer is one piece of practice evidence labelled practice_test. Unanswered
+     * questions and answers still waiting for a marker are not evidence.
+     */
+    public function practiceTest(PracticeTest $test, TeachingGroup $group): void
+    {
+        $this->serialised((int) $group->subject_id, function () use ($test, $group) {
+            $row = PracticeTest::where('learner_id', $test->learner_id)->where('teaching_group_id', $group->id)->whereNotNull('submitted_at')->findOrFail($test->id);
+            $observed = $row->submitted_at->setTimezone(app(CurrentSchool::class)->school()->timezone);
+            foreach (PracticeTestQuestion::where('practice_test_id', $row->id)->where('marking', 'auto')->whereNotNull('correct')->orderBy('position')->get() as $question) {
+                if ($question->library_item_version_id !== null) {
+                    $version = LibraryItemVersion::query()->findOrFail($question->library_item_version_id);
+                    $source = ['content_source' => 'library', 'library_item_version_id' => (int) $version->id];
+                    $itemKey = 'library_item:'.$version->library_item_id;
+                } else {
+                    $version = PracticeItemVersion::findOrFail($question->practice_item_version_id);
+                    PracticeItem::where('topic_id', $question->topic_id)->findOrFail($version->practice_item_id);
+                    $source = ['content_source' => 'school', 'library_item_version_id' => null];
+                    $itemKey = 'practice_item:'.$version->practice_item_id;
+                }
+                MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $row->learner_id, 'topic_id' => $question->topic_id,
+                    'audience' => 'practice', 'source_key' => 'practice_test:'.$question->id], ['grade_level_id' => $group->grade_level_id,
+                        'session_year_id' => $group->session_year_id, 'source_type' => 'practice_test', 'achieved_units' => $question->correct ? 1 : 0,
+                        'maximum_units' => 1, 'observed_at' => $observed, 'item_key' => $itemKey] + $source);
+            }
+            $this->aggregate((int) $row->learner_id, (int) $group->subject_id);
         });
     }
 
