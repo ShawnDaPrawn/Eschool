@@ -138,8 +138,11 @@ class AuthenticationBoundaryTest extends TestCase
     public function test_required_password_change_preserves_vendor_portal_sign_out(): void
     {
         $user = $this->person('teacher');
+        $user->syncRoles('Vendor');
         $user->forceFill(['password_change_required' => true])->save();
-        $this->actingAs($user)->post('/vendor-counter/sign-out')->assertRedirect('/vendor-counter/sign-in');
+        $this->actingAs($user)->withSession(['portal_app' => AppTokens::VENDOR])->post('/vendor-counter/sign-out', [
+            'expected_account_id' => $user->id, 'expected_school_id' => 1,
+        ])->assertRedirect('/vendor-counter/sign-in');
         $this->assertGuest();
     }
 
