@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 
 class AddSuperAdminSeeder extends Seeder
 {
@@ -25,15 +27,24 @@ class AddSuperAdminSeeder extends Seeder
     {
         // Add Super Admin User
         $super_admin_role = Role::where('name', 'Super Admin')->first();
-        $user = User::updateOrCreate(['id' => 1], [
-            'first_name' => 'super',
-            'last_name' => 'admin',
-            'email' => 'superadmin@gmail.com',
-            'password' => Hash::make('superadmin'),
-            'gender' => 'Male',
-            'image' => 'logo.svg',
-            'mobile' => '',
-        ]);
+        $user = User::find(1);
+        if ($user === null) {
+            $credentials = (array) config('installer.admin_area.user');
+            Validator::make($credentials, [
+                'email' => ['required', 'email'],
+                'password' => ['required', 'string', Password::min(10)->letters()->numbers()],
+            ])->validate();
+            $user = User::create([
+                'id' => 1,
+                'first_name' => 'super',
+                'last_name' => 'admin',
+                'email' => $credentials['email'],
+                'password' => Hash::make($credentials['password']),
+                'gender' => 'Male',
+                'image' => 'logo.svg',
+                'mobile' => '',
+            ]);
+        }
         $user->assignRole([$super_admin_role->id]);
 
         SessionYear::updateOrCreate(['id' => 1], [

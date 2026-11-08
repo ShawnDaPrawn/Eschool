@@ -6852,5 +6852,8 @@
     "The current school year has ended.": "The current school year has ended.",
     "This learner has no leaver access to end.": "This learner has no leaver access to end.",
     "The learner is back as a returning learner.": "The learner is back as a returning learner.",
-    "Leaver access ended today for the learner and any guardian with no other child here.": "Leaver access ended today for the learner and any guardian with no other child here."
+    "Leaver access ended today for the learner and any guardian with no other child here.": "Leaver access ended today for the learner and any guardian with no other child here.",
+    "Choose a new password that differs from your current password.": "Choose a new password that differs from your current password.",
+    "Use Forgot Password to choose your password.": "Use Forgot Password to choose your password.",
+    "Use your existing password or choose Forgot Password.": "Use your existing password or choose Forgot Password."
 }

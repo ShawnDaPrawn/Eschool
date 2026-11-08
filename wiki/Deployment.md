@@ -41,7 +41,7 @@ The request limits (see [Security-Model](Security-Model#request-limits)) stop on
 
 Only the web role migrates and seeds. The image includes the `pcntl` extension, which `queue:work` needs for `--timeout` and a clean stop, and sets `zend.exception_ignore_args=On` so exception traces never carry function arguments. The build argument `APP_RELEASE` (the tag or commit) is shown in the logs and Error Reporting. [`docker-compose.yml`](https://github.com/ShawnDaPrawn/Eschool/blob/main/docker-compose.yml) runs the same roles locally; see [Getting-Started](Getting-Started#option-c-docker-compose-the-cloud-run-setup-on-your-machine).
 
-On the first start against an empty database, the web role migrates, seeds the installer data, replaces the seeded `superadmin@gmail.com` / `superadmin` login with `ADMIN_EMAIL` (default `info@tokensoft.tech`) and `ADMIN_PASSWORD`, and writes `storage/installed`. It replaces that login again on any start where it is still in place (for example after the database was recreated while the `.admin-provisioned` marker on the bucket stayed), and refuses to start if `ADMIN_PASSWORD` is then empty.
+On the first start against an empty database, the web role migrates, seeds the installer data using the required `ADMIN_EMAIL` and `ADMIN_PASSWORD`, provisions the administrator, and writes `storage/installed`. The installer validates and hashes the password. The provisioning helper also replaces historical `superadmin@gmail.com` / `superadmin` credentials on older databases, regardless of the `.admin-provisioned` marker, and refuses to do so if `ADMIN_PASSWORD` is empty.
 
 ### Deploys
 

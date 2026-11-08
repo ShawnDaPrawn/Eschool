@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\Facilitators\FacilitatorAccess;
 use App\Services\Facilitators\FacilitatorSignIn;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Identity\LoginIdentity;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
@@ -62,7 +63,7 @@ class FacilitatorAuthBoundariesTest extends TestCase
 
     private function key(): string
     {
-        return 'login-failures:'.strtolower(trim($this->actor->email));
+        return LoginIdentity::failureKey(['id' => $this->actor->id]);
     }
 
     private function input(array $extra = []): array

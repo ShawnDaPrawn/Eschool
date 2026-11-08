@@ -145,14 +145,15 @@ class DateOfBirthPasswordTest extends TestCase
             ->assertJson(['error' => false, 'password_change_required' => true]);
     }
 
-    public function test_apps_that_support_it_are_held_until_the_password_changes(): void
+    public function test_all_apps_are_held_until_the_password_changes(): void
     {
         $learner = $this->person('learner');
         $learner->forceFill(['password_change_required' => true])->save();
         $token = $learner->createToken('student-app')->plainTextToken;
 
-        // An installed app (no header) is not affected.
-        $this->withToken($token)->getJson('/api/student/get-profile-data')->assertOk()->assertJson(['error' => false]);
+        // The server requires the change even if a client omits the header.
+        $this->withToken($token)->getJson('/api/student/get-profile-data')->assertForbidden()
+            ->assertJsonPath('code', EnforcePasswordChange::CODE);
 
         $this->freshDevice();
         $this->withToken($token)->withHeader(EnforcePasswordChange::HEADER, '1')->getJson('/api/student/get-profile-data')

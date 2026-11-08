@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Parent;
 
 use App\Http\Controllers\Api\Parent\Concerns\ParentAccess;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureAccountActive;
 use App\Models\Shift;
 use App\Models\StudentSessions;
 use App\Services\People\Leavers\LeaverState;
@@ -28,8 +29,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required',
-            'password' => 'required',
+            'email' => 'required|string|max:254',
+            'password' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -42,7 +43,7 @@ class AuthController extends Controller
         $identity = app(StudentNumbers::class)->resolveLogin((string) $request->email);
         if ($identity !== null && Auth::attempt(['id' => $identity->id, 'password' => $request->password])) {
             $auth = Auth::user();
-            if (! $auth->hasRole('Parent')) {
+            if (! $auth->hasRole('Parent') || ! EnsureAccountActive::isActive($auth)) {
                 return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
             }
 

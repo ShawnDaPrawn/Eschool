@@ -31,6 +31,20 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
+### Security
+
+- Apply disabled-account and required-password-change checks across authenticated
+  panel, v1 and v2 requests. Count login failures by account across every login
+  alias, and prevent password values being flashed after validation errors.
+- Use single-use invitations for new teachers/staff and random temporary
+  credentials for legacy parent creation/imports. New installations require
+  configured administrator credentials; reseeding no longer resets them.
+- Keep password-reset responses uniform even when mail delivery fails, and
+  throttle authenticated password changes.
+- **Deploy:** qualify older app password-change flows, reset existing predictable
+  passwords through invitations, and verify production settings before release.
+  Evidence and limits: `engineering/security/authentication-review-2026-11-08.md`.
+
 ### Fixed
 
 - API: guardians with leaver-only access can remove a child's photo tag and

@@ -4,23 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Mail\Platform\TemplateMail;
-use App\Models\EmailTemplate;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\LeaveMaster;
 use App\Models\Platform\Role;
 use App\Models\SessionYear;
-use App\Models\Settings;
 use App\Models\Staff;
 use App\Models\StaffAttendance;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Services\IdCardService;
-use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\SharedAccounts;
+use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -558,8 +556,8 @@ class StaffController extends Controller
                     $user->image = '';
                 }
 
-                $staff_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($staff_plain_text_password);
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;
@@ -583,53 +581,6 @@ class StaffController extends Controller
                 // was deleted (it could have been a Super Admin).
                 $user->syncRoles($role);
 
-                $school_name = getSettings('school_name');
-                // $data = [
-                //     'subject' => 'Welcome to '.$school_name['school_name'],
-                //     'name' => $request->first_name.' '.$request->last_name,
-                //     'email' => $request->email,
-                //     'password' => $staff_plain_text_password,
-                //     'school_name' => $school_name['school_name'],
-                //     'role' => $role->name,
-
-                // ];
-
-                // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
-                //     $message->to($data['email'])->subject($data['subject']);
-                // });
-
-                $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
-                    ->pluck('message', 'type')
-                    ->toArray();
-
-                $android_app = $applink['teacher_app_link'] ?? '';
-                $ios_app = $applink['teacher_ios_app_link'] ?? '';
-
-                $school_name = getSettings('school_name');
-                $school_contact = getSettings('school_contact'); // adjust key name to match your Settings table
-                $school_email = getSettings('school_email');
-                $support_email = getSettings('support_email');
-                $support_contact = getSettings('support_contact');
-                $url = url('/');
-
-                $data = [
-                    'subject' => 'Welcome to '.$school_name['school_name'],
-                    'name' => (string) $request->first_name.' '.$request->last_name,
-                    'email' => (string) $request->email,
-                    'password' => (string) $staff_plain_text_password,
-                    'role' => (string) $role->name,
-                    'type' => 'staff_registration',
-                    'school_name' => (string) $school_name['school_name'],
-                    'school_contact' => (string) $school_contact['school_contact'] ?? '',
-                    'school_email' => (string) $school_email['school_email'] ?? '',
-                    'support_email' => (string) $support_email['support_email'] ?? '',
-                    'support_contact' => (string) $support_contact['support_contact'] ?? '',
-                    'android_app' => (string) $android_app,
-                    'ios_app' => (string) $ios_app,
-                    'url' => (string) $url,
-                ];
-
-                MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             } else {
                 $user = new User;
 
@@ -651,8 +602,8 @@ class StaffController extends Controller
                     $user->image = '';
                 }
 
-                $staff_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($staff_plain_text_password);
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;
@@ -669,61 +620,8 @@ class StaffController extends Controller
                 $staff->user_id = $user->id;
                 $staff->save();
 
-                $school_name = getSettings('school_name');
-                $school_email = getSettings('school_email');
-                $school_contact = getSettings('school_contact');
-
-                // $stafftemplate = EmailTemplate::where('type', 'staff_registration')->first();
-                $stafftemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
-
-                // $data = [
-                //     'subject' => 'Welcome to ' . $school_name['school_name'],
-                //     'name' => $request->first_name . ' ' . $request->last_name,
-                //     'email' => $request->email,
-                //     'password' => $staff_plain_text_password,
-                //     'school_name' => $school_name['school_name'],
-                //     'role' => $role->name,
-                //     'body' => $stafftemplate,
-
-                // ];
-
-                // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
-                //     $message->to($data['email'])->subject($data['subject']);
-                // });
-
-                $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
-                    ->pluck('message', 'type')
-                    ->toArray();
-
-                $android_app = $applink['teacher_app_link'] ?? '';
-                $ios_app = $applink['teacher_ios_app_link'] ?? '';
-
-                $school_name = getSettings('school_name');
-                $school_contact = getSettings('school_contact');
-                $school_email = getSettings('school_email');
-                $support_email = getSettings('support_email');
-                $support_contact = getSettings('support_contact');
-                $url = url('/');
-
-                $data = [
-                    'subject' => 'Welcome to '.$school_name['school_name'],
-                    'name' => (string) $request->first_name.' '.$request->last_name,
-                    'email' => (string) $request->email,
-                    'password' => (string) $staff_plain_text_password,
-                    'role' => (string) $role->name,
-                    'type' => 'staff_registration',
-                    'school_name' => (string) $school_name['school_name'],
-                    'school_contact' => (string) ($school_contact['school_contact'] ?? ''),
-                    'school_email' => (string) ($school_email['school_email'] ?? ''),
-                    'support_email' => (string) ($support_email['support_email'] ?? ''),
-                    'support_contact' => (string) ($support_contact['support_contact'] ?? ''),
-                    'android_app' => (string) $android_app,
-                    'ios_app' => (string) $ios_app,
-                    'url' => (string) $url,
-                ];
-
-                MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             }
+            app(StaffInvitations::class)->issue($user->refresh(), Auth::user());
             $joins->recordAdded(Auth::user(), $role);
 
             return ResponseService::successResponse(trans('data_store_successfully'));

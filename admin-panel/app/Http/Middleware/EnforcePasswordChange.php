@@ -11,13 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * An account flagged with users.password_change_required must choose a new
- * password before using the app API, when the app says it can ask for one.
- *
- * Installed apps don't send the header and keep working (their sign-in reply
- * carries password_change_required: true, which they ignore). A client that
- * sends "X-Supports-Password-Change: 1" gets HTTP 403 with code
- * PASSWORD_CHANGE_REQUIRED on the role groups until POST api/change-password
- * (outside those groups) succeeds.
+ * password before using private v1/v2 APIs. Client headers are not authority.
+ * Session context and policy setup remain available so existing apps can
+ * reach their password screen; password changes and sign-out stay open.
  */
 class EnforcePasswordChange
 {
@@ -25,17 +21,23 @@ class EnforcePasswordChange
 
     public const CODE = 'PASSWORD_CHANGE_REQUIRED';
 
+    private const SETUP = [
+        'api/change-password', 'api/logout', 'api/v2/me/context',
+        'api/parent/policy-acceptance', 'api/teacher/policy-acceptance',
+        'api/v2/facilitator/sign-out', 'api/v2/vendor/sign-out',
+    ];
+
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
 
-        if ($user instanceof User && $user->password_change_required && $request->header(self::HEADER) === '1') {
+        if ($user instanceof User && $user->password_change_required && ! $request->is(self::SETUP)) {
             return response()->json([
                 'error' => true,
                 'message' => trans('password_change_required'),
                 'data' => null,
                 'code' => self::CODE,
-            ], Response::HTTP_FORBIDDEN);
+            ], Response::HTTP_FORBIDDEN)->header('Cache-Control', 'no-store, private');
         }
 
         return $next($request);
