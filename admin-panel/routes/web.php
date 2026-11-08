@@ -56,6 +56,7 @@ use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\EarlyYears\EarlyYearsPanelController;
+use App\Http\Controllers\Panel\Emergency\EmergencyPanelController;
 use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
 use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
@@ -213,6 +214,7 @@ use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
+use App\Http\Requests\Emergency\EmergencyPanelRequest;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -1782,6 +1784,13 @@ Route::middleware(['Role', 'auth', 'school.context'])->prefix('navigate-ed-annou
     Route::get('/', [SchoolAnnouncementController::class, 'index'])->name('index');
     Route::get('/{announcement}', [SchoolAnnouncementController::class, 'show'])->whereNumber('announcement')->name('show');
     Route::post('/{announcement}/read', [SchoolAnnouncementController::class, 'read'])->middleware('throttle:60,1')->whereNumber('announcement')->name('read');
+});
+
+// Emergency management (Action Plan 5.8): engineering/specs/community/emergency-management.md.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('emergency')->name('emergency-panel.')->group(function () {
+    $controller = EmergencyPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::post('{operation}', [$controller, 'write'])->whereIn('operation', EmergencyPanelRequest::OPERATIONS)->middleware('throttle:60,1')->name('write');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('family-visits')->name('family-visits-panel.')->group(function () {

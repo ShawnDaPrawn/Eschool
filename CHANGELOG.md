@@ -108,6 +108,28 @@
 
 ## 2026-11-03
 
+- Admin panel and API: Emergency management (Action Plan 5.8), a new module,
+  off until the school switches it on. Roles the school names (the new "Send
+  emergency alerts and lockdowns" ability; principal and deputy principal
+  templates have it) send a lockdown, evacuation, shelter-in-place or general
+  emergency alert to all staff and every family, or to staff only, in two
+  steps: prepare it, then type its confirmation word to send it. Learners are
+  never sent alerts. Alerts go by push, email and in-app, and by SMS and
+  WhatsApp wherever the school switched them on, and are never held for quiet
+  hours. The all-clear goes to the same people, and who prepared, sent and
+  cleared each alert is recorded. A drill says "DRILL" and "This is a drill.
+  There is no emergency." in every message, and fills in the drill log
+  (planned and actual times, type and notes). Gate staff sign visitors in with
+  a guardian card at the gate reader or by hand; the visitors on site show in
+  the roll call, and their details are erased after the school's retention
+  period (30 days unless the school changes it). During an alert, class
+  teachers take their class's roll call, and a child is released only to one
+  of their guardians (checked by guardian card or identity document) or to the
+  named collector of an early collection request approved for today; anyone
+  else is refused and every release is logged. Guardians see only their own
+  children's status. App screens come later.
+  engineering/specs/community/emergency-management.md. **Deploy:** run the
+  migrations; the daily `emergency:purge-visitors` task is scheduled.
 - When an admin panel browser CI part fails, CI now prints the PHP OPcache/JIT settings and the kernel's note on any PHP process it killed, so a panel server that stops without a PHP error can be diagnosed.
 - Keep diary test fixtures and requests on the same clock so the Monday overdue-homework check is independent of the run date.
 - Refresh the strict HQ route inventory while retaining every route authorization assertion.

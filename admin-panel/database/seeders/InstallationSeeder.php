@@ -34,6 +34,7 @@ class InstallationSeeder extends Seeder
             ['name' => 'ai-settings-manage'],
             ['name' => 'ai-flags-review'],
             ['name' => 'cards-manage'], ['name' => 'cards-readers-manage'], ['name' => 'cards-encode'],
+            ['name' => 'emergency-alert-send'], ['name' => 'emergency-respond'], ['name' => 'emergency-manage'],
             ['name' => 'oneroster-export'],
             ['name' => 'pastoral-sensitive-access'], ['name' => 'activity-groups-manage'], ['name' => 'wellbeing-configure'],
             ['name' => 'marks-view-all'], ['name' => 'marks-release'],

@@ -15,7 +15,7 @@ product modules (`config/product_modules.php`):
 | Futures | pathways, school transfers, learner passport |
 | Leadership and staff | leadership dashboard, relief cover |
 | Finance | fees, wallets, vendors, counter payments, ticketing, bursary applications, alumni giving |
-| Access and admissions | ID cards, online registration, re-enrolment contracts |
+| Access and admissions | ID cards, emergency management, online registration, re-enrolment contracts |
 
 Each has a **readiness level** (1 designed, 2 partly built, 3 built but
 unproven, 4 verified on staging with real services, 5 used by a real school)
