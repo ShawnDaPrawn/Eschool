@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Commerce\VendorOperatorAccess;
 use App\Services\Facilitators\FacilitatorAccess;
 use App\Services\People\Leavers\LeaverAccess;
+use App\Services\People\Pools\PoolAccess;
 use App\Services\Platform\Identity\ExpectedAccount;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\StudentNumbers;
@@ -79,6 +80,9 @@ class SetSchoolContext
             return $next($request);
         }
         ExpectedAccount::check($request);
+        // A pool sign-in (Action Plan 5.6) opens the pool member routes only,
+        // which use PoolMemberContext instead of this middleware.
+        app(PoolAccess::class)->refuseOutsidePool($request);
 
         if ($this->currentSchool->isImpersonating()) {
             return $next($request);

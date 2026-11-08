@@ -237,6 +237,8 @@ bounded tenant purge removes message bodies while retaining minimal receipts.
 
 `career_profiles` and `career_profile_versions` (Action Plan 4.9) are school-owned in the same way: required indexed foreign keys, scoped models and a composite current-version foreign key. A career profile can link only the school's own subjects, mastery topics and programme sources. The catalogue is not shared between schools; each school reviews and publishes its own sourced entries.
 
+`people_pool_members`, `people_pool_vettings`, `people_pool_bookings` and `people_pool_operations` (Action Plan 5.6) are school-owned: each school's pool, vetting history and bookings. Vettings and bookings reference members by `(school_id, pool_member_id)`. Pool accounts hold no school membership; their token is bound to one school and opens only the pool member routes. Nothing is shared between schools in this step (see engineering/specs/community/people-pools.md).
+
 Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_hours` and reference-only `peer_tutoring_operations`. All models use the existing school boundary.
 
 The learner diary adds school-owned `diary_entries` and `diary_item_states`, each bound to one learner's `user_id`. Text is encrypted with a key derived per school and learner, so a row copied into another school's context cannot be read there either. School items are computed per read from the current school's own homework, holidays and events; nothing is copied across schools.
