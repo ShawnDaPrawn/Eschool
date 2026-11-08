@@ -357,6 +357,17 @@ book), holding no school or learner data. A school's hidden shelves and books
 `reading_progress`, `reading_days` and `reading_answers` are required
 school-owned ([reading library](../learning/reading-library.md)).
 
+### Marking accuracy gate (Action Plan 3.18)
+
+`marking_evaluation_papers`, `marking_evaluation_scripts`,
+`marking_evaluation_runs` and `marking_subject_gates` are global: Navigate Ed's
+own evaluation data, written only from `/saas/marking-accuracy`; their models
+refuse any write while a school is the current school. Scripts are
+de-identified on import and have no learner, school or school-record column;
+the source's own script reference is kept only as a keyed hash. Evaluation
+papers carry their own mark points rather than pointing at a school's memo
+([marking accuracy gate](../learning/marking-accuracy-gate.md)).
+
 ### Invitations to join another school
 
 `school_join_invitations` is required school-owned: the inviting school's
