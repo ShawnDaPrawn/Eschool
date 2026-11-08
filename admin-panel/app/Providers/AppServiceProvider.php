@@ -8,6 +8,7 @@ use App\Exceptions\TooManyLoginFailures;
 use App\Services\FormService;
 use App\Services\Platform\Files\ClamAv;
 use App\Services\Platform\Files\UploadScanner;
+use App\Services\Platform\Identity\LoginIdentity;
 use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\SettingsConfigService;
 use Illuminate\Auth\Events\Attempting;
@@ -59,12 +60,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Wrong passwords are counted per account, whichever app, page or address
      * they come from, and 10 in an hour stop sign-ins to that account until the
-     * hour is up. App passwords default to dates of birth, which per-minute
+     * hour is up. Legacy passwords may still be dates of birth, which per-minute
      * limits alone would let someone guess within a day or two.
      */
     private function limitFailedLogins(): void
     {
-        $key = fn (array $credentials) => 'login-failures:'.strtolower(trim((string) ($credentials['email'] ?? '')));
+        $key = fn (array $credentials) => LoginIdentity::failureKey($credentials);
 
         Event::listen(Attempting::class, function (Attempting $event) use ($key) {
             if (RateLimiter::tooManyAttempts($key($event->credentials), TooManyLoginFailures::MAX_FAILURES)) {
@@ -72,6 +73,6 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         Event::listen(Failed::class, fn (Failed $event) => RateLimiter::hit($key($event->credentials), 3600));
-        Event::listen(Login::class, fn (Login $event) => RateLimiter::clear($key(['email' => $event->user->email ?? ''])));
+        Event::listen(Login::class, fn (Login $event) => RateLimiter::clear($key(['id' => $event->user->getAuthIdentifier()])));
     }
 }

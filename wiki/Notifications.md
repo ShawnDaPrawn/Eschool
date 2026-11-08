@@ -169,11 +169,11 @@ The editor is **System Settings > Email Template**: `GET email-tamplate` (route 
 | Email | Trigger | Recipients | Template / view | Subject |
 |---|---|---|---|---|
 | Parent welcome with credentials | `Student\StudentController::store` (admission) | Father and mother, or guardian | `student_registration` / `students.email` | `Welcome to <school_name>` |
-| Parent welcome with credentials | `Student\OnlineRegistrationController::updateStatus` with status 1 (online registration accepted) | The student's parents | `student_registration` / `students.email` | as above |
+| Parent welcome with password-recovery instructions | `Student\OnlineRegistrationController::updateStatus` with status 1 (online registration accepted) | The student's parents | `student_registration` / `students.email` | as above |
 | Registration rejected | `Student\OnlineRegistrationController::updateStatus` with another status (user `status` set to 2) | The student's parents | `student_application_regect` / `students.email` | `Response To Online Registration` |
 | Parent welcome on bulk upload | `StudentsImport::collection()` (Students > Add Bulk Data) | Father, mother, guardian of each row | `student_registration` / `students.email` | `Welcome to <school_name>` |
-| Teacher welcome | `TeacherController::store` | The teacher | `staff_registration` / `teacher.email` | `Welcome to <school_name>` |
-| Staff welcome | `StaffController::store` | The staff member | `staff_registration` / `staff.email` | `Welcome to <school_name>` |
+| Teacher welcome | `TeacherController::store` | The teacher | `TemplateMail::staffWelcome` / `teacher.email` | `Welcome to <school_name>` |
+| Staff welcome | `StaffController::store` | The staff member | `TemplateMail::staffWelcome` | `Welcome to <school_name>` |
 | Contact-form reply | `POST contact-us/reply/{id}` (`WebSettingController::reply`, permission `contact-us`) | The `email` posted with the reply | view `web_settings/testmail.blade.php`, attachments allowed | `Reply to Your Query` |
 | Mail settings test | `POST verify-email-settings` | The address entered | view `mail.blade.php` | `Connection Verified successfully` |
 | Password reset link | Web `POST password/email` (`ForgotPasswordController`, `throttle:login`) and API `POST /api/forgot-password` (`ApiController::forgotPassword`, `throttle:login`) | The account email | Laravel's default reset notification | Laravel default |
@@ -182,11 +182,10 @@ Every mail in the table except the mail settings test is queued (see [Queued del
 
 Sender: the student/parent emails in `Student\StudentController` and `Student\OnlineRegistrationController`, and the contact-us reply call `from(config('mail.from.address'), <school name>)`; the teacher, staff and bulk-import emails do not set a sender, so Laravel uses `mail.from.address` and `mail.from.name` (which normally follows the school name, see above).
 
-Generated passwords are the person's date of birth as `ddmmyyyy` (`str_replace('-', '', date('d-m-Y', ...))`); the student's GR number is used as the login "email". `POST /api/student/forgot-password` sends no email: when the GR number and date of birth match it sets `users.reset_request = 1`, and staff reset the password from **Students > Students Reset Password** (`reset-password-list`, `student-change-password`, permission `student-reset-password`). The API answer is the same whether or not an account matched.
+New parent passwords are random temporary credentials that must be changed. Existing parents keep their password during imports and application acceptance; recovery instructions replace any obsolete date-of-birth password in those emails. Staff choose passwords through single-use email reset links. Learners use invitations or, when guardian email is unavailable, printed setup codes. The student's GR number remains the login identifier. `POST /api/student/forgot-password` sends no email: when the GR number and date of birth match it sets `users.reset_request = 1`, and staff issue a secure reset from **Students > Students Reset Password**. The API answer is the same whether or not an account matched.
 
 Known problems, as written:
 
-- `TeacherController::store`, when it restores a soft-deleted user with the same email, sends `teacher.email` without `body`; `MailService` catches the render error before queueing and logs the (redacted) payload.
 - The contact-us reply reports success even when sending fails; it now means "queued", and a failed send shows in `notification_deliveries`.
 - Welcome emails for parents use the `teacher_app_link` / `teacher_ios_app_link` settings as their `android_app` / `ios_app` values.
 

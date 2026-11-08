@@ -5353,5 +5353,8 @@
     "Set the school currency first": "Set the school currency first",
     "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.",
     "Open wallet settings": "Open wallet settings",
-    "Ask Finance to configure the school wallet currency.": "Ask Finance to configure the school wallet currency."
+    "Ask Finance to configure the school wallet currency.": "Ask Finance to configure the school wallet currency.",
+    "Choose a new password that differs from your current password.": "Choose a new password that differs from your current password.",
+    "Use Forgot Password to choose your password.": "Use Forgot Password to choose your password.",
+    "Use your existing password or choose Forgot Password.": "Use your existing password or choose Forgot Password."
 }

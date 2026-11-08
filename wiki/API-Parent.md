@@ -655,7 +655,7 @@ No parameters except `page`. Returns a paginator (15 per page, newest first) of 
 
 ### GET `teachers`
 
-`child_id` (numeric) is required. Lists the child's class teachers and subject teachers for the child's subjects, in the child's current class section and session year (current term for term classes). `data`: `[{id, user_id, first_name, last_name, qualification, email, image, mobile_no, subjects}]`, where `subjects` is a comma-separated string of the subjects the teacher takes in that class section. Teachers' `dob` is not returned, because a teacher's date of birth is their default password (removed in c890813).
+`child_id` (numeric) is required. Lists the child's class teachers and subject teachers for the child's subjects, in the child's current class section and session year (current term for term classes). `data`: `[{id, user_id, first_name, last_name, qualification, email, image, mobile_no, subjects}]`, where `subjects` is a comma-separated string of the subjects the teacher takes in that class section. Teachers' `dob` is not returned: it is private information and older accounts may still have used it as a password. New teacher accounts use password invitations.
 
 ## Chat with teachers
 

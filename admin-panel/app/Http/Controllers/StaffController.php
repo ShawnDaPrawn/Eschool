@@ -19,6 +19,8 @@ use App\Models\User;
 use App\Services\IdCardService;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -526,6 +528,7 @@ class StaffController extends Controller
                 DB::table('users')->where('id', $user_exists->id)->update(['deleted_at' => null]);
 
                 $user = User::findOrFail($user_exists->id);
+                AppTokens::revokeAll($user);
 
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
@@ -545,8 +548,9 @@ class StaffController extends Controller
                     $user->image = '';
                 }
 
-                $staff_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($staff_plain_text_password);
+                $staff_plain_text_password = trans('Use Forgot Password to choose your password.');
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;
@@ -556,6 +560,7 @@ class StaffController extends Controller
                 $user->dob = date('Y-m-d', strtotime($request->dob));
                 $user->current_address = $request->address;
                 $user->save();
+                $user->forceFill(['password_change_required' => true])->save();
 
                 $check_staff = SchoolTable::query('staffs')->where('user_id', $user->id)->whereNotNull('deleted_at');
                 if ($check_staff->count()) {
@@ -638,8 +643,9 @@ class StaffController extends Controller
                     $user->image = '';
                 }
 
-                $staff_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($staff_plain_text_password);
+                $staff_plain_text_password = trans('Use Forgot Password to choose your password.');
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;

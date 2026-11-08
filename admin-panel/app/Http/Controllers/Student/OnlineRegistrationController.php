@@ -319,7 +319,7 @@ class OnlineRegistrationController extends Controller
                         continue;
                     }
 
-                    $parent_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($parent->dob)));
+                    $parent_plaintext_password = trans('Use Forgot Password to choose your password.');
 
                     $parent_data = [
                         'subject' => 'Welcome to '.$school_name,

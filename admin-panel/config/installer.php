@@ -105,8 +105,8 @@ return [
 
     'admin_area' => [
         'user' => [
-            'email' => 'superadmin@gmail.com',
-            'password' => 'superadmin',
+            'email' => env('ADMIN_EMAIL', ''),
+            'password' => env('ADMIN_PASSWORD', ''),
         ],
     ],
 

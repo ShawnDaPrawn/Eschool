@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Identity;
 
+use App\Http\Middleware\EnsureAccountActive;
 use App\Models\User;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -48,6 +49,7 @@ final class AppTokens
     /** Revokes the account's earlier tokens for this app and issues a new one. */
     public static function issue(User $user, string $app): string
     {
+        abort_unless(EnsureAccountActive::isActive($user), 401);
         app(ApprovalService::class)->assertAccess($user);
         if ($app === self::STUDENT) {
             app(LearnerAcademicAccess::class)->assertUser($user);

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\ResponseService;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 class ForgotPasswordController extends Controller
 {
@@ -24,6 +26,21 @@ class ForgotPasswordController extends Controller
     */
 
     use SendsPasswordResetEmails;
+
+    public function sendResetLinkEmail(Request $request): RedirectResponse|JsonResponse
+    {
+        $this->validateEmail($request);
+
+        try {
+            $this->broker()->sendResetLink($this->credentials($request));
+        } catch (Throwable $e) {
+            // Delivery errors occur only for real accounts. Keep them out of
+            // the public response just as the API reset endpoint does.
+            ResponseService::logErrorResponse($e);
+        }
+
+        return $this->sendResetLinkResponse($request, null);
+    }
 
     /**
      * The same answer whether or not the address has an account (or was just

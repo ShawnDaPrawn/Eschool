@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Exception;
@@ -110,6 +111,7 @@ class TeacherController extends Controller
                 $user_exists = $check_user->first();
                 DB::table('users')->where('id', $user_exists->id)->update(['deleted_at' => null]);
                 $user = User::findOrFail($user_exists->id);
+                AppTokens::revokeAll($user);
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
@@ -126,8 +128,9 @@ class TeacherController extends Controller
                 } else {
                     $user->image = '';
                 }
-                $teacher_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($teacher_plain_text_password);
+                $teacher_plain_text_password = trans('Use Forgot Password to choose your password.');
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;
@@ -138,6 +141,7 @@ class TeacherController extends Controller
                 $user->mobile = $request->mobile;
                 $user->dob = date('Y-m-d', strtotime($request->dob));
                 $user->update();
+                $user->forceFill(['password_change_required' => true])->save();
 
                 $check_teacher = SchoolTable::query('teachers')->where('user_id', $user->id)->whereNotNull('deleted_at');
                 if ($check_teacher->count()) {
@@ -247,8 +251,9 @@ class TeacherController extends Controller
                 } else {
                     $user->image = '';
                 }
-                $teacher_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($teacher_plain_text_password);
+                $teacher_plain_text_password = trans('Use Forgot Password to choose your password.');
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;

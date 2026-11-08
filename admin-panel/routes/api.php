@@ -209,7 +209,7 @@ Route::group(['prefix' => 'teacher'], function () {
 
     // Authenticated APIs
     // teacher.active: a deactivated teacher's old tokens stop working (401).
-    // password.change: a flagged account must change its password first, when the app supports it.
+    // password.change: a flagged account must change its password first.
     Route::group(['middleware' => ['auth:sanctum', 'school.context', 'role:Teacher', 'teacher.active', 'teacher.policy', 'password.change']], function () {
         Route::get('dashboard', [Teacher\DashboardController::class, 'dashboard']);
         Route::get('classes', [Teacher\ClassController::class, 'classes']);
@@ -320,5 +320,5 @@ Route::middleware('school.context:public')->group(function () {
     Route::get('get-gallery-videos', [ApiController::class, 'getGalleryVideos']);
 });
 Route::group(['middleware' => ['auth:sanctum', 'school.context:optional']], function () {
-    Route::post('change-password', [ApiController::class, 'changePassword']);
+    Route::post('change-password', [ApiController::class, 'changePassword'])->middleware('throttle:password');
 });

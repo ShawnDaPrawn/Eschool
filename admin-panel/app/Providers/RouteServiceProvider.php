@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Services\Platform\Identity\LoginIdentity;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -94,7 +95,7 @@ class RouteServiceProvider extends ServiceProvider
         // and every app) as well as per address. Wrong passwords are also counted
         // over a longer time; see AppServiceProvider::limitFailedLogins().
         RateLimiter::for('login', function (Request $request) {
-            $account = strtolower(trim((string) ($request->input('email') ?? $request->input('gr_number') ?? $request->input('gr_no') ?? '')));
+            $account = LoginIdentity::key($request->input('email') ?? $request->input('handle') ?? $request->input('gr_number') ?? $request->input('gr_no'));
 
             return [
                 Limit::perMinute(5)->by('login:'.$account),
@@ -124,11 +125,12 @@ class RouteServiceProvider extends ServiceProvider
     protected function configureApiV2RateLimiting(): void
     {
         RateLimiter::for('auth', function (Request $request) {
-            $account = strtolower(trim((string) ($request->input('email') ?? $request->input('handle') ?? $request->input('gr_number') ?? '')));
+            $login = $request->input('email') ?? $request->input('handle') ?? $request->input('gr_number');
+            $account = is_string($login) && trim($login) !== '' ? LoginIdentity::key($login) : 'ip:'.$request->ip();
 
             return [
                 // Without an account name, guesses are still counted per address.
-                Limit::perMinute(5)->by('auth:'.($account !== '' ? $account : 'ip:'.$request->ip())),
+                Limit::perMinute(5)->by('auth:'.$account),
                 Limit::perMinute(20)->by('auth-ip:'.$request->ip()),
             ];
         });

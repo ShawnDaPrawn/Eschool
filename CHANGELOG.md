@@ -21,6 +21,15 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
+### Authentication security patch for v0.1.1
+
+- Block disabled accounts and enforce required password changes across the panel
+  and both API versions. Count login failures consistently across account aliases.
+- Replace predictable starter passwords, require configured installation
+  credentials, and protect password recovery and validation responses.
+- New staff choose passwords through the existing email reset flow.
+- No database migration or unrelated feature update is included.
+
 ### Added
 
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit

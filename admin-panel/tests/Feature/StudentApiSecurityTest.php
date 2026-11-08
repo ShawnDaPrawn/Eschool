@@ -183,7 +183,7 @@ class StudentApiSecurityTest extends TestCase
         $student = User::findOrFail($this->ids['student_user']);
         $token = $student->createToken('test')->plainTextToken;
         $student->forceFill(['status' => 0])->save();
-        $this->assertSame(403, $this->api($token)->get('/api/student/subjects')->status());
+        $this->assertSame(401, $this->api($token)->get('/api/student/subjects')->status());
 
         // Logging in doesn't hand out a token to a deactivated account either.
         PersonalAccessToken::query()->delete();

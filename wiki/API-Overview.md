@@ -240,17 +240,17 @@ RateLimiter::for('api', function (Request $request) {
 });
 
 RateLimiter::for('login', function (Request $request) {
-    $account = strtolower(trim((string) ($request->input('email') ?? $request->input('gr_number') ?? $request->input('gr_no') ?? '')));
+    $account = LoginIdentity::key($request->input('email') ?? $request->input('handle') ?? $request->input('gr_number') ?? $request->input('gr_no'));
 
     return [
-        Limit::perMinute(5)->by('login:'.$request->path().'|'.$account),
+        Limit::perMinute(5)->by('login:'.$account),
         Limit::perMinute(20)->by('login-ip:'.$request->ip()),
     ];
 });
 ```
 
 - `api` applies to every API route. `login` is added on top for the five login/reset routes, and also on the web `password/email` route.
-- The per-account key includes the path, so `student/login` and `student/forgot-password` are counted separately. The comment in the code gives the reason: default passwords are dates of birth.
+- The per-account key is shared across routes and resolves email, handle and GR-number aliases to the same account. Unknown identifiers receive separate hashed keys.
 - Exceeding a limit returns HTTP 429 (`ThrottleRequestsException`), as JSON only when the request sends `Accept: application/json`.
 - API v2 adds two limiters on top of `api`, defined in `RouteServiceProvider::configureApiV2RateLimiting()`: `auth` (5 a minute per account, 20 per address) and `money` (30 a minute per token). See [API v2 rate limits](#rate-limits).
 
