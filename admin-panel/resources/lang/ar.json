@@ -5775,7 +5775,7 @@
     "This learner has no leaver access to end.": "This learner has no leaver access to end.",
     "The learner is back as a returning learner.": "The learner is back as a returning learner.",
     "Leaver access ended today for the learner and any guardian with no other child here.": "Leaver access ended today for the learner and any guardian with no other child here.",
-    "Emergency management": "إدارة الطوارئ",
+    "Practice tests": "Practice tests",
     "OneRoster export": "OneRoster export",
     "The roster contains an unsafe spreadsheet value. Correct the source data before preparing another export.": "The roster contains an unsafe spreadsheet value. Correct the source data before preparing another export.",
     "nav_activity_fixtures": "Fixtures between schools",
@@ -5952,7 +5952,6 @@
     "You might enjoy finding out about": "You might enjoy finding out about",
     "Your activities this year, and the skills you are building in them.": "Your activities this year, and the skills you are building in them.",
     "Your daily practice will show what you remember well.": "Your daily practice will show what you remember well.",
-    "Emergency alerts and lockdowns go to guardians by every channel switched on here. For staff texts, choose the staff channels below. Number verification and each person’s own choices still apply.": "Emergency alerts and lockdowns go to guardians by every channel switched on here. For staff texts, choose the staff channels below. Number verification and each person’s own choices still apply.",
     "Your school joined the group. Its administrators now see your school's figures as described.": "Your school joined the group. Its administrators now see your school's figures as described.",
     "Invitation declined. Nothing about your school was shared.": "Invitation declined. Nothing about your school was shared.",
     "Your school left the group. The group no longer sees your school.": "Your school left the group. The group no longer sees your school.",
@@ -6208,5 +6207,7 @@
     "Value, expression, terms or figures": "Value, expression, terms or figures",
     "Expression: :value": "Expression: :value",
     "Terms: :value": "Terms: :value",
-    "Significant figures: :value": "Significant figures: :value"
+    "Significant figures: :value": "Significant figures: :value",
+    "Emergency management": "إدارة الطوارئ",
+    "Emergency alerts and lockdowns go to guardians by every channel switched on here. For staff texts, choose the staff channels below. Number verification and each person’s own choices still apply.": "Emergency alerts and lockdowns go to guardians by every channel switched on here. For staff texts, choose the staff channels below. Number verification and each person’s own choices still apply."
 }
