@@ -16,6 +16,9 @@
         <section class="page-section" aria-labelledby="promotion-summary">
             <h2 id="promotion-summary">{{ __('From :from into :to', ['from' => $from->name, 'to' => $to->name]) }}</h2>
             <p>{{ __(':promote promoted, :repeat repeating, :place placed, :leave leaving. :already already have a place for next year and stay as they are.', $plan['totals']) }}</p>
+            @if (($plan['reenrolment'] ?? null) !== null)
+                <p>{{ __('Re-enrolment contracts for :year: :confirmed confirmed, :awaiting still waiting. This is for information; it does not change the promotion.', ['year' => $to->name, 'confirmed' => $plan['reenrolment']['confirmed'], 'awaiting' => $plan['reenrolment']['awaiting']]) }}</p>
+            @endif
             @if ($plan['unresolved'] > 0)
                 <p role="alert">{{ __('Choose a homeroom for every learner who has none (:count).', ['count' => $plan['unresolved']]) }}</p>
             @endif
@@ -59,7 +62,7 @@
                             <tbody>
                             @foreach ($homeroom['learners'] as $learner)
                                 <tr>
-                                    <th scope="row">{{ $learner['name'] }}</th>
+                                    <th scope="row">{{ $learner['name'] }}@if (($learner['reenrolment'] ?? null) === 'confirmed')<br><x-m3.chip status="success">{{ __('Re-enrolment confirmed') }}</x-m3.chip>@elseif (($learner['reenrolment'] ?? null) === 'awaiting')<br><x-m3.chip status="neutral">{{ __('Re-enrolment awaited') }}</x-m3.chip>@endif</th>
                                     <td>{{ $learner['admission_no'] }}</td>
                                     @if ($learner['already'] === 'placed')
                                         <td colspan="2">{{ __('Already placed in :room', ['room' => $learner['already_name'] ?? '']) }}</td>

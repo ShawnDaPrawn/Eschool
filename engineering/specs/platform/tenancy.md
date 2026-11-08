@@ -533,6 +533,17 @@ current school's rows ([mastery impact](../leadership/mastery-impact.md)).
 progress against its own interventions and its learners' check-ins. Another
 school's ids are not found ([check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)).
 
+### Independent school business tools
+
+`school_business_operations`, `reenrolment_contracts`,
+`reenrolment_acceptances`, `reenrolment_confirmations`, `bursary_applications`,
+`bursary_documents`, `bursary_events`, `giving_campaigns`, `giving_pledges` and
+`giving_donations` are required school-owned. Contracts, acceptances,
+applications and donations reference their school's own session years,
+learners, fee discounts and ledger rows through composite `(school_id, id)`
+foreign keys, so a row can never point into another school. Another school's
+ids are not found ([school business tools](../money/school-business-tools.md)).
+
 ### School groups
 
 `school_groups`, `school_group_admins`, `school_group_invoices` and

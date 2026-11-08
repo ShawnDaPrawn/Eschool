@@ -40,6 +40,8 @@ return [
     'academics.register_amended' => ['label' => 'Register amended', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'academics.timetable_changed' => ['label' => 'Timetable changes', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'attendance.absence' => ['label' => 'Absence alert', 'module' => 'academics', 'portals' => $all, 'channels' => $on, 'locked' => ['parent'], 'mandatory_channels' => ['push', 'email', 'in_app'], 'quiet_hours_exempt' => true],
+    'reenrolment.requested' => ['label' => 'Re-enrolment for next year', 'module' => 'reenrolment', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
+    'bursary.updated' => ['label' => 'Bursary application updates', 'module' => 'bursaries', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'fees.ledger_reminder' => ['label' => 'Fee statement reminders', 'module' => 'fees', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'fees.invoice' => ['label' => 'Fee invoice', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],
     'fees.reminder' => ['label' => 'Fee reminder', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],

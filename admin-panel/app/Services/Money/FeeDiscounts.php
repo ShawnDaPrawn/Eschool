@@ -12,7 +12,9 @@ use App\Models\SessionYear;
 use App\Models\User;
 use App\Policies\Money\MoneyPolicy;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 
@@ -32,44 +34,68 @@ final class FeeDiscounts
         $data['staff_roles'] = $data['staff_roles'] ?? null;
         $data['independent_approval'] = (bool) $data['independent_approval'];
         $data['id'] = $id;
-        $receipt = app(BillingOperations::class)->once($actor, self::PERMISSION, 'fee_discount_save', $data, function () use ($actor, $data, $id): array {
-            $year = SessionYear::where('default', 1)->lockForUpdate()->findOrFail($data['session_year_id']);
-            app(FeePlans::class)->year($year);
-            abort_unless($data['starts_on'] >= substr((string) $year->start_date, 0, 10) && $data['ends_on'] <= substr((string) $year->end_date, 0, 10), 422, 'Discount dates must fit the current school year.');
-            if ($data['learner_id'] !== null) {
-                abort_unless(Enrolment::where('session_year_id', $year->id)->where('learner_id', $data['learner_id'])->where('legacy_dates', false)->lockForUpdate()->exists(), 422, 'Choose a learner with confirmed enrolment in this school year.');
-            }
-            if ($data['fee_plan_id'] !== null) {
-                FeePlan::where('session_year_id', $year->id)->where('currency', $data['currency'])->lockForUpdate()->findOrFail($data['fee_plan_id']);
-            }
-            if ($data['fee_item_id'] !== null) {
-                FeeItem::where('currency', $data['currency'])->lockForUpdate()->findOrFail($data['fee_item_id']);
-            }
-            abort_unless(($data['source_kind'] === 'annual_tuition' && $data['fee_item_id'] === null) || ($data['source_kind'] === 'fee_item' && $data['fee_item_id'] !== null && $data['fee_plan_id'] === null), 422, 'Select an explicit tuition or item source.');
-            abort_unless(! in_array($data['kind'], ['bursary', 'exemption'], true) || $data['learner_id'] !== null, 422, 'Individual bursaries and exemptions need a named learner.');
-            abort_unless($data['amount_kind'] !== 'percent' || $data['amount_value'] <= 10000, 422, 'Percentage discounts use at most 10000 basis points.');
-            abort_unless($data['kind'] !== 'exemption' || ($data['amount_kind'] === 'percent' && $data['amount_value'] === 10000), 422, 'An exemption is an explicit full reduction.');
-            abort_unless(($data['kind'] === 'sibling') === ($data['sibling_position'] !== null), 422, 'Only sibling discounts use an explicit qualifying child position.');
-            abort_unless(($data['kind'] === 'early_settlement' && $data['minimum_paid_bp'] !== null && isset($data['payment_deadline'])) || ($data['kind'] !== 'early_settlement' && $data['minimum_paid_bp'] === null && ! isset($data['payment_deadline'])), 422, 'Only early settlement uses an explicit paid threshold and deadline.');
-            abort_unless(($data['kind'] === 'staff' && is_array($data['staff_roles']) && count($data['staff_roles']) > 0) || ($data['kind'] !== 'staff' && $data['staff_roles'] === null), 422, 'Choose explicit staff roles for staff discounts only.');
-            if ($data['staff_roles'] !== null) {
-                $roles = Role::where('school_id', app(CurrentSchool::class)->id())->whereIn('name', $data['staff_roles'])->whereNotIn('name', ['Student', 'Parent', 'Vendor'])->lockForUpdate()->pluck('name')->all();
-                sort($roles);
-                sort($data['staff_roles']);
-                abort_unless($roles === $data['staff_roles'], 422, 'Choose distinct current school staff roles.');
-            }
-            $rule = $id === null ? new FeeDiscount : FeeDiscount::lockForUpdate()->findOrFail($id);
-            abort_unless((int) ($rule->revision ?? 0) === $data['revision'], 409, 'The discount rule changed. Reopen it before saving.');
-            abort_unless(! $rule->exists || (int) $rule->session_year_id === $data['session_year_id'], 422, 'Create a new rule for another school year.');
-            $fields = array_intersect_key($data, array_flip(['name', 'kind', 'source_kind', 'session_year_id', 'learner_id', 'fee_plan_id', 'fee_item_id', 'currency', 'starts_on', 'ends_on', 'amount_kind', 'amount_value', 'sibling_position', 'minimum_paid_bp', 'payment_deadline', 'overlap', 'independent_approval', 'staff_roles']));
-            $fields['payment_deadline'] = $fields['payment_deadline'] ?? null;
-            $rule->fill($fields + ['state' => 'draft', 'revision' => $data['revision'] + 1, 'prepared_by' => $actor->id, 'approved_by' => null])->save();
-            Audit::record('money.fee_discount_rule_saved', $rule, [], ['revision' => $rule->revision, 'state' => 'draft']);
-
-            return ['id' => (int) $rule->id];
-        });
+        $receipt = app(BillingOperations::class)->once($actor, self::PERMISSION, 'fee_discount_save', $data, fn (): array => $this->write($actor, $data, $id));
 
         return FeeDiscount::findOrFail($receipt['id']);
+    }
+
+    /**
+     * A bursary committee's award as a draft bursary rule (Action Plan 5.10).
+     * Called inside the caller's locked transaction: the same checks as a
+     * Finance draft, with a separate Finance approver always required before
+     * the rule can reduce any invoice. Fees must be writable.
+     */
+    public function draftBursary(User $preparer, array $input): FeeDiscount
+    {
+        abort_unless(DB::transactionLevel() > 0, 500);
+        abort_unless(app(ModuleGate::class)->writable('fees', locked: true), 423, 'Switch on tuition fees before awarding a bursary.');
+        $data = Validator::make($input + ['revision' => 0, 'kind' => 'bursary', 'source_kind' => 'annual_tuition', 'overlap' => 'remaining', 'independent_approval' => true], self::rules())->validate();
+        abort_unless($data['kind'] === 'bursary' && isset($data['learner_id']), 422);
+        foreach (['session_year_id', 'revision', 'learner_id', 'fee_plan_id', 'fee_item_id', 'amount_value', 'sibling_position', 'minimum_paid_bp'] as $key) {
+            $data[$key] = isset($data[$key]) ? (int) $data[$key] : null;
+        }
+        $data['staff_roles'] = null;
+        $data['independent_approval'] = true;
+
+        return FeeDiscount::findOrFail($this->write($preparer, $data, null)['id']);
+    }
+
+    private function write(User $actor, array $data, ?int $id): array
+    {
+        $year = SessionYear::where('default', 1)->lockForUpdate()->findOrFail($data['session_year_id']);
+        app(FeePlans::class)->year($year);
+        abort_unless($data['starts_on'] >= substr((string) $year->start_date, 0, 10) && $data['ends_on'] <= substr((string) $year->end_date, 0, 10), 422, 'Discount dates must fit the current school year.');
+        if ($data['learner_id'] !== null) {
+            abort_unless(Enrolment::where('session_year_id', $year->id)->where('learner_id', $data['learner_id'])->where('legacy_dates', false)->lockForUpdate()->exists(), 422, 'Choose a learner with confirmed enrolment in this school year.');
+        }
+        if ($data['fee_plan_id'] !== null) {
+            FeePlan::where('session_year_id', $year->id)->where('currency', $data['currency'])->lockForUpdate()->findOrFail($data['fee_plan_id']);
+        }
+        if ($data['fee_item_id'] !== null) {
+            FeeItem::where('currency', $data['currency'])->lockForUpdate()->findOrFail($data['fee_item_id']);
+        }
+        abort_unless(($data['source_kind'] === 'annual_tuition' && $data['fee_item_id'] === null) || ($data['source_kind'] === 'fee_item' && $data['fee_item_id'] !== null && $data['fee_plan_id'] === null), 422, 'Select an explicit tuition or item source.');
+        abort_unless(! in_array($data['kind'], ['bursary', 'exemption'], true) || $data['learner_id'] !== null, 422, 'Individual bursaries and exemptions need a named learner.');
+        abort_unless($data['amount_kind'] !== 'percent' || $data['amount_value'] <= 10000, 422, 'Percentage discounts use at most 10000 basis points.');
+        abort_unless($data['kind'] !== 'exemption' || ($data['amount_kind'] === 'percent' && $data['amount_value'] === 10000), 422, 'An exemption is an explicit full reduction.');
+        abort_unless(($data['kind'] === 'sibling') === ($data['sibling_position'] !== null), 422, 'Only sibling discounts use an explicit qualifying child position.');
+        abort_unless(($data['kind'] === 'early_settlement' && $data['minimum_paid_bp'] !== null && isset($data['payment_deadline'])) || ($data['kind'] !== 'early_settlement' && $data['minimum_paid_bp'] === null && ! isset($data['payment_deadline'])), 422, 'Only early settlement uses an explicit paid threshold and deadline.');
+        abort_unless(($data['kind'] === 'staff' && is_array($data['staff_roles']) && count($data['staff_roles']) > 0) || ($data['kind'] !== 'staff' && $data['staff_roles'] === null), 422, 'Choose explicit staff roles for staff discounts only.');
+        if ($data['staff_roles'] !== null) {
+            $roles = Role::where('school_id', app(CurrentSchool::class)->id())->whereIn('name', $data['staff_roles'])->whereNotIn('name', ['Student', 'Parent', 'Vendor'])->lockForUpdate()->pluck('name')->all();
+            sort($roles);
+            sort($data['staff_roles']);
+            abort_unless($roles === $data['staff_roles'], 422, 'Choose distinct current school staff roles.');
+        }
+        $rule = $id === null ? new FeeDiscount : FeeDiscount::lockForUpdate()->findOrFail($id);
+        abort_unless((int) ($rule->revision ?? 0) === $data['revision'], 409, 'The discount rule changed. Reopen it before saving.');
+        abort_unless(! $rule->exists || (int) $rule->session_year_id === $data['session_year_id'], 422, 'Create a new rule for another school year.');
+        $fields = array_intersect_key($data, array_flip(['name', 'kind', 'source_kind', 'session_year_id', 'learner_id', 'fee_plan_id', 'fee_item_id', 'currency', 'starts_on', 'ends_on', 'amount_kind', 'amount_value', 'sibling_position', 'minimum_paid_bp', 'payment_deadline', 'overlap', 'independent_approval', 'staff_roles']));
+        $fields['payment_deadline'] = $fields['payment_deadline'] ?? null;
+        $rule->fill($fields + ['state' => 'draft', 'revision' => $data['revision'] + 1, 'prepared_by' => $actor->id, 'approved_by' => null])->save();
+        Audit::record('money.fee_discount_rule_saved', $rule, [], ['revision' => $rule->revision, 'state' => 'draft']);
+
+        return ['id' => (int) $rule->id];
     }
 
     public function transition(User $actor, int $id, array $input): FeeDiscount

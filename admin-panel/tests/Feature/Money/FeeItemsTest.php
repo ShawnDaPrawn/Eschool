@@ -364,7 +364,7 @@ class FeeItemsTest extends TestCase
         $charge = $this->postCharge($this->item());
         $original = BillRun::findOrFail($charge->bill_run_id);
         $run = BillRun::create($original->only(['session_year_id', 'as_of', 'due_on', 'tax_treatment', 'fingerprint', 'snapshot', 'prepared_by']) + ['kind' => 'fee_item', 'state' => 'preview', 'revision' => 1]);
-        $draft = $charge->replicate(['sealed_at']);
+        $draft = $charge->replicate(['sealed_at', 'net_cents']);
         $draft->bill_run_id = $run->id;
         $draft->reference_hash = hash('sha256', 'synthetic-draft');
         $draft->sealed_at = null;
@@ -372,6 +372,22 @@ class FeeItemsTest extends TestCase
         $this->assertSame(1, app(FeePaymentReconciliation::class)->inspect()['incomplete_fee_charges']);
         $this->refuses(fn () => app(FeeStatements::class)->finance($this->account), 409);
         $this->artisan('ledger:reconcile --school=1 --rebuild --json')->assertExitCode(1);
+    }
+
+    public function test_installment_path_repair_retains_sealed_history_and_billing_guards(): void
+    {
+        $this->bill();
+        $before = Invoice::orderBy('id')->get()->map(fn (Invoice $invoice) => $invoice->getRawOriginal())->all();
+        $repair = require database_path('migrations/2026_11_10_000000_repair_invoice_installment_json_paths.php');
+        $repair->up();
+        $repair->down();
+        $this->assertSame($before, Invoice::orderBy('id')->get()->map(fn (Invoice $invoice) => $invoice->getRawOriginal())->all());
+        $this->assertNotNull($this->postCharge($this->item())->sealed_at);
+        $this->assertTrue(FeePaymentReconciliation::healthy(app(FeePaymentReconciliation::class)->inspect()));
+
+        $this->expectException(QueryException::class);
+        $this->expectExceptionMessage('Invoice history is immutable');
+        DB::table('invoices')->where('id', $before[0]['id'])->update(['total_cents' => 1]);
     }
 
     private function itemInput(array $changes = []): array
