@@ -46,6 +46,44 @@ else
     echo "FAIL  no X-Request-Id header on /login: is the new revision serving?"
     failures=$((failures + 1))
 fi
+
+# A real login page must issue a browser session that JavaScript cannot read.
+# Never print cookie values into deployment logs.
+session_cookie=0
+http_only_pattern=';[[:space:]]*httponly([[:space:]]*;|[[:space:]]*$)'
+secure_cookie_pattern=';[[:space:]]*secure([[:space:]]*;|[[:space:]]*$)'
+same_site_pattern=';[[:space:]]*samesite=(lax|strict|none)([[:space:]]*;|[[:space:]]*$)'
+while IFS= read -r header; do
+    lower="${header,,}"
+    if [[ "$lower" == set-cookie:* && "$lower" =~ $http_only_pattern ]]; then
+        session_cookie=1
+        if [[ "$PANEL" == https://* && ! "$lower" =~ $secure_cookie_pattern ]]; then
+            echo "FAIL  a login session cookie is missing Secure on HTTPS"
+            failures=$((failures + 1))
+        fi
+        if [[ ! "$lower" =~ $same_site_pattern ]]; then
+            echo "FAIL  a login session cookie is missing SameSite"
+            failures=$((failures + 1))
+        fi
+    fi
+done < "$headers"
+if [ "$session_cookie" -eq 0 ]; then
+    echo "FAIL  the login page did not issue an HttpOnly session cookie"
+    failures=$((failures + 1))
+else
+    echo "ok    login session cookie inspected"
+fi
+
+# This request has no cookie or bearer token: private account context must
+# refuse it with the documented v2 authentication error.
+status="$(curl -sS -o "$body" -w '%{http_code}' --max-time 30 \
+    --retry 4 --retry-delay 5 --retry-connrefused "$PANEL/api/v2/me/context" || echo 000)"
+if [ "$status" = 401 ] && grep -qF '"code":"unauthenticated"' "$body"; then
+    echo "ok    anonymous access to private account context is refused"
+else
+    echo "FAIL  private account context did not return the expected authentication error ($status)"
+    failures=$((failures + 1))
+fi
 check "worker keeps up with the queue" "$PANEL/up/worker" '"status"'
 check "public API" "$PANEL/api/settings?type=app_settings" '"error":false'
 
