@@ -153,6 +153,8 @@ class EvaluationImports
         $code = $data['code'] ?? null;
         if (! is_string($code) || ! preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$/D', $code)) {
             $this->error(__('The paper code is 2 to 64 letters, numbers, dots, dashes or underscores.'));
+        } elseif (is_string($subject) && MarkingEvaluationPaper::query()->where('subject', $subject)->where('code', $code)->exists()) {
+            $this->error(__('A paper with this code already exists for the subject. Papers do not change once imported: use a new code.'));
         }
         foreach (['title' => [191, __('The paper\'s title')], 'source' => [500, __('The paper\'s source')]] as $field => [$max, $label]) {
             $value = $data[$field] ?? null;

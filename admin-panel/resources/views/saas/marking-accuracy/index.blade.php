@@ -69,7 +69,7 @@
         @if ($gate['enabled'] && $gate['approved_at'])
             <p>{{ __('Switched on :date against run :run (engine :engine, profile :profile).', ['date' => $gate['approved_at']->format('Y-m-d H:i'), 'run' => $gate['run_id'], 'engine' => $gate['engine_version'], 'profile' => $gate['profile_version']]) }}</p>
         @endif
-        @if ($gate['blockers'] !== [] && ! $gate['enabled'])
+        @if ($gate['blockers'] !== [] && ! $gate['open'])
             <ul>@foreach ($gate['blockers'] as $blocker)<li>{{ $blocker }}</li>@endforeach</ul>
         @endif
         <div class="saas-actions">
@@ -80,7 +80,7 @@
                 </form>
             @endif
         </div>
-        @if ($can_approve && ! $gate['enabled'] && $gate['eligible_run_id'])
+        @if ($can_approve && ! $gate['open'] && $gate['eligible_run_id'])
             <form method="POST" action="{{ route('saas.marking-accuracy.gate.on', $subject['key']) }}" aria-label="{{ __('Switch learner marking on') }}">
                 @csrf
                 @method('PUT')

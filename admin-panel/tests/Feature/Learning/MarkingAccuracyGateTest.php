@@ -443,6 +443,8 @@ class MarkingAccuracyGateTest extends TestCase
             $run = $this->evaluate();
             $this->assertSame([$engine, $profile, true], [$run->engine_version, $run->profile_version, $run->passed]);
             $this->assertFalse(app(MarkingGate::class)->open('mathematics'), 'a new passing run still needs an approver');
+            $this->signInAs($owner);
+            $this->get('/saas/marking-accuracy')->assertOk()->assertSee('Switched on, but closed: the versions changed')->assertSee('I reviewed run '.$run->id.' and its worst mark points.');
             $switchOn(1 + $i);
             $this->assertTrue(app(MarkingGate::class)->open('mathematics'));
         }
