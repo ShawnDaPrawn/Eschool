@@ -46,7 +46,7 @@ Marks are in hundredths (mark units), as structured memos store them.
 
 `EvaluationImports`, HQ only (`marking.evaluate`). Every import has a dry run (the form's default) that checks everything and saves nothing. An import is all or nothing: one bad script and nothing is saved.
 
-**Paper (JSON).** `{"subject", "code", "title", "source", "questions": [{"number", "max_marks", "points": [{"earns", "type", "marks", "rule_kind", "rule_value", "rule_tolerance", "rule_unit"}]}]}`. Mark points are validated by the memo editor's own rules (`PastPaperMemos::normalize`): rule kinds and values, marks adding up to each question's total. At most 20 questions.
+**Paper (JSON).** A file that is not one JSON object (`null`, a number, a string, a list) is refused. `{"subject", "code", "title", "source", "questions": [{"number", "max_marks", "points": [{"earns", "type", "marks", "rule_kind", "rule_value", "rule_tolerance", "rule_unit"}]}]}`. Mark points are validated by the memo editor's own rules (`PastPaperMemos::normalize`): rule kinds and values, marks adding up to each question's total. At most 20 questions.
 
 **Scripts (CSV or JSON), for one paper.**
 
@@ -74,9 +74,9 @@ A run **passes** when it has at least `min_scripts` scripts, both agreement shar
 
 ## Switch-on gate
 
-`MarkingGate::open($subject)` is true only while: the subject is in `subjects`; its gate row is enabled; the row's engine and profile versions are the current ones; and the latest run on those versions passed (a later failing run, for example after more scripts are imported, closes it).
+`MarkingGate::open($subject)` is true only while: the subject is in `subjects`; its gate row is enabled; the row's engine and profile versions are the current ones; the run it was switched on against was measured on today's acceptance settings; and the latest run on those versions passed on today's acceptance settings (a later failing run, for example after more scripts are imported, closes it). The acceptance settings are the thresholds, the tolerances and `min_scripts`, compared with the copy each run keeps (`AgreementMetrics::sameAcceptance`); `owner_confirmed` is not one of them. Changing any of them closes an open gate and blocks approval until a new run passes on the new settings and an approver switches the subject on again, as a version change does; the HQ page says so.
 
-- **Switch on** (`PUT /saas/marking-accuracy/subjects/{subject}/gate`, `marking.approve`, Owner only by default): needs `owner_confirmed`, the latest run on the current versions (the form sends its id) to have passed, a reason (10 to 500 characters), the confirmation that the run and its worst mark points were reviewed, and the revision the page showed. The row is locked and the runs read again inside the lock. Audited as `marking_subject_switched_on` with the run, versions, script count and reason.
+- **Switch on** (`PUT /saas/marking-accuracy/subjects/{subject}/gate`, `marking.approve`, Owner only by default): needs `owner_confirmed`, the latest run on the current versions (the form sends its id) to have passed on the current acceptance settings, a reason (10 to 500 characters), the confirmation that the run and its worst mark points were reviewed, and the revision the page showed. The row is locked and the runs read again inside the lock. Audited as `marking_subject_switched_on` with the run, versions, script count and reason.
 - **Switch off** (`DELETE` same path, `marking.approve` or `marking.evaluate`): a reason and the revision. Audited as `marking_subject_switched_off`.
 - **Versions.** `MarkingEngine::VERSION` and each profile's `version()` (`MarkingVersions`). `MarkingVersionsTest` pins each version to a fingerprint of its code without comments or whitespace, so a change in how the engine or a profile marks fails the build until the version is bumped; the gate then closes until a new run passes and an approver switches the subject on again.
 
@@ -124,6 +124,8 @@ None: the gate is platform-wide per subject. A school's `exam_coach` module stil
 | `test_a_run_below_the_threshold_fails_and_shows_the_worst_mark_points` | Agreement, bias and MAD figures; failure codes; the worst point; tolerance and thresholds change the verdict; needs-a-teacher counts as disagreement; the run page |
 | `test_switching_on_needs_an_approver_a_passing_run_and_the_owners_confirmation_and_is_audited` | Content refused; refused until confirmed; validation and stale revision; switched on and audited; a later failing run closes it; switched off by an evaluator; never with an old or failing run |
 | `test_a_new_engine_or_profile_version_needs_a_new_passing_run` | A new engine or profile version closes the gate, refuses switching on until a new run passes, and a new approval reopens it |
+| `test_json_that_is_not_an_object_is_refused_and_saves_nothing` | `null`, numbers, strings, lists and `{}` as a paper or scripts file are refused with an error, dry run or not; nothing is saved; the page renders the report |
+| `test_changed_acceptance_settings_close_the_gate_until_a_new_run_passes_and_is_approved` | A changed threshold or minimum closes an open gate; the old passing run cannot be approved; a fresh passing run on the new settings can |
 | `test_wrong_roles_and_school_staff_cannot_reach_the_gate` | Finance, Support, Reviewer, Sales, Operations and both schools' Super Admins refused everywhere; a guest sent to sign in; nothing changes |
 | `test_evaluation_data_is_never_read_or_written_from_inside_a_school` | In School A or B, even HQ staff are refused by every service and model |
 | `test_the_engine_reaches_learners_only_through_the_gated_paper_marking` | The only uses of the engine are `PaperMarking` and the evaluation run |

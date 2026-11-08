@@ -31,20 +31,21 @@
 
 @if ($report)
     <div class="saas-card" role="status" aria-label="{{ __('Import result') }}">
-        <h2>{{ $report['dry_run'] ? __('Dry run result') : __('Import result') }}</h2>
-        @if ($report['ok'])
+        <h2>{{ ($report['dry_run'] ?? false) ? __('Dry run result') : __('Import result') }}</h2>
+        @php($summary = ($report['summary'] ?? []) + ['code' => '', 'questions' => 0, 'points' => 0, 'max_marks' => '', 'scripts' => 0, 'paper' => ''])
+        @if ($report['ok'] ?? false)
             <p>
                 @if ($report['kind'] === 'paper')
-                    {{ $report['dry_run'] ? __('The paper :code is ready to import: :questions questions, :points mark points, :marks marks. Nothing was saved.', ['code' => $report['summary']['code'], 'questions' => $report['summary']['questions'], 'points' => $report['summary']['points'], 'marks' => $report['summary']['max_marks']])
-                        : __('The paper :code was imported.', ['code' => $report['summary']['code']]) }}
+                    {{ $report['dry_run'] ? __('The paper :code is ready to import: :questions questions, :points mark points, :marks marks. Nothing was saved.', ['code' => $summary['code'], 'questions' => $summary['questions'], 'points' => $summary['points'], 'marks' => $summary['max_marks']])
+                        : __('The paper :code was imported.', ['code' => $summary['code']]) }}
                 @else
-                    {{ $report['dry_run'] ? __(':count scripts for :paper are ready to import. Nothing was saved.', ['count' => $report['summary']['scripts'], 'paper' => $report['summary']['paper']])
-                        : __(':count scripts for :paper were imported.', ['count' => $report['summary']['scripts'], 'paper' => $report['summary']['paper']]) }}
+                    {{ $report['dry_run'] ? __(':count scripts for :paper are ready to import. Nothing was saved.', ['count' => $summary['scripts'], 'paper' => $summary['paper']])
+                        : __(':count scripts for :paper were imported.', ['count' => $summary['scripts'], 'paper' => $summary['paper']]) }}
                 @endif
             </p>
         @else
             <p>{{ __('Nothing was imported. Fix these problems and try again:') }}</p>
-            <ul>@foreach ($report['errors'] as $message)<li>{{ $message }}</li>@endforeach</ul>
+            <ul>@foreach ($report['errors'] ?? [] as $message)<li>{{ $message }}</li>@endforeach</ul>
         @endif
     </div>
 @endif
@@ -56,6 +57,7 @@
         <h3 id="subject-{{ $subject['key'] }}">{{ $subject['label'] }}
             @if ($gate['open'])<span class="saas-badge">{{ __('Learner marking on') }}</span>
             @elseif ($gate['stale'])<span class="saas-badge saas-badge--warn">{{ __('Switched on, but closed: the versions changed') }}</span>
+            @elseif ($gate['settings_changed'])<span class="saas-badge saas-badge--warn">{{ __('Switched on, but closed: the acceptance settings changed') }}</span>
             @elseif ($gate['enabled'])<span class="saas-badge saas-badge--warn">{{ __('Switched on, but closed: the latest run did not pass') }}</span>
             @else<span class="saas-badge saas-badge--warn">{{ __('Learner marking off') }}</span>@endif
         </h3>

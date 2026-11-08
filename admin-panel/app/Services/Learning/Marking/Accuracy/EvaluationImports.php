@@ -69,6 +69,9 @@ class EvaluationImports
         $this->errors = [];
         $data = $this->json($content);
         $paper = $data === null ? null : $this->validatePaper($data);
+        if ($paper === null && $this->errors === []) {
+            $this->error(__('The paper must be one JSON object.'));
+        }
         if ($paper === null || $this->errors !== [] || $dryRun) {
             return $this->report('paper', $dryRun, $paper === null ? [] : $this->paperSummary($paper));
         }
@@ -108,8 +111,11 @@ class EvaluationImports
             $this->error(__('One import takes at most :limit scripts.', ['limit' => (string) $limit]));
             $scripts = null;
         }
-        if ($scripts !== null && $scripts === [] && $this->errors === []) {
+        if ($scripts === [] && $this->errors === []) {
             $this->error(__('The file has no scripts.'));
+        }
+        if ($scripts === null && $this->errors === []) {
+            $this->error(__('The file could not be read.'));
         }
         $rows = $scripts === null ? [] : $this->validateScripts($paper, $scripts);
         $summary = ['paper' => $paper->code, 'scripts' => count($rows)];
@@ -476,7 +482,8 @@ class EvaluationImports
 
     // ---- shared ----
 
-    private function json(string $content): mixed
+    /** @return ?array<string, mixed> the decoded JSON object, or null with an error recorded */
+    private function json(string $content): ?array
     {
         if ($content === '' || strlen($content) > (int) config('marking.gate.max_import_bytes', 2097152)) {
             $this->error(__('The file is empty or too large.'));
@@ -484,12 +491,20 @@ class EvaluationImports
             return null;
         }
         try {
-            return json_decode((string) preg_replace('/^\xEF\xBB\xBF/', '', $content), true, 16, JSON_THROW_ON_ERROR);
+            $data = json_decode((string) preg_replace('/^\xEF\xBB\xBF/', '', $content), true, 16, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             $this->error(__('The file is not valid JSON.'));
 
             return null;
         }
+        // Valid JSON that is not an object (null, a number, a string, a list) is refused here, so nothing downstream sees it.
+        if (! is_array($data) || array_is_list($data)) {
+            $this->error(__('The file must be one JSON object.'));
+
+            return null;
+        }
+
+        return $data;
     }
 
     private function unknownFields(array $data, array $allowed, string $where): void

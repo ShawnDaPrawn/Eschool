@@ -64,6 +64,25 @@ final class AgreementMetrics
         ];
     }
 
+    /** The settings that decide whether a run passes; owner_confirmed is not one of them. */
+    public const ACCEPTANCE = ['min_scripts', 'point_marks', 'script_percent', 'point_agreement_percent', 'script_agreement_percent', 'max_bias_percent'];
+
+    /**
+     * Whether a run's stored settings are today's acceptance settings. A run measured against
+     * other thresholds, tolerances or minimum count no longer counts for the gate.
+     */
+    public static function sameAcceptance(array $stored, ?array $current = null): bool
+    {
+        $current ??= self::settings();
+        foreach (self::ACCEPTANCE as $key) {
+            if (! isset($stored[$key]) || ! is_numeric($stored[$key]) || abs((float) $stored[$key] - (float) $current[$key]) > 1e-9) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * One mark point of one script.
      *

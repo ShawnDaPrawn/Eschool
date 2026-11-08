@@ -21,7 +21,12 @@ use Illuminate\Validation\ValidationException;
  *   engine or profile version closes the gate until a new run passes and an
  *   approver switches it on again;
  * - the latest run on those versions still passed (a later failing run, for
- *   example after more scripts were imported, closes the gate).
+ *   example after more scripts were imported, closes the gate);
+ * - both that run and the run it was switched on against were measured on
+ *   today's acceptance settings (thresholds, tolerances, minimum scripts): a
+ *   change to config marking.gate closes the gate until a new run passes on
+ *   the new settings and an approver switches it on again, as a version
+ *   change does.
  *
  * Switching on also needs the owner's confirmation of the thresholds, the
  * tolerance and the minimum script count (config marking.gate.owner_confirmed).
@@ -55,8 +60,18 @@ class MarkingGate
         if ($gate->engine_version !== $versions->engine() || $gate->profile_version !== $versions->profile($subject)) {
             return false;
         }
+        $approved = MarkingEvaluationRun::query()->find($gate->marking_evaluation_run_id);
+        if ($approved === null || ! AgreementMetrics::sameAcceptance($approved->settings)) {
+            return false;
+        }
 
-        return $this->latestRun($subject)?->passed === true;
+        return $this->eligible($this->latestRun($subject));
+    }
+
+    /** A run an approver may switch a subject on with: it passed, on today's acceptance settings. */
+    private function eligible(?MarkingEvaluationRun $run): bool
+    {
+        return $run !== null && $run->passed && AgreementMetrics::sameAcceptance($run->settings);
     }
 
     /** The latest run of the subject on the current engine and profile versions. */
@@ -80,15 +95,21 @@ class MarkingGate
         $latest = $this->latestRun($subject);
         $versions = app(MarkingVersions::class);
         $blockers = [];
-        if (($latest?->passed) !== true) {
-            $blockers[] = $latest === null ? __('No run yet on the current engine and profile versions.') : __('The latest run on the current versions did not pass.');
+        if ($latest === null) {
+            $blockers[] = __('No run yet on the current engine and profile versions.');
+        } elseif (! AgreementMetrics::sameAcceptance($latest->settings)) {
+            $blockers[] = __('The latest run was measured against other acceptance settings (thresholds, tolerance or minimum scripts). Run the evaluation again.');
+        } elseif (! $latest->passed) {
+            $blockers[] = __('The latest run on the current versions did not pass.');
         }
         if (config('marking.gate.owner_confirmed') !== true) {
             $blockers[] = __('The owner has not yet confirmed the threshold, tolerance and minimum number of scripts.');
         }
         $stale = $gate !== null && $gate->enabled && ($gate->engine_version !== $versions->engine() || $gate->profile_version !== $versions->profile($subject));
+        $approved = $gate?->marking_evaluation_run_id === null ? null : MarkingEvaluationRun::query()->find($gate->marking_evaluation_run_id);
+        $settingsChanged = $gate !== null && $gate->enabled && ! $stale && ($approved === null || ! AgreementMetrics::sameAcceptance($approved->settings));
 
-        return ['subject' => $subject, 'enabled' => (bool) $gate?->enabled, 'open' => $this->open($subject), 'stale' => $stale,
+        return ['subject' => $subject, 'enabled' => (bool) $gate?->enabled, 'open' => $this->open($subject), 'stale' => $stale, 'settings_changed' => $settingsChanged,
             'revision' => (int) ($gate->revision ?? 0), 'run_id' => $gate?->marking_evaluation_run_id, 'engine_version' => $gate?->engine_version,
             'profile_version' => $gate?->profile_version, 'approved_at' => $gate?->approved_at, 'approved_by' => $gate?->approved_by, 'reason' => $gate?->reason,
             'eligible_run_id' => $blockers === [] ? $latest?->id : null, 'blockers' => $blockers];
@@ -108,8 +129,8 @@ class MarkingGate
             $gate = $this->locked($subject, (int) $data['expected_revision']);
             // Read the runs again after taking the lock: a run finished meanwhile may have failed.
             $latest = $this->latestRun($subject);
-            if ($latest === null || $latest->id !== (int) $data['run_id'] || ! $latest->passed) {
-                throw ValidationException::withMessages(['run_id' => __('Learner marking can be switched on only with the latest run on the current engine and profile versions, and only if it passed. Reload the page.')]);
+            if ($latest === null || $latest->id !== (int) $data['run_id'] || ! $this->eligible($latest)) {
+                throw ValidationException::withMessages(['run_id' => __('Learner marking can be switched on only with the latest run on the current engine and profile versions, measured on the current acceptance settings, and only if it passed. Reload the page.')]);
             }
             $before = $gate->only(['enabled', 'marking_evaluation_run_id', 'engine_version', 'profile_version']);
             $gate->fill(['enabled' => true, 'marking_evaluation_run_id' => $latest->id, 'engine_version' => $latest->engine_version,

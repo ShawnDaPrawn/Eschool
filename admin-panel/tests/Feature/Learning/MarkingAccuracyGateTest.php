@@ -451,6 +451,82 @@ class MarkingAccuracyGateTest extends TestCase
         $this->assertSame(3, AuditLog::where('action', 'marking_subject_switched_on')->count());
     }
 
+    public function test_json_that_is_not_an_object_is_refused_and_saves_nothing(): void
+    {
+        $paper = $this->importPaper();
+        $before = $this->gateCount();
+        $this->signInAs($this->hqStaff('content'));
+        foreach (['0', '1'] as $dryRun) {
+            $this->post('/saas/marking-accuracy/papers', ['file' => $this->file('paper.json', 'null'), 'dry_run' => $dryRun])->assertRedirect('/saas/marking-accuracy');
+            $this->get('/saas/marking-accuracy')->assertOk()->assertSee('Nothing was imported. Fix these problems and try again:')->assertSee('The file must be one JSON object.');
+            $this->post('/saas/marking-accuracy/scripts', ['paper_id' => $paper->id, 'format' => 'json', 'file' => $this->file('scripts.json', 'null'), 'dry_run' => $dryRun])
+                ->assertRedirect('/saas/marking-accuracy');
+            $this->get('/saas/marking-accuracy')->assertOk()->assertSee('Nothing was imported. Fix these problems and try again:')->assertSee('The file must be one JSON object.');
+        }
+        foreach (['null', '42', '"a paper"', 'true', '[]', '{}', '[{"subject": "mathematics"}]'] as $content) {
+            $report = $this->asHq(fn () => app(EvaluationImports::class)->paper($this->hqStaff('content'), $content, false));
+            $this->assertFalse($report['ok'], 'paper '.$content);
+            $this->assertNotSame([], $report['errors'], 'paper '.$content);
+            $report = $this->asHq(fn () => app(EvaluationImports::class)->scripts($this->hqStaff('content'), $paper->id, 'json', $content, false));
+            $this->assertFalse($report['ok'], 'scripts '.$content);
+            $this->assertNotSame([], $report['errors'], 'scripts '.$content);
+        }
+        $this->assertSame($before, $this->gateCount(), 'nothing saved');
+    }
+
+    public function test_changed_acceptance_settings_close_the_gate_until_a_new_run_passes_and_is_approved(): void
+    {
+        config(['marking.gate.owner_confirmed' => true]);
+        $paper = $this->importPaper();
+        $this->importScripts($paper, $this->scripts(20));
+        $owner = $this->hqStaff('owner');
+        $switchOn = fn (int $runId, int $revision) => $this->asHq(fn () => app(MarkingGate::class)->switchOn($owner, 'mathematics', ['run_id' => $runId,
+            'expected_revision' => $revision, 'reason' => 'Synthetic run reviewed with the teacher panel.', 'confirmed' => true]));
+        $first = $this->evaluate();
+        $switchOn($first->id, 0);
+        $this->assertTrue(app(MarkingGate::class)->open('mathematics'));
+
+        // A threshold change closes the open gate; the old passing run can no longer be approved.
+        config(['marking.gate.thresholds.point_agreement_percent' => 96]);
+        $this->assertFalse(app(MarkingGate::class)->open('mathematics'), 'a changed threshold closes the gate');
+        $state = app(MarkingGate::class)->state('mathematics');
+        $this->assertTrue($state['settings_changed']);
+        $this->assertNull($state['eligible_run_id']);
+        $this->signInAs($owner);
+        $this->get('/saas/marking-accuracy')->assertOk()->assertSee('Switched on, but closed: the acceptance settings changed')
+            ->assertSee('The latest run was measured against other acceptance settings')->assertDontSee('I reviewed run');
+        try {
+            $switchOn($first->id, 1);
+            $this->fail('an old passing run cannot be approved after the settings change');
+        } catch (ValidationException) {
+            $this->addToAssertionCount(1);
+        }
+        // A fresh run on the new settings can be approved, and only then does the gate reopen.
+        $second = $this->evaluate();
+        $this->assertTrue($second->passed);
+        $this->assertFalse(app(MarkingGate::class)->open('mathematics'), 'a new passing run still needs an approver');
+        $this->get('/saas/marking-accuracy')->assertSee('I reviewed run '.$second->id.' and its worst mark points.');
+        $switchOn($second->id, 1);
+        $this->assertTrue(app(MarkingGate::class)->open('mathematics'));
+
+        // Raising the minimum count closes it again; the old run is refused; a run on the new minimum that passes is approved.
+        config(['marking.gate.min_scripts' => 21]);
+        $this->assertFalse(app(MarkingGate::class)->open('mathematics'), 'a changed minimum closes the gate');
+        try {
+            $switchOn($second->id, 2);
+            $this->fail('a run measured on the old minimum cannot be approved');
+        } catch (ValidationException) {
+            $this->addToAssertionCount(1);
+        }
+        $this->assertSame(['too_few_scripts'], $this->evaluate()->failures, '20 scripts are below the new minimum');
+        $this->importScripts($paper, $this->scripts(1, 0, 20));
+        $third = $this->evaluate();
+        $this->assertTrue($third->passed);
+        $switchOn($third->id, 2);
+        $this->assertTrue(app(MarkingGate::class)->open('mathematics'));
+        $this->assertSame(3, AuditLog::where('action', 'marking_subject_switched_on')->count());
+    }
+
     public function test_wrong_roles_and_school_staff_cannot_reach_the_gate(): void
     {
         $paper = $this->importPaper();
