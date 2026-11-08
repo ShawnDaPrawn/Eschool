@@ -509,6 +509,29 @@ across schools; no school reads them in this step
 ([HQ billing](hq-billing.md)).
 
 
+
+### Learner subscriptions
+
+`learner_subscriptions`, `learner_subscription_members`,
+`learner_subscription_payments`, `learner_subscription_events` and
+`learner_subscription_prompts` are required school-owned: each learning plan is
+one school's learner's, the school's licence or a sponsor's places at that
+school, and its paid periods, named learners, audit trail and prompts carry the
+same school, with composite foreign keys (`school_id`, id) so no row can point
+into another school. Guardians write theirs from the v2 API inside the school;
+HQ writes inside the school from `/saas` and reads across schools by reference,
+never by name.
+
+`platform_bank_receipts` is global: Navigate Ed's own register of outside
+receipts (one bank line or gateway charge, one receipt) across every school,
+because every family and sponsor pays into the same Navigate Ed account. It
+holds the method, the reference, the amount and the payment row id, never a
+school or a person, and only the payment trigger writes it.
+`subscription_gateway_events` is global: each payment gateway notice once, by
+its id, with its outcome and the subscription reference it named
+([learner subscriptions](learner-subscriptions.md)).
+
+
 ### HQ announcements to schools
 
 `platform_announcements` is global: Navigate Ed's own announcements, written only
