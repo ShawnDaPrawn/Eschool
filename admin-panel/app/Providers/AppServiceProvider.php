@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Exceptions\TooManyLoginFailures;
+use App\Models\User;
+use App\Services\ChildMode\ChildModeAccess;
 use App\Services\FormService;
 use App\Services\Passport\NoReadingRecords;
 use App\Services\Passport\ReadingRecords;
@@ -14,6 +16,7 @@ use App\Services\People\Pools\BookablePeople;
 use App\Services\People\Pools\SchoolPoolPeople;
 use App\Services\Platform\Files\ClamAv;
 use App\Services\Platform\Files\UploadScanner;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Mail\SesConfigurationSets;
 use App\Services\Platform\Mail\SesIdentities;
@@ -27,6 +30,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -69,8 +74,12 @@ class AppServiceProvider extends ServiceProvider
         ResetPassword::createUrlUsing(fn ($user, string $token) => rtrim((string) config('app.url'), '/')
             .route('password.reset', ['token' => $token, 'email' => $user->getEmailForPasswordReset()], false));
 
-        // A password reset signs the account out of the apps too.
-        Event::listen(PasswordReset::class, fn (PasswordReset $event) => $event->user->tokens()->delete());
+        // A password reset signs the account out of the apps too, child mode included.
+        Event::listen(PasswordReset::class, fn (PasswordReset $event) => $event->user instanceof User ? AppTokens::revokeAll($event->user) : $event->user->tokens()->delete());
+
+        // A child-mode token (Action Plan 4.2) is no token at all outside the
+        // child mode routes: Sanctum asks this for every token it finds.
+        Sanctum::authenticateAccessTokensUsing(fn (PersonalAccessToken $token, bool $valid): bool => $valid && ChildModeAccess::allowedHere($token));
 
         $this->limitFailedLogins();
     }

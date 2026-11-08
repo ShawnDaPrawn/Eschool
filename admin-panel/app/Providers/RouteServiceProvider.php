@@ -105,6 +105,10 @@ class RouteServiceProvider extends ServiceProvider
         // Checking or changing the signed-in user's own password.
         RateLimiter::for('password', fn (Request $request) => Limit::perMinute(20)->by('password:'.($request->user()?->id ?: $request->ip())));
 
+        // Child-mode PINs (Action Plan 4.2): set, start and leave, per account. The
+        // PIN itself also locks after a few wrong tries (ChildModePins).
+        RateLimiter::for('child-mode-pin', fn (Request $request) => Limit::perMinute(10)->by('child-mode-pin:'.($request->user()?->id ?: $request->ip())));
+
         // Content security policy reports: one page load can send a few, a flood can't fill the log.
         RateLimiter::for('csp', fn (Request $request) => Limit::perMinute(30)->by('csp:'.$request->ip()));
 

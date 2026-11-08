@@ -112,12 +112,27 @@ class SchoolStages
     /** The stage of the learner's homeroom grade this school year, or their recorded class when there is none. */
     public function forLearner(Students $learner): ?string
     {
+        return $this->forGrade($this->gradeOf($learner));
+    }
+
+    /** The grade_level_id of the learner's homeroom this school year (or their recorded class), or null when it has no grade. */
+    public function gradeOf(Students $learner): ?int
+    {
         $year = (int) schoolSetting('session_year');
         $section = StudentSessions::query()->where('student_id', $learner->id)->where('session_year_id', $year)->value('class_section_id');
         $class = $section !== null ? ClassSection::query()->whereKey($section)->value('class_id') : $learner->class_id;
         $grade = $class !== null ? ClassSchool::query()->whereKey($class)->value('grade_level_id') : null;
 
-        return $this->forGrade($grade !== null ? (int) $grade : null);
+        return $grade !== null ? (int) $grade : null;
+    }
+
+    /** The learner's grade as a number (Grade R is 0), or null when their homeroom has no grade. */
+    public function gradeNumber(Students $learner): ?int
+    {
+        $grade = $this->gradeOf($learner);
+        $number = $grade === null ? null : GradeLevel::query()->whereKey($grade)->value('sort_order');
+
+        return $number === null ? null : (int) $number;
     }
 
     /** The stage of a learner account at the current school; null for anyone else. */

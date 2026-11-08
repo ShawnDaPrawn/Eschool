@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Cards\CardEncodingController;
 use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
+use App\Http\Controllers\Api\V2\ChildMode\ChildModeController;
 use App\Http\Controllers\Api\V2\Classroom\FoundationController;
 use App\Http\Controllers\Api\V2\Commerce\TicketController;
 use App\Http\Controllers\Api\V2\Commerce\VendorCounterController;
@@ -107,6 +108,7 @@ use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\CardEncoderContext;
+use App\Http\Middleware\ChildModeContext;
 use App\Http\Middleware\FoundationCredentialContext;
 use App\Http\Middleware\FoundationStaffContext;
 use App\Http\Middleware\PoolMemberContext;
@@ -252,6 +254,25 @@ Route::prefix('pool')->name('api.v2.pool.')->group(function () {
         Route::get('bookings/{booking}/attendance', [$c, 'attendance'])->where('booking', '[1-9][0-9]{0,17}')->name('attendance');
         Route::post('consent/withdraw', [$c, 'withdraw'])->name('withdraw');
         Route::post('sign-out', [$c, 'signOut'])->name('sign-out');
+    });
+});
+
+// Child mode in the parent app (Action Plan 4.2). An approving guardian, in
+// the parent app, sets the child's PIN and starts a child session with it;
+// the child token it returns opens the child-session routes below and
+// nothing else (ChildModeAccess::allowedHere).
+Route::prefix('child-mode')->name('api.v2.child-mode.')->group(function () {
+    $c = ChildModeController::class;
+    Route::prefix('children/{child}')->where(['child' => '[1-9][0-9]{0,17}'])
+        ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role:Parent', 'parent.policy'])->group(function () use ($c) {
+            Route::get('/', [$c, 'status'])->name('status');
+            Route::put('pin', [$c, 'pin'])->middleware('throttle:child-mode-pin')->name('pin');
+            Route::post('sessions', [$c, 'start'])->middleware('throttle:child-mode-pin')->name('start');
+            Route::post('sessions/end', [$c, 'endForGuardian'])->name('end-for-guardian');
+        });
+    Route::middleware([PrivateDomainResponse::class, 'auth:sanctum', ChildModeContext::class])->group(function () use ($c) {
+        Route::get('session', [$c, 'session'])->name('session');
+        Route::post('session/end', [$c, 'end'])->middleware('throttle:child-mode-pin')->name('end');
     });
 });
 

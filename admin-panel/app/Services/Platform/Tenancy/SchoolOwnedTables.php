@@ -67,6 +67,9 @@ final class SchoolOwnedTables
         'admission_requirements', 'admission_requirement_versions', 'pathway_operations',
         'career_profiles', 'career_profile_versions',
         'people_pool_members', 'people_pool_vettings', 'people_pool_bookings', 'people_pool_operations',
+        // Child mode in the parent app (4.2): each child's PIN (a hash) and the
+        // record of each child session (ids and times, never content).
+        'child_mode_pins', 'child_mode_sessions',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'diary_entries', 'diary_item_states',
         // Independent school business tools (5.10): re-enrolment contracts and
