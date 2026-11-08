@@ -74,6 +74,8 @@ final class SchoolOwnedTables
         'ai_flag_reviews',
         'ai_quarantine_snapshots',
         'digest_language_templates', 'digest_preferences', 'weekly_parent_digests', 'digest_operations', 'learner_growth_weeks',
+        // One school's part of a guardian's daily family summary (Action Plan 5.11).
+        'family_daily_summary_parts',
         'family_visit_rules', 'meeting_slots', 'gate_passes', 'family_visit_operations', 'family_visit_events',
         'emergency_settings', 'emergency_drills', 'emergency_alerts', 'emergency_roll_calls', 'emergency_releases', 'emergency_visitors', 'emergency_operations', 'emergency_events',
         'consent_requests', 'consent_recipients', 'consent_responses', 'family_form_operations',
@@ -206,6 +208,8 @@ final class SchoolOwnedTables
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',
         'notification_preferences' => 'a human controls their own channel choices across schools; each schools mandatory rules override these choices',
         'notification_quiet_hours' => 'a human chooses their own push quiet hours once, for every school; safety notices are never held',
+        'family_summary_preferences' => 'a guardian chooses once, for every school, whether and when they get the daily family summary (Action Plan 5.11), like their quiet hours',
+        'family_daily_summaries' => 'one daily family summary per guardian per day across every school they are linked at; it holds no school content (each school\'s part is a school-owned family_daily_summary_parts row, read only inside that school) and names the school its notice was filed in',
         'handle_claims' => 'global unique handles and temporary reservations; locked by handle and accessed only through the identity service',
         'handle_changes' => 'one human identity across schools; change limit and history queried only by the authenticated or authorised learner user id',
         'learner_identifiers' => 'one immutable student number and the LURITS number per human across schools; accessed by user id under a lock',

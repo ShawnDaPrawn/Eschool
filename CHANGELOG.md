@@ -2,6 +2,14 @@
 
 ## 2026-11-07
 
+- Bind daily family summaries to the exact children whose facts were collected, rechecking those relationships before saving so a revoked relationship cannot be hidden by a remaining sibling.
+- Update the five affected Symfony components to the 7.4.23 security release, retaining the existing dependency constraints and security-audit checks.
+- Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
+
+## 2026-11-09
+
+- Daily family summary (Action Plan 5.11): a guardian can opt in to one short summary a day, at a time they choose outside their quiet hours, covering all their children at all their schools: today's and tomorrow's timetable changes, homework due, forms waiting for them, unread school messages and how many private updates are waiting (never what they say). Each school's part is read and written inside that school. The wording comes from the AI gateway when a school has it switched on, and from a plain template otherwise. New API: `GET`/`PUT /api/v2/me/family-summary/preferences`, `GET /api/v2/me/family-summaries/{summary}`. **Deploy:** run migrations; the scheduler runs `family:daily-summary` every 15 minutes and its retention daily.
+
 - Keep starting checks to choice and number questions so extended practice question types cannot leave a diagnostic waiting for an answer it cannot mark.
 - Exclude answers awaiting teacher marking from library quality rates and privacy cohort thresholds.
 - Refuse the practice question-type rollback while recorded per-part results remain, including automatically marked answers, so rollback cannot erase their marks.
