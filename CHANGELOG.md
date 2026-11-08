@@ -40,6 +40,11 @@
 
 ## 2026-11-04
 
+- Exam coach memos can now be marked against (Action Plan 3.16). A new marking engine checks a typed answer, step by step, against a memo's mark points: values with their tolerance, units (converting between SI units such as km/h and m/s), equivalent algebra, formulas, key terms, significant figures and consistent-accuracy follow-through. Mathematics and Physical Sciences have their own conventions (for example, Physical Sciences needs the unit and the direction); other subjects use only the memo's rules. Every mark gets a reason and a confidence; method and explanation marks that no rule decides always go to a teacher, as automatic judgement stays off.
+- Teachers can try it from a memo with "Try marking an answer against this memo". Nothing is saved and learners do not see it.
+- Memo mark points gain three rules: an expression or formula, terms, and significant figures.
+- Learner marking stays off for every subject until it passes the accuracy check against teacher marking (`config/marking.php`).
+
 - Practice runs are counted kindly: weekends, holidays, school closures and one missed school day a week no longer break a learner's run, and practising on a weekend still counts. The practice screen's day count follows the new rule.
 - Learners can set their own weekly practice goal (1 to 7 days) and get one short "well done" note the week they reach it. Guardians can see the goal; only the learner sets it.
 - When a topic that needed more practice becomes secure on the family-visible mastery map, the learner and their guardians get one short "something to celebrate" note, at most once per topic each term. It never shows a score, and staff-only marks are never used.

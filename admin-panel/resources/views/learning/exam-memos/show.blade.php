@@ -30,6 +30,9 @@
             @endif
         </p>
         <p>{{ __('Rights: :kind · :reference', ['kind' => $paper['licence_kind'], 'reference' => $paper['licence_reference']]) }}</p>
+        @if ($memo['state'] !== 'none')
+            <p><a href="{{ route('exam-memos.marking', ['group' => $group_id, 'version' => $paper['version_id']]) }}">{{ __('Try marking an answer against this memo') }}</a></p>
+        @endif
         @if ($memo['problems'] !== [])
             <ul>@foreach ($memo['problems'] as $problem)<li>{{ $problem }}</li>@endforeach</ul>
         @endif
@@ -52,6 +55,7 @@
             <input type="hidden" name="memo_payload" value="">
         @endif
         <p>{{ __('The mark points of each question must add up to its total. Leave a row empty to skip it. Saving changes a reviewed memo back to not reviewed.') }}</p>
+        <p>{{ __('Rules: an exact value is a number with a dot for decimals (12.5); an expression is written like 2(x + 3) or v = d/t; terms are separated by commas, with alternatives after a slash (oxygen/O2, catalyst); significant figures is a whole number.') }}</p>
     @endif
     @foreach ($questions as $i => $question)
         <section class="m3-card m3-card--outlined page-section" aria-labelledby="memo-question-{{ $i }}"><div class="m3-card__content">
@@ -72,7 +76,7 @@
                         <x-page.field :id="'point-'.$i.'-'.$j.'-type'" :name="$base.'[type]'" type="select" :label="__('Type of mark')" :options="$types" :value="$point['type'] ?? 'method'" />
                         <x-page.field :id="'point-'.$i.'-'.$j.'-marks'" :name="$base.'[marks]'" :label="__('Marks')" :value="$point === null ? '' : $decimal($point['mark_units'])" inputmode="decimal" maxlength="8" />
                         <x-page.field :id="'point-'.$i.'-'.$j.'-rule'" :name="$base.'[rule_kind]'" type="select" :label="__('Rule')" :options="$ruleKinds" :value="$rule['kind'] ?? 'none'" />
-                        <x-page.field :id="'point-'.$i.'-'.$j.'-value'" :name="$base.'[rule_value]'" :label="__('Exact value')" :value="$rule['value'] ?? ''" inputmode="decimal" maxlength="22" />
+                        <x-page.field :id="'point-'.$i.'-'.$j.'-value'" :name="$base.'[rule_value]'" :label="__('Value, expression, terms or figures')" :value="$rule['value'] ?? ''" maxlength="200" dir="auto" />
                         <x-page.field :id="'point-'.$i.'-'.$j.'-tolerance'" :name="$base.'[rule_tolerance]'" :label="__('Tolerance (plus or minus)')" :value="$rule['tolerance'] ?? ''" inputmode="decimal" maxlength="22" />
                         <x-page.field :id="'point-'.$i.'-'.$j.'-unit'" :name="$base.'[rule_unit]'" :label="__('Unit')" :value="$rule['unit'] ?? ''" maxlength="32" />
                     </fieldset>
@@ -84,7 +88,10 @@
                     @foreach ($question['points'] as $point)
                         <li dir="auto">{{ $point['earns'] }} · {{ $types[$point['type']] ?? $point['type'] }} · {{ $decimal($point['mark_units']) }}
                             @if (($point['rule']['kind'] ?? null) === 'exact_value') · {{ __('Exact value :value (± :tolerance) :unit', ['value' => $point['rule']['value'], 'tolerance' => $point['rule']['tolerance'], 'unit' => $point['rule']['unit'] ?? '']) }}
-                            @elseif (($point['rule']['kind'] ?? null) === 'units_required') · {{ __('Units required: :unit', ['unit' => $point['rule']['unit']]) }}@endif</li>
+                            @elseif (($point['rule']['kind'] ?? null) === 'units_required') · {{ __('Units required: :unit', ['unit' => $point['rule']['unit']]) }}
+                            @elseif (($point['rule']['kind'] ?? null) === 'expression') · {{ __('Expression: :value', ['value' => $point['rule']['value']]) }}
+                            @elseif (($point['rule']['kind'] ?? null) === 'keywords') · {{ __('Terms: :value', ['value' => $point['rule']['value']]) }}
+                            @elseif (($point['rule']['kind'] ?? null) === 'significant_figures') · {{ __('Significant figures: :value', ['value' => $point['rule']['value']]) }}@endif</li>
                     @endforeach
                 </ol>
             @endif
