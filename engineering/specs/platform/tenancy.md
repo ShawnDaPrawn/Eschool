@@ -239,6 +239,8 @@ bounded tenant purge removes message bodies while retaining minimal receipts.
 
 `people_pool_members`, `people_pool_vettings`, `people_pool_bookings` and `people_pool_operations` (Action Plan 5.6) are school-owned: each school's pool, vetting history and bookings. Vettings and bookings reference members by `(school_id, pool_member_id)`. Pool accounts hold no school membership; their token is bound to one school and opens only the pool member routes. Nothing is shared between schools in this step (see engineering/specs/community/people-pools.md).
 
+`child_mode_pins` and `child_mode_sessions` (Action Plan 4.2) are school-owned: a child's child-mode PIN (a hash only) and the record of each child session (ids, times and why it ended, never content). A child token is bound by its abilities to the school and child it was issued for; ChildModeContext runs it in that school only and refuses an X-School-Id naming another. A guardian with children at two schools has a separate PIN and separate sessions at each (see engineering/specs/platform/child-mode.md).
+
 Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_hours` and reference-only `peer_tutoring_operations`. All models use the existing school boundary.
 
 The learner diary adds school-owned `diary_entries` and `diary_item_states`, each bound to one learner's `user_id`. Text is encrypted with a key derived per school and learner, so a row copied into another school's context cannot be read there either. School items are computed per read from the current school's own homework, holidays and events; nothing is copied across schools.
