@@ -33,6 +33,8 @@ return [
     'academics.content_published' => ['label' => 'Learning content published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'people.hq_import_approval' => ['label' => 'Import waiting for approval', 'module' => 'people', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    // Imports by Navigate Ed (SA.11): the school's Super Admins hear when one is sent for approval and when it is applied.
+    'school.hq_import_activity' => ['label' => 'Imports by Navigate Ed', 'module' => 'people', 'portals' => ['admin'], 'channels' => $on],
     'platform.announcement' => ['label' => 'Announcements from Navigate Ed', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'off', 'email' => 'default_on', 'in_app' => 'default_on']],
     'school.new_year' => ['label' => 'New school year', 'module' => 'people', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'school.support_reply' => ['label' => 'Navigate Ed support replies', 'module' => 'school', 'portals' => ['admin'], 'channels' => $on],

@@ -66,7 +66,7 @@ class PlatformSchoolImportController extends Controller
 
     public function apply(SchoolImportRunRequest $request, int $import): RedirectResponse
     {
-        $counts = $this->imports->apply($request->user(), $import);
+        $counts = $this->imports->apply($request->user(), $import, $request->validated());
 
         return redirect()->route('saas.imports.show', $import)->with('success', __('Imported: :counts.', [
             'counts' => collect($counts)->map(fn (int $count, string $key) => str_replace('_', ' ', $key).' '.$count)->implode(', '),
@@ -117,6 +117,7 @@ class PlatformSchoolImportController extends Controller
             'fields' => app(SchoolImports::class)->kind(array_key_exists($kind, PlatformSchoolImports::KINDS) ? $kind : 'learners')->fields(),
             'approverId' => (int) ($input['approver_id'] ?? 0),
             'csv' => (string) ($input['csv'] ?? ''),
+            'reason' => (string) ($input['reason'] ?? ''),
             'check' => $check,
             'problems' => collect($errors)->flatten()->map(fn ($problem) => (string) $problem)->values()->all(),
         ]);

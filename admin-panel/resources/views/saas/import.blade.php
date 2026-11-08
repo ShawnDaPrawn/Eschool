@@ -26,6 +26,10 @@
 <form method="POST" action="{{ route('saas.imports.apply', $import['id']) }}" class="saas-card" aria-label="{{ __('Apply the import') }}">
     @csrf
     <p>{{ __('The school approved this file. Applying it writes the rows through the school\'s own import, in this school only, with the approving leader\'s permissions. It is refused if the file or the school\'s records changed since the preview.') }}</p>
+    <div class="saas-field">
+        <label for="apply-reason">{{ __('Why apply it now? (the school sees this)') }}</label>
+        <input id="apply-reason" name="reason" required minlength="5" maxlength="500">
+    </div>
     <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Apply the import') }}</button></div>
 </form>
 @endif

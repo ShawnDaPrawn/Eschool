@@ -7696,5 +7696,9 @@
     "Bursary applications": "Izicelo zomfundaze",
     "Alumni giving": "Iminikelo yabafundi bakudala",
     "Review bursary applications and decide awards": "Buyekeza izicelo zomfundaze futhi unqume imiklomelo",
-    "Record donations and see donor names": "Bhala iminikelo futhi ubone amagama abanikeli"
+    "Record donations and see donor names": "Bhala iminikelo futhi ubone amagama abanikeli",
+    "Navigate Ed prepared an import for your school": "I-Navigate Ed ilungiselele isikole sakho ukungenisa",
+    ":kind: :rows rows, sent to :name for approval. You can see every step.": ":kind: imigqa engu-:rows, ithunyelwe ku-:name ukuze igunyazwe. Ungabona zonke izinyathelo.",
+    "Navigate Ed imported into your school": "I-Navigate Ed ingenise esikoleni sakho",
+    ":kind approved by your school is now imported. Open it to see what was written.": ":kind egunyazwe yisikole sakho manje isingenisiwe. Yivule ukuze ubone okubhaliwe."
 }

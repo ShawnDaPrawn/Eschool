@@ -7696,5 +7696,9 @@
     "Bursary applications": "Bursary applications",
     "Alumni giving": "Alumni giving",
     "Review bursary applications and decide awards": "Review bursary applications and decide awards",
-    "Record donations and see donor names": "Record donations and see donor names"
+    "Record donations and see donor names": "Record donations and see donor names",
+    "Navigate Ed prepared an import for your school": "Navigate Ed prepared an import for your school",
+    ":kind: :rows rows, sent to :name for approval. You can see every step.": ":kind: :rows rows, sent to :name for approval. You can see every step.",
+    "Navigate Ed imported into your school": "Navigate Ed imported into your school",
+    ":kind approved by your school is now imported. Open it to see what was written.": ":kind approved by your school is now imported. Open it to see what was written."
 }

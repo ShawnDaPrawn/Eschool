@@ -7696,5 +7696,9 @@
     "Bursary applications": "Beursaansoeke",
     "Alumni giving": "Oud-leerlingskenkings",
     "Review bursary applications and decide awards": "Hersien beursaansoeke en besluit oor toekennings",
-    "Record donations and see donor names": "Teken skenkings aan en sien skenkersname"
+    "Record donations and see donor names": "Teken skenkings aan en sien skenkersname",
+    "Navigate Ed prepared an import for your school": "Navigate Ed het 'n invoer vir jou skool voorberei",
+    ":kind: :rows rows, sent to :name for approval. You can see every step.": ":kind: :rows rye, na :name gestuur vir goedkeuring. Jy kan elke stap sien.",
+    "Navigate Ed imported into your school": "Navigate Ed het in jou skool ingevoer",
+    ":kind approved by your school is now imported. Open it to see what was written.": ":kind wat jou skool goedgekeur het, is nou ingevoer. Maak dit oop om te sien wat geskryf is."
 }
