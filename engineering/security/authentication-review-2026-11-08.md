@@ -13,8 +13,10 @@ invitations, platform two-factor boundaries, initial credentials, and shared
 Flutter credential storage. Synthetic tests use a dedicated ephemeral MySQL 8
 container and PHP 8.3 runner; existing application services and data are untouched.
 The private Build Bible and live deployment configuration were not inspected.
-The review began at repository revision `0f00678f`; corrections are in the
-working tree and have not been deployed.
+The review began at repository revision `0f00678f`. Deployment preparation
+integrated current main (`4866abfb`) and is tracked in
+[PR #471](https://github.com/ShawnDaPrawn/Eschool/pull/471). Production deployment
+is not claimed by this source-review record.
 
 The attacker considered is an unauthenticated caller or an existing user trying
 alternate login identifiers, stale tokens, omitted headers, different roles or
@@ -42,7 +44,7 @@ to cookie authentication. This review did not execute Flutter/device tests.
 
 ## Verification
 
-Final local results: **223 tests passed with 1,783 assertions**. These are
+Initial reviewed-source results: **223 tests passed with 1,783 assertions**. These are
 selected security/regression suites, not the entire repository test suite.
 
 | Check | Result |
@@ -73,6 +75,17 @@ storage/cache. No real invitation, reset email or other user notification was
 sent. Raw local results are retained under `/tmp/eschool-auth-review`; temporary
 test containers, their databases and the generated test credential file are
 removed after verification.
+
+During current-main integration, contract tests exposed that v2 must use its
+documented `unauthenticated` and `forbidden` error codes. Shared account checks
+now use the v2 error renderer while preserving the v1 response codes. New
+regressions also cover vendor sign-out and pool sign-out/consent withdrawal
+during a required password change. The contract-test helper normalizes the
+equivalent OpenAPI 3.1 null-only type spelling for the installed validator;
+positive and negative regression cases preserve strict payload validation.
+The final focused checks passed: 35 tests / 874 assertions. The wider
+current-main regression and full CI results are recorded separately in the
+pull request before release.
 
 ## Release requirements and remaining limits
 

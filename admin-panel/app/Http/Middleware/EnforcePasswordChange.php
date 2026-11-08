@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\ApiV2ExceptionRenderer;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
@@ -33,6 +34,11 @@ class EnforcePasswordChange
         $user = $request->user();
 
         if ($user instanceof User && $user->password_change_required && ! $request->is(self::SETUP)) {
+            if ($request->is('api/v2', 'api/v2/*')) {
+                return ApiV2ExceptionRenderer::envelope(Response::HTTP_FORBIDDEN, trans('password_change_required'))
+                    ->header('Cache-Control', 'no-store, private');
+            }
+
             return response()->json([
                 'error' => true,
                 'message' => trans('password_change_required'),

@@ -241,7 +241,7 @@ The API group also has the default `throttle:api` limiter: 60 requests a minute 
 - **`CheckStudent`** (teacher API) finds the caller's teacher id, the class sections they are class teacher of (`class_teachers`, any session year) and the `students.class_section_id` of `student_id`; if it is not one of them it returns `Invalid Student ID Passed.` with code 105.
 - **`EnsureStudentSessionIsActive`**, **`EnsureParentChildrenSessionIsActive`**: see [Academic Structure](Academic-Structure#session-middleware-for-the-apps).
 - **`EnsureTeacherActive`** (`teacher.active`): see [Teacher status](#teacher-status).
-- **`EnforcePasswordChange`** (`password.change`, also called by shared authentication): an account flagged `users.password_change_required` gets 403 with `code` `PASSWORD_CHANGE_REQUIRED` on private v1/v2 routes regardless of client headers. Password changes, sign-out, session context and policy setup remain available. The v1 login answers retain `password_change_required`.
+- **`EnforcePasswordChange`** (`password.change`, also called by shared authentication): an account flagged `users.password_change_required` gets 403 on private v1/v2 routes regardless of client headers. v1 retains `code` `PASSWORD_CHANGE_REQUIRED`; v2 uses its documented `forbidden` code. Password changes, sign-out, session context, policy setup and pool consent withdrawal remain available. The v1 login answers retain `password_change_required`.
 
 ### Ownership scoping
 

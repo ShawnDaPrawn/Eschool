@@ -388,7 +388,7 @@ class PeoplePoolsTest extends TestCase
         $user = User::acrossSchools()->findOrFail($member->user_id);
         $user->forceFill(['password_change_required' => true])->save();
         $this->api(token: $token)->getJson('/api/v2/pool/bookings')->assertForbidden()
-            ->assertJsonPath('code', 'PASSWORD_CHANGE_REQUIRED');
+            ->assertJsonPath('code', 'forbidden');
         $this->api(token: $token)->postJson('/api/v2/pool/sign-out')->assertOk();
         $this->assertSame(0, $user->tokens()->count());
 

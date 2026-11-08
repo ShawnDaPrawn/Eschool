@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\ApiV2ExceptionRenderer;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
@@ -30,6 +31,11 @@ final class EnsureAccountActive
             Auth::guard('web')->logoutCurrentDevice();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+        }
+
+        if ($request->is('api/v2', 'api/v2/*')) {
+            return ApiV2ExceptionRenderer::envelope(Response::HTTP_UNAUTHORIZED)
+                ->header('Cache-Control', 'no-store, private');
         }
 
         if ($request->is('api/*', 'protected/profile-files/*') || $request->expectsJson()) {

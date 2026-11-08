@@ -13,7 +13,8 @@ production release authorization.
   endpoints. Allow session context and policy setup for existing app navigation.
   A panel login must persist the flag for cookie-authenticated API requests too.
 - Preserve v1 response fields; intentionally return 401 for disabled accounts
-  and 403 `PASSWORD_CHANGE_REQUIRED` for restricted accounts. Older clients
+  and 403 `PASSWORD_CHANGE_REQUIRED` for restricted v1 accounts. API v2 retains
+  its documented `unauthenticated` / `forbidden` error codes. Older clients
   must complete the change through their existing password settings.
 - Use the existing single-use staff invitation service for new teacher/staff
   accounts. Generate random temporary passwords for remaining legacy parent

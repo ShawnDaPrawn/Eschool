@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\Support\SignInFixtures;
 use Tests\TestCase;
 
@@ -27,6 +28,7 @@ class AuthenticationBoundaryTest extends TestCase
 {
     use RefreshDatabase;
     use SignInFixtures;
+    use ValidatesOpenApiResponses;
 
     protected function setUp(): void
     {
@@ -87,7 +89,7 @@ class AuthenticationBoundaryTest extends TestCase
             $token = $user->createToken('test')->plainTextToken;
             $user->forceFill(['status' => 0])->save();
             $this->app['auth']->forgetGuards();
-            $this->withToken($token)->getJson('/api/v2/me/context')->assertUnauthorized();
+            $this->withToken($token)->getJson('/api/v2/me/context')->assertUnauthorized()->assertJsonPath('code', 'unauthenticated');
         }
     }
 
@@ -122,7 +124,7 @@ class AuthenticationBoundaryTest extends TestCase
                     $this->withHeader(EnforcePasswordChange::HEADER, $header);
                 }
                 $this->withToken($token)->getJson($path)->assertForbidden()
-                    ->assertJsonPath('code', EnforcePasswordChange::CODE);
+                    ->assertJsonPath('code', str_starts_with($path, '/api/v2/') ? 'forbidden' : EnforcePasswordChange::CODE);
             }
         }
     }
@@ -153,7 +155,7 @@ class AuthenticationBoundaryTest extends TestCase
         $this->post('/login', ['email' => $teacher->email, 'password' => '12041990']);
 
         $this->assertTrue($teacher->fresh()->password_change_required);
-        $this->getJson('/api/v2/me/profile')->assertForbidden()->assertJsonPath('code', EnforcePasswordChange::CODE);
+        $this->getJson('/api/v2/me/profile')->assertForbidden()->assertJsonPath('code', 'forbidden');
     }
 
     public function test_reusing_a_temporary_password_does_not_clear_the_required_change(): void
