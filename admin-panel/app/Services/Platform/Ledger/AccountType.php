@@ -18,11 +18,14 @@ enum AccountType: string
     case Clearing = 'clearing';
     case DueToSchool = 'due_to_school';
     case CashDesk = 'cash_desk';
+    // Alumni giving (Action Plan 5.10): its own bank and campaign income.
+    case GivingBank = 'giving_bank';
+    case GivingIncome = 'giving_income';
 
     public function normalDirection(): string
     {
         return match ($this) {
-            self::FeeReceivable, self::FeeBank, self::WalletBank, self::CashDesk, self::Clearing => 'debit',
+            self::FeeReceivable, self::FeeBank, self::WalletBank, self::CashDesk, self::Clearing, self::GivingBank => 'debit',
             default => 'credit',
         };
     }
@@ -32,6 +35,7 @@ enum AccountType: string
         return match ($this) {
             self::Wallet, self::WalletBank => 'wallet',
             self::Vendor => 'vendors',
+            self::GivingBank, self::GivingIncome => 'giving',
             default => 'fees',
         };
     }

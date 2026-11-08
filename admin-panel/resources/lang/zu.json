@@ -7683,5 +7683,18 @@
     "Your school next to the middle of comparable schools": "Isikole sakho eduze nophakathi lwezikole ezifanayo",
     "Your school no longer takes part in benchmarking.": "Isikole sakho asisabambi iqhaza ekuqhathaniseni.",
     "Your school takes part in benchmarking. Its first comparison appears after the next weekly update.": "Isikole sakho sibamba iqhaza ekuqhathaniseni. Ukuqhathanisa kwaso kokuqala kuzovela ngemuva kokubuyekezwa kwamasonto onke okulandelayo.",
-    "Your school takes part. Its first comparison appears after the next weekly update.": "Isikole sakho siyabamba iqhaza. Ukuqhathanisa kwaso kokuqala kuzovela ngemuva kokubuyekezwa kwamasonto onke okulandelayo."
+    "Your school takes part. Its first comparison appears after the next weekly update.": "Isikole sakho siyabamba iqhaza. Ukuqhathanisa kwaso kokuqala kuzovela ngemuva kokubuyekezwa kwamasonto onke okulandelayo.",
+    "Re-enrolment for next year": "Ukubhalisa kabusha konyaka ozayo",
+    "Open Re-enrolment to read and accept the contract for next year.": "Vula Ukubhalisa kabusha ukuze ufunde futhi wamukele inkontileka yonyaka ozayo.",
+    "Bursary application": "Isicelo somfundaze",
+    "Bursary application updates": "Izindaba ngezicelo zomfundaze",
+    "There is news about your bursary application. Open Bursaries to read it.": "Kunezindaba ngesicelo sakho somfundaze. Vula Imifundaze ukuze uzifunde.",
+    "Re-enrolment contracts for :year: :confirmed confirmed, :awaiting still waiting. This is for information; it does not change the promotion.": "Izinkontileka zokubhalisa kabusha ze-:year: :confirmed eziqinisekisiwe, :awaiting zisalindile. Lokhu kungokwazisa kuphela; akushintshi ukudluliselwa.",
+    "Re-enrolment confirmed": "Ukubhalisa kabusha kuqinisekisiwe",
+    "Re-enrolment awaited": "Ukubhalisa kabusha kusalindile",
+    "Re-enrolment contracts": "Izinkontileka zokubhalisa kabusha",
+    "Bursary applications": "Izicelo zomfundaze",
+    "Alumni giving": "Iminikelo yabafundi bakudala",
+    "Review bursary applications and decide awards": "Buyekeza izicelo zomfundaze futhi unqume imiklomelo",
+    "Record donations and see donor names": "Bhala iminikelo futhi ubone amagama abanikeli"
 }

@@ -38,10 +38,16 @@ return new class extends Migration
                 $t->foreign(['school_id', $col])->references(['school_id', 'id'])->on($table)->restrictOnDelete();
             }
         });
+        $this->createInstallmentTriggers();
+    }
+
+    /** Keep JSON paths textual when MySQL assigns extracted JSON to local variables. */
+    public function createInstallmentTriggers(): void
+    {
         DB::unprepared("CREATE TRIGGER invoice_installment_insert BEFORE INSERT ON invoice_lines FOR EACH ROW BEGIN
             DECLARE invoice_account BIGINT;DECLARE parts JSON;DECLARE row_data JSON;DECLARE part_data JSON;DECLARE p INT DEFAULT 0;DECLARE matched INT DEFAULT 0;
             IF NEW.fee_charge_id IS NULL THEN
-                SELECT JSON_EXTRACT(b.snapshot,CONCAT('$.installments.',CHAR(34),NEW.learner_id,CHAR(34))) ,i.fee_account_id INTO row_data,invoice_account FROM invoices i JOIN bill_runs b ON b.school_id=i.school_id AND b.id=i.bill_run_id WHERE i.school_id=NEW.school_id AND i.id=NEW.invoice_id AND i.session_year_id=NEW.session_year_id;
+                SELECT JSON_EXTRACT(b.snapshot,CONCAT('$.installments.',CHAR(34 USING utf8mb4),NEW.learner_id,CHAR(34 USING utf8mb4))) ,i.fee_account_id INTO row_data,invoice_account FROM invoices i JOIN bill_runs b ON b.school_id=i.school_id AND b.id=i.bill_run_id WHERE i.school_id=NEW.school_id AND i.id=NEW.invoice_id AND i.session_year_id=NEW.session_year_id;
                 IF CAST(JSON_UNQUOTE(JSON_EXTRACT(row_data,'$.account_id')) AS UNSIGNED)=invoice_account AND JSON_UNQUOTE(JSON_EXTRACT(row_data,'$.description'))=NEW.description AND JSON_UNQUOTE(JSON_EXTRACT(row_data,'$.period_start'))=NEW.period_start AND JSON_UNQUOTE(JSON_EXTRACT(row_data,'$.period_end'))=NEW.period_end AND CAST(JSON_UNQUOTE(JSON_EXTRACT(row_data,'$.plan_id')) AS UNSIGNED)=NEW.fee_plan_id AND CAST(JSON_UNQUOTE(JSON_EXTRACT(row_data,'$.plan_revision')) AS UNSIGNED)=NEW.plan_revision THEN
                     SET parts=JSON_EXTRACT(row_data,'$.installment_lines');
                     WHILE p<COALESCE(JSON_LENGTH(parts),0) DO
@@ -57,7 +63,7 @@ return new class extends Migration
         DB::unprepared("CREATE TRIGGER invoice_installment_complete BEFORE UPDATE ON invoices FOR EACH ROW BEGIN
             DECLARE kind VARCHAR(16);DECLARE budget JSON;DECLARE line_count BIGINT;
             IF NEW.sealed_at IS NOT NULL THEN
-                SELECT b.kind,JSON_EXTRACT(b.snapshot,CONCAT('$.invoice_schedules.',CHAR(34),NEW.fee_account_id,CHAR(34))) INTO kind,budget FROM bill_runs b WHERE b.school_id=NEW.school_id AND b.id=NEW.bill_run_id;
+                SELECT b.kind,JSON_EXTRACT(b.snapshot,CONCAT('$.invoice_schedules.',CHAR(34 USING utf8mb4),NEW.fee_account_id,CHAR(34 USING utf8mb4))) INTO kind,budget FROM bill_runs b WHERE b.school_id=NEW.school_id AND b.id=NEW.bill_run_id;
                 IF kind='annual' THEN
                     SELECT COUNT(*) INTO line_count FROM invoice_lines WHERE school_id=NEW.school_id AND invoice_id=NEW.id;
                     IF budget IS NULL OR line_count<>COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(budget,'$.line_count')) AS UNSIGNED),-1) OR NEW.total_cents<>COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(budget,'$.total_cents')) AS SIGNED),-1) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Seal every reviewed installment with its exact annual total';END IF;

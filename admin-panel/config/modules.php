@@ -56,6 +56,10 @@ return [
     'fees' => ['name' => 'Tuition fees', 'default' => false, 'legacy' => true, 'money' => true],
     'cards' => ['name' => 'ID cards', 'default' => false, 'legacy' => true],
     'intake' => ['name' => 'Online registration', 'default' => false, 'legacy' => true],
+    // Independent school business tools (Action Plan 5.10).
+    'reenrolment' => ['name' => 'Re-enrolment contracts', 'default' => false, 'dependencies' => ['people']],
+    'bursaries' => ['name' => 'Bursary applications', 'default' => false, 'dependencies' => ['people', 'fees']],
+    'giving' => ['name' => 'Alumni giving', 'default' => false, 'money' => true, 'dependencies' => ['people']],
     'web_learner' => ['name' => 'Learner web portal', 'default' => true],
     'web_parent' => ['name' => 'Parent web portal', 'default' => true],
     'web_facilitator' => ['name' => 'Facilitator web portal', 'default' => true],

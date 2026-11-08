@@ -119,6 +119,11 @@ final readonly class ApiRoute
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
 
+        // Bursary applications and their documents are addressed by UUID (whereUuid).
+        if (str_starts_with($this->uri, 'api/v2/bursaries/') && in_array($name, ['application', 'document'], true)) {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         if (str_starts_with($this->uri, 'api/v2/pathways/') && $name === 'reference') {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }

@@ -224,6 +224,14 @@ class ModuleGate
             }
         }
 
+        if ($module === 'giving') {
+            foreach (['giving_campaigns', 'giving_pledges', 'giving_donations'] as $table) {
+                if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
+                    return true;
+                }
+            }
+        }
+
         if ($module === 'wallet_payments') {
             return (Schema::hasTable('wallet_payment_intents') && DB::table('wallet_payment_intents')->where('school_id', $schoolId)->exists())
                 || (Schema::hasTable('vendor_card_readers') && DB::table('vendor_card_readers')->where('school_id', $schoolId)->exists());
