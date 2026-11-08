@@ -37,6 +37,11 @@ final class SchoolOwnedTables
         // (written inside it from /saas); only HQ reads them, never the school.
         // platform_billing_reminders logs each overdue reminder sent to it.
         'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
+        // Learner subscriptions (3.20, SA.8 Build 3): a child's learning plan, the
+        // school's licence or a sponsor's places at the school, each period paid,
+        // the learners named for sponsored places, the audit trail and the prompts
+        // sent to guardians. Each row is about one school's learner or the school.
+        'learner_subscriptions', 'learner_subscription_members', 'learner_subscription_payments', 'learner_subscription_events', 'learner_subscription_prompts',
         // School groups (5.7, SA.18): each school's own membership of a group
         // (HQ's invitation and the school's agreement), and its month on a
         // group invoice (the claim on its own draft, and the lines copied
@@ -224,6 +229,8 @@ final class SchoolOwnedTables
         'learner_identifiers' => 'one immutable student number and the LURITS number per human across schools; accessed by user id under a lock',
         'user_devices' => 'push registrations belong to one human across schools, like users; each notification carries its own school',
         'platform_counters' => 'platform-wide sequence allocation under a row lock',
+        'platform_bank_receipts' => 'Navigate Ed\'s own register of outside receipts (one bank line or gateway charge, one receipt), filled only by the learner subscription payment trigger; method, reference, amount and the payment row id, never a school or a person',
+        'subscription_gateway_events' => 'each payment gateway notice recorded once by its id with its outcome and the subscription reference it named; never a school or a person',
         'schools' => 'the schools themselves',
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',
         'users' => 'one row per human across schools; a user belongs to a school through school_memberships',

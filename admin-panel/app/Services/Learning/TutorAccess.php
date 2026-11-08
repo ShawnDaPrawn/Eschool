@@ -16,6 +16,7 @@ use App\Services\Academics\ReleasedMarks;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\CurrentLearnerMembership;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Subscriptions\Entitlements;
 use App\Services\Platform\Tenancy\CurrentSchool;
 
 class TutorAccess
@@ -45,6 +46,10 @@ class TutorAccess
         $person = Students::where('user_id', $fresh->id)->firstOrFail();
         app(ReleasedMarks::class)->learner($fresh, (int) $person->id);
         abort_unless(app(ApprovalService::class)->approved($person), 403, 'Guardian approval required.');
+        if ($module) {
+            // The tutor is a paid feature where the school asks for an entitlement (3.20).
+            app(Entitlements::class)->assertLearner($person);
+        }
 
         return $person;
     }

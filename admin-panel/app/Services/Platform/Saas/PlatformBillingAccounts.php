@@ -122,6 +122,10 @@ class PlatformBillingAccounts
                 throw ValidationException::withMessages(['bank_reference' => __('A payment with this bank reference is already recorded (:amount on :date). Reverse it first if it was a mistake.', [
                     'amount' => PlatformBilling::rands((int) $repeat->amount_cents), 'date' => $repeat->received_on->toDateString()])]);
             }
+            // The same bank account takes learner subscription EFTs (3.20); a bank line registered there is not a school's payment.
+            if (DB::table('platform_bank_receipts')->where('method', 'eft')->where('source_reference', strtoupper((string) preg_replace('/\s+/', ' ', $reference)))->exists()) {
+                throw ValidationException::withMessages(['bank_reference' => __('This bank line is already recorded as a learning plan payment.')]);
+            }
             $invoices = $this->lockOpen(array_keys($wanted));
             foreach ($wanted as $invoiceId => $cents) {
                 if ($cents > $this->outstanding($invoices[$invoiceId], true)) {

@@ -18,7 +18,8 @@ return [
     'test_insights' => ['name' => 'Test insights', 'default' => false, 'dependencies' => ['mastery']],
     'exam_coach' => ['name' => 'Exam coach', 'default' => false, 'dependencies' => ['academics']],
     'family_forms' => ['name' => 'Health forms and family consents', 'default' => false, 'dependencies' => ['people']],
-    'tutor' => ['name' => 'Subject tutor', 'default' => false, 'dependencies' => ['academics'], 'stages' => ['junior', 'high_school']],
+    // 'paid' (Action Plan 3.20): a learner needs an entitlement (config/subscriptions.php) where the school's subscriptions flag is on.
+    'tutor' => ['name' => 'Subject tutor', 'default' => false, 'dependencies' => ['academics'], 'stages' => ['junior', 'high_school'], 'paid' => true],
     'diary' => ['name' => 'Learner diary', 'default' => false, 'dependencies' => ['people', 'academics']],
     'reading' => ['name' => 'Reading library', 'default' => false, 'dependencies' => ['academics'], 'stages' => ['junior', 'high_school']],
     // Action Plan 4.8: the learner's own view; never read for streaming or placement.
