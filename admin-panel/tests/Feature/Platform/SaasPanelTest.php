@@ -384,12 +384,18 @@ class SaasPanelTest extends TestCase
 
     public function test_the_new_administrator_sees_only_their_own_school_and_never_the_platform(): void
     {
-        $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $created = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
 
         auth()->forgetGuards();
-        $this->actingAs($admin)->get('/saas')->assertForbidden();
+        $this->actingAs($admin)->get('/home')->assertRedirect('/resetpassword');
+        $this->postJson('/changePassword', [
+            'old_password' => $created->viewData('password'),
+            'new_password' => 'Chosen-school-password-26', 'confirm_password' => 'Chosen-school-password-26',
+        ])->assertOk()->assertJsonPath('error', false);
+        $this->assertFalse($admin->fresh()->password_change_required);
+        $this->get('/saas')->assertForbidden();
         $this->get('/saas/schools/1')->assertForbidden();
 
         $active = app(MembershipService::class)->active($admin);
@@ -398,11 +404,17 @@ class SaasPanelTest extends TestCase
 
     public function test_the_new_administrator_can_open_the_panel_home_and_sees_nothing_of_other_schools(): void
     {
-        $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $created = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
 
         auth()->forgetGuards();
-        $this->actingAs($admin)->get('/home')->assertOk()->assertDontSee('Baobab')->assertDontSee('Jacaranda');
+        $this->actingAs($admin)->get('/home')->assertRedirect('/resetpassword');
+        $this->postJson('/changePassword', [
+            'old_password' => $created->viewData('password'),
+            'new_password' => 'Chosen-school-password-26', 'confirm_password' => 'Chosen-school-password-26',
+        ])->assertOk()->assertJsonPath('error', false);
+        $this->assertFalse($admin->fresh()->password_change_required);
+        $this->get('/home')->assertOk()->assertDontSee('Baobab')->assertDontSee('Jacaranda');
 
         // The school has its own current year and settings, and the staff member's session year was not touched.
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();

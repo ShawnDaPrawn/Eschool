@@ -175,6 +175,7 @@ class WellbeingApiTest extends TestCase
         $this->withToken($this->professional->createToken(AppTokens::TEACHER)->plainTextToken);
         $this->getJson('/api/v2/wellbeing/cases/'.$case['id'])->assertForbidden();
         $this->professional->forceFill(['password_change_required' => false])->save();
+        $this->app['auth']->forgetGuards();
         PlatformStaffIdentity::create(['user_id' => $this->professional->id, 'active' => true]);
         $this->getJson('/api/v2/wellbeing/cases/'.$case['id'])->assertForbidden();
         PlatformStaffIdentity::where('user_id', $this->professional->id)->delete();

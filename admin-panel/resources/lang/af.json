@@ -5353,5 +5353,8 @@
     "Set the school currency first": "Stel eers die skool se geldeenheid in",
     "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "Finansies moet die beursie se geldeenheid kies voordat verskaffers of produkte gestoor kan word. Kategorieë kan reeds voorberei word.",
     "Open wallet settings": "Maak beursie-instellings oop",
-    "Ask Finance to configure the school wallet currency.": "Vra Finansies om die skool se beursiegeldeenheid in te stel."
+    "Ask Finance to configure the school wallet currency.": "Vra Finansies om die skool se beursiegeldeenheid in te stel.",
+    "Choose a new password that differs from your current password.": "Kies ’n nuwe wagwoord wat van jou huidige wagwoord verskil.",
+    "Use Forgot Password to choose your password.": "Gebruik Wagwoord vergeet om jou wagwoord te kies.",
+    "Use your existing password or choose Forgot Password.": "Gebruik jou bestaande wagwoord of kies Wagwoord vergeet."
 }

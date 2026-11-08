@@ -5353,5 +5353,8 @@
     "Set the school currency first": "Setha imali esetshenziswa yisikole kuqala",
     "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "Abezezimali kufanele bakhethe imali yesikhwama ngaphambi kokugcina abathengisi noma imikhiqizo. Ungalungiselela izigaba manje.",
     "Open wallet settings": "Vula izilungiselelo zesikhwama",
-    "Ask Finance to configure the school wallet currency.": "Cela abezezimali ukuthi balungiselele imali yesikhwama sesikole."
+    "Ask Finance to configure the school wallet currency.": "Cela abezezimali ukuthi balungiselele imali yesikhwama sesikole.",
+    "Choose a new password that differs from your current password.": "Khetha iphasiwedi entsha ehlukile kunephasiwedi yakho yamanje.",
+    "Use Forgot Password to choose your password.": "Sebenzisa okuthi Ukhohlwe iphasiwedi ukuze ukhethe iphasiwedi yakho.",
+    "Use your existing password or choose Forgot Password.": "Sebenzisa iphasiwedi yakho ekhona noma ukhethe okuthi Ukhohlwe iphasiwedi."
 }
