@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Panel\Learning;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Learning\ExamMarkingPreviewRequest;
 use App\Http\Requests\Learning\ExamMemoRequest;
 use App\Http\Requests\Learning\ExamMemoReviewRequest;
+use App\Services\Learning\Marking\PaperMarking;
 use App\Services\Learning\PastPaperMemos;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -14,7 +16,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
-/** /exam-memos: teachers capture and review the structured mark points of exam coach memos (Action Plan 3.15). */
+/**
+ * /exam-memos: teachers capture and review the structured mark points of exam
+ * coach memos (Action Plan 3.15), and try marking a typed answer against them
+ * (Action Plan 3.16, nothing stored).
+ */
 class ExamMemoPanelController extends Controller
 {
     public function __construct(private readonly PastPaperMemos $memos) {}
@@ -42,6 +48,32 @@ class ExamMemoPanelController extends Controller
         return $this->write(fn () => $this->memos->review($request->user(), $group, $version, $request->validated()), $group, $version, __('Memo reviewed. Its mark points can now be used.'));
     }
 
+    public function marking(Request $request, int $group, string $version): View
+    {
+        $query = Validator::make($request->query(), ['question' => ['sometimes', 'string', 'regex:/^[A-Za-z0-9().-]{1,16}$/']])->validate();
+
+        return view('learning.exam-memos.marking', app(PaperMarking::class)->page($request->user(), $group, $version) + [
+            'types' => self::types(), 'ruleKinds' => self::ruleKinds(), 'chosen' => $query['question'] ?? null, 'answer' => '', 'result' => null]);
+    }
+
+    public function preview(ExamMarkingPreviewRequest $request, int $group, string $version): View|RedirectResponse
+    {
+        $marking = app(PaperMarking::class);
+        try {
+            $preview = $marking->preview($request->user(), $group, $version, $request->validated());
+        } catch (HttpExceptionInterface $error) {
+            if ($error->getStatusCode() !== 409) {
+                throw $error;
+            }
+
+            return redirect()->route('exam-memos.marking', ['group' => $group, 'version' => $version])->withInput()->withErrors(['question' => $error->getMessage()]);
+        }
+
+        return view('learning.exam-memos.marking', $marking->page($request->user(), $group, $version) + [
+            'types' => self::types(), 'ruleKinds' => self::ruleKinds(), 'chosen' => $request->validated('question'),
+            'answer' => (string) $request->validated('answer'), 'result' => $preview['result']]);
+    }
+
     private function write(callable $call, int $group, string $version, string $success): RedirectResponse
     {
         try {
@@ -64,6 +96,7 @@ class ExamMemoPanelController extends Controller
 
     public static function ruleKinds(): array
     {
-        return ['none' => __('No rule'), 'exact_value' => __('Exact value'), 'units_required' => __('Units required')];
+        return ['none' => __('No rule'), 'exact_value' => __('Exact value'), 'units_required' => __('Units required'),
+            'expression' => __('Expression or formula'), 'keywords' => __('Terms'), 'significant_figures' => __('Significant figures')];
     }
 }
