@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-11
+
+- School erasure (Action Plan SA.11): after a leaving school has its export and is archived, and two different HQ staff have approved deletion (the second an Owner), a cooling-off period starts (72 hours and not before the deletion date; a placeholder until the owner decides). Then Operations can start the erasure by typing the offboarding's reference. It deletes only the leaving school's own rows, checks first that no other school's row refers to them, erases in place the accounts only that school knew, keeps the audit log and Navigate Ed's own records, and leaves money and ledger history the database keeps immutable. It runs in small batches that resume where they stopped, and ends with an erasure certificate that holds counts and dates only, never personal information. Once started it can only be completed; until then a legal hold or a cancellation stops it.
+- Offboarding retention: when neither the contract nor HQ gives a deletion term, Navigate Ed's default applies (30 days after the school's deadline to collect its export; a placeholder until the owner decides).
+- Imports on a school's behalf: HQ must give a reason at every step (check, send, apply, cancel), which the school sees, and the school's Super Admins are told when an import is sent for approval and when it is applied. **Deploy:** run migrations; the scheduler runs `offboarding:resume-erasures` every 15 minutes.
+
 ## 2026-11-07
 
 - Bind daily family summaries to the exact children whose facts were collected, rechecking those relationships before saving so a revoked relationship cannot be hidden by a remaining sibling.

@@ -407,6 +407,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::post('/deletion/approval', [PlatformOffboardingController::class, 'approve'])->middleware('platform.can:offboarding.approve')->name('.approve');
         Route::post('/legal-hold', [PlatformOffboardingController::class, 'hold'])->middleware('platform.can:offboarding.manage')->name('.hold');
         Route::delete('/legal-hold', [PlatformOffboardingController::class, 'liftHold'])->middleware('platform.can:offboarding.approve')->name('.hold.lift');
+        // Erasure: after both approvals and the cooling-off period; resumable; ends with a certificate (counts and dates only).
+        Route::post('/erasure', [PlatformOffboardingController::class, 'erase'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.erase');
+        Route::post('/erasure/resume', [PlatformOffboardingController::class, 'resume'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.erase.resume');
+        Route::get('/certificate', [PlatformOffboardingController::class, 'certificate'])->middleware('platform.can:offboarding.view')->name('.certificate');
     });
     Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->middleware('platform.can:schools.package')->whereNumber('school')->name('schools.package');
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->middleware('platform.can:schools.status')->whereNumber('school')->name('schools.status');

@@ -4,9 +4,11 @@ Action Plan SA.11, last part: "School offboarding (full export to the school,
 then archive and deletion as the contract requires)." Navigate Ed is the
 operator under POPIA and the school is the responsible party (sections 20 and
 21). So a school that leaves first gets all of its own data back, then is
-archived, and its data is deleted when the contract says. This step builds the
-workflow up to and including archiving, plus a **deletion dry run** behind two
-approvals. It deletes nothing.
+archived, and its data is deleted when the contract says. The workflow runs
+from the export through archiving, a **deletion dry run** behind two approvals,
+a **cooling-off period**, and the **erasure** itself, which runs in resumable
+batches, touches only the leaving school's rows and ends with an **erasure
+certificate** that holds no personal information.
 
 ## User stories
 
@@ -21,6 +23,8 @@ approvals. It deletes nothing.
 - As an **Owner**, I give the second approval for deletion, which only works if
   someone else asked for it, the export was delivered and is intact, and no
   legal hold is on.
+- As **Operations**, once both approvals are given and the cooling-off period
+  is over, I start the erasure and get a certificate when it is done.
 - As **HQ staff**, I see states, dates and counts only, never a row of the
   school's data or its export.
 
@@ -41,9 +45,13 @@ approvals. It deletes nothing.
      deleted" on the contract form), the deletion date is the end date plus
      that term, and anything typed is ignored (`retention_source = contract`).
      Otherwise Operations enters the deletion date and the terms followed
-     (`entered`). The data is never deleted before the school's deadline: an
-     entered date on or before the deadline is refused, and a contract date on
-     or before it moves to the day after the deadline, which the terms record.
+     (`entered`), both together. When neither the contract nor Operations gives
+     a term, Navigate Ed's default applies (`default`): the receipt deadline
+     plus `offboarding.default_retention_days` (**30, a placeholder until the
+     owner decides**). The data is never deleted before the school's deadline:
+     an entered date on or before the deadline is refused, and a contract date
+     on or before it moves to the day after the deadline, which the terms
+     record.
    - The export is queued (`PrepareOffboardingExport`) on the `database`
      connection's `default` queue, which the provisioned worker consumes. Its
      timeout (150 seconds) is shorter than that connection's `retry_after`
@@ -122,21 +130,93 @@ approvals. It deletes nothing.
      (`offboarding.approve`, Owner only) must be different people. Each checks
      again that the school is still archived, that receipt is recorded, that
      the stored export is still there with the recorded ciphertext hash, and
-     that no legal hold is on. The second approval stores a fresh dry run.
-     Nothing is deleted in this step.
+     that no legal hold is on. The second approval stores a fresh dry run and
+     starts the **cooling-off period**: erasure may start only from
+     `erasure_not_before`, the later of the second approval plus
+     `offboarding.erasure_cooling_off_hours` (**72, a placeholder until the
+     owner decides**) and the start of the deletion date (South African time).
+     The approvals delete nothing.
+   - The dry run lists separately (`protected`) the tables the database keeps
+     immutable: money, ledger and similar history whose triggers refuse every
+     delete. Erasure never deletes from them, and the rows they refer to stay
+     with them.
    - **Legal hold** (place: `offboarding.manage`, with a reason; lift:
      `offboarding.approve`) blocks both approvals and voids any approvals given
-     so far.
-   - **Cancel** (`offboarding.manage`, with a reason) at any point discards the
-     export copy. An archived school stays archived until its status is
-     restored on the school page.
+     so far, and the cooling-off period with them.
+   - **Cancel** (`offboarding.manage`, with a reason) discards the export copy,
+     at any point before the erasure starts. An archived school stays archived
+     until its status is restored on the school page.
+6. **Erasure** (`offboarding.manage`), at `…/offboarding/erasure`.
+   - **Start.** Refused (409) unless the school is archived with receipt
+     recorded and its export copy intact, no legal hold is on, both approvals
+     are given by different people who still hold `offboarding.manage`
+     (request) and `offboarding.approve` (approval), and the cooling-off period
+     is over (a validation error says when it ends). The offboarding's
+     reference (`OFF-0001`) must be typed again. Then the **preflight** runs:
+     if any row of another school, any kept record or any platform row refers
+     (by a single-column foreign key) to one of the school's rows in scope, the
+     erasure is refused and names the reference; nothing is deleted. Otherwise
+     the state becomes `erasing` and `EraseOffboardedSchool` is queued (the
+     `database` connection's `default` queue, 150-second timeout). From then on
+     the erasure cannot be stopped by a hold or a cancellation, only completed.
+   - **What goes** is exactly `OffboardingDeletionPlan::targets()`, the dry
+     run's tables: the school's rows of every `SchoolOwnedTables::REQUIRED`
+     table less the kept ones, its settings, deliveries, outbox and
+     idempotency rows, roles and grants, and memberships. A row is deleted only
+     when no row anywhere still refers to it, so a delete never cascades and is
+     never refused by the database. Tables go in an order where every table
+     comes after the tables that refer to it; links between rows of the same
+     table, and one nullable link in each cycle of tables that refer to each
+     other, are cleared first (`@detach`).
+   - **People.** Accounts that only this school knows (no membership at any
+     other school) and that are not platform staff are erased in place: name,
+     email (replaced by `erased-{id}@erased.invalid`), mobile, photo, date of
+     birth, addresses, handle, device and sign-in details removed, password
+     made unusable, status off, soft deleted; their sessions, devices, tokens,
+     password resets, notification and summary preferences, policy acceptances
+     and handles are deleted. The row stays so the kept audit log still points
+     at an id. Someone who also belongs to another school keeps their account
+     unchanged and loses only this school's membership.
+   - **Kept:** the audit log, Navigate Ed's customer records (above), its
+     invoices, payments and reminders to the school and the school's part of
+     group invoices (tax records), support access grants and views
+     (accountability), the school's SES configuration set rows (no personal
+     information; removing them in SES is separate), the archived `schools`
+     row, and immutable history with the rows it refers to (**held**).
+   - **Batches.** Each batch (`offboarding.erasure_batch_size`, 500) deletes
+     from one table, or erases a batch of accounts, in its own transaction,
+     with the school and the offboarding locked and the progress (rows per
+     table, accounts) saved in the same transaction. An interrupted erasure
+     resumes where it stopped and never counts a row twice; two workers at once
+     are harmless. The job runs for up to 100 seconds and queues itself again.
+     The preflight runs again at the start of every run; a reference that has
+     appeared stops it (`erasure_failure_code`, audited as
+     `_erasure_blocked`) before any batch.
+   - **Resume.** `offboarding:resume-erasures` (every 15 minutes) queues again
+     every erasure with no progress for `offboarding.erasure_stalled_minutes`
+     (30) and no stop code; Operations can also resume one from the page
+     (`…/erasure/resume`), which clears a stop code.
+   - **Finish.** The export copy is discarded, then the
+     `school_erasure_certificates` row is issued and the state becomes
+     `erased` (final). The **certificate** (`ERC-0001`) holds the format, the
+     school's id and name, the retention source and date, the approval and
+     start times, whether the approvers were different people, the cooling-off
+     hours, the ids of the audit entries for the request, approval and start,
+     the export's receipt basis and hash, start and finish times, the number
+     of runs, rows erased per table, accounts erased, rows held per table and
+     why, rows kept per table and why, and what was not erased (stored files).
+     It names no person: no name, email or user id. Its SHA-256 (of the JSON as
+     issued) is stored; HQ downloads it at `…/offboarding/certificate` with the
+     hash in `X-Certificate-SHA256`.
 
 Every step is audited (`platform_school_offboarding_started`, `_export_ready`,
 `_export_failed`, `_export_retried`, `_export_downloaded`, `_receipt_confirmed`,
 `_receipt_deadline_passed`, `_archived` with the existing
 `platform_school_status_changed`, `_dry_run`, `_deletion_requested`,
 `_deletion_approved`, `_legal_hold_placed`, `_legal_hold_lifted`,
-`_cancelled`) with ids, states, dates and counts, never the reason text.
+`_cancelled`, `_erasure_started`, `_erasure_resumed`, `_erasure_blocked`,
+`_erased`) with ids, states, dates and counts, never the reason text. The
+audit log is kept after erasure.
 
 ## Data
 
@@ -151,6 +231,15 @@ person and basis; archive, cancel, legal hold, deletion request and approval
 `school_contracts.deletion_days_after_end` (nullable) is the contract's
 retention term. Both from `2026_11_04_100000_create_school_offboardings`.
 
+`2026_11_11_210000_add_school_erasure` adds the states `erasing` and `erased`
+and, on `school_offboardings`: `erasure_not_before`, `erasure_started_at`,
+`erasure_started_by`, `erasure_progress` (JSON: completed steps, rows per
+table, accounts), `erasure_step`, `erasure_runs`, `erasure_heartbeat_at`,
+`erasure_failure_code`, `erased_at`; and `school_erasure_certificates`
+(school-owned, REQUIRED, kept with HQ's records and never exported): the
+offboarding (unique), the reference, the certificate JSON, its SHA-256 and the
+time it was issued.
+
 ## Routes
 
 | Method | Path | Ability |
@@ -158,6 +247,8 @@ retention term. Both from `2026_11_04_100000_create_school_offboardings`.
 | GET | `/saas/schools/{school}/offboarding` | `offboarding.view` |
 | POST | `…/offboarding`, `/retry`, `/archive`, `/cancel`, `/dry-run`, `/deletion`, `/legal-hold` | `offboarding.manage` |
 | POST, DELETE | `…/offboarding/deletion/approval`, `…/offboarding/legal-hold` | `offboarding.approve` |
+| POST | `…/offboarding/erasure`, `…/offboarding/erasure/resume` | `offboarding.manage` |
+| GET | `…/offboarding/certificate` | `offboarding.view` |
 | GET | `/school-exit` | the school's Super Admin |
 | GET | `/school-exit/{offboarding}/download?reader=…` (signed, 15 minutes) | that Super Admin |
 | POST | `/school-exit/{offboarding}/receipt` | the school's Super Admin |
@@ -179,17 +270,35 @@ default school and can never be archived; school 1 is the other school.
 | `test_deletion_needs_a_second_approval_from_a_different_owner_after_the_export_is_rechecked` | two Owners | approving before a request is 409; the requester cannot approve; a legal hold voids the request and blocks it; a tampered export copy blocks it; a different Owner approves, a fresh dry run is stored and no row is deleted |
 | `test_starting_is_validated_and_each_step_waits_for_the_one_before` | Operations | the default school, no Super Admin, a deadline under a week, missing or early deletion terms, a deletion term without an end date are refused; one offboarding at a time; no archive, dry run or deletion before receipt; a failed build can be retried; receipt needs a download; cancelling discards the copy |
 
+`Platform/SchoolErasureTest`:
+
+| Test | Given | Then |
+| --- | --- | --- |
+| `test_after_two_approvals_and_the_cooling_off_period_the_school_is_erased_with_a_certificate` | Operations asks, an Owner approves | erasure refused during cooling-off and with a wrong reference; once started, hold and cancel are 409; every target table is left with only its held rows and each erased count equals the rows in scope less the held; memberships and roles gone; a learner's account erased in place; audit log, contracts and the archived school kept; export copy gone; the certificate holds no name, email or staff detail, names the audit entries, and its download matches its hash; erased is final |
+| `test_erasure_refuses_the_wrong_role_and_changes_nothing` | Support, Finance, Content, Sales and the school's Super Admin | 403 on start, resume and certificate; nothing changes, nothing queued, nothing audited |
+| `test_erasing_one_school_changes_nothing_of_another_school` | a person in both schools | every row of every table with the other school's id, its memberships, its members' accounts and status are byte-for-byte unchanged; the shared person keeps their account and loses only the leaving school's membership; the other school's erasure and certificate routes are 404 |
+| `test_a_reference_from_another_schools_row_stops_the_erasure_before_anything_is_deleted` | a school A row pointing at a school B school year | starting is refused naming the reference; a running erasure stops with `blocked:…` before any batch; neither school changes |
+| `test_erasure_needs_two_different_people_who_still_may_approve_and_a_hold_in_the_cooling_off_period_voids_it` | | approvals by one person, or an approver whose grant ended, are 409; a hold voids the approvals and the cooling-off period; new approvals start a new cooling-off period |
+| `test_an_interrupted_erasure_resumes_where_it_stopped_and_counts_every_row_once` | batches of 7, stopped after 6 batches | progress shown; the scheduler resumes it after 30 minutes; HQ resumes it; it finishes with every row counted once and the other school unchanged; running it again does nothing |
+| `test_the_retention_period_defaults_to_the_configured_days_when_neither_the_contract_nor_hq_gives_one` | no contract term, nothing entered | deletion on the deadline plus the configured days, source `default` |
+
 `SaasPanelTest` counts the new `/saas` routes and checks each names its ability.
 
 ## Not in this step
 
-- **Deleting the school's data.** The approvals and the dry run are built; the
-  deletion itself (removing the counted rows through `SchoolOwnedTables` in
-  dependency order, ending or removing accounts only this school knows,
-  removing the school's stored files and the export copy, on or after the
-  deletion date) is not. It needs its own review and a restore-tested backup.
-- **Stored files** (documents, photos, report PDFs, gallery) are not in the
-  export and not counted by the dry run; the manifest says so.
+- **Stored files** (documents, photos, report PDFs, gallery, profile photos)
+  are not in the export, not counted by the dry run and not erased: the
+  school must first get them back. The manifest and the certificate say so.
+- **Immutable history.** Rows the database refuses to delete (money, ledger
+  and similar history) are held, with the rows they refer to; the accounts of
+  the people in them are erased when only this school knew them. Whether, when
+  and how that history is ever removed or redacted is the owner's decision.
+- **SES configuration sets** of the school are kept as rows and not removed in
+  SES.
+- **Learner identifiers** (`learner_identifiers`, global) are kept so a student
+  number is never given to someone else.
+- A restore-tested backup before the first production erasure, and the
+  erasure's own review, are outside the code.
 - **Large schools:** the archive is built and encrypted in one piece (up to
   256 MB), within the 150-second job timeout; a build that takes longer fails
   and can be prepared again. Chunked encryption, streaming downloads and a

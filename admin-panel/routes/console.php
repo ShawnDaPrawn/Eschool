@@ -115,6 +115,8 @@ Schedule::command('platform:expire-school-imports')->hourly()->name('hq-import-e
 
 // School offboarding (SA.11): a leaving school's receipt deadline passes.
 Schedule::command('offboarding:receipt-deadlines')->dailyAt('03:10')->name('offboarding-receipt-deadlines')->withoutOverlapping();
+// School erasures (SA.11) whose worker stopped part way go on from their saved progress.
+Schedule::command('offboarding:resume-erasures')->everyFifteenMinutes()->name('offboarding-resume-erasures')->withoutOverlapping();
 
 // Refresh current-day evidence even when no source event arrives.
 Schedule::command('risk:evaluate')->hourly()->name('risk-observations')->withoutOverlapping(55);

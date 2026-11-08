@@ -53,6 +53,7 @@ class OffboardingExport
         'school_account_events' => 'Navigate Ed\'s timeline of the customer record',
         'platform_incident_schools' => 'Navigate Ed\'s breach and incident register',
         'school_offboardings' => 'this offboarding record',
+        'school_erasure_certificates' => 'the certificate that the school\'s data was erased (counts and dates only)',
     ];
 
     /** Delivery machinery, not records: not exported. */

@@ -313,7 +313,11 @@ counts, never the school's data. HQ writes it from `/saas` inside the school and
 the school's Super Admin confirms receipt from the panel, where an id from
 another school is not found ([Offboarding](offboarding.md)). The export and the
 deletion dry run read the school's rows through `SchoolOwnedTables`, always with
-the school's id.
+the school's id, and so does the erasure, which deletes only rows carrying the
+leaving school's id (and the role grants of its own roles).
+`school_erasure_certificates` is required school-owned too: one certificate per
+erased school, kept after erasure with HQ's other records of the school. It
+holds counts, dates and audit entry ids, never personal information.
 
 ### Platform content library (Action Plan 3.3)
 
