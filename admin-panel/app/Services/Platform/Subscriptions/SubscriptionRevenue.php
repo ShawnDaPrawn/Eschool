@@ -1,0 +1,111 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Platform\Subscriptions;
+
+use App\Models\User;
+use App\Services\Platform\Saas\PlatformBilling;
+use App\Services\Platform\Saas\PlatformStaffAccess;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Subscription revenue for one month (SA.8, Build 3): what was collected,
+ * monthly recurring revenue and its annual run rate, families, revenue per
+ * family and per paying learner, and churn, overall and per school. Integer
+ * cents and basis points only; counts, never a person.
+ *
+ * - Collected: payments received in the month.
+ * - Running on the month's last day (or today, for this month): paid
+ *   subscriptions whose paid period covers that day. MRR is their price per
+ *   month; the annual run rate is MRR x 12.
+ * - Churn: subscriptions cancelled or ended in the month, against those
+ *   running on the month's first day.
+ */
+class SubscriptionRevenue
+{
+    public function __construct(private readonly CurrentSchool $currentSchool) {}
+
+    public function summary(User $actor, string $month): array
+    {
+        abort_unless(app(PlatformStaffAccess::class)->can($actor, 'billing.view'), 403);
+        $first = CarbonImmutable::parse($month.'-01');
+        $last = $first->endOfMonth()->toDateString();
+        $today = PlatformBilling::today();
+        $day = $last > $today && $first->toDateString() <= $today ? $today : $last;
+
+        return $this->currentSchool->acrossSchools(function () use ($first, $last, $day, $month): array {
+            $collected = DB::table('learner_subscription_payments as p')->join('learner_subscriptions as s', fn ($j) => $j->on('s.school_id', '=', 'p.school_id')->on('s.id', '=', 'p.subscription_id'))
+                ->whereBetween('p.received_on', [$first->toDateString(), $last])
+                ->groupBy('p.school_id', 's.plan')->selectRaw('p.school_id, s.plan, SUM(p.amount_cents) AS cents, COUNT(*) AS payments')->get();
+            $running = $this->running($day)->get(['s.school_id', 's.plan', 's.price_cents', 's.period_months', 's.places', 's.guardian_user_id']);
+            $atStart = $this->running($first->toDateString())->count();
+            $churned = DB::table('learner_subscriptions')
+                ->where(fn ($q) => $q->where(fn ($c) => $c->where('status', 'cancelled')->whereBetween('cancelled_at', [$first->startOfDay(), $first->endOfMonth()->endOfDay()]))
+                    ->orWhere(fn ($e) => $e->where('status', 'ended')->whereBetween('closed_at', [$first->startOfDay(), $first->endOfMonth()->endOfDay()])))
+                ->whereNotNull('activated_at')->count();
+            $schools = DB::table('schools')->whereIn('id', $collected->pluck('school_id')->merge($running->pluck('school_id'))->unique()->all())->pluck('name', 'id');
+
+            $plans = array_fill_keys(['per_child', 'family', 'school_licence', 'sponsored'], ['running' => 0, 'mrr_cents' => 0, 'collected_cents' => 0]);
+            $perSchool = [];
+            $families = [];
+            $paying = 0;
+            $payingMrr = 0;
+            foreach ($running as $row) {
+                $monthly = intdiv((int) $row->price_cents, max(1, (int) $row->period_months));
+                $plans[$row->plan]['running']++;
+                $plans[$row->plan]['mrr_cents'] += $monthly;
+                $school = $this->school($perSchool, (int) $row->school_id, (string) ($schools[$row->school_id] ?? ''));
+                $perSchool[$school]['running']++;
+                $perSchool[$school]['mrr_cents'] += $monthly;
+                if (in_array($row->plan, ['per_child', 'family'], true)) {
+                    $families[(int) $row->guardian_user_id] = true;
+                    $paying++;
+                    $payingMrr += $monthly;
+                } elseif ($row->plan === 'sponsored') {
+                    $paying += (int) $row->places;
+                    $payingMrr += $monthly;
+                }
+            }
+            foreach ($collected as $row) {
+                $plans[$row->plan]['collected_cents'] += (int) $row->cents;
+                $school = $this->school($perSchool, (int) $row->school_id, (string) ($schools[$row->school_id] ?? ''));
+                $perSchool[$school]['collected_cents'] += (int) $row->cents;
+            }
+            $mrr = array_sum(array_column($plans, 'mrr_cents'));
+            $familyMrr = $plans['per_child']['mrr_cents'] + $plans['family']['mrr_cents'];
+            usort($perSchool, fn (array $a, array $b): int => [$a['school'], $a['school_id']] <=> [$b['school'], $b['school_id']]);
+
+            return [
+                'month' => $month, 'as_of' => $day, 'currency' => SubscriptionPricing::currency(),
+                'collected_cents' => array_sum(array_column($plans, 'collected_cents')),
+                'mrr_cents' => $mrr, 'arr_cents' => $mrr * 12,
+                'running' => array_sum(array_column($plans, 'running')),
+                'families' => count($families), 'per_family_cents' => $families === [] ? 0 : intdiv($familyMrr, count($families)),
+                'paying_learners' => $paying, 'per_paying_learner_cents' => $paying === 0 ? 0 : intdiv($payingMrr, $paying),
+                'churn' => ['cancelled_or_ended' => $churned, 'running_at_start' => $atStart, 'rate_bp' => $atStart === 0 ? 0 : intdiv($churned * 10000, $atStart)],
+                'plans' => $plans,
+                'schools' => $perSchool,
+                'pricing_confirmed' => (bool) config('subscriptions.pricing_confirmed', false),
+            ];
+        });
+    }
+
+    /** Paid subscriptions whose paid period covers the day. */
+    private function running(string $day): Builder
+    {
+        return DB::table('learner_subscriptions as s')->whereIn('s.status', ['active', 'cancelled'])
+            ->where('s.current_period_start', '<=', $day)->where('s.current_period_end', '>=', $day);
+    }
+
+    /** @param  array<int, array<string, mixed>>  $perSchool */
+    private function school(array &$perSchool, int $id, string $name): int
+    {
+        $perSchool[$id] ??= ['school_id' => $id, 'school' => $name, 'running' => 0, 'mrr_cents' => 0, 'collected_cents' => 0];
+
+        return $id;
+    }
+}

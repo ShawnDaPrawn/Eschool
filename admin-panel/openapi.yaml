@@ -158,6 +158,8 @@ security:
 - bearerAuth: []
 - cookieAuth: []
 tags:
+- name: Subscriptions
+  description: Learning plans for the tutor and the parent insights; daily practice stays free.
 - name: Wallets
   description: Private personal wallets and guardian spending controls.
 - name: Gallery
@@ -35418,6 +35420,293 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /subscriptions:
+    get:
+      operationId: getSubscriptionOverview
+      tags:
+      - Subscriptions
+      summary: getSubscriptionOverview
+      description: 'Learning plans (Action Plan 3.20) for the signed-in guardian at this school: the plans and their prices
+        (placeholders while pricing_confirmed is false), each of their own children here with their entitlement, and their
+        own subscriptions. required is false where the school does not ask for an entitlement; then everything is included.
+        Daily practice is free for every learner and never needs a plan.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The plans, the guardian's children and their subscriptions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionOverviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /subscriptions/learners/{learner}:
+    get:
+      operationId: getSubscriptionLearner
+      tags:
+      - Subscriptions
+      summary: getSubscriptionLearner
+      description: The plans and one of the guardian's own children with their entitlement. Another guardian's child, or a
+        learner at another school, is not found.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The plans and the child.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionLearnerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /subscriptions/learners/{learner}/requests:
+    post:
+      operationId: requestSubscription
+      tags:
+      - Subscriptions
+      summary: requestSubscription
+      description: Ask for a learning plan for one of the guardian's own approved children. The first child is on the per-child
+        price, each further child of the same guardian at this school on the family price; the price is fixed now. The plan
+        waits as requested until its EFT (quoting the reference) is recorded by Navigate Ed. Replaying the same operation_id
+        returns the same subscription (created false). Refused (409) when the school includes plans, the child is already
+        covered by the school or a sponsor, or the child already has a plan or a request waiting.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionOperationWrite'
+      responses:
+        '200':
+          description: The subscription, new or replayed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionRequestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Nothing to buy, already covered, or a plan or request already exists for the child.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /subscriptions/plans/{subscription}/cancel:
+    post:
+      operationId: cancelSubscription
+      tags:
+      - Subscriptions
+      summary: cancelSubscription
+      description: Cancel the guardian's own subscription. A request not yet paid stops at once; a paid plan keeps its paid
+        period (current_period_end). Replaying the same operation_id changes nothing. Another guardian's subscription is not
+        found.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: subscription
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionOperationWrite'
+      responses:
+        '200':
+          description: The cancelled subscription.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionCancelResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The plan is no longer running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /school/sponsored-places:
+    get:
+      operationId: listSponsoredPlaces
+      tags:
+      - Subscriptions
+      summary: listSponsoredPlaces
+      description: A sponsor's places at this school (Action Plan 3.20) and the learners the school named for them. The school's
+        Super Admin only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The school's sponsorships.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SponsoredPlacesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /school/sponsored-places/{subscription}/learners:
+    post:
+      operationId: addSponsoredLearner
+      tags:
+      - Subscriptions
+      summary: addSponsoredLearner
+      description: Name a learner of this school for one of the sponsor's places. Naming a learner already named changes nothing;
+        a full sponsorship is refused (409).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: subscription
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SponsoredLearnerWrite'
+      responses:
+        '200':
+          description: The sponsorship with its learners.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SponsoredPlaceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Every place is taken, or the sponsorship is no longer running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /school/sponsored-places/{subscription}/learners/{learner}/remove:
+    post:
+      operationId: removeSponsoredLearner
+      tags:
+      - Subscriptions
+      summary: removeSponsoredLearner
+      description: Free a sponsored place. Removing a learner who holds no place changes nothing.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: subscription
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The sponsorship with its learners.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SponsoredPlaceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -82557,3 +82846,534 @@ components:
           type: integer
           enum:
           - 200
+    SubscriptionPlan:
+      type: object
+      additionalProperties: false
+      required:
+      - plan
+      - price_cents
+      - period_months
+      properties:
+        plan:
+          type: string
+          enum:
+          - per_child
+          - family
+        price_cents:
+          type: integer
+          minimum: 1
+        period_months:
+          type: integer
+          minimum: 1
+          maximum: 12
+    SubscriptionEntitlement:
+      type: object
+      additionalProperties: false
+      description: Whether the learner may use the tutor and their guardians the insights today. source is included where
+        the school asks for nothing, else school_licence, sponsored or subscription; until is the last paid day.
+      required:
+      - required
+      - entitled
+      - source
+      - until
+      properties:
+        required:
+          type: boolean
+        entitled:
+          type: boolean
+        source:
+          anyOf:
+          - type: string
+            enum:
+            - included
+            - school_licence
+            - sponsored
+            - subscription
+          - type: 'null'
+        until:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+    Subscription:
+      type: object
+      additionalProperties: false
+      description: A learning plan by its reference. effective_status adds lapsed (paid periods ran out without a renewal)
+        and shows a cancelled plan past its paid period as ended.
+      required:
+      - id
+      - reference
+      - plan
+      - status
+      - effective_status
+      - learner_id
+      - price_cents
+      - currency
+      - period_months
+      - current_period_end
+      - requested_on
+      - can_cancel
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        reference:
+          type: string
+          pattern: ^[A-Z]{2,8}-[0-9]{6,12}$
+        plan:
+          type: string
+          enum:
+          - per_child
+          - family
+          - school_licence
+          - sponsored
+        status:
+          type: string
+          enum:
+          - requested
+          - active
+          - cancelled
+          - ended
+          - declined
+        effective_status:
+          type: string
+          enum:
+          - requested
+          - active
+          - lapsed
+          - cancelled
+          - ended
+          - declined
+        learner_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        price_cents:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        period_months:
+          type: integer
+          minimum: 1
+          maximum: 12
+        current_period_end:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        requested_on:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        can_cancel:
+          type: boolean
+    SubscriptionChild:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - approved
+      - entitlement
+      - next_plan
+      - subscription
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        approved:
+          type: boolean
+        entitlement:
+          $ref: '#/components/schemas/SubscriptionEntitlement'
+        next_plan:
+          type: string
+          enum:
+          - per_child
+          - family
+        subscription:
+          anyOf:
+          - $ref: '#/components/schemas/Subscription'
+          - type: 'null'
+    SubscriptionOverview:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - children
+      - subscriptions
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionChild'
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+    SubscriptionLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - child
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        child:
+          $ref: '#/components/schemas/SubscriptionChild'
+    SubscriptionRequestResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - created
+      - subscription
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        created:
+          type: boolean
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+    SubscriptionCancelResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - subscription
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+    SubscriptionOperationWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    SponsoredLearnerWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+    SponsoredPlace:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - reference
+      - sponsor_name
+      - places
+      - status
+      - effective_status
+      - current_period_end
+      - learners
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        reference:
+          type: string
+        sponsor_name:
+          type: string
+        places:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - requested
+          - active
+          - cancelled
+          - ended
+          - declined
+        effective_status:
+          type: string
+          enum:
+          - requested
+          - active
+          - lapsed
+          - cancelled
+          - ended
+          - declined
+        current_period_end:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        learners:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - name
+            - added_on
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              added_on:
+                anyOf:
+                - type: string
+                  format: date
+                - type: 'null'
+    SponsoredPlaces:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - sponsorships
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        sponsorships:
+          type: array
+          items:
+            $ref: '#/components/schemas/SponsoredPlace'
+    SponsoredPlaceResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - sponsorship
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        sponsorship:
+          $ref: '#/components/schemas/SponsoredPlace'
+    SubscriptionOverviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionOverview'
+        code:
+          type: integer
+    SubscriptionLearnerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionLearner'
+        code:
+          type: integer
+    SubscriptionRequestResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionRequestResult'
+        code:
+          type: integer
+    SubscriptionCancelResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionCancelResult'
+        code:
+          type: integer
+    SponsoredPlacesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SponsoredPlaces'
+        code:
+          type: integer
+    SponsoredPlaceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SponsoredPlaceResult'
+        code:
+          type: integer

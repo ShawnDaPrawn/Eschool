@@ -164,6 +164,7 @@ use App\Http\Controllers\Platform\PlatformSchoolGroupController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformSchoolImportController;
 use App\Http\Controllers\Platform\PlatformStaffController;
+use App\Http\Controllers\Platform\PlatformSubscriptionController;
 use App\Http\Controllers\Platform\PlatformSupportAccessController;
 use App\Http\Controllers\Platform\PlatformSupportController;
 use App\Http\Controllers\Platform\PlatformTwoFactorController;
@@ -201,6 +202,7 @@ use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\Webhooks\MessagingWebhookController;
+use App\Http\Controllers\Webhooks\SubscriptionWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\AuthorizeCardEncodingPanel;
 use App\Http\Middleware\AuthorizeCardsPanel;
@@ -557,6 +559,19 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::post('/{group}/invoices/{invoice}/discard', [$c, 'discard'])->whereNumber(['group', 'invoice'])->name('discard');
             Route::post('/{group}/invoices/{invoice}/payments', [$c, 'pay'])->whereNumber(['group', 'invoice'])->name('payments.store');
             Route::post('/{group}/invoices/{invoice}/payments/{payment}/reverse', [$c, 'reverse'])->whereNumber(['group', 'invoice', 'payment'])->name('payments.reverse');
+        });
+    });
+    // Learner subscriptions and their revenue (3.20, SA.8 Build 3): billing.view reads, billing.manage records EFTs and sets up licences and sponsorships.
+    Route::prefix('/subscriptions')->name('subscriptions')->group(function () {
+        $c = PlatformSubscriptionController::class;
+        Route::get('/', [$c, 'index'])->middleware('platform.can:billing.view');
+        Route::get('/revenue', [$c, 'revenue'])->middleware('platform.can:billing.view')->name('.revenue');
+        Route::middleware(['platform.can:billing.manage', 'throttle:30,1'])->prefix('/schools/{school}')->whereNumber('school')->group(function () use ($c) {
+            Route::post('/licences', [$c, 'licence'])->name('.licences.store');
+            Route::post('/sponsorships', [$c, 'sponsorship'])->name('.sponsorships.store');
+            Route::post('/{subscription}/payments', [$c, 'payment'])->whereNumber('subscription')->name('.payments.store');
+            Route::post('/{subscription}/decline', [$c, 'decline'])->whereNumber('subscription')->name('.decline');
+            Route::post('/{subscription}/end', [$c, 'end'])->whereNumber('subscription')->name('.end');
         });
     });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
@@ -1605,6 +1620,10 @@ Route::post('webhook/mail/ses', [MailWebhookController::class, 'ses'])->middlewa
 // Twilio SMS and WhatsApp status callbacks (Action Plan 2.7), signed with the
 // platform's auth token (X-Twilio-Signature).
 Route::post('webhook/messaging/twilio', [MessagingWebhookController::class, 'twilio'])->middleware('throttle:messaging-webhook')->name('webhook.messaging.twilio');
+
+// Learner subscription notices from a payment gateway (Action Plan 3.20), signed;
+// only the gateway named in config('subscriptions.gateway') is acted on. None is chosen yet.
+Route::post('webhook/subscriptions/{gateway}', [SubscriptionWebhookController::class, 'handle'])->where('gateway', '[a-z][a-z0-9_]{1,31}')->middleware('throttle:120,1')->name('webhook.subscriptions');
 
 // Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {

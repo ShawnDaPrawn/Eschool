@@ -79,6 +79,7 @@ use App\Http\Controllers\Api\V2\Platform\NotificationInboxController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
 use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
+use App\Http\Controllers\Api\V2\Platform\SubscriptionController;
 use App\Http\Controllers\Api\V2\Platform\TextMessagingController;
 use App\Http\Controllers\Api\V2\Reading\ReadingController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
@@ -593,6 +594,22 @@ Route::prefix('guardian')->middleware(['auth:sanctum', 'school.context', 'role:P
     Route::post('handle-proposals/{proposal}', [HandleController::class, 'decide'])->whereNumber('proposal');
     Route::get('approvals', [GuardianApprovalController::class, 'index']);
     Route::post('approvals/{learner}', [GuardianApprovalController::class, 'store'])->whereNumber('learner');
+});
+
+// Learning plans (Action Plan 3.20): a guardian's own children only; the services check the child and school on every call.
+Route::prefix('subscriptions')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role:Parent', 'idempotent', 'cache.headers:private;no_store'])->name('api.v2.subscriptions.')->group(function () {
+    $c = SubscriptionController::class;
+    Route::get('/', [$c, 'overview'])->name('overview');
+    Route::get('learners/{learner}', [$c, 'learner'])->whereNumber('learner')->name('learner');
+    Route::post('learners/{learner}/requests', [$c, 'request'])->whereNumber('learner')->middleware('throttle:20,1')->name('request');
+    Route::post('plans/{subscription}/cancel', [$c, 'cancel'])->whereNumber('subscription')->middleware('throttle:20,1')->name('cancel');
+});
+// A sponsor's places at the school (3.20): the school's Super Admin names the learners.
+Route::prefix('school/sponsored-places')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'staff', 'idempotent', 'cache.headers:private;no_store'])->name('api.v2.sponsored-places.')->group(function () {
+    $c = SubscriptionController::class;
+    Route::get('/', [$c, 'sponsored'])->name('index');
+    Route::post('{subscription}/learners', [$c, 'addLearner'])->whereNumber('subscription')->middleware('throttle:60,1')->name('add');
+    Route::post('{subscription}/learners/{learner}/remove', [$c, 'removeLearner'])->whereNumber(['subscription', 'learner'])->middleware('throttle:60,1')->name('remove');
 });
 
 Route::prefix('guardian/invitations')->middleware(['school.context:public', 'throttle:auth'])->group(function () {
