@@ -8,6 +8,7 @@
     <p>{{ __('Staff can also get urgent notices and safeguarding alerts by SMS or WhatsApp, on the mobile number on their own account, if you switch that on below.') }}</p>
     <p>{{ __('A number is only texted after its owner has verified it in the NavigateEd app with a code sent to it by SMS. Numbers recorded before verification started are not texted until their owner verifies them. Each person can choose SMS, WhatsApp, both or neither for each notice; you can see that someone has chosen, but not change their choice.') }}</p>
     <p role="status">{{ trans_choice(':count person at this school has verified a number.|:count people at this school have verified a number.', $people['verified'], ['count' => $people['verified']]) }}</p>
+    <p>{{ __('Emergency alerts and lockdowns go to guardians by every channel switched on here. For staff texts, choose the staff channels below. Number verification and each person’s own choices still apply.') }}</p>
     @if ($errors->any())<div role="alert">{{ $errors->first() }}</div>@endif
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     @if (! $configured['sms'])

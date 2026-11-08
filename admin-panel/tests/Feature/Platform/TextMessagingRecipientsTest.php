@@ -156,6 +156,32 @@ class TextMessagingRecipientsTest extends TestCase
         return array_map(fn (array $request) => str_starts_with((string) $request['To'], 'whatsapp:') ? 'whatsapp' : 'sms', array_slice($this->twilioRequests(), $before));
     }
 
+    public function test_emergency_texts_keep_verified_numbers_individual_choices_and_staff_opt_in(): void
+    {
+        $farid = $this->person('farid');
+        $tara = $this->person('tara');
+        $this->optIn(['comms.urgent'], ['comms.urgent']);
+        $this->assertSame([], $this->send($farid, 'safety.critical'));
+        $this->assertSame([], $this->send($tara, 'safety.critical'), 'Guardian channels do not opt staff in.');
+        $this->verifyThroughApp($farid);
+        $this->assertEqualsCanonicalizing(['sms', 'whatsapp'], $this->send($farid, 'safety.critical'));
+        $this->api($farid, 'PUT', '', ['type' => 'safety.critical', 'sms' => false, 'whatsapp' => false])->assertOk();
+        $this->assertSame([], $this->send($farid, 'safety.critical'), 'Emergency text delivery retains the person’s own choice.');
+
+        $this->web($this->superAdmin());
+        $this->optIn(['comms.urgent'], ['comms.urgent'], ['safety.critical'], ['safety.critical']);
+        $this->assertSame([], $this->send($tara, 'safety.critical'), 'School opt-in never replaces number verification.');
+        $this->verifyThroughApp($tara);
+        $this->assertSame(['sms'], $this->send($tara, 'safety.critical'), 'Staff WhatsApp needs their own opt-in.');
+        $this->api($tara, 'PUT', '', ['type' => 'safety.critical', 'sms' => true, 'whatsapp' => true])->assertOk();
+        $this->assertEqualsCanonicalizing(['sms', 'whatsapp'], $this->send($tara, 'safety.critical'));
+        $this->api($tara, 'PUT', '', ['type' => 'safety.critical', 'sms' => false, 'whatsapp' => false])->assertOk();
+        $this->assertSame([], $this->send($tara, 'safety.critical'));
+        $this->api($tara, 'PUT', '', ['type' => 'safety.critical', 'sms' => true, 'whatsapp' => true])->assertOk();
+        $tara->forceFill(['mobile' => '0729998888'])->save();
+        $this->assertSame([], $this->send($tara, 'safety.critical'), 'A changed number must be verified again.');
+    }
+
     public function test_a_guardian_verifies_their_number_with_a_code_sent_by_sms_and_only_then_is_texted(): void
     {
         $logged = [];
@@ -337,6 +363,7 @@ class TextMessagingRecipientsTest extends TestCase
         $this->assertSame([
             ['type' => 'comms.urgent', 'label' => 'Urgent school notice', 'offered' => ['sms', 'whatsapp'], 'sms' => true, 'whatsapp' => true, 'own_choice' => false],
             ['type' => 'attendance.absence', 'label' => 'Absence alert', 'offered' => ['sms'], 'sms' => true, 'whatsapp' => false, 'own_choice' => false],
+            ['type' => 'safety.critical', 'label' => 'Emergency alert', 'offered' => ['sms', 'whatsapp'], 'sms' => true, 'whatsapp' => true, 'own_choice' => false],
         ], $state);
         $this->assertEqualsCanonicalizing(['sms', 'whatsapp'], $this->send($farid));
 
