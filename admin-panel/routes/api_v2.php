@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Emergency\EmergencyController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
+use App\Http\Controllers\Api\V2\Family\FamilySummaryController;
 use App\Http\Controllers\Api\V2\FamilyForms\FamilyFormController;
 use App\Http\Controllers\Api\V2\FamilyVisits\VisitController;
 use App\Http\Controllers\Api\V2\Gallery\GalleryController;
@@ -463,6 +464,10 @@ Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approv
     Route::get('me/notifications/{notice}', [NotificationInboxController::class, 'show'])->whereNumber('notice')->name('me.notifications.show');
     Route::get('me/notification-quiet-hours', [QuietHoursController::class, 'show'])->middleware('cache.headers:private;no_store');
     Route::put('me/notification-quiet-hours', [QuietHoursController::class, 'update']);
+    // The daily family summary (Action Plan 5.11).
+    Route::get('me/family-summary/preferences', [FamilySummaryController::class, 'preferences'])->middleware('cache.headers:private;no_store');
+    Route::put('me/family-summary/preferences', [FamilySummaryController::class, 'savePreferences']);
+    Route::get('me/family-summaries/{summary}', [FamilySummaryController::class, 'show'])->whereNumber('summary')->middleware('cache.headers:private;no_store');
     // Your SMS and WhatsApp at this school (Action Plan 2.7): verify your number, choose per notice.
     Route::get('me/text-messaging', [TextMessagingController::class, 'show'])->middleware('cache.headers:private;no_store');
     Route::put('me/text-messaging', [TextMessagingController::class, 'update'])->middleware('throttle:text-messaging');

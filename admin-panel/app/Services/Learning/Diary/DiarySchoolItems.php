@@ -46,6 +46,22 @@ class DiarySchoolItems
             ->all();
     }
 
+    /**
+     * Homework the learner has not handed in, due between two dates, for the
+     * daily family summary (Action Plan 5.11): ids, titles, subjects and due
+     * times only, never points, a submission state or the learner's own notes.
+     *
+     * @return list<array{id: int, title: string, subject: ?string, due_at: string}>
+     */
+    public function dueBetween(Students $learner, CarbonImmutable $from, CarbonImmutable $to, CarbonImmutable $today): array
+    {
+        return $this->homework($learner, $from, $to, $today)
+            ->filter(fn (array $item) => ! $item['homework']['submitted']
+                && substr($item['due_at'], 0, 10) >= $from->toDateString() && substr($item['due_at'], 0, 10) <= $to->toDateString())
+            ->map(fn (array $item) => ['id' => $item['id'], 'title' => $item['title'], 'subject' => $item['subject']['name'] ?? null, 'due_at' => $item['due_at']])
+            ->values()->all();
+    }
+
     /** Whether the item currently applies to the learner (writes to an item that does not are refused as not found). */
     public function applies(Students $learner, string $source, int $id): bool
     {

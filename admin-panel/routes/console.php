@@ -139,6 +139,10 @@ Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-d
 // Gentle practice nudges (Action Plan 3.13): off until a school switches them on; school-day afternoons only.
 Schedule::command('practice:nudges')->hourly()->name('practice-nudges')->withoutOverlapping(55);
 
+// The daily family summary (Action Plan 5.11): each guardian at their own chosen time.
+Schedule::command('family:daily-summary')->everyFifteenMinutes()->name('family-daily-summaries')->withoutOverlapping(14);
+Schedule::command('family:daily-summary --retention')->dailyAt('03:45')->name('family-daily-summary-retention')->withoutOverlapping();
+
 Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-retention')->withoutOverlapping();
 
 Schedule::command('exam-coach:prune-working')->dailyAt('04:00')->name('exam-working-retention')->withoutOverlapping();
