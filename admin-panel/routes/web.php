@@ -155,6 +155,7 @@ use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLibraryController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformMailStreamsController;
+use App\Http\Controllers\Platform\PlatformMarkingAccuracyController;
 use App\Http\Controllers\Platform\PlatformMessagingController;
 use App\Http\Controllers\Platform\PlatformOffboardingController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
@@ -466,6 +467,18 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
         });
+    });
+    // The marking accuracy gate (3.18): de-identified evaluation scripts, runs and each subject's learner-marking switch; never a school or a learner.
+    Route::prefix('/marking-accuracy')->name('marking-accuracy.')->group(function () {
+        Route::get('/', [PlatformMarkingAccuracyController::class, 'index'])->middleware('platform.can:marking.evaluate,marking.approve')->name('index');
+        Route::get('/runs/{run}', [PlatformMarkingAccuracyController::class, 'run'])->middleware('platform.can:marking.evaluate,marking.approve')->whereNumber('run')->name('runs.show');
+        Route::middleware('platform.can:marking.evaluate')->group(function () {
+            Route::post('/papers', [PlatformMarkingAccuracyController::class, 'storePaper'])->middleware('throttle:20,1')->name('papers.store');
+            Route::post('/scripts', [PlatformMarkingAccuracyController::class, 'storeScripts'])->middleware('throttle:20,1')->name('scripts.store');
+            Route::post('/subjects/{subject}/runs', [PlatformMarkingAccuracyController::class, 'evaluate'])->middleware('throttle:6,1')->where('subject', '[a-z_]{1,32}')->name('runs.store');
+        });
+        Route::put('/subjects/{subject}/gate', [PlatformMarkingAccuracyController::class, 'switchOn'])->middleware(['platform.can:marking.approve', 'throttle:20,1'])->where('subject', '[a-z_]{1,32}')->name('gate.on');
+        Route::delete('/subjects/{subject}/gate', [PlatformMarkingAccuracyController::class, 'switchOff'])->middleware(['platform.can:marking.approve,marking.evaluate', 'throttle:20,1'])->where('subject', '[a-z_]{1,32}')->name('gate.off');
     });
     // The reading library catalogue (4.4): public-domain books, rights decisions, shelves and questions; never a school's learners.
     Route::prefix('/reading')->name('reading.')->middleware('platform.can:reading.manage')->group(function () {

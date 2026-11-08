@@ -36,6 +36,7 @@
         @if ($platformCan('library.manage'))<a href="{{ route('saas.library.index') }}">{{ __('Content library') }}</a>@endif
         @if ($platformCan('library.review'))<a href="{{ route('saas.library.reviews') }}">{{ __('Library reviews') }}</a>@endif
         @if ($platformCan('reading.manage'))<a href="{{ route('saas.reading.index') }}">{{ __('Reading library') }}</a>@endif
+        @if ($platformCan('marking.evaluate') || $platformCan('marking.approve'))<a href="{{ route('saas.marking-accuracy.index') }}">{{ __('Marking accuracy') }}</a>@endif
         @if ($platformCan('support.manage'))<a href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
         @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('identity.review'))<a href="{{ route('saas.lurits') }}">{{ __('LURITS claims') }}</a>@endif
