@@ -1,46 +1,15 @@
 name: Temporary Flutter runtime verification
 on:
   push:
-    branches:
-      - verification/flutter-runtime-20261109
+    branches: [verification/flutter-runtime-20261109]
 permissions:
   contents: read
 concurrency:
   group: verification-flutter-runtime-20261109
   cancel-in-progress: true
 jobs:
-  runtime:
-    name: Verify pinned Flutter runtime on Ubuntu 22
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
+  superseded:
+    name: Fallback superseded by resumed primary CI
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Verify app code matches the reviewed integration
-        run: git diff --exit-code cab9d172b5b4183df44e4f3745489a13950c11dc HEAD -- . ':(exclude).github/workflows/temporary-flutter-verification.yml'
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.47.7'
-          channel: stable
-          cache: false
-      - name: Record actual SDK version
-        run: flutter --version
-      - name: Resolve app dependencies with the committed lockfile
-        working-directory: e-school
-        run: flutter pub get --enforce-lockfile
-      - name: Verify authentication phase transitions
-        working-directory: e-school
-        run: flutter test test/auth_state_transitions_test.dart
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer:v2
-          coverage: none
-      - name: Audit the exact backend dependency lockfile
-        working-directory: admin-panel
-        run: composer audit --locked --no-interaction
+      - run: echo "Primary CI 42571215042 is now running for reviewed app head cab9d172. Duplicate fallback qualification is no longer needed."
