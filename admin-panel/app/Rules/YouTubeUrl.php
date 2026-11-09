@@ -17,14 +17,40 @@ class YouTubeUrl implements Rule
      */
     public function passes($attribute, $value)
     {
-        // Remove null bytes and other problematic characters
-        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', (string) $value);
+        return self::videoId($value) !== null;
+    }
 
-        if (preg_match("/^(?:http(?:s)?:\/\/)?(?:www\.)?(?:m\.)?(?:youtu\.be\/|youtube\.com\/((?:watch)\?(?:.*&)?v(?:i)?=|(?:embed|v|vi|user)\/))([^\?&\"'>]{11})/", $value, $matches)) {
-            return true;
+    /** Validate the entire URL, not just a prefix preceding attacker-controlled HTML. */
+    public static function videoId(mixed $value): ?string
+    {
+        if (! is_string($value) || strlen($value) > 2048
+            || preg_match('/[\x00-\x20\x7f<>"\'\\\\]/', $value)) {
+            return null;
         }
 
-        return false;
+        // Keep the scheme-less links accepted by existing clients.
+        $url = preg_match('#^https?://#i', $value) ? $value : 'https://'.$value;
+        $parts = parse_url($url);
+        if (! is_array($parts) || ! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+            || isset($parts['user']) || isset($parts['pass']) || isset($parts['port'])) {
+            return null;
+        }
+
+        $host = strtolower($parts['host'] ?? '');
+        $path = $parts['path'] ?? '';
+        $id = null;
+        if (in_array($host, ['youtu.be', 'www.youtu.be', 'm.youtu.be'], true)) {
+            $id = substr($path, 1);
+        } elseif (in_array($host, ['youtube.com', 'www.youtube.com', 'm.youtube.com'], true)) {
+            if ($path === '/watch') {
+                parse_str($parts['query'] ?? '', $query);
+                $id = $query['v'] ?? $query['vi'] ?? null;
+            } elseif (preg_match('#^/(?:embed|v|vi|user|shorts|live)/([A-Za-z0-9_-]{11})$#D', $path, $matches)) {
+                $id = $matches[1];
+            }
+        }
+
+        return is_string($id) && preg_match('/^[A-Za-z0-9_-]{11}$/D', $id) ? $id : null;
     }
 
     /**

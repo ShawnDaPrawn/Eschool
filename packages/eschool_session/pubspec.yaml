@@ -12,7 +12,7 @@ dependencies:
   app_links: ^7.2.1
   bloc: ^9.0.0
   dio: ^5.9.2
-  equatable: ^2.0.8
+  equatable: ^3.0.0
   # /me/context is decoded with the models generated from openapi.yaml.
   eschool_api:
     path: ../eschool_api

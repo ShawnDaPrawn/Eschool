@@ -230,7 +230,7 @@
                                                         <div class="d-flex align-items-center">
                                                             <span class="mr-3">{{ $questions->question_id }}.</span>
                                                             <div class="question-text">
-                                                                <textarea class="equation-editor-inline" name="qc{{ $questions->question_id }}">{{ safe_htmlspecialchars_decode($questions->questions->question) }}</textarea>
+                                                                <textarea class="equation-editor-inline" name="qc{{ $questions->question_id }}">{{ \App\Services\ExamMarkup::stored($questions->questions->question) }}</textarea>
                                                             </div>
                                                         </div>
                                                         <div class="d-flex align-items-center">

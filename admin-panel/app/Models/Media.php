@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Rules\YouTubeUrl;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,18 +34,11 @@ class Media extends Model
     {
         $result = ['embedUrl' => null, 'thumbnailUrl' => null];
         if (! empty($this->youtube_url)) {
-            // Remove null bytes and other problematic characters
-            $youtube_url = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', (string) $this->youtube_url);
-
-            // return pathinfo(url(Storage::url($this->file_url)), PATHINFO_EXTENSION);
-            $pattern = '/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/';
-            // Check if the URL matches the pattern
-            if (preg_match($pattern, $youtube_url, $matches)) {
-                // Extract Video ID
-                $videoId = $matches[1];
+            $videoId = YouTubeUrl::videoId($this->youtube_url);
+            if ($videoId !== null) {
                 // Construct Embed URL
                 $result['embedUrl'] = "https://www.youtube.com/embed/$videoId";
-                $result['thumbnailUrl'] = "http://img.youtube.com/vi/$videoId/hqdefault.jpg";
+                $result['thumbnailUrl'] = "https://img.youtube.com/vi/$videoId/hqdefault.jpg";
 
                 return $result;
             }

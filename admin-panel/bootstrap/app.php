@@ -117,6 +117,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'email/unsubscribe/*',
         ]);
 
+        // Reject oversized JSON before TrimStrings and ConvertEmptyStringsToNull
+        // recursively copy its decoded input and can exhaust a worker's memory.
+        $middleware->prepend(LimitRequestInput::class);
         // Every request starts with no school; school.context chooses it.
         $middleware->prepend(ResetSchoolContext::class);
         // Outermost, so every response and every log line of the request has its id.
@@ -129,7 +132,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: SetSchoolContext::class);
         $middleware->appendToPriorityList(after: SetSchoolContext::class, append: EnsureModuleEnabled::class);
         $middleware->append(SecurityHeaders::class);
-        $middleware->append(LimitRequestInput::class);
 
         // Web middleware group. The app's EncryptCookies replaces the framework's
         // (keeping both encrypted every cookie twice, so the web portals' API
