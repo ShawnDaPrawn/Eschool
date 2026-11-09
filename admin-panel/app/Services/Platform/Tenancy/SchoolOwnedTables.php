@@ -22,6 +22,8 @@ final class SchoolOwnedTables
      */
     public const REQUIRED = [
         'library_school_settings',
+        // The shared library (Action Plan 5.4): what a school offered to the library, and its teachers' ratings of shared items.
+        'library_contributions', 'library_ratings',
         'reading_hidden_items', 'reading_settings', 'reading_progress', 'reading_days', 'reading_answers',
         'school_messaging_settings',
         // Each person's verified number and own SMS and WhatsApp choice at one school (Action Plan 2.7).
@@ -183,11 +185,11 @@ final class SchoolOwnedTables
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
         'library_frameworks' => 'the platform content library\'s curriculum frameworks (CAPS, IEB), written only from /saas/library; no school data flows into the library',
-        'library_sources' => 'where library content comes from and its licence, written only from /saas/library; names no school',
+        'library_sources' => 'where library content comes from and its licence, written from /saas/library; a teacher\'s shared question (5.4) gets its own source naming the contributing school and teacher and the credit they chose, written only through ContributionGate, so a published item can be attributed as they chose',
         'library_topics' => 'the platform library\'s topics per framework, subject and grade, written only from /saas/library; a school mirrors them in its own mastery_topics',
         'library_topic_prerequisites' => 'prerequisite edges between platform library topics, written only from /saas/library',
-        'library_items' => 'platform library items (practice and past-paper questions, lessons, diagnostics), written only from /saas/library; never a school\'s own material',
-        'library_item_versions' => 'versioned library item content; a published version is immutable; written only from /saas/library',
+        'library_items' => 'platform library items (practice and past-paper questions, lessons, diagnostics), written from /saas/library; a teacher\'s question enters only as a deliberate, scanned copy through ContributionGate (5.4), never a live link to the school\'s material',
+        'library_item_versions' => 'versioned library item content; a published version is immutable; written from /saas/library, and version 1 of a shared question through ContributionGate (5.4), waiting for HQ review',
         'library_diagrams' => 'the platform library\'s diagram pictures for labelling questions, written only from /saas/library; a school reads one only through a published library question in a learner\'s own practice set',
         'library_reviews' => 'HQ reviewers\' decisions on library item versions; names platform staff only',
         'library_reviewers' => 'which platform staff review which library framework and subject; no school role or record',

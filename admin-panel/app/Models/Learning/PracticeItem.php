@@ -28,7 +28,7 @@ class PracticeItem extends Model
 
     protected function casts(): array
     {
-        return ['revision' => 'integer', 'active' => 'boolean', 'subject_id' => 'integer', 'grade_level_id' => 'integer', 'author_id' => 'integer'];
+        return ['revision' => 'integer', 'active' => 'boolean', 'subject_id' => 'integer', 'grade_level_id' => 'integer', 'author_id' => 'integer', 'library_item_version_id' => 'integer'];
     }
 
     /** @return HasMany<PracticeItemGroup, $this> */
