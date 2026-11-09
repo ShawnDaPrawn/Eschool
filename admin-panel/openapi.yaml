@@ -84502,6 +84502,7 @@ components:
       - rating
       - decline_reason
       - contributed_at
+      - can_view
       - can_decide
       - can_withdraw
       properties:
@@ -84577,6 +84578,8 @@ components:
           type:
           - string
           - 'null'
+        can_view:
+          type: boolean
         can_decide:
           type: boolean
         can_withdraw:
