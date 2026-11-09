@@ -79,7 +79,9 @@ use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationInboxController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
+use App\Http\Controllers\Api\V2\Platform\ProviderSignInController;
 use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
+use App\Http\Controllers\Api\V2\Platform\SignInLinkController;
 use App\Http\Controllers\Api\V2\Platform\SubscriptionController;
 use App\Http\Controllers\Api\V2\Platform\TextMessagingController;
 use App\Http\Controllers\Api\V2\Reading\ReadingController;
@@ -125,6 +127,7 @@ use App\Http\Middleware\RequireVendorCounter;
 use App\Http\Middleware\RequireWalletAuthority;
 use App\Http\Middleware\RequireWalletDepositAuthority;
 use App\Http\Middleware\RequireWalletWithdrawalAuthority;
+use App\Services\Platform\SignIn\ProviderCatalogue;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -230,6 +233,24 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     Route::post('sign-in', [$c, 'signIn'])->middleware(['throttle:login', 'portal.sign-in'])->name('sign-in');
     Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context', 'role.any'])->name('session');
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
+});
+
+// Google and Microsoft sign-in for the apps (Action Plan 5.9). The school is
+// named by its slug and ProviderSignIn runs every step inside it; the app
+// token it issues is bound to that school. Nothing creates an account.
+Route::prefix('auth/providers')->middleware([PrivateDomainResponse::class, 'school.context:public', 'throttle:sign-in-provider'])->name('api.v2.sign-in-providers.')->group(function () {
+    $c = ProviderSignInController::class;
+    Route::get('/', [$c, 'providers'])->name('index');
+    Route::post('{provider}/nonce', [$c, 'nonce'])->whereIn('provider', ProviderCatalogue::ALL)->name('nonce');
+    Route::post('{provider}/sign-in', [$c, 'signIn'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('portal.sign-in')->name('sign-in');
+});
+// The signed-in person's own links at their current school: linking needs their password again.
+Route::prefix('me/sign-in-links')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved'])->name('api.v2.sign-in-links.')->group(function () {
+    $c = SignInLinkController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('providers/{provider}/nonce', [$c, 'nonce'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:password')->name('nonce');
+    Route::post('providers/{provider}', [$c, 'store'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:password')->name('store');
+    Route::delete('{link}', [$c, 'destroy'])->where('link', '[1-9][0-9]{0,17}')->middleware('throttle:password')->name('destroy');
 });
 
 // The alumni and volunteer pool (Action Plan 5.6). Staff manage it under

@@ -245,6 +245,239 @@ tags:
 - name: Giving
   description: Alumni giving campaigns, pledges and EFT donations on the ledger (Action Plan 5.10).
 paths:
+  /auth/providers:
+    get:
+      operationId: listSignInProviders
+      tags:
+      - Platform
+      summary: Google and Microsoft sign-in offered by a school
+      description: Google and Microsoft sign-in (Action Plan 5.9). The providers the school named by its slug has switched on and this server has set up, so the app shows a button only where it works. Public; an unknown school answers an empty list. Private, never cached.
+      security: []
+      parameters:
+      - name: school
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 100
+          pattern: ^[a-z0-9][a-z0-9-]*$
+      responses:
+        '200':
+          description: The providers offered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInProvidersResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /auth/providers/{provider}/nonce:
+    post:
+      operationId: createSignInProviderNonce
+      tags:
+      - Platform
+      summary: A one-use nonce for the app's native Google or Microsoft sign-in
+      description: Ask for this before the native sign-in and pass the nonce to it; the ID token must carry it. The nonce works once, for this school, provider and app, within a few minutes. Refused (403) when the school has not switched the provider on.
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/SignInProvider'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInNonceInput'
+      responses:
+        '200':
+          description: The nonce.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInNonceResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/SignInProviderUnavailable'
+  /auth/providers/{provider}/sign-in:
+    post:
+      operationId: signInWithProvider
+      tags:
+      - Platform
+      summary: Sign in to an app with a Google or Microsoft ID token
+      description: The ID token from the app's native sign-in, with the nonce from createSignInProviderNonce. The token's signature (provider JWKS), issuer (Microsoft tenant-specific), audience, expiry, issue time, nonce and verified email are checked, and the school's allowed domains or tenants. It opens only an account already linked to this provider account at this school (matched on the provider's stable subject, never the email), whose membership and role the school allows, with every check of a password sign-in. No account is ever created. The answer is the same app token a password sign-in gives (from a web portal, a session cookie and a null token), bound to this school. 401 for a token or nonce that is not accepted, 403 for an account or school that does not allow it.
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/SignInProvider'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderSignInInput'
+      responses:
+        '200':
+          description: Signed in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderSignInResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/SignInProviderUnavailable'
+  /me/sign-in-links:
+    get:
+      operationId: listMySignInLinks
+      tags:
+      - Platform
+      summary: Your linked Google and Microsoft accounts at this school
+      description: The signed-in person's own links at their current school, and the providers they may link here. Never anyone else's. Private, never cached.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Your links.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInLinksResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/sign-in-links/providers/{provider}/nonce:
+    post:
+      operationId: createSignInLinkNonce
+      tags:
+      - Platform
+      summary: A one-use nonce for linking your Google or Microsoft account
+      description: For the signed-in person only, at their current school, when the school allows their role. Pass it to the native sign-in of the account to link.
+      parameters:
+      - $ref: '#/components/parameters/SignInProvider'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The nonce.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInNonceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/SignInProviderUnavailable'
+  /me/sign-in-links/providers/{provider}:
+    post:
+      operationId: linkMySignInAccount
+      tags:
+      - Platform
+      summary: Link your Google or Microsoft account
+      description: Your password again, the ID token of the account to link and the link nonce. The account's verified email must be your account's email, in a domain or tenant the school allows. A provider account links to one person per school; you link one account per provider. 422 for a wrong password (counted like any wrong password), 409 when either is already linked.
+      parameters:
+      - $ref: '#/components/parameters/SignInProvider'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInLinkInput'
+      responses:
+        '201':
+          description: Linked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInLinkResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: This provider account, or one of yours for this provider, is already linked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/SignInProviderUnavailable'
+  /me/sign-in-links/{link}:
+    delete:
+      operationId: removeMySignInLink
+      tags:
+      - Platform
+      summary: Remove one of your linked accounts
+      description: Only your own link at your current school; anyone else's answers 404. Audited. Sessions that the link opened end with it.
+      parameters:
+      - name: link
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInLinkRemovedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /facilitator/sign-in:
     post:
       operationId: signInFacilitator
@@ -35962,6 +36195,12 @@ components:
       scheme: bearer
       description: Registered encoder NED1 credential only. Never an account, gate or classroom token.
   parameters:
+    SignInProvider:
+      name: provider
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/SignInProviderName'
     ExpectedAccount:
       name: X-Account-Id
       in: header
@@ -36128,6 +36367,12 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     ServerError:
       description: A bug on our side.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    SignInProviderUnavailable:
+      description: Google or Microsoft could not be reached to check the sign-in (fail closed). Sign in with the password, or try again.
       content:
         application/json:
           schema:
@@ -41387,6 +41632,310 @@ components:
           - type: integer
           - type: string
           - type: 'null'
+    SignInProviderName:
+      type: string
+      enum:
+      - google
+      - microsoft
+    SignInProviderOption:
+      type: object
+      additionalProperties: false
+      required:
+      - provider
+      - label
+      properties:
+        provider:
+          $ref: '#/components/schemas/SignInProviderName'
+        label:
+          type: string
+    SignInProvidersResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - providers
+          properties:
+            providers:
+              type: array
+              items:
+                $ref: '#/components/schemas/SignInProviderOption'
+        code:
+          type: 'null'
+    SignInNonceInput:
+      type: object
+      additionalProperties: false
+      required:
+      - school
+      - app
+      properties:
+        school:
+          type: string
+          maxLength: 100
+          pattern: ^[a-z0-9][a-z0-9-]*$
+        app:
+          type: string
+          enum:
+          - teacher
+          - student
+    SignInNonceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - nonce
+          - expires_at
+          - client_id
+          properties:
+            nonce:
+              type: string
+              description: Pass to the native sign-in; it works once.
+            expires_at:
+              type: string
+              format: date-time
+            client_id:
+              type: string
+              description: The server (web) client id to ask the native sign-in for. Public.
+        code:
+          type: 'null'
+    ProviderSignInInput:
+      type: object
+      additionalProperties: false
+      required:
+      - school
+      - app
+      - id_token
+      - nonce
+      properties:
+        school:
+          type: string
+          maxLength: 100
+          pattern: ^[a-z0-9][a-z0-9-]*$
+        app:
+          type: string
+          enum:
+          - teacher
+          - student
+        id_token:
+          type: string
+          maxLength: 16384
+          writeOnly: true
+        nonce:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        fcm_id:
+          type:
+          - string
+          - 'null'
+          maxLength: 4096
+        device_type:
+          type:
+          - string
+          - 'null'
+          maxLength: 20
+    ProviderSignInResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - token
+          - app
+          - school
+          properties:
+            token:
+              type:
+              - string
+              - 'null'
+              description: The app token (null for a web portal, which gets a session cookie).
+            app:
+              type: string
+              enum:
+              - teacher
+              - student
+            school:
+              type: object
+              additionalProperties: false
+              required:
+              - id
+              - name
+              - slug
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                slug:
+                  type: string
+        code:
+          type: 'null'
+    SignInLink:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - provider
+      - label
+      - email
+      - linked_at
+      - last_used_at
+      properties:
+        id:
+          type: integer
+        provider:
+          $ref: '#/components/schemas/SignInProviderName'
+        label:
+          type: string
+        email:
+          type: string
+          description: The verified email the provider gave when the link was made.
+        linked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    SignInLinksResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - links
+          - providers
+          properties:
+            links:
+              type: array
+              items:
+                $ref: '#/components/schemas/SignInLink'
+            providers:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - provider
+                - label
+                - may_link
+                properties:
+                  provider:
+                    $ref: '#/components/schemas/SignInProviderName'
+                  label:
+                    type: string
+                  may_link:
+                    type: boolean
+        code:
+          type: 'null'
+    SignInLinkInput:
+      type: object
+      additionalProperties: false
+      required:
+      - id_token
+      - nonce
+      - password
+      properties:
+        id_token:
+          type: string
+          maxLength: 16384
+          writeOnly: true
+        nonce:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        password:
+          type: string
+          maxLength: 4096
+          writeOnly: true
+    SignInLinkResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SignInLink'
+        code:
+          type: 'null'
+    SignInLinkRemovedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - removed
+          properties:
+            removed:
+              type: boolean
+        code:
+          type: 'null'
     FacilitatorSignInInput:
       type: object
       additionalProperties: false

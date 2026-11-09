@@ -109,6 +109,8 @@ final class SchoolOwnedTables
         'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations', 'recognition_badge_settings', 'recognition_badges',
         // Open standards (5.9): the school's OneRoster exports and the Open Badges credentials issued for its awards.
         'oneroster_exports', 'open_badge_credentials',
+        // Google and Microsoft sign-in (5.9): each school's provider settings, the accounts linked at it and the one-use sign-in challenges.
+        'sign_in_provider_settings', 'sign_in_provider_links', 'sign_in_provider_challenges',
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
         'exam_periods', 'calendar_feeds',

@@ -103,6 +103,13 @@ class RouteServiceProvider extends ServiceProvider
             ];
         });
 
+        // Google and Microsoft sign-in (Action Plan 5.9): starting, the provider's
+        // callback, app nonces and ID token sign-ins. The account is known only
+        // once the token is checked, so these count per address, as the
+        // password sign-in's address limit does; the per-account lockout from
+        // wrong passwords is checked then (ProviderSignIn).
+        RateLimiter::for('sign-in-provider', fn (Request $request) => Limit::perMinute(20)->by('sign-in-provider-ip:'.$request->ip()));
+
         // Checking or changing the signed-in user's own password.
         RateLimiter::for('password', fn (Request $request) => Limit::perMinute(20)->by('password:'.($request->user()?->id ?: $request->ip())));
 

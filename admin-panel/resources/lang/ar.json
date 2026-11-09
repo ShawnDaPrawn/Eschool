@@ -6292,5 +6292,8 @@
     ":kind: :rows rows, sent to :name for approval. You can see every step.": ":kind: :rows rows, sent to :name for approval. You can see every step.",
     "Navigate Ed imported into your school": "Navigate Ed imported into your school",
     ":kind approved by your school is now imported. Open it to see what was written.": ":kind approved by your school is now imported. Open it to see what was written.",
-    "Learning plans": "Learning plans"
+    "Learning plans": "Learning plans",
+    "Google and Microsoft sign-in": "Google and Microsoft sign-in",
+    "Linked accounts": "Linked accounts",
+    "sign_in_provider_session_ended": "This Google or Microsoft sign-in no longer holds at your school. Please sign in again."
 }

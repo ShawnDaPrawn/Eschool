@@ -74,8 +74,14 @@ final class AppTokens
      * from before app names are still removed when they can only be this app's.
      * The facilitator and vendor profiles keep one session that each sign-in
      * replaces.
+     *
+     * $abilities stay ['*'] for every sign-in except Google and Microsoft
+     * sign-in (Action Plan 5.9), which adds its school binding next to '*'
+     * (ProviderSessionScope); the token is otherwise the same.
+     *
+     * @param  list<string>  $abilities
      */
-    public static function issue(User $user, string $app): string
+    public static function issue(User $user, string $app, array $abilities = ['*']): string
     {
         abort_unless(EnsureAccountActive::isActive($user), 401);
         app(ApprovalService::class)->assertAccess($user);
@@ -87,13 +93,13 @@ final class AppTokens
             // a new sign-in rotates it, as before.
             self::revokeApp($user, $app);
 
-            return $user->createToken($app)->plainTextToken;
+            return $user->createToken($app, $abilities)->plainTextToken;
         }
         self::revokeLegacy($user, $app);
         $keep = $user->tokens()->where('name', $app)->orderByDesc('id')->limit(self::MAX_DEVICES_PER_APP - 1)->pluck('id');
         $user->tokens()->where('name', $app)->whereNotIn('id', $keep)->delete();
 
-        return $user->createToken($app)->plainTextToken;
+        return $user->createToken($app, $abilities)->plainTextToken;
     }
 
     /** Revokes the account's tokens for one app; returns how many. */
