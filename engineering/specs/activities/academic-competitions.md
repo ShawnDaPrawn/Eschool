@@ -53,6 +53,7 @@ Everything the fixture already does is reused unchanged: the invitation and its 
 - **Redaction before storing or sending.** `ReasoningReviews` removes both schools' names, an outside opponent's name, both team names, this school's entrants' names and labels, the other school's shared sheet labels, this school's adjudicators, the asking adult, emails and long numbers (`[name]`, `TutorContext::minimize`). Ordinary words in school names (for example "High" or "School") are kept. The model receives only `{task, kind, format, motion, stance, source, text}`.
 - **Policy** (`ReasoningFeedbackPolicy`): the only input is one pending review in this school, asked for by the adjudicator calling, who still judges this competition with the module on; reauthorized before every step. Audience staff; roles Teacher, Super Admin, School Admin, Principal, Grade Head, Facilitator.
 - **Moderation and quarantine** (`ReasoningFeedbackModeration`): the input passes the safeguarding phrase guard of every platform language before any network call (`safeguarding_disclosure`), then the shared moderation. The output must be JSON with exactly `structure`, `evidence`, `rebuttal`, `fallacies` (at most six, each a name and explanation) and `summary`, bounded, with no links, contact details, marks ("8/10", "75%", "12 points") or verdicts ("should win"). Anything else is quarantined (`reasoning_feedback_output_invalid`) and nothing is shown. `ReasoningFeedbackQuarantine` erases what is left of the review when quarantine retention ends.
+- **One call per request.** Only the request that creates a review calls the model. A retry of the same operation, even while that call is still running, returns the review as it stands and never calls, fails or clears it; a changed request under the same operation is refused (409).
 - **Receipts.** `ai_usage` holds the reference `academic_reasoning_review:<id>`, no learner id and no text; the review's redacted text is cleared as soon as the call ends, whatever happened.
 - **Prompt** `resources/ai/prompts/reasoning-feedback.json`; **corpus** `resources/ai/evals/reasoning_feedback.jsonl` (seven synthetic placeholder cases) and two shared red-team cases. These are synthetic scorer fixtures only, not model qualification.
 
@@ -95,7 +96,8 @@ Schemas: `AcademicCompetition`, `AcademicCompetitionDetail`, `AcademicResult`, `
 | AI switched on | Tara asks for feedback | the provider sees no school, team, learner or adult name; the receipt has no learner and only a reference; the result is untouched |
 | An answer with a verdict or a score | | quarantined, not shown |
 | AI off by default; school switch off; school budget spent; a safeguarding phrase | ask | 409; 403; unavailable with no provider call; quarantined with no provider call |
-| Replay and changed request under one operation | ask | one provider call; 409 |
+| Replay and changed request under one operation, and a retry while the first call runs | ask | one provider call; the retry sees the pending review unchanged; 409 for a changed request |
+| Feedback with "90%.", "90% ", "90%" at the end, points or "8/10" | | refused as a mark |
 | Sharing | Tara shares her own words with Asha | only Asha's family sees them; feedback on the other school's entrant cannot be shared |
 | Awards | taking part, then placing after the confirmed result | presented through the awards flow once each; Baobab cannot use A's award or reach A's learners |
 | The API and the panel | the same flows | responses match openapi.yaml; panel pages for managers only |
