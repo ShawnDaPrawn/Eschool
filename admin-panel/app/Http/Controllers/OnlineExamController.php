@@ -20,6 +20,7 @@ use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Term;
+use App\Services\ExamMarkup;
 use App\Services\OnlineExamScoringService;
 use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
@@ -796,7 +797,7 @@ class OnlineExamController extends Controller
                         'exam_id' => $request->online_exam_id,
                         'question_type' => $request->question_type,
                         'question_id' => $question_store->id,
-                        'question' => "<div class='equation-editor-inline'>".safe_htmlspecialchars_decode($request->equestion).'</div>',
+                        'question' => "<div class='equation-editor-inline'>".ExamMarkup::clean((string) $request->equestion).'</div>',
                     ],
                 ];
             } else {
@@ -907,14 +908,14 @@ class OnlineExamController extends Controller
             $tempRow['options'] = [];
             $tempRow['answers'] = [];
             if ($row->question_type) {
-                $tempRow['question'] = "<div class='equation-editor-inline' contenteditable=false name='qc".$row->id."'>".safe_htmlspecialchars_decode($row->question).'</div>';
-                $tempRow['question_row'] = safe_htmlspecialchars_decode($row->question);
+                $tempRow['question'] = "<div class='equation-editor-inline' contenteditable=false name='qc".$row->id."'>".ExamMarkup::stored($row->question, (bool) $row->question_type).'</div>';
+                $tempRow['question_row'] = ExamMarkup::stored($row->question, (bool) $row->question_type);
                 $option_data = [];
                 foreach ($row->options as $key => $options) {
                     $option_data = [
                         'id' => $options->id,
-                        'option' => "<div class='equation-editor-inline' contenteditable=false>".safe_htmlspecialchars_decode($options->option).'</div>',
-                        'option_row' => safe_htmlspecialchars_decode($options->option),
+                        'option' => "<div class='equation-editor-inline' contenteditable=false>".ExamMarkup::stored($options->option, (bool) $row->question_type).'</div>',
+                        'option_row' => ExamMarkup::stored($options->option, (bool) $row->question_type),
                     ];
                     $tempRow['options'][] = $option_data;
                 }
@@ -922,25 +923,25 @@ class OnlineExamController extends Controller
                 foreach ($row->answers as $answers) {
                     $answer_data = [
                         'id' => $answers->id,
-                        'answer' => "<div class='equation-editor-inline' contenteditable=false>".safe_htmlspecialchars_decode($answers->options->option).'</div>',
+                        'answer' => "<div class='equation-editor-inline' contenteditable=false>".ExamMarkup::stored($answers->options->option, (bool) $row->question_type).'</div>',
                     ];
                     $tempRow['answers'][] = $answer_data;
                 }
             } else {
-                $tempRow['question'] = safe_htmlspecialchars_decode($row->question);
+                $tempRow['question'] = ExamMarkup::stored($row->question, (bool) $row->question_type);
                 $tempRow['question_textarea'] = null;
                 $option_data = [];
                 foreach ($row->options as $key => $options) {
                     $option_data = [
                         'id' => $options->id,
-                        'option' => safe_htmlspecialchars_decode($options->option),
+                        'option' => ExamMarkup::stored($options->option, (bool) $row->question_type),
                     ];
                     $tempRow['options'][] = $option_data;
                 }
                 foreach ($row->answers as $key => $answers) {
                     $answer_data = [
                         'id' => $answers->id,
-                        'answer' => safe_htmlspecialchars_decode($answers->options->option),
+                        'answer' => ExamMarkup::stored($answers->options->option, (bool) $row->question_type),
                     ];
                     $tempRow['answers'][] = $answer_data;
                 }

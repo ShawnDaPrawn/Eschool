@@ -18,6 +18,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\Term;
+use App\Services\ExamMarkup;
 use App\Services\OnlineExamScoringService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -298,7 +299,7 @@ class OnlineExamController extends Controller
                 foreach ($exam_questions->questions->options as $question_options) {
                     $options_data[] = [
                         'id' => $question_options->id,
-                        'option' => safe_htmlspecialchars_decode($question_options->option),
+                        'option' => ExamMarkup::stored($question_options->option, (bool) $exam_questions->questions->question_type),
                     ];
                 }
 
@@ -310,7 +311,7 @@ class OnlineExamController extends Controller
                 // make question array
                 $questions_data[] = [
                     'id' => $exam_questions->id,
-                    'question' => safe_htmlspecialchars_decode($exam_questions->questions->question),
+                    'question' => ExamMarkup::stored($exam_questions->questions->question, (bool) $exam_questions->questions->question_type),
                     'question_type' => $exam_questions->questions->question_type,
                     'options' => $options_data,
                     'answers' => array_fill(0, $answers_count, ['id' => 0, 'option_id' => 0, 'answer' => '']),

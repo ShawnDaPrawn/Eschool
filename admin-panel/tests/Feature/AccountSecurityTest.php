@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Exceptions\TooManyLoginFailures;
+use App\Models\Platform\School;
 use App\Models\Staff;
 use App\Models\User;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
 use dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -137,6 +140,65 @@ class AccountSecurityTest extends TestCase
 
         $this->assertSame($limit('/login', 'Parent@Example.com'), $limit('/api/parent/login', 'parent@example.com'));
         $this->assertContains('throttle:login', Route::getRoutes()->match(Request::create('/login', 'POST'))->gatherMiddleware());
+    }
+
+    public function test_app_login_failures_do_not_lock_out_another_account(): void
+    {
+        $teacher = $this->teacher('secret123');
+        School::forceCreate(['id' => 2, 'name' => 'Other School', 'slug' => 'other-school']);
+        app(SchoolRoles::class)->seed(2);
+        $other = app(CurrentSchool::class)->run(2, function () {
+            $user = User::create([
+                'first_name' => 'Other', 'last_name' => 'Teacher', 'email' => 'other-school@example.com',
+                'gender' => 'Male', 'mobile' => '0000000000', 'password' => Hash::make('other-password'),
+            ]);
+            $user->assignRole('Teacher');
+
+            return $user;
+        });
+        for ($i = 0; $i < TooManyLoginFailures::MAX_FAILURES; $i++) {
+            $this->assertFalse(Auth::attempt(['id' => $teacher->id, 'password' => 'wrong-password']));
+        }
+
+        // App logins resolve email/handle/student number to an id before attempting
+        // authentication. Those attempts must never share an empty account key.
+        $this->assertTrue(Auth::attempt(['id' => $this->superAdmin()->id, 'password' => 'superadmin']));
+        Auth::logout();
+        app(CurrentSchool::class)->run(2, function () use ($other) {
+            $this->assertTrue(Auth::attempt(['id' => $other->id, 'password' => 'other-password']));
+            Auth::logout();
+        });
+        $this->expectException(TooManyLoginFailures::class);
+        Auth::attempt(['id' => $teacher->id, 'password' => 'secret123']);
+    }
+
+    public function test_id_and_email_attempts_share_a_limit_and_success_clears_it(): void
+    {
+        $teacher = $this->teacher('secret123');
+        for ($i = 0; $i < TooManyLoginFailures::MAX_FAILURES - 1; $i++) {
+            $this->assertFalse(Auth::attempt(['id' => $teacher->id, 'password' => 'wrong-password']));
+        }
+        $this->assertTrue(Auth::attempt(['email' => $teacher->email, 'password' => 'secret123']));
+        Auth::logout();
+
+        for ($i = 0; $i < TooManyLoginFailures::MAX_FAILURES; $i++) {
+            $identity = $i % 2 === 0 ? ['id' => $teacher->id] : ['email' => strtoupper($teacher->email)];
+            $this->assertFalse(Auth::attempt($identity + ['password' => 'wrong-password']));
+        }
+        $this->expectException(TooManyLoginFailures::class);
+        Auth::attempt(['email' => $teacher->email, 'password' => 'secret123']);
+    }
+
+    public function test_malformed_app_login_fields_are_refused_without_server_errors(): void
+    {
+        foreach (['teacher' => 'email', 'parent' => 'email', 'student' => 'gr_number'] as $profile => $field) {
+            foreach ([[$field => ['unexpected'], 'password' => 'secret123'],
+                [$field => 'superadmin@gmail.com', 'password' => ['unexpected']]] as $input) {
+                $this->postJson('/api/'.$profile.'/login', $input)
+                    ->assertOk()->assertJson(['error' => true]);
+                $this->assertGuest();
+            }
+        }
     }
 
     public function test_the_current_password_is_checked_with_a_limited_post(): void

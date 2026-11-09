@@ -97,7 +97,7 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(Attempting::class, function (Attempting $event) use ($key) {
             if (RateLimiter::tooManyAttempts($key($event->credentials), TooManyLoginFailures::MAX_FAILURES)) {
-                throw new TooManyLoginFailures((string) ($event->credentials['email'] ?? ''), RateLimiter::availableIn($key($event->credentials)));
+                throw new TooManyLoginFailures(LoginIdentity::credentialsKey($event->credentials), RateLimiter::availableIn($key($event->credentials)));
             }
         });
         Event::listen(Failed::class, fn (Failed $event) => RateLimiter::hit($key($event->credentials), 3600));

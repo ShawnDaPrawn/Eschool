@@ -781,9 +781,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: Documentation build tools (fails on critical)
+      - name: Documentation build tools (fails on high or critical)
         working-directory: documentation
-        run: npm audit --audit-level=critical
+        run: npm audit --audit-level=high
 
   playwright-parts:
     concurrency:

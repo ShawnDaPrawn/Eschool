@@ -476,7 +476,9 @@ class MediaController extends Controller
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
-            $tempRow['url'] = "<a data-toggle='lightbox' href='".$row->embeded_url['embedUrl']."'>$row->youtube_url</a>";
+            // This column deliberately renders HTML. Escape legacy stored values
+            // as well as new input, even after the URL validator has run.
+            $tempRow['url'] = "<a data-toggle='lightbox' href='".e($row->embeded_url['embedUrl'] ?? '')."'>".e($row->youtube_url).'</a>';
             $tempRow['original_url'] = $row->youtube_url;
             $tempRow['created_at'] = convertDateFormat($row->created_at, 'd-m-Y H:i:s');
             $tempRow['updated_at'] = convertDateFormat($row->updated_at, 'd-m-Y H:i:s');
