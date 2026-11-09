@@ -925,6 +925,18 @@ class OpenApiContractTest extends TestCase
             'mastery graph read requires auth' => [null, 'GET', 'api/v2/growth/mastery/subjects/1/graph', [], 401],
             'mastery graph write requires auth' => [null, 'PUT', 'api/v2/growth/mastery/subjects/1/graph', [], 401],
             'mastery repair queue requires auth' => [null, 'POST', 'api/v2/growth/mastery/groups/1/rebuild', [], 401],
+            // Google and Microsoft sign-in (Action Plan 5.9); ProviderSignInTest covers the signed tokens.
+            'sign-in providers of an unknown school' => [null, 'GET', 'api/v2/auth/providers', ['school' => 'nowhere'], 200],
+            'sign-in providers need a school' => [null, 'GET', 'api/v2/auth/providers', [], 422],
+            'sign-in provider nonce while the school has it off' => [null, 'POST', 'api/v2/auth/providers/google/nonce', ['school' => 'nowhere', 'app' => 'teacher'], 403],
+            'sign-in provider nonce validation' => [null, 'POST', 'api/v2/auth/providers/google/nonce', ['school' => 'nowhere', 'app' => 'parent'], 422],
+            'sign-in with a provider validation' => [null, 'POST', 'api/v2/auth/providers/google/sign-in', [], 422],
+            'sign-in with a provider while the school has it off' => [null, 'POST', 'api/v2/auth/providers/microsoft/sign-in', ['school' => 'nowhere', 'app' => 'teacher', 'id_token' => 'a.b.c', 'nonce' => 'n'], 403],
+            'my sign-in links' => ['tara', 'GET', 'api/v2/me/sign-in-links', [], 200],
+            'my sign-in links without a token' => [null, 'GET', 'api/v2/me/sign-in-links', [], 401],
+            'sign-in link nonce while the school has it off' => ['tara', 'POST', 'api/v2/me/sign-in-links/providers/google/nonce', [], 403],
+            'sign-in link validation' => ['tara', 'POST', 'api/v2/me/sign-in-links/providers/google', [], 422],
+            'remove a sign-in link that is not yours' => ['tara', 'DELETE', 'api/v2/me/sign-in-links/999', [], 404],
             'context without a token' => [null, 'GET', 'api/v2/me/context', [], 401],
             'context for an account with no role' => ['norole', 'GET', 'api/v2/me/context', [], 403],
         ];
