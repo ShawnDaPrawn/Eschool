@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Models\User;
+use App\Services\Platform\Saas\PlatformSignIn;
 use App\Services\Platform\Saas\PlatformTwoFactor;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -25,6 +26,7 @@ final class ForgetPlatformTwoFactor
         if ($event->guard !== 'web' || ! $request->hasSession()) {
             return;
         }
+        $request->session()->forget(PlatformSignIn::SESSION_KEY);
         $this->twoFactor->forget($request->session());
         if ($event instanceof Login && $event->user instanceof User) {
             $this->twoFactor->stamp($request->session(), $event->user);

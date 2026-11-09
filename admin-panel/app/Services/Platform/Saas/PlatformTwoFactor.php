@@ -137,7 +137,7 @@ class PlatformTwoFactor
 
         return $request->expectsJson()
             ? response()->json(['error' => true, 'message' => $message], 401)
-            : redirect()->route('login')->with('error', $message);
+            : redirect()->route('saas.login')->with('error', $message);
     }
 
     private function generation(User $user): int

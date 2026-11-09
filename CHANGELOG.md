@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-10
+
+- Give NavigateEd business administration its own sign-in at `/saas/login`, recovery pages and logout route. Business accounts cannot sign in through the school login, and school accounts cannot sign in to HQ. Existing business sessions must sign in again; platform access grants and mandatory two-factor checks still apply.
+
 ## 2026-11-08
 
 - The subject tutor now leads the teach step of a learner's guided learning path again. The default tutor prompt (v2, now 2.1.0) had not been given the learning path instruction that the original prompt has, so it waited for the learner instead of teaching. It now leads in small steps and still never gives the path's practice or check answers. The tutor still needs a real-model evaluation before it is switched on.

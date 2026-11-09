@@ -88,6 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(fn (Request $request) => route($request->is('saas', 'saas/*') ? 'saas.login' : 'login'));
 
         // Trusted proxies come from config/trustedproxy.php (all callers on Cloud
         // Run, which terminates TLS; none elsewhere unless TRUSTED_PROXIES is set).

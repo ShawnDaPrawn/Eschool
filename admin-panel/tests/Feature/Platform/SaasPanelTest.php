@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Http\Middleware\PrivateDomainResponse;
 use App\Jobs\Platform\SendMail;
 use App\Mail\Platform\StaffInvitationMail;
 use App\Models\Platform\AuditLog;
@@ -140,8 +141,8 @@ class SaasPanelTest extends TestCase
 
     public function test_guests_are_sent_to_sign_in(): void
     {
-        $this->get('/saas')->assertRedirect('/login');
-        $this->post('/saas/schools', $this->newSchool())->assertRedirect('/login');
+        $this->get('/saas')->assertRedirect('/saas/login');
+        $this->post('/saas/schools', $this->newSchool())->assertRedirect('/saas/login');
     }
 
     public function test_a_revoked_inactive_or_unsettled_account_loses_access_at_once(): void
@@ -217,8 +218,19 @@ class SaasPanelTest extends TestCase
             if (! str_starts_with($route->uri(), 'saas')) {
                 continue;
             }
-            $count++;
             $middleware = $route->gatherMiddleware();
+            // Only sign-in, sign-out and recovery are public business routes.
+            if (in_array($route->getName(), ['saas.login', 'saas.login.store', 'saas.logout', 'saas.password.request', 'saas.password.email', 'saas.password.reset', 'saas.password.update'], true)) {
+                $this->assertContains(PrivateDomainResponse::class, $middleware);
+                $this->assertContains('web', $middleware);
+                $this->assertNotContains('school.context', $middleware);
+                if (in_array('POST', $route->methods(), true) && $route->getName() !== 'saas.logout') {
+                    $this->assertContains('throttle:login', $middleware);
+                }
+
+                continue;
+            }
+            $count++;
             // The own password and the two-factor pages (SA.2) are the staff member's own; every other page needs two-factor passed.
             $own = str_starts_with($route->getName() ?? '', 'saas.password') || str_starts_with($route->getName() ?? '', 'saas.two-factor.');
             $this->assertContains(match (true) {
@@ -241,7 +253,7 @@ class SaasPanelTest extends TestCase
         PlatformStaffIdentity::query()->create(['user_id' => $operator->id]);
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
 
-        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!']))->assertRedirect('/saas/home');
+        $this->keepSession($this->post('/saas/login', ['email' => $operator->email, 'password' => 'Synthetic-operator-login-937!']))->assertRedirect('/saas/home');
         $this->assertAuthenticatedAs($operator);
         $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
         $this->passPlatformTwoFactor($operator);
@@ -287,7 +299,7 @@ class SaasPanelTest extends TestCase
             if ($case !== 'grant_missing') {
                 PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => $case !== 'revoked', 'expires_at' => $case === 'expired' ? now()->subMinute() : now()->addHour()]);
             }
-            $this->post('/login', ['email' => $operator->email, 'password' => $password])->assertRedirect('/login');
+            $this->post('/saas/login', ['email' => $operator->email, 'password' => $password])->assertRedirect('/saas/login');
             $this->assertGuest();
         }
     }
@@ -656,7 +668,7 @@ class SaasPanelTest extends TestCase
     {
         $operator = $this->operatorWithoutRoles();
 
-        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1']))->assertRedirect('/saas/home');
+        $this->keepSession($this->post('/saas/login', ['email' => $operator->email, 'password' => 'a-long-password-1']))->assertRedirect('/saas/home');
         $this->assertAuthenticatedAs($operator);
         // Two-factor sign-in first (SA.2), then the school list.
         $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
@@ -673,7 +685,7 @@ class SaasPanelTest extends TestCase
             $this->operatorWithoutRoles('grant@platform.example', identity: false, grant: true),
             $this->operatorWithoutRoles('neither@platform.example', identity: false, grant: false),
         ] as $user) {
-            $this->post('/login', ['email' => $user->email, 'password' => 'a-long-password-1'])->assertRedirect('/login');
+            $this->from('/login')->post('/login', ['email' => $user->email, 'password' => 'a-long-password-1'])->assertRedirect('/login');
             $this->assertGuest();
         }
     }
@@ -682,7 +694,7 @@ class SaasPanelTest extends TestCase
     {
         $operator = $this->operatorWithoutRoles(changePassword: true);
 
-        $this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1']);
+        $this->post('/saas/login', ['email' => $operator->email, 'password' => 'a-long-password-1']);
         // The panel's forced-change rule sends them to the change form; /saas itself is closed to them either way.
         $this->get('/saas')->assertRedirect(route('saas.password'))->assertHeader('Cache-Control', 'no-store, private');
         $this->assertTrue(app(PlatformStaffAccess::class)->operatesPlatform($operator));
@@ -703,7 +715,7 @@ class SaasPanelTest extends TestCase
         $operator = $this->operatorWithoutRoles();
         $operator->password = 'superadmin';
         $operator->save();
-        $this->post('/login', ['email' => $operator->email, 'password' => 'superadmin'])->assertRedirect('/saas/home');
+        $this->post('/saas/login', ['email' => $operator->email, 'password' => 'superadmin'])->assertRedirect('/saas/home');
         $this->assertTrue($operator->fresh()->password_change_required);
         $this->assertFalse(app(PlatformStaffAccess::class)->allowed($operator));
         $this->get('/saas')->assertRedirect(route('saas.password'))->assertHeader('Cache-Control', 'no-store, private');

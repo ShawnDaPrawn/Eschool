@@ -35,7 +35,15 @@ for (const width of [390, 820, 1280]) {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => { if (response.status() >= 500) errors.push(`HTTP ${response.status()}: ${new URL(response.url()).pathname}`); });
-    await page.goto('/login');
+    await page.goto('/saas/login');
+    await expect(page.getByRole('heading', { name: 'Business administration sign in', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.getByRole('link', { name: 'Forgot your password?', exact: true }).click();
+    await expect(page).toHaveURL(/\/saas\/password\/reset$/);
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.getByRole('link', { name: 'Back to business sign in', exact: true }).click();
     await page.locator('[name=email]').fill(operator.email);
     await page.locator('[name=password]').fill(PASSWORD);
     await page.locator('form button[type=submit], form input[type=submit]').first().click();

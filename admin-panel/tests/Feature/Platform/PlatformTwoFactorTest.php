@@ -78,12 +78,12 @@ class PlatformTwoFactorTest extends TestCase
     private function signIn(User $user): void
     {
         auth()->forgetGuards();
-        $this->keepSession($this->post('/login', ['email' => $user->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
+        $this->keepSession($this->post('/saas/login', ['email' => $user->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
     }
 
     private function signOut(): void
     {
-        $this->keepSession($this->post('/logout'));
+        $this->keepSession($this->post('/saas/logout'));
         auth()->forgetGuards();
     }
 
@@ -107,6 +107,15 @@ class PlatformTwoFactorTest extends TestCase
     private function audits(string $action, User $user): int
     {
         return AuditLog::query()->where('action', $action)->where('after->user_id', $user->id)->count();
+    }
+
+    private function assertAuditAfter(array $expected, AuditLog $audit): void
+    {
+        // JSON objects have no key order; MySQL normalizes it on storage.
+        $actual = $audit->after;
+        ksort($expected);
+        ksort($actual);
+        $this->assertSame($expected, $actual);
     }
 
     /** @return array{0: string, 1: list<string>} the secret and the recovery codes, through the pages */
@@ -236,7 +245,7 @@ class PlatformTwoFactorTest extends TestCase
         [$operator, $secret] = $this->enrolled('operations');
         $operator->forceFill(['password_change_required' => true])->save();
         auth()->forgetGuards();
-        $this->keepSession($this->post('/login', ['email' => $operator->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
+        $this->keepSession($this->post('/saas/login', ['email' => $operator->email, 'password' => self::PASSWORD]))->assertRedirect('/saas/home');
 
         $this->get('/saas')->assertRedirect(route('saas.password'));
         $this->get('/saas/password')->assertRedirect(route('saas.two-factor.challenge'));
@@ -321,7 +330,7 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $support->id)->exists());
         $this->assertSame(0, DB::table('sessions')->where('user_id', $support->id)->count());
         $audit = AuditLog::query()->where('action', 'platform_two_factor_reset')->latest('id')->firstOrFail();
-        $this->assertSame(['user_id' => $support->id, 'via' => 'hq', 'reason' => 'Lost their phone on the school visit', 'changed_by' => $owner->id], $audit->after);
+        $this->assertAuditAfter(['user_id' => $support->id, 'via' => 'hq', 'reason' => 'Lost their phone on the school visit', 'changed_by' => $owner->id], $audit);
         $this->assertSame($owner->id, (int) $audit->actor_id);
         $this->assertNull($audit->school_id);
         $this->get('/saas/audit?action=platform_two_factor_reset')->assertOk()->assertSee('Two-factor sign-in reset')->assertSee('Lost their phone on the school visit');
@@ -370,7 +379,7 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $owner->id)->exists());
         $audit = AuditLog::query()->where('action', 'platform_two_factor_reset')->firstOrFail();
         $this->assertSame('system', $audit->actor_type);
-        $this->assertSame(['user_id' => $owner->id, 'via' => 'console', 'reason' => 'The only Owner lost their phone'], $audit->after);
+        $this->assertAuditAfter(['user_id' => $owner->id, 'via' => 'console', 'reason' => 'The only Owner lost their phone'], $audit);
     }
 
     public function test_a_session_from_before_a_reset_signs_in_again_whatever_the_session_driver(): void
@@ -398,18 +407,18 @@ class PlatformTwoFactorTest extends TestCase
                 $this->assertSame(1, (int) PlatformStaffIdentity::query()->where('user_id', $support->id)->value('two_factor_generation'));
 
                 // The old session reaches neither setup nor any HQ page: it is signed out.
-                $this->keepSession($this->get('/saas/two-factor'))->assertRedirect(route('login'))->assertSessionHas('error');
+                $this->keepSession($this->get('/saas/two-factor'))->assertRedirect(route('saas.login'))->assertSessionHas('error');
                 $this->assertGuest();
                 auth()->forgetGuards();
-                $this->get('/saas/two-factor')->assertRedirect('/login');
-                $this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => '123456'])->assertRedirect('/login');
+                $this->get('/saas/two-factor')->assertRedirect('/saas/login');
+                $this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => '123456'])->assertRedirect('/saas/login');
                 $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $support->id)->exists());
 
                 // Other stale sessions: refused on the own password page, and on an HQ page as JSON.
                 $this->signIn($support);
                 $this->get('/saas/two-factor')->assertOk();
                 PlatformStaffIdentity::query()->where('user_id', $support->id)->increment('two_factor_generation');
-                $this->keepSession($this->get('/saas/password'))->assertRedirect(route('login'));
+                $this->keepSession($this->get('/saas/password'))->assertRedirect(route('saas.login'));
                 $this->assertGuest();
                 $this->signIn($support);
                 PlatformStaffIdentity::query()->where('user_id', $support->id)->increment('two_factor_generation');

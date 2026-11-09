@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Platform\Saas\PlatformSignIn;
 use App\Services\Platform\Saas\PlatformStaffAccess;
 use App\Services\Platform\Saas\PlatformTwoFactor;
 use Closure;
@@ -38,6 +39,11 @@ class EnsurePlatformStaff
     public function handle(Request $request, Closure $next, ?string $purpose = null): Response
     {
         $actor = $this->access->actor($request->user(), $purpose === 'password' || $purpose === 'two-factor');
+        if (! PlatformSignIn::passed($request->hasSession() ? $request->session() : null, $actor)) {
+            return $request->expectsJson()
+                ? response()->json(['error' => true, 'message' => __('Please sign in to business administration.')], 401)
+                : redirect()->route('saas.login');
+        }
         Auth::guard('web')->setUser($actor);
         $request->setUserResolver(fn () => $actor);
         // A session from before a two-factor reset signs in again, for every

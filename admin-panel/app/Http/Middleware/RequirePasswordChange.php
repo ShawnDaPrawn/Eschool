@@ -26,7 +26,7 @@ class RequirePasswordChange
      * whoever was signed in on this browser. A platform operator who has set up
      * two-factor sign-in passes its challenge before changing their password.
      */
-    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'vendor-counter/sign-out', 'web-set-language/*', 'saas/password', 'saas/two-factor/challenge', 'invite/staff/*'];
+    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'vendor-counter/sign-out', 'web-set-language/*', 'saas/login', 'saas/logout', 'saas/password', 'saas/password/reset', 'saas/password/reset/*', 'saas/password/email', 'saas/two-factor/challenge', 'invite/staff/*'];
 
     public static function isDefaultPassword(User $user, string $password): bool
     {
