@@ -61,7 +61,8 @@
                     <p>{{ __('Learners in the early years never sign in themselves. Parents and guardians keep their own sign-in.') }}</p>
                 </fieldset>
 
-                <p><small>{{ __('Return address for the app registration') }}: <code>{{ $provider['redirect_uri'] }}</code></small></p>
+                {{-- Plain paragraph text, the page's own text colour: the legacy theme's pink <code> fails colour contrast. --}}
+                <p>{{ __('Return address for the app registration') }}: <span translate="no">{{ $provider['redirect_uri'] }}</span></p>
                 <p><button class="m3-button m3-button--filled" type="submit">{{ __('Save :provider settings', ['provider' => $provider['label']]) }}</button></p>
             </form>
         </section>
