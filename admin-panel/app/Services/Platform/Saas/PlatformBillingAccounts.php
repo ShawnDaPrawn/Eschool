@@ -18,6 +18,7 @@ use App\Services\MailService;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Notifications\Notifier;
+use App\Services\Platform\Subscriptions\LearnerSubscriptions;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Carbon\CarbonImmutable;
@@ -123,7 +124,7 @@ class PlatformBillingAccounts
                     'amount' => PlatformBilling::rands((int) $repeat->amount_cents), 'date' => $repeat->received_on->toDateString()])]);
             }
             // The same bank account takes learner subscription EFTs (3.20); a bank line registered there is not a school's payment.
-            if (DB::table('platform_bank_receipts')->where('method', 'eft')->where('source_reference', strtoupper((string) preg_replace('/\s+/', ' ', $reference)))->exists()) {
+            if (DB::table('platform_bank_receipts')->where('method', 'eft')->where('source_reference', LearnerSubscriptions::normaliseReference($reference))->lockForUpdate()->exists()) {
                 throw ValidationException::withMessages(['bank_reference' => __('This bank line is already recorded as a learning plan payment.')]);
             }
             $invoices = $this->lockOpen(array_keys($wanted));

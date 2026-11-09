@@ -208,8 +208,10 @@ class LearnerSubscriptions
         $used = DB::table('platform_bank_receipts')->where('method', $method)->where('source_reference', $reference)->lockForUpdate()->exists();
         if (! $used && $method === 'eft') {
             // The same bank account takes school invoice payments (SA.8 Build 1); those may be re-recorded after a reversal, so they are checked, not registered.
-            $used = DB::table('platform_payments')->whereNull('reversed_at')->whereRaw('UPPER(TRIM(bank_reference)) = ?', [$reference])->exists()
-                || DB::table('school_group_payments')->whereNull('reversed_at')->whereRaw('UPPER(TRIM(bank_reference)) = ?', [$reference])->exists();
+            // Current, locking reads; the registry's insert trigger checks the same in the database.
+            $normal = "REGEXP_REPLACE(UPPER(TRIM(bank_reference)), '[[:space:]]+', ' ') = ?";
+            $used = DB::table('platform_payments')->whereNull('reversed_at')->whereRaw($normal, [$reference])->sharedLock()->exists()
+                || DB::table('school_group_payments')->whereNull('reversed_at')->whereRaw($normal, [$reference])->sharedLock()->exists();
         }
         abort_if($used, 409, __('This bank line or charge is already recorded.'));
     }

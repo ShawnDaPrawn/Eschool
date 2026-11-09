@@ -9,7 +9,6 @@ use App\Services\Platform\Saas\PlatformBilling;
 use App\Services\Platform\Saas\PlatformStaffAccess;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,11 +18,13 @@ use Illuminate\Support\Facades\DB;
  * cents and basis points only; counts, never a person.
  *
  * - Collected: payments received in the month.
- * - Running on the month's last day (or today, for this month): paid
- *   subscriptions whose paid period covers that day. MRR is their price per
- *   month; the annual run rate is MRR x 12.
- * - Churn: subscriptions cancelled or ended in the month, against those
- *   running on the month's first day.
+ * - Running on the month's last day (or today, for this month): subscriptions
+ *   with a recorded payment whose period covers that day and that HQ had not
+ *   ended by then. MRR is that payment per month; the annual run rate is MRR x 12.
+ *   Built from the immutable payments and the subscription's own trail, so a
+ *   later renewal, cancellation or end never changes an earlier month.
+ * - Churn: paid subscriptions first cancelled or ended in the month (their
+ *   trail), against those running on the month's first day.
  */
 class SubscriptionRevenue
 {
@@ -41,13 +42,10 @@ class SubscriptionRevenue
             $collected = DB::table('learner_subscription_payments as p')->join('learner_subscriptions as s', fn ($j) => $j->on('s.school_id', '=', 'p.school_id')->on('s.id', '=', 'p.subscription_id'))
                 ->whereBetween('p.received_on', [$first->toDateString(), $last])
                 ->groupBy('p.school_id', 's.plan')->selectRaw('p.school_id, s.plan, SUM(p.amount_cents) AS cents, COUNT(*) AS payments')->get();
-            $running = $this->running($day)->get(['s.school_id', 's.plan', 's.price_cents', 's.period_months', 's.places', 's.guardian_user_id']);
-            $atStart = $this->running($first->toDateString())->count();
-            $churned = DB::table('learner_subscriptions')
-                ->where(fn ($q) => $q->where(fn ($c) => $c->where('status', 'cancelled')->whereBetween('cancelled_at', [$first->startOfDay(), $first->endOfMonth()->endOfDay()]))
-                    ->orWhere(fn ($e) => $e->where('status', 'ended')->whereBetween('closed_at', [$first->startOfDay(), $first->endOfMonth()->endOfDay()])))
-                ->whereNotNull('activated_at')->count();
-            $schools = DB::table('schools')->whereIn('id', $collected->pluck('school_id')->merge($running->pluck('school_id'))->unique()->all())->pluck('name', 'id');
+            $running = $this->running($day);
+            $atStart = count($this->running($first->toDateString()));
+            $churned = $this->churned($first->startOfDay(), $first->addMonthNoOverflow()->startOfDay());
+            $schools = DB::table('schools')->whereIn('id', $collected->pluck('school_id')->merge(collect($running)->pluck('school_id'))->unique()->all())->pluck('name', 'id');
 
             $plans = array_fill_keys(['per_child', 'family', 'school_licence', 'sponsored'], ['running' => 0, 'mrr_cents' => 0, 'collected_cents' => 0]);
             $perSchool = [];
@@ -55,7 +53,7 @@ class SubscriptionRevenue
             $paying = 0;
             $payingMrr = 0;
             foreach ($running as $row) {
-                $monthly = intdiv((int) $row->price_cents, max(1, (int) $row->period_months));
+                $monthly = intdiv((int) $row->amount_cents, max(1, (int) $row->period_months));
                 $plans[$row->plan]['running']++;
                 $plans[$row->plan]['mrr_cents'] += $monthly;
                 $school = $this->school($perSchool, (int) $row->school_id, (string) ($schools[$row->school_id] ?? ''));
@@ -94,11 +92,50 @@ class SubscriptionRevenue
         });
     }
 
-    /** Paid subscriptions whose paid period covers the day. */
-    private function running(string $day): Builder
+    /**
+     * Subscriptions running on a day, from the immutable paid periods: a payment
+     * whose period covers the day, unless HQ had ended the subscription by then
+     * (its own trail). A later renewal or end never rewrites an earlier day, an
+     * early renewal never hides the period being used now, and a cancelled
+     * subscription runs until its paid period ends. One row per subscription.
+     *
+     * @return array<int, object{school_id: int, plan: string, amount_cents: int, period_months: int, places: int|null, guardian_user_id: int|null}>
+     */
+    private function running(string $day): array
     {
-        return DB::table('learner_subscriptions as s')->whereIn('s.status', ['active', 'cancelled'])
-            ->where('s.current_period_start', '<=', $day)->where('s.current_period_end', '>=', $day);
+        $next = CarbonImmutable::parse($day)->addDay()->startOfDay();
+        $rows = DB::table('learner_subscription_payments as p')->join('learner_subscriptions as s', fn ($j) => $j->on('s.school_id', '=', 'p.school_id')->on('s.id', '=', 'p.subscription_id'))
+            ->where('p.period_start', '<=', $day)->where('p.period_end', '>=', $day)
+            ->whereNotExists(fn ($ended) => $ended->selectRaw('1')->from('learner_subscription_events as e')->whereColumn('e.school_id', 's.school_id')
+                ->whereColumn('e.subscription_id', 's.id')->where('e.event', 'ended')->where('e.created_at', '<', $next))
+            ->orderBy('p.id')->get(['s.id', 's.school_id', 's.plan', 'p.amount_cents', 's.period_months', 's.places', 's.guardian_user_id']);
+        $running = [];
+        foreach ($rows as $row) {
+            $running[(int) $row->id] ??= $row;
+        }
+
+        return $running;
+    }
+
+    /**
+     * Paid subscriptions first cancelled or ended (their own trail) in the window.
+     */
+    private function churned(CarbonImmutable $from, CarbonImmutable $until): int
+    {
+        $stops = DB::table('learner_subscription_events as e')->whereIn('e.event', ['cancelled', 'ended'])->where('e.created_at', '<', $until)
+            ->groupBy('e.school_id', 'e.subscription_id')->selectRaw('e.school_id, e.subscription_id, MIN(e.created_at) AS stopped_at')->get();
+        $count = 0;
+        foreach ($stops as $stop) {
+            $stopped = CarbonImmutable::parse((string) $stop->stopped_at);
+            if ($stopped->lt($from)) {
+                continue;
+            }
+            $paid = DB::table('learner_subscription_payments')->where('school_id', $stop->school_id)->where('subscription_id', $stop->subscription_id)
+                ->where('created_at', '<=', $stopped)->exists();
+            $count += $paid ? 1 : 0;
+        }
+
+        return $count;
     }
 
     /** @param  array<int, array<string, mixed>>  $perSchool */

@@ -181,11 +181,36 @@ return new class extends Migration
 
         // One bank line or gateway charge settles one subscription period, once,
         // across every school (Navigate Ed has one bank account).
+        // Upper case, single spaces: the registry's form of a bank reference.
+        $normal = fn (string $column): string => "REGEXP_REPLACE(UPPER(TRIM($column)), '[[:space:]]+', ' ')";
+        // Navigate Ed's school and school group invoice payments go into the same
+        // bank account. They may be re-recorded after a reversal, so they are not
+        // registered; a bank line that stands as one is refused here, and each of
+        // them refuses a bank line already registered (current, locking reads).
         DB::unprepared("CREATE TRIGGER platform_bank_receipt_insert BEFORE INSERT ON platform_bank_receipts FOR EACH ROW BEGIN
+            DECLARE standing INT;
             IF NEW.domain = 'subscription' AND NOT EXISTS(SELECT 1 FROM learner_subscription_payments WHERE id = NEW.record_id AND method = NEW.method AND source_reference = NEW.source_reference AND amount_cents = NEW.amount_cents AND currency = NEW.currency) THEN
                 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A platform receipt names its original immutable payment';
             END IF;
+            IF NEW.method = 'eft' THEN
+                SELECT COUNT(*) INTO standing FROM platform_payments WHERE reversed_at IS NULL AND {$normal('bank_reference')} = NEW.source_reference LOCK IN SHARE MODE;
+                IF standing = 0 THEN
+                    SELECT COUNT(*) INTO standing FROM school_group_payments WHERE reversed_at IS NULL AND {$normal('bank_reference')} = NEW.source_reference LOCK IN SHARE MODE;
+                END IF;
+                IF standing > 0 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This bank line stands as a school or group invoice payment';
+                END IF;
+            END IF;
         END");
+        foreach (['platform_payments', 'school_group_payments'] as $table) {
+            DB::unprepared("CREATE TRIGGER {$table}_bank_receipt BEFORE INSERT ON {$table} FOR EACH ROW BEGIN
+                DECLARE registered INT;
+                SELECT COUNT(*) INTO registered FROM platform_bank_receipts WHERE method = 'eft' AND source_reference = {$normal('NEW.bank_reference')} LOCK IN SHARE MODE;
+                IF registered > 0 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'This bank line is already a learning plan payment';
+                END IF;
+            END");
+        }
         DB::unprepared("CREATE TRIGGER learner_subscription_payment_receipt AFTER INSERT ON learner_subscription_payments FOR EACH ROW
             INSERT INTO platform_bank_receipts(method, source_reference, domain, record_id, amount_cents, currency, created_at)
             VALUES(NEW.method, NEW.source_reference, 'subscription', NEW.id, NEW.amount_cents, NEW.currency, NEW.created_at)");
@@ -214,7 +239,7 @@ return new class extends Migration
                 throw new RuntimeException('Retain learner subscriptions, their payments, receipts and audit trail.');
             }
         }
-        foreach (['platform_bank_receipt_insert', 'learner_subscription_payment_receipt', 'learner_subscription_no_delete', 'learner_subscription_update'] as $trigger) {
+        foreach (['platform_bank_receipt_insert', 'learner_subscription_payment_receipt', 'learner_subscription_no_delete', 'learner_subscription_update', 'platform_payments_bank_receipt', 'school_group_payments_bank_receipt'] as $trigger) {
             DB::unprepared('DROP TRIGGER IF EXISTS '.$trigger);
         }
         foreach (['learner_subscription_payments', 'platform_bank_receipts', 'learner_subscription_events'] as $table) {

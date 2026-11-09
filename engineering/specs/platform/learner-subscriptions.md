@@ -82,9 +82,18 @@ The first period starts on the school's today; a renewal starts the day after
 the paid period. Each payment is immutable and writes a row in the global
 receipt registry `platform_bank_receipts` (by trigger), unique on method and
 normalised reference (upper case, single spaces) across every school, because
-everyone pays into Navigate Ed's one account. A bank line that already stands
-as a school's invoice payment (`platform_payments`, `school_group_payments`) is
-refused too, and a school's invoice payment refuses a line registered here.
+everyone pays into Navigate Ed's one account.
+
+School invoice payments (`platform_payments`) and school group payments
+(`school_group_payments`) go into the same account. They can be re-recorded
+after a reversal, so they are not registered; instead the guard runs both ways,
+in the services (inside each payment's lock, with locking reads) and in the
+database (insert triggers with locking reads, comparing the same normalised
+form):
+- a subscription payment is refused when its bank line stands (not reversed) as
+  a school or group payment (`platform_bank_receipt_insert`);
+- a school or group payment is refused when its bank line is already registered
+  (`platform_payments_bank_receipt`, `school_group_payments_bank_receipt`).
 
 Why not the school ledger's `financial_receipts`: that registry is per school
 and every row is a posting in the school's own ledger. Subscription money is
@@ -145,11 +154,16 @@ audit log (`platform_subscription_created`, `_payment_recorded`, `_declined`,
 ### Revenue (SA.8 Build 3)
 
 For a month: collected (payments received), monthly recurring revenue on the
-month's last day (today for this month: plans whose paid period covers it,
-price per month) and the annual run rate (x 12), families paying and revenue per
+month's last day (today for this month) and the annual run rate (x 12). A plan
+runs on a day when one of its immutable payments has a period covering that day
+and HQ had not ended it by then (its own trail); never from the subscription's
+latest period or current status, so an early renewal keeps the period in use
+counted, and a later renewal, cancellation or end never rewrites an earlier
+month. Also families paying and revenue per
 family, paying learners (family plans and sponsored places) and revenue per
 learner, churn (plans cancelled or ended in the month against those running on
-its first day, in basis points), and the same per plan and per school. Integer
+its first day, in basis points; from the trail, counted once per plan), and
+the same per plan and per school. Integer
 cents; counts only.
 
 ## Prompts (`subscription.prompt`, `subscriptions:prompt`)
@@ -190,6 +204,8 @@ while any of these tables holds rows.
 | `test_wrong_role_wrong_school_and_wrong_owner_are_refused_and_nothing_is_written` | another guardian, a teacher, a learner, the Super Admin on the guardian API, School B's guardian and School A's guardian in School B; undocumented fields; HQ roles; another school's subscription through this school's URL; a school account on `/saas`; decline with a reason |
 | `test_hq_revenue_counts_collected_running_families_and_churn_without_names` | collected, MRR, run rate, families, per family, paying learners, per learner, per plan, per school, churn |
 | `test_a_gateway_notice_is_acted_on_only_when_configured_and_signed_and_only_once` | not configured 404, bad signature 401, paid once, the same notice again, the same charge again, the wrong amount, a cancel notice, an unknown reference |
+| `test_one_bank_line_is_used_once_across_learning_plans_school_invoices_and_group_invoices` | a plan first, then the same line (any case or spacing) as a group or school payment, refused by the service and by SQL; a group payment first, then the same line on a plan, refused by the service and by SQL; nothing half-written; a reversed group payment frees its line |
+| `test_revenue_is_built_from_the_paid_periods_and_the_trail_so_later_changes_never_rewrite_a_day` | an early renewal stays counted today; a cancelled plan counts until its paid period ends, then stops; February unchanged after later renewals, a cancellation and an end; churn from the trail |
 | `test_the_migration_refuses_to_roll_back_once_it_holds_subscriptions` | the rollback refuses with rows |
 | `test_prompts_are_off_by_default_follow_the_frequency_and_falling_scores_and_never_mention_marks` | off by default; on through the school's rules; frequency; once a day; scores fell sooner but not within the gap; nothing for an entitled child, a child waiting for payment or a school without the flag; no name, subject or mark in the notice |
 

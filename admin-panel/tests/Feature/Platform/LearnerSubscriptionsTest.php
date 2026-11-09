@@ -19,8 +19,11 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\MarkSnapshots;
 use App\Services\Learning\TutorAccess;
+use App\Services\Platform\Groups\SchoolGroupBilling;
+use App\Services\Platform\Groups\SchoolGroups;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\NotificationRules;
+use App\Services\Platform\Saas\PlatformBilling;
 use App\Services\Platform\Saas\PlatformBillingAccounts;
 use App\Services\Platform\Subscriptions\Entitlements;
 use App\Services\Platform\Subscriptions\Gateways\GatewayEvent;
@@ -155,9 +158,9 @@ class LearnerSubscriptionsTest extends TestCase
         return $this->asA($guardian, 1)->postJson('/api/v2/subscriptions/learners/'.$this->schoolA->ids[$learner].'/requests', ['operation_id' => $operation ?? (string) Str::uuid()]);
     }
 
-    private function pay(User $finance, int $subscription, string $amount, string $reference, int $school = 1): TestResponse
+    private function pay(User $finance, int $subscription, string $amount, string $reference, int $school = 1, string $received = '2026-02-10'): TestResponse
     {
-        return $this->hq($finance)->from('/saas/subscriptions')->post('/saas/subscriptions/schools/'.$school.'/'.$subscription.'/payments', ['amount' => $amount, 'received_on' => '2026-02-10', 'bank_reference' => $reference]);
+        return $this->hq($finance)->from('/saas/subscriptions')->post('/saas/subscriptions/schools/'.$school.'/'.$subscription.'/payments', ['amount' => $amount, 'received_on' => $received, 'bank_reference' => $reference]);
     }
 
     private function refuses(callable $call, int $status): void
@@ -424,6 +427,126 @@ class LearnerSubscriptionsTest extends TestCase
         $this->assertSame(['cancelled_or_ended' => 1, 'running_at_start' => 3, 'rate_bp' => 3333], $march['churn']);
         $this->assertSame(0, $march['collected_cents']);
         $this->hq($finance)->get('/saas/subscriptions?month=2026-03&status=cancelled')->assertOk()->assertSee(__('Cancelled'));
+    }
+
+    /** An issued group invoice for a group School A bills through. @return array{0: int, 1: int} group id and invoice id */
+    private function groupInvoice(User $finance): array
+    {
+        $ops = $this->staff('operations');
+        app(CurrentSchool::class)->forget();
+        $groups = app(SchoolGroups::class);
+        $group = $groups->create($ops, ['name' => 'Synthetic Schools Trust']);
+        $member = $groups->invite($ops, $group->id, ['school_id' => 1]);
+        app(CurrentSchool::class)->run(1, fn () => $groups->agree($this->superAdmin(), $member->id));
+        $groups->setBilling($finance, $group->id, $member->id, ['billing' => 'group']);
+        DB::table('platform_prices')->insert(['package_id' => DB::table('platform_packages')->where('package_key', 'legacy')->value('id'), 'kind' => 'base',
+            'product_module' => null, 'amount_cents' => 5000, 'effective_from' => '2026-01-01', 'created_at' => now(), 'updated_at' => now()]);
+        $month = substr(PlatformBilling::today(), 0, 7);
+        app(PlatformBilling::class)->run(['period' => $month], $finance);
+        app(PlatformBilling::class)->issueMonth(['period' => $month], $finance);
+        $invoice = app(SchoolGroupBilling::class)->compose($finance, $group->id, ['period' => $month]);
+        app(SchoolGroupBilling::class)->issue($finance, $group->id, $invoice->id);
+
+        return [(int) $group->id, (int) $invoice->id];
+    }
+
+    private function sqlRefuses(callable $write): void
+    {
+        try {
+            $write();
+            $this->fail('The database accepted a bank line used twice');
+        } catch (QueryException $e) {
+            $this->assertStringContainsString('45000', $e->getMessage());
+        }
+    }
+
+    public function test_one_bank_line_is_used_once_across_learning_plans_school_invoices_and_group_invoices(): void
+    {
+        $this->requireAt(1);
+        $this->approveCara();
+        $finance = $this->staff('finance');
+        $asha = $this->ask('farid', 'asha')->assertOk()->json('data.subscription.id');
+        $cara = $this->ask('farid', 'cara')->assertOk()->json('data.subscription.id');
+        [$group, $invoice] = $this->groupInvoice($finance);
+        $groupPay = fn (string $reference) => app(SchoolGroupBilling::class)->recordPayment($finance, $group, $invoice, ['amount' => '10.00', 'received_on' => '2026-02-10', 'bank_reference' => $reference]);
+
+        // A learning plan first: the same line as a group or school payment is refused, however it is typed, and nothing is written.
+        $this->pay($finance, $asha, '89.00', 'trust  eft 77')->assertSessionHasNoErrors();
+        $this->assertSame(['TRUST EFT 77'], DB::table('platform_bank_receipts')->pluck('source_reference')->all());
+        try {
+            app(CurrentSchool::class)->forget();
+            $groupPay(' Trust EFT  77 ');
+            $this->fail('A group payment reused a learning plan bank line');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('bank_reference', $e->errors());
+        }
+        $this->sqlRefuses(fn () => DB::table('school_group_payments')->insert(['school_group_id' => $group, 'group_invoice_id' => $invoice, 'received_on' => '2026-02-10',
+            'amount_cents' => 1000, 'currency' => 'ZAR', 'bank_reference' => 'trust eft 77', 'created_at' => now(), 'updated_at' => now()]));
+        $this->sqlRefuses(fn () => DB::table('platform_payments')->insert(['school_id' => 1, 'received_on' => '2026-02-10', 'amount_cents' => 1000, 'currency' => 'ZAR',
+            'bank_reference' => 'TRUST  EFT 77', 'recorded_by' => $finance->id, 'created_at' => now(), 'updated_at' => now()]));
+        $this->assertSame(0, DB::table('school_group_payments')->count());
+        $this->assertSame(0, DB::table('platform_payments')->count());
+
+        // A group payment first: the same line on a learning plan is refused by the service and by the database.
+        app(CurrentSchool::class)->forget();
+        $groupPay('Group Line 5');
+        $this->pay($finance, $cara, '69.00', ' group  LINE 5')->assertSessionHasErrors('bank_reference');
+        $this->sqlRefuses(fn () => $this->inA(fn () => DB::transaction(fn () => LearnerSubscriptionPayment::query()->create(['subscription_id' => $cara, 'method' => 'eft', 'provider' => 'manual',
+            'source_reference' => 'GROUP LINE 5', 'amount_cents' => 6900, 'currency' => 'ZAR', 'received_on' => '2026-02-10', 'period_start' => '2026-02-10',
+            'period_end' => '2026-03-09', 'recorded_by' => $finance->id, 'created_at' => now()]))));
+        $this->assertSame(1, DB::table('learner_subscription_payments')->count());
+        $this->assertSame(1, DB::table('platform_bank_receipts')->count());
+        $this->inA(fn () => $this->assertSame('requested', LearnerSubscription::findOrFail($cara)->status));
+        // A reversed group payment frees its line for a learning plan.
+        app(CurrentSchool::class)->forget();
+        $payment = (int) DB::table('school_group_payments')->value('id');
+        app(SchoolGroupBilling::class)->reversePayment($finance, $group, $invoice, $payment, ['reason' => 'Recorded against the wrong account']);
+        $this->pay($finance, $cara, '69.00', 'GROUP LINE 5')->assertSessionHasNoErrors();
+        $this->assertSame(2, DB::table('platform_bank_receipts')->count());
+    }
+
+    public function test_revenue_is_built_from_the_paid_periods_and_the_trail_so_later_changes_never_rewrite_a_day(): void
+    {
+        $this->requireAt(1);
+        $this->approveCara();
+        $finance = $this->staff('finance');
+        $revenue = fn (string $month): array => $this->hq($finance)->getJson('/saas/subscriptions/revenue?month='.$month)->assertOk()->json();
+        $asha = $this->ask('farid', 'asha')->json('data.subscription.id');
+        $cara = $this->ask('farid', 'cara')->json('data.subscription.id');
+        // An early renewal: the next period starts after the one in use, which still counts today.
+        $this->pay($finance, $asha, '89.00', 'REV 1')->assertSessionHasNoErrors();
+        $this->pay($finance, $asha, '89.00', 'REV 2')->assertSessionHasNoErrors();
+        $this->inA(fn () => $this->assertSame('2026-03-10', LearnerSubscription::findOrFail($asha)->current_period_start->toDateString()));
+        $this->pay($finance, $cara, '69.00', 'REV 3')->assertSessionHasNoErrors();
+        $today = $revenue('2026-02');
+        $this->assertEquals(['as_of' => '2026-02-10', 'running' => 2, 'mrr_cents' => 15800, 'families' => 1, 'collected_cents' => 24700],
+            array_intersect_key($today, array_flip(['as_of', 'running', 'mrr_cents', 'families', 'collected_cents'])));
+        // Cara's plan is cancelled: it counts until its paid period ends (9 March), then stops.
+        $this->travelTo(now()->setDate(2026, 2, 12));
+        $this->asA('farid', 1)->postJson('/api/v2/subscriptions/plans/'.$cara.'/cancel', ['operation_id' => (string) Str::uuid()])->assertOk();
+        $this->travelTo(now()->setDate(2026, 3, 9));
+        $this->assertSame(2, $revenue('2026-03')['running']);
+        $this->travelTo(now()->setDate(2026, 3, 10));
+        $this->assertSame([1, 8900], [$revenue('2026-03')['running'], $revenue('2026-03')['mrr_cents']]);
+        // Asha's plan lapses, is renewed late, then ended by HQ in April.
+        $this->travelTo(now()->setDate(2026, 4, 20));
+        $this->pay($finance, $asha, '89.00', 'REV 4', 1, '2026-04-20')->assertSessionHasNoErrors();
+        $this->travelTo(now()->setDate(2026, 4, 25));
+        $this->hq($finance)->post('/saas/subscriptions/schools/1/'.$asha.'/end', ['reason' => 'Synthetic refund on request'])->assertSessionHasNoErrors();
+        $this->travelTo(now()->setDate(2026, 5, 2));
+        // February is unchanged by the renewals, the cancellation and the end.
+        $february = $revenue('2026-02');
+        $this->assertEquals(['as_of' => '2026-02-28', 'running' => 2, 'mrr_cents' => 15800, 'arr_cents' => 189600, 'families' => 1, 'paying_learners' => 2],
+            array_intersect_key($february, array_flip(['as_of', 'running', 'mrr_cents', 'arr_cents', 'families', 'paying_learners'])));
+        $this->assertSame(['cancelled_or_ended' => 1, 'running_at_start' => 0, 'rate_bp' => 0], $february['churn']);
+        // March: only Asha's renewed period (to 9 April) covers the 31st; Cara's ended on the 9th.
+        $march = $revenue('2026-03');
+        $this->assertSame([1, 8900], [$march['running'], $march['mrr_cents']]);
+        $this->assertSame(['cancelled_or_ended' => 0, 'running_at_start' => 2, 'rate_bp' => 0], $march['churn']);
+        // April: Asha ended on the 25th, so nothing runs on the 30th; she counted on the 1st.
+        $april = $revenue('2026-04');
+        $this->assertSame([0, 0, 8900], [$april['running'], $april['mrr_cents'], $april['collected_cents']]);
+        $this->assertSame(['cancelled_or_ended' => 1, 'running_at_start' => 1, 'rate_bp' => 10000], $april['churn']);
     }
 
     // ---- the gateway seam ----
