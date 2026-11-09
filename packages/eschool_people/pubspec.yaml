@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   dio: ^5.9.2
-  equatable: ^2.0.8
+  equatable: ^3.0.0
   eschool_api:
     path: ../eschool_api
   eschool_core:
@@ -18,7 +18,7 @@ dependencies:
   eschool_session:
     path: ../eschool_session
   flutter_bloc: ^9.1.1
-  file_picker: 13.1.0
+  file_picker: 13.3.2
   image_picker: ^1.2.2
   intl: any
   url_launcher: ^6.3.2

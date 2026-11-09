@@ -33,7 +33,8 @@ android {
     }
 
     namespace = "tech.tokensoft.navigateed.teacher"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android 14 requires the Android 37 API at compile time.
+    compileSdk = 37
     ndkVersion = "28.2.13676358"
 
     externalNativeBuild {
