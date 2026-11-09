@@ -41,7 +41,7 @@ dependencies:
   dotted_border: ^3.1.0
   table_calendar: ^3.3.0
   dio: ^5.9.2
-  lottie: ^3.3.3
+  lottie: ^3.8.2
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   equatable: ^2.0.8
