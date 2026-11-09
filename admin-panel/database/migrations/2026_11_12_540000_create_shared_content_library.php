@@ -33,8 +33,14 @@ return new class extends Migration
         Schema::create('library_contributions', function (Blueprint $t) {
             $t->id();
             $t->foreignId('school_id')->constrained('schools')->restrictOnDelete();
-            $t->foreignId('practice_item_id')->constrained('practice_items')->restrictOnDelete();
-            $t->foreignId('practice_item_version_id')->constrained('practice_item_versions')->restrictOnDelete();
+            // The school's own question and the exact version it offered. No foreign key into the
+            // practice tables, so their older migrations can still be rolled back and re-applied
+            // (MasteryEngineTest does so). Integrity: approved practice versions are never deleted
+            // (PracticeItemVersion refuses it, and practice_set_entries and practice_item_versions
+            // restrict deleting their parents), and SharedLibrary reads both only through the
+            // school's own scope, pairing the version with its question, so a missing one is 404.
+            $t->unsignedBigInteger('practice_item_id');
+            $t->unsignedBigInteger('practice_item_version_id');
             $t->foreignId('library_topic_id')->constrained('library_topics')->restrictOnDelete();
             $t->string('title', 191);
             $t->string('credit', 16);
@@ -53,6 +59,7 @@ return new class extends Migration
             $t->unique(['school_id', 'practice_item_version_id'], 'library_contribution_version');
             $t->index(['school_id', 'state']);
             $t->index(['school_id', 'contributed_by']);
+            $t->index(['school_id', 'practice_item_id']);
         });
         Schema::create('library_ratings', function (Blueprint $t) {
             $t->id();

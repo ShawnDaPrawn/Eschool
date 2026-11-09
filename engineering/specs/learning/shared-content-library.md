@@ -171,6 +171,12 @@ Columns added (migration `2026_11_12_540000_create_shared_content_library`):
 `unpublished_by`, `unpublish_reason`; `practice_items.library_item_version_id`.
 The migration's `down` refuses while contributions, ratings, contributed
 sources, copies or withdrawn or unpublished items exist.
+`library_contributions.practice_item_id` and `practice_item_version_id` are
+indexed but have no foreign key into the practice tables, so the older practice
+migrations can still be rolled back and re-applied: approved practice versions
+are never deleted (the model refuses it) and `SharedLibrary` reads both only in
+the school's own scope, pairing the version with its question (404 if
+missing).
 
 ## Panel (school)
 
