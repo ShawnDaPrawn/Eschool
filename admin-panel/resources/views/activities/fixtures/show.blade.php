@@ -7,7 +7,7 @@
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="$home['name'].' '.__('vs').' '.$away['name']" :subtitle="$f['discipline'].' · '.$f['on_date'].($f['starts_at'] ? ' '.$f['starts_at'] : '').' · '.$f['venue'].($f['field'] ? ', '.$f['field'] : '')" />
     @include('activities.fixtures.messages')
-    <p><a href="{{ route('activity-fixtures.index') }}">{{ __('All fixtures') }}</a></p>
+    <p><a href="{{ route('activity-fixtures.index') }}">{{ __('All fixtures') }}</a>@if ($f['kind'] !== 'sport') · <a href="{{ route('academic-competitions.show', ['competition' => $f['id']]) }}">{{ __('Motion, adjudicators and result') }}</a>@endif</p>
 
     <x-m3.card :title="__('The fixture')">
         <dl>
@@ -81,7 +81,7 @@
     </x-m3.card>
     @endif
 
-    @if ($f['open'] && $f['side'])
+    @if ($f['open'] && $f['side'] && $f['kind'] === 'sport')
     <x-m3.card :title="__('Score')">
         @if ($f['guest']['external'])
             <p>{{ __('The other team is not on NavigateEd, so your report is the result.') }}</p>

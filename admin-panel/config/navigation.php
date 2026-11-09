@@ -408,6 +408,7 @@ return [
                     ['key' => 'activity-groups', 'label' => 'nav_activity_groups', 'route' => 'activity-groups.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-groups.*'], 'keywords' => ['sport', 'coach', 'culture', 'season', 'facilitator']],
                     ['key' => 'activity-seasons', 'label' => 'nav_activity_seasons', 'route' => 'activity-seasons.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-seasons.*'], 'keywords' => ['summer', 'winter', 'new season', 'teams', 'rollover']],
                     ['key' => 'activity-fixtures', 'label' => 'nav_activity_fixtures', 'route' => 'activity-fixtures.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-fixtures.*'], 'keywords' => ['fixture', 'match', 'league', 'standings', 'score', 'other school']],
+                    ['key' => 'academic-competitions', 'label' => 'nav_academic_competitions', 'route' => 'academic-competitions.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['academic-competitions.*'], 'keywords' => ['debate', 'debating', 'quiz', 'olympiad', 'speech', 'adjudicator', 'motion']],
                 ]],
                 'events' => [
                     'label' => 'nav_group_events_gallery',

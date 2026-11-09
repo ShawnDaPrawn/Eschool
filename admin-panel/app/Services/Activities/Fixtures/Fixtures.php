@@ -94,30 +94,38 @@ class Fixtures
         $this->access->manage($actor);
         $data = Validator::make($input, self::rules('create'))->validate();
 
-        return $this->shared->once($actor, 'fixture:new', $data, fn () => $this->access->manage($actor), function () use ($actor, $data) {
-            $this->group((int) $data['activity_group_id'], $data['on_date']);
-            $guest = isset($data['guest_school_id']) ? (int) $data['guest_school_id'] : null;
-            $competition = isset($data['shared_competition_id']) ? (int) $data['shared_competition_id'] : null;
-            if ($competition !== null) {
-                $member = $this->shared->here(SharedCompetition::RECORD, $competition);
-                abort_unless($member?->state === SharedParticipant::ACCEPTED, 404);
-                $kind = (string) SharedCompetition::query()->whereKey($competition)->value('kind');
-                if ($guest !== null) {
-                    abort_unless($this->shared->participants(SharedCompetition::RECORD, $competition)->contains(fn ($row) => $row['school_id'] === $guest && $row['state'] === SharedParticipant::ACCEPTED), 422, 'The other school must be in the competition first.');
-                }
-            }
-            $fixture = SharedFixture::query()->create(['kind' => $kind ?? 'sport', 'shared_competition_id' => $competition, 'external_opponent' => $guest === null ? trim($data['external_opponent']) : null,
-                'host_is_home' => (bool) $data['host_is_home'], 'discipline' => trim($data['discipline']), 'on_date' => $data['on_date'], 'starts_at' => $this->time($data['starts_at'] ?? null),
-                'venue' => trim($data['venue']), 'field' => $this->blank($data['field'] ?? null), 'status' => 'scheduled', 'result_state' => 'none', 'revision' => 1]);
-            $this->shared->start(self::TYPE, (int) $fixture->id, 'host', $actor);
-            if ($guest !== null) {
-                $this->shared->invite(self::TYPE, (int) $fixture->id, $guest, 'guest');
-            }
-            $side = FixtureSide::query()->create(['shared_fixture_id' => $fixture->id, 'activity_group_id' => (int) $data['activity_group_id'], 'team_label' => trim($data['team_label']), 'sheet_shared' => false, 'revision' => 1]);
-            Audit::record('fixture.created', $side, [], ['shared_fixture_id' => (int) $fixture->id, 'activity_group_id' => (int) $side->activity_group_id]);
+        return $this->shared->once($actor, 'fixture:new', $data, fn () => $this->access->manage($actor), fn () => $this->view($actor, $this->arrange($actor, $data, 'sport')));
+    }
 
-            return $this->view($actor, (int) $fixture->id);
-        });
+    /**
+     * Make the shared fixture (of a kind, with any further shared facts), this
+     * school's accepted host row, the invitation to the guest school and this
+     * school's own side. Inside a write that SharedRecords::once guards.
+     */
+    public function arrange(User $actor, array $data, string $kind, array $facts = []): int
+    {
+        $this->group((int) $data['activity_group_id'], $data['on_date']);
+        $guest = isset($data['guest_school_id']) ? (int) $data['guest_school_id'] : null;
+        $competition = isset($data['shared_competition_id']) ? (int) $data['shared_competition_id'] : null;
+        if ($competition !== null) {
+            $member = $this->shared->here(SharedCompetition::RECORD, $competition);
+            abort_unless($member?->state === SharedParticipant::ACCEPTED, 404);
+            abort_unless((string) SharedCompetition::query()->whereKey($competition)->value('kind') === $kind, 422, 'Choose a competition of the same kind.');
+            if ($guest !== null) {
+                abort_unless($this->shared->participants(SharedCompetition::RECORD, $competition)->contains(fn ($row) => $row['school_id'] === $guest && $row['state'] === SharedParticipant::ACCEPTED), 422, 'The other school must be in the competition first.');
+            }
+        }
+        $fixture = SharedFixture::query()->create($facts + ['kind' => $kind, 'shared_competition_id' => $competition, 'external_opponent' => $guest === null ? trim($data['external_opponent']) : null,
+            'host_is_home' => (bool) $data['host_is_home'], 'discipline' => trim($data['discipline']), 'on_date' => $data['on_date'], 'starts_at' => $this->time($data['starts_at'] ?? null),
+            'venue' => trim($data['venue']), 'field' => $this->blank($data['field'] ?? null), 'status' => 'scheduled', 'result_state' => 'none', 'revision' => 1]);
+        $this->shared->start(self::TYPE, (int) $fixture->id, 'host', $actor);
+        if ($guest !== null) {
+            $this->shared->invite(self::TYPE, (int) $fixture->id, $guest, 'guest');
+        }
+        $side = FixtureSide::query()->create(['shared_fixture_id' => $fixture->id, 'activity_group_id' => (int) $data['activity_group_id'], 'team_label' => trim($data['team_label']), 'sheet_shared' => false, 'revision' => 1]);
+        Audit::record('fixture.created', $side, [], ['shared_fixture_id' => (int) $fixture->id, 'activity_group_id' => (int) $side->activity_group_id, 'kind' => $kind]);
+
+        return (int) $fixture->id;
     }
 
     public function schedule(User $actor, int $id, array $input): array
@@ -271,6 +279,8 @@ class Fixtures
 
         return $this->shared->once($actor, 'fixture-result:'.$id, $data, $authority, function () use ($actor, $id, $data) {
             $fixture = SharedFixture::query()->lockForUpdate()->findOrFail($id);
+            // An academic competition's result is its adjudicators' (AcademicContests::result).
+            abort_unless($fixture->kind === 'sport', 409, 'Record the adjudicators\' result for this competition.');
             abort_if($fixture->status === 'cancelled', 409, 'This fixture was cancelled.');
             abort_if($fixture->on_date->toDateString() > $this->access->today(), 422, 'Scores can be reported from the day of the fixture.');
             $everyone = $this->shared->participants(self::TYPE, $id);
@@ -297,41 +307,49 @@ class Fixtures
         });
     }
 
-    /** @param list<array{0: int, 1: int}|null> $reports */
-    private function settle(SharedFixture $fixture, array $reports, array $schools): void
+    /**
+     * Agreeing reports confirm the result; any report missing leaves it
+     * awaiting, and differing reports leave it disputed. An academic
+     * competition's report also names the winning side.
+     *
+     * @param  list<array{0: int, 1: int, 2?: string|null}|null>  $reports
+     */
+    public function settle(SharedFixture $fixture, array $reports, array $schools): void
     {
         $missing = in_array(null, $reports, true);
         $agreed = ! $missing && count(array_unique(array_map('json_encode', $reports))) === 1;
         if ($agreed) {
             [$host, $guest] = $reports[0];
-            if ($fixture->result_state === 'confirmed' && $fixture->host_score === $host && $fixture->guest_score === $guest) {
+            $winner = $reports[0][2] ?? null;
+            if ($fixture->result_state === 'confirmed' && $fixture->host_score === $host && $fixture->guest_score === $guest && $fixture->winner === $winner) {
                 return;
             }
-            $fixture->forceFill(['result_state' => 'confirmed', 'host_score' => $host, 'guest_score' => $guest, 'result_confirmed_at' => now(), 'result_revision' => $fixture->result_revision + 1])->save();
+            $fixture->forceFill(['result_state' => 'confirmed', 'host_score' => $host, 'guest_score' => $guest, 'winner' => $winner, 'result_confirmed_at' => now(), 'result_revision' => $fixture->result_revision + 1])->save();
             foreach ($schools as $school) {
                 $this->shared->inSchool((int) $school, fn () => app(FixtureNotices::class)->confirmed($fixture));
             }
 
             return;
         }
-        $fixture->forceFill(['result_state' => $missing ? 'awaiting' : 'disputed', 'host_score' => null, 'guest_score' => null, 'result_confirmed_at' => null])->save();
+        $fixture->forceFill(['result_state' => $missing ? 'awaiting' : 'disputed', 'host_score' => null, 'guest_score' => null, 'winner' => null, 'result_confirmed_at' => null])->save();
     }
 
-    public function listing(User $actor, int $page = 1): array
+    /** @param  list<string>|null  $kinds  only these kinds (academic competitions list their own) */
+    public function listing(User $actor, int $page = 1, ?array $kinds = null, ?callable $visible = null): array
     {
         $this->shared->ownStaff();
         $this->access->staff($actor);
         $ids = $this->shared->idsHere(self::TYPE);
         if (! $this->access->manages($actor)) {
-            $ids = array_values(array_filter($ids, fn (int $id) => $this->visibleToStaff($actor, $id)));
+            $ids = array_values(array_filter($ids, $visible ?? fn (int $id) => $this->visibleToStaff($actor, $id)));
         }
-        $fixtures = SharedFixture::query()->whereIn('id', $ids)->orderByDesc('on_date')->orderByDesc('id')->get();
+        $fixtures = SharedFixture::query()->whereIn('id', $ids)->when($kinds !== null, fn ($q) => $q->whereIn('kind', $kinds))->orderByDesc('on_date')->orderByDesc('id')->get();
         $items = $fixtures->slice(($page - 1) * 30, 30)->map(fn (SharedFixture $f) => array_diff_key($this->summary($f), ['participants' => true]))->values()->all();
 
         return ['items' => $items, 'page' => $page, 'last_page' => max(1, (int) ceil($fixtures->count() / 30)), 'total' => $fixtures->count()];
     }
 
-    private function visibleToStaff(User $actor, int $id): bool
+    public function visibleToStaff(User $actor, int $id): bool
     {
         $side = FixtureSide::query()->where('shared_fixture_id', $id)->first();
 
@@ -342,6 +360,17 @@ class Fixtures
     public function view(User $actor, int $id): array
     {
         [$fixture, $part, $side] = $this->mine($actor, $id);
+
+        return $this->render($actor, $fixture, $part, $side);
+    }
+
+    /**
+     * This school's view of a fixture whose access the caller has already
+     * checked (here, or for an academic competition's adjudicators).
+     */
+    public function render(User $actor, SharedFixture $fixture, SharedParticipant $part, ?FixtureSide $side): array
+    {
+        $id = (int) $fixture->id;
         $summary = $this->summary($fixture);
         $open = $summary['open'];
         $me = app(CurrentSchool::class)->id();
@@ -375,12 +404,12 @@ class Fixtures
             'their_sheet' => $sheet,
             'can_decide' => $manages && $part->state === SharedParticipant::INVITED && $fixture->status === 'scheduled',
             'can_schedule' => $manages && $myRole === 'host' && $fixture->status === 'scheduled',
-            'can_report' => $open && $side !== null && $fixture->status === 'scheduled' && $fixture->on_date->toDateString() <= $this->access->today(),
+            'can_report' => $fixture->kind === 'sport' && $open && $side !== null && $fixture->status === 'scheduled' && $fixture->on_date->toDateString() <= $this->access->today(),
         ];
     }
 
     /** The shared facts and the names and states of the schools: what any school taking part may see. */
-    private function summary(SharedFixture $fixture): array
+    public function summary(SharedFixture $fixture): array
     {
         $me = app(CurrentSchool::class)->id();
         $everyone = $this->shared->participants(self::TYPE, (int) $fixture->id)->all();
@@ -409,7 +438,8 @@ class Fixtures
             'host' => ['name' => (string) ($host['name'] ?? ''), 'external' => false, 'state' => (string) ($host['state'] ?? '')],
             'guest' => $external ? ['name' => (string) $fixture->external_opponent, 'external' => true, 'state' => 'external']
                 : ['name' => (string) ($guest['name'] ?? ''), 'external' => false, 'state' => (string) ($guest['state'] ?? '')],
-            'result' => ['state' => $open ? (string) $fixture->result_state : 'none', 'host_score' => $confirmed ? $fixture->host_score : null, 'guest_score' => $confirmed ? $fixture->guest_score : null],
+            'result' => ['state' => $open ? (string) $fixture->result_state : 'none', 'host_score' => $confirmed ? $fixture->host_score : null, 'guest_score' => $confirmed ? $fixture->guest_score : null,
+                'winner' => $confirmed ? $fixture->winner : null],
             'participants' => $everyone,
         ];
     }
@@ -482,12 +512,12 @@ class Fixtures
         }
     }
 
-    private function time(?string $value): ?string
+    public function time(?string $value): ?string
     {
         return $value === null || $value === '' ? null : $value.':00';
     }
 
-    private function blank(?string $value): ?string
+    public function blank(?string $value): ?string
     {
         $value = $value === null ? '' : trim($value);
 

@@ -51,7 +51,9 @@ class FixtureNotices implements PrivateNoticeDelivery, PrivateNoticeScope
             return;
         }
         $notifier = app(Notifier::class);
-        $notice = $notifier->makeNotice(self::TYPE, __('Match result'), __('A result is ready for your child\'s team. Open the app to see it.'), self::LINK);
+        $notice = $fixture->kind === 'sport'
+            ? $notifier->makeNotice(self::TYPE, __('Match result'), __('A result is ready for your child\'s team. Open the app to see it.'), self::LINK)
+            : $notifier->makeNotice(self::TYPE, __('Competition result'), __('A result is ready for a competition your child took part in. Open the app to see it.'), self::LINK);
         $notice->delivery_payload = ['link' => self::LINK, 'fixture_id' => (int) $fixture->id, 'result_revision' => (int) $fixture->result_revision];
         $notice->save();
         $notifier->assign($notice, $recipients);

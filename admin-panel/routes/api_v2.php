@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Activities\AcademicContestController;
 use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
 use App\Http\Controllers\Api\V2\Activities\FixtureController;
 use App\Http\Controllers\Api\V2\Activities\GroupChatController;
@@ -337,6 +338,24 @@ Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role
     Route::get('competitions/{competition}', [$c, 'competition'])->whereNumber('competition')->name('competition-show');
     Route::post('competitions/{competition}/invitations', [$c, 'competitionInvite'])->whereNumber('competition')->name('competition-invite');
     Route::post('competitions/{competition}/decision', [$c, 'competitionDecision'])->whereNumber('competition')->name('competition-decision');
+});
+
+// Academic competitions and debating between schools (Action Plan 5.3): a
+// shared fixture of an academic kind, its adjudicators and their result, AI
+// feedback on reasoning for adjudicators (advice only) and links to awards.
+Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.academic.')->group(function () {
+    $c = AcademicContestController::class;
+    Route::get('academic-competitions', [$c, 'index'])->name('index');
+    Route::post('academic-competitions', [$c, 'create'])->name('create');
+    Route::get('learners/{learner}/academic-competitions', [$c, 'learner'])->whereNumber('learner')->name('learner');
+    Route::get('academic-competitions/{competition}', [$c, 'show'])->whereNumber('competition')->name('show');
+    Route::put('academic-competitions/{competition}/details', [$c, 'details'])->whereNumber('competition')->name('details');
+    Route::put('academic-competitions/{competition}/adjudicators', [$c, 'adjudicators'])->whereNumber('competition')->name('adjudicators');
+    Route::put('academic-competitions/{competition}/result', [$c, 'result'])->whereNumber('competition')->name('result');
+    Route::post('academic-competitions/{competition}/awards', [$c, 'awards'])->whereNumber('competition')->name('awards');
+    Route::post('academic-competitions/{competition}/reasoning-reviews', [$c, 'review'])->whereNumber('competition')->middleware('throttle:20,1')->name('review');
+    Route::get('academic-competitions/{competition}/reasoning-reviews/{review}', [$c, 'reviewShow'])->whereNumber(['competition', 'review'])->name('review-show');
+    Route::post('academic-competitions/{competition}/reasoning-reviews/{review}/share', [$c, 'share'])->whereNumber(['competition', 'review'])->name('share');
 });
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.

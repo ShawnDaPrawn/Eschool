@@ -623,3 +623,13 @@ its team sheet, with composite school foreign keys to its own group and
 learners. Another school's rows are read only through `SharedRecords`, and only
 the columns declared in `config/shared_records.php` once the schools accepted
 ([shared records](shared-records.md)).
+
+Academic competitions (Action Plan 5.3) are shared fixtures of an academic
+kind; the motion, format, rounds, stances and the confirmed winning side are
+on the global `shared_fixtures` row. `academic_adjudicators`,
+`academic_results`, `academic_reasoning_reviews` and `academic_award_links`
+are required school-owned: each school's own adjudicators, its adjudicators'
+result (its entrants' scores and places), the AI feedback its adjudicators
+asked for and the awards it presented, with composite school foreign keys to
+its own learners. None of them is published to the other school
+([academic competitions](../activities/academic-competitions.md)).

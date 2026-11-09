@@ -9945,6 +9945,460 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CompetitionDecision'
+  /activities/academic-competitions:
+    get:
+      operationId: listAcademicCompetitions
+      tags:
+      - Activities
+      summary: List the academic competitions this school takes part in
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixtureListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createAcademicCompetition
+      tags:
+      - Activities
+      summary: Arrange a debate, quiz or speech contest with another school or one outside NavigateEd
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicCompetitionCreate'
+  /activities/learners/{learner}/academic-competitions:
+    get:
+      operationId: listLearnerAcademicCompetitions
+      tags:
+      - Activities
+      summary: Academic competitions a learner is an entrant in, as their family sees them
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerAcademicCompetitionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/academic-competitions/{competition}:
+    get:
+      operationId: readAcademicCompetition
+      tags:
+      - Activities
+      summary: Read this school's view of an academic competition
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/academic-competitions/{competition}/details:
+    put:
+      operationId: saveAcademicCompetitionDetails
+      tags:
+      - Activities
+      summary: Change the motion or topic, format, rounds and stance (host school)
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicCompetitionDetails'
+  /activities/academic-competitions/{competition}/adjudicators:
+    put:
+      operationId: saveAcademicAdjudicators
+      tags:
+      - Activities
+      summary: Name this school's own adjudicators
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicAdjudicatorsWrite'
+  /activities/academic-competitions/{competition}/result:
+    put:
+      operationId: saveAcademicResult
+      tags:
+      - Activities
+      summary: Keep or submit this school's adjudicators' result
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicResultWrite'
+  /activities/academic-competitions/{competition}/awards:
+    post:
+      operationId: linkAcademicAwards
+      tags:
+      - Activities
+      summary: Present one of the school's awards to its own entrants for taking part or placing
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCompetitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicAwardsWrite'
+  /activities/academic-competitions/{competition}/reasoning-reviews:
+    post:
+      operationId: requestReasoningReview
+      tags:
+      - Activities
+      summary: Ask for AI feedback on the reasoning in a speech or written argument (adjudicators, advice only)
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReasoningReviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasoningReviewWrite'
+  /activities/academic-competitions/{competition}/reasoning-reviews/{review}:
+    get:
+      operationId: readReasoningReview
+      tags:
+      - Activities
+      summary: Read AI feedback this adjudicator asked for
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: review
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReasoningReviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/academic-competitions/{competition}/reasoning-reviews/{review}/share:
+    post:
+      operationId: shareReasoningFeedback
+      tags:
+      - Activities
+      summary: Share the adjudicator's own written feedback with one of the school's entrants
+      description: Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators' result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: competition
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: review
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReasoningReviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasoningShareWrite'
   /growth/mastery/configuration:
     get:
       operationId: getMasteryConfiguration
@@ -52811,6 +53265,16 @@ components:
           type:
           - integer
           - 'null'
+        winner:
+          description: The winning side both schools confirmed, for an academic competition (null for a match or before confirmation).
+          type:
+          - string
+          - 'null'
+          enum:
+          - host
+          - guest
+          - draw
+          - null
         my_report:
           oneOf:
           - type: 'null'
@@ -53259,6 +53723,873 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/FixtureLearnerList'
+    AcademicCompetition:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - competition
+      - discipline
+      - on_date
+      - starts_at
+      - venue
+      - field
+      - host_is_home
+      - status
+      - revision
+      - my_role
+      - my_state
+      - open
+      - host
+      - guest
+      - result
+      - side
+      - their_sheet
+      - can_decide
+      - can_schedule
+      - can_report
+      - academic
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        competition:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        discipline:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        field:
+          type:
+          - string
+          - 'null'
+        host_is_home:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - scheduled
+          - cancelled
+        revision:
+          type: integer
+        my_role:
+          type: string
+          enum:
+          - host
+          - guest
+        my_state:
+          type: string
+          enum:
+          - invited
+          - accepted
+          - declined
+        open:
+          type: boolean
+        host:
+          $ref: '#/components/schemas/FixtureTeam'
+        guest:
+          $ref: '#/components/schemas/FixtureTeam'
+        result:
+          $ref: '#/components/schemas/FixtureResultState'
+        side:
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/FixtureSide'
+        their_sheet:
+          oneOf:
+          - type: 'null'
+          - type: array
+            items:
+              $ref: '#/components/schemas/FixtureSheetEntry'
+        can_decide:
+          type: boolean
+        can_schedule:
+          type: boolean
+        can_report:
+          type: boolean
+        academic:
+          $ref: '#/components/schemas/AcademicCompetitionDetail'
+    AcademicCompetitionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicCompetition'
+    AcademicCompetitionDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - entry
+      - motion
+      - format
+      - rounds
+      - host_stance
+      - my_stance
+      - their_winner
+      - adjudicators
+      - result
+      - reviews
+      - awards
+      - reasoning_feedback
+      - can_edit_details
+      - can_adjudicate
+      - can_submit
+      - can_award
+      properties:
+        kind:
+          type: string
+          enum:
+          - debate
+          - quiz
+          - speech
+        entry:
+          type: string
+          enum:
+          - team
+          - individual
+        motion:
+          type: string
+        format:
+          type:
+          - string
+          - 'null'
+        rounds:
+          type:
+          - integer
+          - 'null'
+        host_stance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - proposition
+          - opposition
+          - null
+        my_stance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - proposition
+          - opposition
+          - null
+        their_winner:
+          description: The winner the other school submitted, shown only while the two results differ.
+          type:
+          - string
+          - 'null'
+          enum:
+          - host
+          - guest
+          - draw
+          - null
+        adjudicators:
+          description: This school's own adjudicators (managers and adjudicators only); never another school's.
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - user_id
+            - name
+            properties:
+              user_id:
+                type:
+                - integer
+                - 'null'
+              name:
+                type: string
+        result:
+          description: This school's adjudicators' result (managers and adjudicators only); a draft is never seen by another school.
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/AcademicResult'
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReasoningReview'
+        awards:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - basis
+            - award_presentation_id
+            - title
+            properties:
+              learner_id:
+                type: integer
+              basis:
+                type: string
+                enum:
+                - participation
+                - placing
+              award_presentation_id:
+                type: integer
+              title:
+                type: string
+        reasoning_feedback:
+          description: Whether this adjudicator may ask for AI feedback here (kind, platform and school switches).
+          type: boolean
+        can_edit_details:
+          type: boolean
+        can_adjudicate:
+          type: boolean
+        can_submit:
+          type: boolean
+        can_award:
+          type: boolean
+    AcademicResult:
+      type: object
+      additionalProperties: false
+      required:
+      - state
+      - host_score
+      - guest_score
+      - winner
+      - entrants
+      - reasons
+      - revision
+      - submitted_at
+      properties:
+        state:
+          type: string
+          enum:
+          - draft
+          - submitted
+        host_score:
+          type:
+          - integer
+          - 'null'
+        guest_score:
+          type:
+          - integer
+          - 'null'
+        winner:
+          type:
+          - string
+          - 'null'
+          enum:
+          - host
+          - guest
+          - draw
+          - null
+        entrants:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicEntrantResult'
+        reasons:
+          type:
+          - string
+          - 'null'
+        revision:
+          type: integer
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    AcademicEntrantResult:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - score
+      - place
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        score:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 9999
+        place:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 999
+    ReasoningReview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - source
+      - from_side
+      - stance
+      - requested_by
+      - requested_at
+      - feedback
+      - failure_code
+      - shared
+      properties:
+        id:
+          type: integer
+        state:
+          type: string
+          enum:
+          - pending
+          - completed
+          - unavailable
+          - quarantined
+        source:
+          type: string
+          enum:
+          - speech
+          - written
+        from_side:
+          type: string
+          enum:
+          - ours
+          - theirs
+        stance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - proposition
+          - opposition
+          - null
+        requested_by:
+          type: integer
+        requested_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        feedback:
+          description: Advice to the adjudicator on reasoning only. Never a score, a result or a verdict.
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/ReasoningFeedback'
+        failure_code:
+          type:
+          - string
+          - 'null'
+        shared:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - text
+            - shared_at
+            properties:
+              learner_id:
+                type: integer
+              text:
+                type: string
+              shared_at:
+                type: string
+                format: date-time
+    ReasoningFeedback:
+      type: object
+      additionalProperties: false
+      required:
+      - structure
+      - evidence
+      - rebuttal
+      - fallacies
+      - summary
+      properties:
+        structure:
+          type: string
+        evidence:
+          type: string
+        rebuttal:
+          type: string
+        fallacies:
+          type: array
+          maxItems: 6
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - name
+            - explanation
+            properties:
+              name:
+                type: string
+              explanation:
+                type: string
+        summary:
+          type: string
+    ReasoningReviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ReasoningReview'
+    LearnerAcademicCompetition:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - discipline
+      - motion
+      - on_date
+      - starts_at
+      - venue
+      - status
+      - competition
+      - team_label
+      - opponent
+      - stance
+      - result
+      - feedback
+      - awards
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+          enum:
+          - debate
+          - quiz
+          - speech
+        discipline:
+          type: string
+        motion:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+        status:
+          type: string
+        competition:
+          type:
+          - string
+          - 'null'
+        team_label:
+          type: string
+        opponent:
+          type: string
+        stance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - proposition
+          - opposition
+          - null
+        result:
+          description: The team's confirmed result. Families never see a child's own score, place or ranking.
+          type: object
+          additionalProperties: false
+          required:
+          - state
+          - our_score
+          - their_score
+          - outcome
+          properties:
+            state:
+              type: string
+              enum:
+              - confirmed
+              - pending
+            our_score:
+              type:
+              - integer
+              - 'null'
+            their_score:
+              type:
+              - integer
+              - 'null'
+            outcome:
+              type:
+              - string
+              - 'null'
+              enum:
+              - won
+              - lost
+              - draw
+              - null
+        feedback:
+          description: Written feedback an adjudicator chose to share with this learner. Never the AI's text by itself.
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - text
+            - shared_on
+            properties:
+              text:
+                type: string
+              shared_on:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+        awards:
+          type: array
+          items:
+            type: string
+    LearnerAcademicCompetitionList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerAcademicCompetition'
+    LearnerAcademicCompetitionListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/LearnerAcademicCompetitionList'
+    AcademicCompetitionCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - kind
+      - motion
+      - activity_group_id
+      - team_label
+      - discipline
+      - on_date
+      - venue
+      - host_is_home
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - debate
+          - quiz
+          - speech
+        motion:
+          type: string
+          minLength: 3
+          maxLength: 500
+        format:
+          type:
+          - string
+          - 'null'
+          maxLength: 60
+        rounds:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 20
+        host_stance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - proposition
+          - opposition
+          - null
+        activity_group_id:
+          type: integer
+          minimum: 1
+        team_label:
+          type: string
+          maxLength: 100
+        discipline:
+          type: string
+          minLength: 2
+          maxLength: 100
+        shared_competition_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        guest_school_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        external_opponent:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          oneOf:
+          - type: 'null'
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+        venue:
+          type: string
+          minLength: 2
+          maxLength: 191
+        field:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        host_is_home:
+          type: boolean
+    AcademicCompetitionDetails:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - motion
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        motion:
+          type: string
+          minLength: 3
+          maxLength: 500
+        format:
+          type:
+          - string
+          - 'null'
+          maxLength: 60
+        rounds:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 20
+        host_stance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - proposition
+          - opposition
+          - null
+    AcademicAdjudicatorsWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - adjudicators
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        adjudicators:
+          description: Replaces the list. Each is one of the school's staff (user_id) or someone from outside (name).
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              user_id:
+                type:
+                - integer
+                - 'null'
+                minimum: 1
+              name:
+                type:
+                - string
+                - 'null'
+                minLength: 2
+                maxLength: 120
+    AcademicResultWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - state
+      - revision
+      - host_score
+      - guest_score
+      - winner
+      - entrants
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - draft
+          - final
+        revision:
+          type: integer
+          minimum: 0
+        host_score:
+          type: integer
+          minimum: 0
+          maximum: 9999
+        guest_score:
+          type: integer
+          minimum: 0
+          maximum: 9999
+        winner:
+          description: A debate's adjudicators name the winner; in a quiz or speech contest it must follow the scores.
+          type: string
+          enum:
+          - host
+          - guest
+          - draw
+        entrants:
+          type: array
+          maxItems: 60
+          items:
+            $ref: '#/components/schemas/AcademicEntrantResult'
+        reasons:
+          type:
+          - string
+          - 'null'
+          maxLength: 4000
+    AcademicAwardsWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - award_definition_id
+      - basis
+      - learner_ids
+      - presented_on
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        award_definition_id:
+          type: integer
+          minimum: 1
+        basis:
+          type: string
+          enum:
+          - participation
+          - placing
+        learner_ids:
+          type: array
+          minItems: 1
+          maxItems: 60
+          items:
+            type: integer
+            minimum: 1
+        presented_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    ReasoningReviewWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - text
+      - source
+      - from_side
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        text:
+          description: A speech transcript or written argument. Names are removed on the server before anything is sent.
+          type: string
+          minLength: 50
+          maxLength: 12000
+        source:
+          type: string
+          enum:
+          - speech
+          - written
+        from_side:
+          type: string
+          enum:
+          - ours
+          - theirs
+    ReasoningShareWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - text
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        text:
+          description: The adjudicator's own words; they are responsible for what they share.
+          type: string
+          minLength: 20
+          maxLength: 4000
     CompetitionSummary:
       type: object
       additionalProperties: false
@@ -53670,6 +55001,9 @@ components:
           type: string
           enum:
           - sport
+          - debate
+          - quiz
+          - speech
         discipline:
           type: string
           minLength: 2
