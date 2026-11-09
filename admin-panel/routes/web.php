@@ -5,6 +5,7 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ProviderSignInController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CategoryController;
@@ -130,6 +131,8 @@ use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Reading\ReadingPanelController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
 use App\Http\Controllers\Panel\SearchController;
+use App\Http\Controllers\Panel\SignIn\SignInLinksController;
+use App\Http\Controllers\Panel\SignIn\SignInProviderSettingsController;
 use App\Http\Controllers\Panel\Transfers\TransferPanelController;
 use App\Http\Controllers\Panel\Wellbeing\CheckInPanelController;
 use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
@@ -223,6 +226,7 @@ use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Requests\Emergency\EmergencyPanelRequest;
 use App\Services\Learning\SafeguardingPhrases;
+use App\Services\Platform\SignIn\ProviderCatalogue;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -246,6 +250,12 @@ Route::middleware('school.context:public')->group(function () {
     Route::get('login', [LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
     Route::post('login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:login', 'school.context:sign-in']);
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+    // Google and Microsoft sign-in (Action Plan 5.9): a login page button starts it at the named
+    // school, and the provider returns to the callback. No account is ever created here.
+    Route::post('sign-in/{provider}', [ProviderSignInController::class, 'start'])->whereIn('provider', ProviderCatalogue::ALL)
+        ->middleware(['guest', 'throttle:sign-in-provider'])->name('sign-in-provider.start');
+    Route::get('sign-in/{provider}/callback', [ProviderSignInController::class, 'callback'])->whereIn('provider', ProviderCatalogue::ALL)
+        ->middleware(['throttle:sign-in-provider', 'cache.headers:private;no_store'])->name('sign-in-provider.callback');
 
     // There is no public sign-up. Staff create accounts, and those accounts always
     // have a role. Students apply through the public online registration form.
@@ -1729,6 +1739,13 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::get('/open-standards', [OneRosterController::class, 'index'])->middleware('cache.headers:private;no_store')->name('open-standards.index');
     Route::post('/open-standards/oneroster', [OneRosterController::class, 'store'])->middleware('throttle:10,1')->name('open-standards.store');
     Route::get('/open-standards/oneroster/{export}/download', [OneRosterController::class, 'download'])->whereNumber('export')->middleware(['signed', 'throttle:10,1'])->name('open-standards.download');
+    // Google and Microsoft sign-in (Action Plan 5.9): the school's settings (its Super Admin only) and each person's own links.
+    Route::get('/sign-in-providers', [SignInProviderSettingsController::class, 'index'])->middleware('cache.headers:private;no_store')->name('sign-in-providers.index');
+    Route::put('/sign-in-providers/{provider}', [SignInProviderSettingsController::class, 'update'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:20,1')->name('sign-in-providers.update');
+    Route::delete('/sign-in-providers/links/{link}', [SignInProviderSettingsController::class, 'removeLink'])->whereNumber('link')->middleware('throttle:20,1')->name('sign-in-providers.links.destroy');
+    Route::get('/sign-in-links', [SignInLinksController::class, 'index'])->middleware('cache.headers:private;no_store')->name('sign-in-links.index');
+    Route::post('/sign-in-links/{provider}', [SignInLinksController::class, 'start'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:password')->name('sign-in-links.start');
+    Route::delete('/sign-in-links/{link}', [SignInLinksController::class, 'destroy'])->whereNumber('link')->middleware('throttle:20,1')->name('sign-in-links.destroy');
     // Support tickets to Navigate Ed (Action Plan SA.17); SupportTicketRequest checks the right.
     Route::get('/support-tickets', [SupportTicketController::class, 'index'])->name('support-tickets.index');
     Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:10,1')->name('support-tickets.store');

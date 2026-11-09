@@ -80,6 +80,7 @@
                                             <input type="submit" name="btnlogin" id="login_btn" value="{{ __('login') }}" class="btn btn-block btn-theme btn-lg font-weight-medium auth-form-btn"/>
                                         </div>
                                     </form>
+                                    @include('auth.provider-buttons')
                                     @if(config('app.demo_mode'))
                                         <div class="row mt-2">
                                             <hr class="w-100">
