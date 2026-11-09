@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Learning\Library;
 
+use App\Models\Academics\GradeLevel;
 use App\Models\User;
 use App\Policies\Academics\ContentPolicy;
 use App\Policies\People\ProfilePolicy;
@@ -23,8 +24,10 @@ use App\Services\Platform\Stages\SchoolStages;
  *   settings) sets the school's sharing switch and whether a leader approves
  *   each contribution.
  * - A leader, or a content lead of the question's grade (academic managers,
- *   the grade head and the principal: ContentPolicy::leads), approves,
- *   declines or withdraws a contribution.
+ *   the grade head and the principal: ContentPolicy::leads), sees exactly
+ *   what a contribution would share, approves, declines or withdraws it. A
+ *   content lead opens the page even without the Teacher role or the
+ *   settings permission, and sees only their grades' contributions.
  *
  * Learners, parents and other staff are refused (403).
  */
@@ -47,13 +50,31 @@ class SharedLibraryAccess
         return $fresh;
     }
 
-    /** A teacher or a leader: who may open the shared library pages at all. */
+    /**
+     * Who may open the shared library page at all: a teacher, a leader, or a
+     * content lead of any grade (who then sees only their grades' contributions).
+     */
     public function member(User $actor): User
     {
         $fresh = app(PracticeAccess::class)->actor($actor);
-        abort_unless($this->isTeacher($fresh) || $this->isLeader($fresh), 403);
+        abort_unless($this->isTeacher($fresh) || $this->isLeader($fresh) || $this->leadsAnyGrade($fresh), 403);
 
         return $fresh;
+    }
+
+    /** Whether this person leads the learning content of at least one grade (ContentPolicy::leads). */
+    public function leadsAnyGrade(User $fresh): bool
+    {
+        if (array_diff(app(ProfilePolicy::class)->roles($fresh), ['Parent', 'Student']) === []) {
+            return false;
+        }
+        foreach (GradeLevel::query()->orderBy('sort_order')->pluck('id') as $grade) {
+            if (app(ContentPolicy::class)->leads($fresh, (int) $grade)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function leader(User $actor, bool $write = false): User

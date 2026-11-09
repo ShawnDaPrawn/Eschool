@@ -6,7 +6,7 @@
     <tbody>
     @foreach ($rows as $row)
         <tr>
-            <td dir="auto">@if ($row['library_item_id'] !== null && $teacher)<a href="{{ route('shared-library.items.show', $row['library_item_id']) }}">{{ $row['title'] }}</a>@else{{ $row['title'] }}@endif</td>
+            <td dir="auto">@if ($decide && $row['can_view'])<a href="{{ route('shared-library.contributions.show', $row['id']) }}">{{ $row['title'] }}</a>@elseif ($row['library_item_id'] !== null && $teacher)<a href="{{ route('shared-library.items.show', $row['library_item_id']) }}">{{ $row['title'] }}</a>@else{{ $row['title'] }}@endif</td>
             <td>{{ $row['topic'] ? $row['topic']['subject_code'].' · '.$row['topic']['grade'].' · '.$row['topic']['name'] : '' }}</td>
             @if ($decide)<td>{{ $row['mine'] ? __('you') : $row['teacher'] }}</td>@endif
             <td>{{ $row['credit_label'] }}</td>

@@ -89,6 +89,12 @@ class SharedLibraryController extends Controller
             : __('Thank you. Your question went to Navigate Ed for review. Other schools see it only once a reviewer approves it.'));
     }
 
+    /** What a contribution would share, exactly as submitted, for the people who decide it. */
+    public function contribution(SharedLibraryRequest $request, int $contribution): View
+    {
+        return view('learning.shared-library.contribution', ['row' => $this->shared->preview($request->user(), $contribution)]);
+    }
+
     public function approve(SharedLibraryRequest $request, int $contribution): RedirectResponse
     {
         return $this->done(fn () => $this->shared->approve($request->user(), $contribution), __('Approved. The question went to Navigate Ed for review.'));

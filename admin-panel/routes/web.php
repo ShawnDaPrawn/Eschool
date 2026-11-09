@@ -828,6 +828,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('items/{item}/copy', [$c, 'copy'])->whereNumber('item')->middleware('throttle:30,1')->name('items.copy');
             Route::get('share/{item}', [$c, 'share'])->whereNumber('item')->name('share');
             Route::post('contributions', [$c, 'contribute'])->middleware('throttle:30,1')->name('contributions.store');
+            Route::get('contributions/{contribution}', [$c, 'contribution'])->whereNumber('contribution')->name('contributions.show');
             Route::post('contributions/{contribution}/approve', [$c, 'approve'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.approve');
             Route::post('contributions/{contribution}/decline', [$c, 'decline'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.decline');
             Route::post('contributions/{contribution}/withdraw', [$c, 'withdraw'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.withdraw');

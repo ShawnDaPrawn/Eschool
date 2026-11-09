@@ -267,6 +267,30 @@ class SharedLibrary
         return $this->rows($rows->values(), $actor);
     }
 
+    /**
+     * Exactly what a contribution shares: the question version the teacher
+     * submitted (never a later revision of their question), for the people
+     * who may decide it (a leader or a content lead of its grade). Another
+     * school's contribution is not found.
+     *
+     * @return array<string, mixed>
+     */
+    public function preview(User $actor, int $id): array
+    {
+        $actor = app(SharedLibraryAccess::class)->staff($actor);
+        $contribution = LibraryContribution::query()->findOrFail($id);
+        $grade = (int) PracticeItem::query()->whereKey($contribution->practice_item_id)->value('grade_level_id');
+        abort_unless(app(SharedLibraryAccess::class)->leadsGrade($actor, $grade), 403, __('Only a school leader or a content lead of this grade can decide.'));
+        $version = PracticeItemVersion::query()->where('practice_item_id', $contribution->practice_item_id)->findOrFail($contribution->practice_item_version_id);
+        $definition = app(PracticeAnswers::class)->definition((array) $version->definition);
+        $row = $this->rows(collect([$contribution]), $actor)[0];
+
+        return $row + ['question' => ['kind' => (string) $definition['kind'], 'prompt' => (string) $definition['prompt'],
+            'options' => array_values((array) ($definition['options'] ?? [])), 'answers' => array_values((array) ($definition['answers'] ?? [])),
+            'steps' => array_values((array) ($definition['steps'] ?? [])), 'explanation' => (string) ($definition['explanation'] ?? ''),
+            'max_seconds' => $definition['max_seconds'] ?? null], 'estimated_seconds' => (int) $version->estimated_seconds, 'revision' => (int) $version->revision];
+    }
+
     /** @return array{code: string, name: string, url: string} */
     public function licence(): array
     {
@@ -401,6 +425,7 @@ class SharedLibrary
                 'rating' => $item === null ? null : ($ratings[(int) $item->id] ?? null),
                 'decline_reason' => $c->state === 'declined' ? $c->decline_reason : null,
                 'contributed_at' => $c->created_at?->toIso8601String(),
+                'can_view' => $leads,
                 'can_decide' => $c->state === 'awaiting_approval' && $leads && ! $own,
                 'can_withdraw' => in_array($c->state, ['awaiting_approval', 'shared'], true) && ($own || $leads)];
         })->values()->all();

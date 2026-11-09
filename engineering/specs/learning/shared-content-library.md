@@ -43,8 +43,11 @@ question's teaching content, and nothing else.
   - School leaders (`SchoolStages::mayManage`: a Super Admin or office staff
     who manage school settings) change the school's sharing settings.
   - Leaders and content leads of the question's grade (`ContentPolicy::leads`:
-    academic managers, the grade head and the principal) approve, decline and
-    withdraw contributions. Nobody approves their own.
+    academic managers, the grade head and the principal) preview exactly what
+    a contribution shares, then approve, decline or withdraw it. Nobody
+    approves their own. A content lead opens the page without the Teacher role
+    or the settings permission, and sees only the contributions of the grades
+    they lead.
   - Everyone else (learners, parents, other staff, platform staff inside a
     school, impersonation and support sessions) is refused (403). Every check
     runs inside the person's own school with daily practice on
@@ -69,6 +72,11 @@ question's teaching content, and nothing else.
   share it, and accepts the licence in `config/shared_library.php` (CC BY 4.0
   until the owner decides). The licence is recorded on the contribution and the
   library source.
+- **Preview before approval.** A decider opens the contribution and sees the
+  question version the teacher submitted (`practice_item_version_id`), never a
+  later revision of the teacher's question: prompt, options, accepted answers,
+  steps, explanation and expected time. Only a leader or a content lead of its
+  grade may open it (403 otherwise); another school's is not found (404).
 - **Leader approval.** `library_school_settings.sharing_enabled` (off by
   default) must be on to share. With `leader_approval` (on by default) a
   contribution waits as `awaiting_approval` until a leader or content lead
@@ -182,6 +190,7 @@ linked from each of the teacher's own active questions in the question banks.
 | POST | `/shared-library/items/{item}/rating` | `shared-library.items.rate` |
 | POST | `/shared-library/items/{item}/copy` | `shared-library.items.copy` |
 | GET | `/shared-library/share/{item}` | `shared-library.share` |
+| GET | `/shared-library/contributions/{contribution}` | `shared-library.contributions.show` |
 | POST | `/shared-library/contributions` | `shared-library.contributions.store` |
 | POST | `/shared-library/contributions/{contribution}/approve` | `shared-library.contributions.approve` |
 | POST | `/shared-library/contributions/{contribution}/decline` | `shared-library.contributions.decline` |
@@ -235,6 +244,7 @@ Every v2 response in it is checked against `openapi.yaml`.
 | A published item and B's group | Theo (not allocated) copies; Tara copies over the API twice; A withdraws; Tara copies again | 403; one copy in B, author Tara, linked to the library version, replay returns it; B's copy unchanged; 404 (`test_a_copy_is_the_schools_own_question_approved_like_any_other`) |
 | A published item, A's library on | issue daily practice and answer; ask the learning path; withdraw; read the set; HQ publishes or redrafts | offered as a library version, evidence names it; offered under the same-named topic; unpublished, version unchanged, set 404, evidence still points at it, not offered on the path; 409 and 409 (`test_published_contributions_reach_daily_practice_and_learning_paths_and_withdrawing_keeps_the_evidence`) |
 | The gate | update a library item from a school; write a review or delete inside the gate | 403, nothing changed; the new tables are school-owned, library tables still have no `school_id` (`test_the_contribution_gate_lets_only_sources_items_and_versions_through_and_the_tables_are_school_owned`) |
+| A grade 7 head and a grade 8 head, office staff without the Teacher role or settings permission; Tara changes her question after sharing | each opens the page; the grade 7 head previews and approves; the grade 8 head previews or approves; Tara previews; School B's teacher previews | both reach the page, only the grade 7 head sees it; the preview and the library copy show the submitted version, not the change; 403; 403; 404 (`test_a_content_lead_without_the_teacher_role_or_settings_permission_previews_and_decides_only_their_grade`) |
 | The panel and API | a leader saves settings; a teacher opens banks and the share form and shares; the leader approves twice; B browses, opens, copies and rates in the panel; the API browses, lists and withdraws | each page shows what it should; the second approval is refused with a message; B sees "Shared by Jacaranda Demo School"; withdrawn over the API, then 404 for B (`test_the_panel_pages_and_api_let_a_school_share_and_another_browse`) |
 
 `SaasPanelTest` counts the 2 new `/saas` routes (177 in all).

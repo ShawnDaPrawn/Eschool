@@ -402,6 +402,46 @@ class SharedContentLibraryTest extends TestCase
         }
     }
 
+    public function test_a_content_lead_without_the_teacher_role_or_settings_permission_previews_and_decides_only_their_grade(): void
+    {
+        $this->sharing(1, true);
+        $contribution = $this->share();
+        $lead = $this->schoolStaff('gita');
+        $other = $this->schoolStaff('omar');
+        foreach ([[$lead, '7'], [$other, '8']] as [$person, $grade]) {
+            app(TeachingGroups::class)->dated($this->superAdmin(), 'leadership', ['user_id' => $person->id, 'session_year_id' => $this->year, 'kind' => 'grade_head',
+                'grade_level_id' => $this->grade($grade), 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic grade head']);
+        }
+        $this->assertFalse($lead->hasRole('Teacher'));
+        $this->assertFalse($lead->can('setting-create'));
+        // Tara changes her question after sharing it: the preview still shows exactly what she submitted.
+        $this->approve(['expected_revision' => 1, 'definition' => ['kind' => 'number', 'prompt' => 'Changed after sharing: one quarter as a decimal?',
+            'explanation' => 'Divide one by four to get 0.25.', 'options' => [], 'answers' => ['0.25']]], $this->item);
+
+        $this->actingAs($lead)->get(route('shared-library.index'))->assertOk()->assertSee('Half as a decimal')->assertSee(__('Approve'))
+            ->assertDontSee(__('How your school shares'));
+        $this->get(route('shared-library.contributions.show', $contribution->id))->assertOk()->assertSee('One half as a decimal?')
+            ->assertSee('Divide one by two to get 0.5.')->assertSee('0.5')->assertDontSee('Changed after sharing');
+        $preview = app(SharedLibrary::class)->preview($lead, $contribution->id);
+        $this->assertSame(['One half as a decimal?', ['0.5'], 1], [$preview['question']['prompt'], $preview['question']['answers'], $preview['revision']]);
+
+        // Another grade's lead opens the page but sees nothing of grade 7 and cannot preview or decide it.
+        $this->actingAs($other)->get(route('shared-library.index'))->assertOk()->assertDontSee('Half as a decimal');
+        $this->get(route('shared-library.contributions.show', $contribution->id))->assertForbidden();
+        $this->refuses(fn () => app(SharedLibrary::class)->approve($other, $contribution->id), 403);
+        // The author cannot preview it as a decider, and another school's teacher does not find it.
+        $this->refuses(fn () => app(SharedLibrary::class)->preview($this->actor(), $contribution->id), 403);
+        $this->enableModulesInB();
+        $this->asB(fn () => $this->refuses(fn () => app(SharedLibrary::class)->preview($this->bTeacher(), $contribution->id), 404));
+        $this->actingAs($this->bTeacher())->get(route('shared-library.contributions.show', $contribution->id))->assertNotFound();
+        $this->assertSame('awaiting_approval', $contribution->fresh()->state);
+
+        // The grade's lead approves; what leaves is the submitted version, not the later revision.
+        $this->actingAs($lead)->post(route('shared-library.contributions.approve', $contribution->id))->assertRedirect()->assertSessionHasNoErrors();
+        $item = LibraryItem::query()->findOrFail($contribution->fresh()->library_item_id);
+        $this->assertSame('One half as a decimal?', LibraryItemVersion::query()->where('library_item_id', $item->id)->sole()->content['definition']['prompt']);
+    }
+
     public function test_the_panel_pages_and_api_let_a_school_share_and_another_browse(): void
     {
         // A leader switches sharing on with leader approval; a teacher shares from the page.
@@ -587,10 +627,10 @@ class SharedContentLibraryTest extends TestCase
         });
     }
 
-    /** A school-created staff role that does not teach. */
-    private function schoolStaff(): User
+    /** A school-created staff role that does not teach and does not manage settings. */
+    private function schoolStaff(string $name = 'robin'): User
     {
-        $user = User::query()->create(['first_name' => 'Robin', 'last_name' => 'Office', 'email' => 'robin.office@shared.example', 'mobile' => '',
+        $user = User::query()->create(['first_name' => ucfirst($name), 'last_name' => 'Office', 'email' => $name.'.office@shared.example', 'mobile' => '',
             'password' => bcrypt('SyntheticOnly2026'), 'status' => 1]);
         $user->assignRole(Role::firstOrCreate(['name' => 'Office staff', 'guard_name' => 'web']));
         app(MembershipService::class)->grant($user, 1, 'Office staff');
