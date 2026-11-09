@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
 use App\Http\Controllers\Api\V2\Learning\LearningPathController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Learning\PracticeTestController;
+use App\Http\Controllers\Api\V2\Learning\SharedLibraryController;
 use App\Http\Controllers\Api\V2\Learning\StrengthsMirrorController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
@@ -842,6 +843,19 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::get('groups/{group}/marking', [$c, 'marking'])->whereNumber('group')->name('marking');
     Route::get('groups/{group}/marking/{review}/audio', [$c, 'markingAudio'])->whereNumber('group')->whereNumber('review')->name('marking-audio');
     Route::post('groups/{group}/marking/{review}', [$c, 'mark'])->whereNumber('group')->whereNumber('review')->name('mark');
+});
+
+// The shared library, teacher to teacher (Action Plan 5.4): browse, rate and copy questions other schools shared; share and withdraw your own.
+Route::prefix('learning/shared-library')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'staff', 'module:daily_practice'])->name('api.v2.shared-library.')->group(function () {
+    $c = SharedLibraryController::class;
+    Route::get('items', [$c, 'items'])->name('items');
+    Route::get('items/{item}', [$c, 'item'])->whereNumber('item')->name('item');
+    Route::put('items/{item}/rating', [$c, 'rate'])->whereNumber('item')->middleware('throttle:30,1')->name('rate');
+    Route::post('items/{item}/copy', [$c, 'copy'])->whereNumber('item')->middleware('throttle:30,1')->name('copy');
+    Route::get('contributions', [$c, 'contributions'])->name('contributions');
+    Route::post('contributions', [$c, 'contribute'])->middleware('throttle:30,1')->name('contribute');
+    Route::post('contributions/{contribution}/withdraw', [$c, 'withdraw'])->whereNumber('contribution')->middleware('throttle:30,1')->name('withdraw');
+    Route::get('practice-items/{item}/share-options', [$c, 'options'])->whereNumber('item')->name('options');
 });
 
 // Practice tests (Action Plan 3.17): cycle tests set by teachers, quick quizzes, timed sittings with server-held answers.

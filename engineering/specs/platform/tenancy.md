@@ -348,6 +348,19 @@ too (Action Plan 3.4). The library's quality signals read school practice
 answers across schools only as counts with a minimum group of 20 learners in 3
 schools, and store nothing ([content pipeline](../learning/content-pipeline.md)).
 
+Teachers share questions between schools through the library (Action Plan 5.4).
+`library_contributions` (what a school offered: the question version, the
+teacher, their credit choice and licence, a leader's decision, the library item
+it became) and `library_ratings` (each teacher's rating and comment of a shared
+item) are required school-owned, so another school never reads who shared or
+rated what. A shared question enters the library only as a scanned copy through
+`ContributionGate`, the one path by which a school request may save a library
+source, item or version; every other library write from a school is still
+refused. A contributed source names the contributing school and teacher for the
+attribution they chose. Ratings are read across schools only as an average and
+a count (and unnamed comments) by `LibraryRatings`
+([shared content library](../learning/shared-content-library.md)).
+
 ### Practice question types (Action Plan 3.11)
 
 `library_diagrams` (the library's diagram pictures for labelling questions) is
