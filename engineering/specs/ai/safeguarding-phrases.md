@@ -42,7 +42,7 @@ Because all lists are checked at once, a mixed English/Afrikaans or English/isiZ
 
 - New platform ability `safeguarding.phrases`, held by Content (and Owner).
 - `GET /saas/safeguarding-phrases`: each language's state, whether the tutor offers it, the latest review, the history, the list fingerprint and its phrases, **read-only**.
-- `POST /saas/safeguarding-phrases/{language}/reviews` (`en`, `af`, `zu`): outcome, reviewer, date (not in the future), note (10 to 1,000 characters). Audited as `platform_safeguarding_phrase_review_recorded` with the language, state before and after, outcome, reviewer, date, note and list hash, never a phrase, and no school.
+- `POST /saas/safeguarding-phrases/{language}/reviews` (`en`, `af`, `zu`): outcome, reviewer, date (not in the future), note (10 to 1,000 characters) and `list_sha256`, the fingerprint of the list the form displayed (a hidden field). If the list has changed since the page was opened, the review is refused with a validation error asking for a fresh review, and nothing is recorded or audited, so an approval never covers a list nobody saw. Audited as `platform_safeguarding_phrase_review_recorded` with the language, state before and after, outcome, reviewer, date, note and list hash, never a phrase, and no school.
 - There is no HQ route that changes a phrase. Lists change only through a reviewed code change, which makes the language draft again.
 
 ## Privacy and safety
@@ -59,7 +59,7 @@ Because all lists are checked at once, a mixed English/Afrikaans or English/isiZ
 | `::test_draft_lists_are_still_checked_and_nothing_reaches_the_provider` | draft af/zu disclosures quarantined by service and API, no request leaves the server, School B sees nothing |
 | `::test_a_draft_language_cannot_be_chosen_for_tutoring_until_reviewed` | service and API refuse a draft language; a review of an earlier list does not count; `changes_needed` and the deployment list still apply |
 | `::test_the_phrases_never_reach_the_provider_or_the_logs` | provider requests and log messages never contain a phrase |
-| `HqSafeguardingPhrasesTest` | content staff and owner record audited reviews; wrong roles, school accounts of either school refused; validation; no route writes a phrase |
+| `HqSafeguardingPhrasesTest` | content staff and owner record audited reviews; wrong roles, school accounts of either school refused; validation; no route writes a phrase; a stale or missing list fingerprint is refused and records nothing |
 
 ## Not in this step
 

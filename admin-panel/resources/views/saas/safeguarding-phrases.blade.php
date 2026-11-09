@@ -63,6 +63,8 @@
 
     <form method="POST" action="{{ route('saas.safeguarding-phrases.review', $language['language']) }}" aria-label="{{ __('Record a review of the :language list', ['language' => $language['name']]) }}">
         @csrf
+        {{-- The list this form shows: a list changed since is refused, never approved unseen. --}}
+        <input type="hidden" name="list_sha256" value="{{ $language['sha256'] }}">
         <h3>{{ __('Record a review of this list') }}</h3>
         <div class="saas-grid">
             <div class="saas-field">

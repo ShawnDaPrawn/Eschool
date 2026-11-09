@@ -10,11 +10,13 @@ use App\Services\Platform\Saas\PlatformStaffAccess;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * The review state of each language's safeguarding phrase list (Action Plan
  * 3.2). A list ships as draft. HQ staff holding safeguarding.phrases record a
- * professional review (who, when, a note); the language is reviewed only
+ * professional review (who, when, a note) of the list the form showed them,
+ * refused if the list has changed since; the language is reviewed only
  * while the newest review says so for the list exactly as it is now, so any
  * change to the phrases makes it draft again.
  *
@@ -92,6 +94,10 @@ class SafeguardingPhraseReviews
         abort_unless(array_key_exists($language, SafeguardingPhrases::LANGUAGES), 404);
         $data = Validator::make($input, self::rules())->validate();
         $sha256 = $this->phrases->sha256($language);
+        // The review covers the list the reviewer was shown, never one deployed since.
+        if (! hash_equals($sha256, (string) $data['list_sha256'])) {
+            throw ValidationException::withMessages(['list_sha256' => __('This list has changed since the page was opened. Open the page again, read the current list and review it again.')]);
+        }
         DB::transaction(function () use ($actor, $language, $data, $sha256) {
             abort_unless(app(PlatformStaffAccess::class)->can($actor, self::ABILITY), 403);
             // One writer at a time per language, reading the state it replaces under the lock.
@@ -116,6 +122,8 @@ class SafeguardingPhraseReviews
             'reviewer' => ['required', 'string', 'min:3', 'max:160'],
             'reviewed_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:2026-01-01', 'before_or_equal:today'],
             'note' => ['required', 'string', 'min:10', 'max:1000'],
+            // The fingerprint of the list the form displayed.
+            'list_sha256' => ['required', 'string', 'regex:/\A[0-9a-f]{64}\z/'],
         ];
     }
 
