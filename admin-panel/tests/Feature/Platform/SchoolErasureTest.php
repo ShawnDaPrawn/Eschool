@@ -202,7 +202,7 @@ class SchoolErasureTest extends TestCase
         $this->assertSame('discarded', $certificate->certificate['export']['copy']);
 
         // The certificate: counts, dates and audit entry ids; no person's name, email or id.
-        $json = (string) json_encode($certificate->certificate);
+        $json = $certificate->body;
         foreach ([$learnerEmail, $learner->first_name.' '.$learner->last_name, $operations->email, $owner->email, 'Operator', 'another provider'] as $personal) {
             $this->assertStringNotContainsString($personal, $json);
         }
@@ -210,6 +210,10 @@ class SchoolErasureTest extends TestCase
         $this->assertSame((int) DB::table('audit_log')->where('action', 'platform_school_offboarding_deletion_approved')->value('id'), $certificate->certificate['approvals']['audit_entries']['approved']);
         $download = $this->get($this->url('/certificate'))->assertOk()->assertHeader('X-Certificate-SHA256', $certificate->certificate_sha256);
         $this->assertSame($certificate->certificate_sha256, hash('sha256', (string) $download->getContent()));
+        // The download is the stored bytes exactly, kept as text, never a JSON column a database could reorder.
+        $this->assertSame((string) DB::table('school_erasure_certificates')->where('id', $certificate->id)->value('body'), $download->getContent());
+        $this->assertNotSame('json', Schema::getColumnType('school_erasure_certificates', 'body'));
+        $this->assertSame($certificate->certificate_sha256, hash('sha256', $certificate->body));
         $this->get($this->url())->assertOk()->assertSee('Certificate '.$certificate->reference)->assertDontSee($learnerEmail);
 
         $actions = DB::table('audit_log')->where('school_id', self::LEAVING)->where('action', 'like', 'platform_school_offboarding_eras%')->orderBy('id')->pluck('action')->all();
@@ -306,6 +310,43 @@ class SchoolErasureTest extends TestCase
         $this->assertTrue(DB::table('audit_log')->where('action', 'platform_school_offboarding_erasure_blocked')->exists());
         $this->assertSame($other, $this->snapshot(self::OTHER));
         Queue::assertNothingPushed();
+    }
+
+    public function test_another_schools_row_pointing_into_the_same_table_stops_the_erasure_and_the_schools_own_chain_erases_cleanly(): void
+    {
+        $operations = $this->staff('operations');
+        $row = $this->approved($operations, $this->staff('owner'));
+        // The leaving school's own chain of groups (a team, its squad, the squad's B side), each pointing at its parent.
+        $group = fn (int $school, ?int $parent, string $name): int => DB::table('activity_groups')->insertGetId(['school_id' => $school, 'parent_id' => $parent,
+            'session_year_id' => (int) DB::table('session_years')->where('school_id', $school)->value('id'), 'name' => $name, 'discipline' => 'netball', 'season' => 'winter',
+            'starts_on' => '2026-04-01', 'ends_on' => '2026-08-31', 'created_at' => now(), 'updated_at' => now()]);
+        $team = $group(self::LEAVING, null, 'Baobab netball');
+        $squad = $group(self::LEAVING, $team, 'Baobab netball U14');
+        $group(self::LEAVING, $squad, 'Baobab netball U14 B');
+        // Another school's group that (wrongly) names the leaving school's team as its parent.
+        $stray = $group(self::OTHER, $team, 'Jacaranda netball');
+        $before = $this->snapshot(self::LEAVING);
+        $other = $this->snapshot(self::OTHER);
+
+        $this->travelTo(CarbonImmutable::parse('2027-01-04 10:00', PlatformOffboarding::TIMEZONE));
+        $confirm = ['confirm' => PlatformOffboarding::reference((int) $row->id)];
+        $this->actingAsHq($operations)->post($this->url('/erasure'), $confirm)->assertSessionHasErrors('confirm');
+        $this->assertStringContainsString('activity_groups.parent_id→activity_groups', (string) session('errors')->first('confirm'));
+        $this->assertSame(SchoolOffboarding::ARCHIVED, $row->fresh()->state);
+        $this->assertSame($before, $this->snapshot(self::LEAVING));
+        $this->assertSame($other, $this->snapshot(self::OTHER));
+        $this->assertSame($team, (int) DB::table('activity_groups')->where('id', $stray)->value('parent_id'));
+        Queue::assertNothingPushed();
+
+        // Once the other school's row no longer points there, the leaving school's chain erases cleanly and the other school's group is untouched.
+        DB::table('activity_groups')->where('id', $stray)->update(['parent_id' => null]);
+        $other = $this->snapshot(self::OTHER);
+        $this->post($this->url('/erasure'), $confirm)->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertTrue($this->erase($row));
+        $this->assertSame(0, DB::table('activity_groups')->where('school_id', self::LEAVING)->count());
+        $this->assertSame(3, SchoolErasureCertificate::acrossSchools()->where('offboarding_id', $row->id)->sole()->certificate['erased']['rows']['activity_groups']);
+        $this->assertTrue(DB::table('activity_groups')->where('id', $stray)->exists());
+        $this->assertSame($other, $this->snapshot(self::OTHER));
     }
 
     public function test_erasure_needs_two_different_people_who_still_may_approve_and_a_hold_in_the_cooling_off_period_voids_it(): void

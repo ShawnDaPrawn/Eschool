@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Platform;
 
 use App\Services\Platform\Tenancy\BelongsToSchool;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -19,7 +20,8 @@ use Illuminate\Support\Carbon;
  * @property int $school_id
  * @property int $offboarding_id
  * @property string $reference
- * @property array<string, mixed> $certificate
+ * @property string $body the certificate's JSON, byte for byte as issued and hashed
+ * @property-read array<string, mixed> $certificate the decoded body
  * @property string $certificate_sha256
  * @property Carbon $issued_at
  */
@@ -33,6 +35,12 @@ class SchoolErasureCertificate extends Model
 
     protected function casts(): array
     {
-        return ['certificate' => 'array', 'issued_at' => 'datetime'];
+        return ['issued_at' => 'datetime'];
+    }
+
+    /** @return Attribute<array<string, mixed>, never> */
+    protected function certificate(): Attribute
+    {
+        return Attribute::get(fn (): array => (array) json_decode((string) $this->body, true, 512, JSON_THROW_ON_ERROR));
     }
 }

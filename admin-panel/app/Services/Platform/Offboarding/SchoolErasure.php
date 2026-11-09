@@ -83,6 +83,9 @@ class SchoolErasure
     /** @var array<string, true>|null "table.column" for every column that may be null */
     private ?array $nullable = null;
 
+    /** @var array<int, array{0: list<string>, 1: array<string, list<string>>}> order() per school, worked out once per run */
+    private array $orders = [];
+
     public function __construct(
         private readonly CurrentSchool $currentSchool,
         private readonly OffboardingDeletionPlan $plan,
@@ -125,17 +128,18 @@ class SchoolErasure
         $problems = [];
         foreach ($this->foreignKeys() as $key) {
             $parent = $targets[$key['foreign_table']] ?? null;
-            if ($parent === null || $key['table'] === $key['foreign_table'] || count($key['columns']) !== 1) {
+            if ($parent === null || count($key['columns']) !== 1) {
                 continue;
             }
             [$column, $foreign] = $key['columns'][0];
-            $referrers = DB::table($key['table'])->whereIn($key['table'].'.'.$column, (clone $parent)->select($key['foreign_table'].'.'.$foreign));
+            // The referring rows under an alias, so a table that refers to its own rows (a group's parent group) is checked too.
+            $referrers = DB::table($key['table'].' as referrer')->whereIn('referrer.'.$column, (clone $parent)->select($key['foreign_table'].'.'.$foreign));
             if (isset($targets[$key['table']])) {
                 // A row that is itself in scope is fine; one of another school (or of none) is not.
                 if ($key['table'] === 'role_has_permissions' || ! in_array($key['table'], $withSchool, true)) {
                     continue;
                 }
-                $referrers->where(fn (Builder $query) => $query->where($key['table'].'.school_id', '!=', $schoolId)->orWhereNull($key['table'].'.school_id'));
+                $referrers->where(fn (Builder $query) => $query->where('referrer.school_id', '!=', $schoolId)->orWhereNull('referrer.school_id'));
             }
             if ($referrers->exists()) {
                 $problems[] = $key['table'].'.'.$column.'→'.$key['foreign_table'];
@@ -278,9 +282,31 @@ class SchoolErasure
                 }
             });
         }
-        $deleted = $query->limit($size)->delete();
+        // Links between rows of this table that could not be cleared first (a column that may not be null): delete the rows nothing in the table refers to, a layer at a time.
+        [, $detach] = $this->order($schoolId);
+        $nullable = $this->nullableColumns();
+        $selfKeys = array_values(array_filter($this->foreignKeys(), fn (array $key): bool => $key['table'] === $table && $key['foreign_table'] === $table
+            && array_filter(array_column($key['columns'], 0), fn (string $column): bool => $column !== 'school_id' && ! isset($nullable[$table.'.'.$column]) && ! in_array($column, $detach[$table] ?? [], true)) !== []));
+        if ($selfKeys === []) {
+            $deleted = $query->limit($size)->delete();
 
-        return [$deleted < $size, $deleted];
+            return [$deleted < $size, $deleted];
+        }
+        foreach ($selfKeys as $key) {
+            $query->whereNotExists(function (Builder $refers) use ($key, $table): void {
+                $refers->from($table.' as child')->selectRaw('1');
+                foreach ($key['columns'] as [$column, $foreign]) {
+                    $refers->whereColumn('child.'.$column, $table.'.'.$foreign);
+                }
+            });
+        }
+        $ids = (clone $query)->orderBy($table.'.id')->limit($size)->pluck($table.'.id')->all();
+        if ($ids === []) {
+            return [true, 0];
+        }
+        $deleted = DB::table($table)->whereIn('id', $ids)->delete();
+
+        return [false, $deleted];
     }
 
     /**
@@ -383,8 +409,9 @@ class SchoolErasure
             'not_erased' => ['stored files' => 'uploaded files (documents, photos, report PDFs) are not erased in this step'],
         ];
         $json = json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        // Stored as these exact bytes (not a JSON column, which a database may reorder), so the hash always matches what is downloaded.
         $certificate = SchoolErasureCertificate::query()->create([
-            'offboarding_id' => $row->id, 'reference' => $reference, 'certificate' => $body,
+            'offboarding_id' => $row->id, 'reference' => $reference, 'body' => $json,
             'certificate_sha256' => hash('sha256', $json), 'issued_at' => $finishedAt,
         ]);
         $row->forceFill(['state' => SchoolOffboarding::ERASED, 'erased_at' => $finishedAt, 'erasure_step' => null, 'erasure_progress' => $progress, 'erasure_failure_code' => null])->save();
@@ -431,6 +458,12 @@ class SchoolErasure
      * @return array{0: list<string>, 1: array<string, list<string>>}
      */
     private function order(int $schoolId): array
+    {
+        return $this->orders[$schoolId] ??= $this->workOutOrder($schoolId);
+    }
+
+    /** @return array{0: list<string>, 1: array<string, list<string>>} */
+    private function workOutOrder(int $schoolId): array
     {
         $immutable = array_flip($this->plan->protectedTables());
         $tables = array_values(array_filter(array_keys($this->plan->targets($schoolId)), fn (string $table): bool => ! isset($immutable[$table])));

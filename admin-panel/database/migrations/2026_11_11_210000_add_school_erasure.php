@@ -38,7 +38,8 @@ return new class extends Migration
             $t->foreignId('offboarding_id')->unique()->constrained('school_offboardings')->restrictOnDelete();
             $t->string('reference', 32)->unique();
             // What was erased and kept, when, and the audit entries for each approval: counts, dates, hashes and ids of records only.
-            $t->json('certificate');
+            // The JSON exactly as issued, kept as text (a JSON column may be reordered by the database), so certificate_sha256 matches the stored bytes.
+            $t->longText('body');
             $t->char('certificate_sha256', 64);
             $t->dateTime('issued_at');
             $t->timestamps();

@@ -155,7 +155,9 @@ certificate** that holds no personal information.
      reference (`OFF-0001`) must be typed again. Then the **preflight** runs:
      if any row of another school, any kept record or any platform row refers
      (by a single-column foreign key) to one of the school's rows in scope, the
-     erasure is refused and names the reference; nothing is deleted. Otherwise
+     erasure is refused and names the reference; nothing is deleted. This
+     includes references within one table (another school's group whose
+     parent is the leaving school's group). Otherwise
      the state becomes `erasing` and `EraseOffboardedSchool` is queued (the
      `database` connection's `default` queue, 150-second timeout). From then on
      the erasure cannot be stopped by a hold or a cancellation, only completed.
@@ -167,7 +169,9 @@ certificate** that holds no personal information.
      never refused by the database. Tables go in an order where every table
      comes after the tables that refer to it; links between rows of the same
      table, and one nullable link in each cycle of tables that refer to each
-     other, are cleared first (`@detach`).
+     other, are cleared first (`@detach`). A link to a row of the same table
+     that may not be null is never cleared: those rows go a layer at a time,
+     only rows no other row of the table refers to.
    - **People.** Accounts that only this school knows (no membership at any
      other school) and that are not platform staff are erased in place: name,
      email (replaced by `erased-{id}@erased.invalid`), mobile, photo, date of
@@ -205,9 +209,10 @@ certificate** that holds no personal information.
      the export's receipt basis and hash, start and finish times, the number
      of runs, rows erased per table, accounts erased, rows held per table and
      why, rows kept per table and why, and what was not erased (stored files).
-     It names no person: no name, email or user id. Its SHA-256 (of the JSON as
-     issued) is stored; HQ downloads it at `…/offboarding/certificate` with the
-     hash in `X-Certificate-SHA256`.
+     It names no person: no name, email or user id. The JSON is stored as text
+     (`body`), byte for byte as issued, never in a JSON column a database could
+     reorder; its SHA-256 is stored with it. HQ downloads exactly those bytes at
+     `…/offboarding/certificate`, with the hash in `X-Certificate-SHA256`.
 
 Every step is audited (`platform_school_offboarding_started`, `_export_ready`,
 `_export_failed`, `_export_retried`, `_export_downloaded`, `_receipt_confirmed`,
@@ -237,8 +242,8 @@ and, on `school_offboardings`: `erasure_not_before`, `erasure_started_at`,
 table, accounts), `erasure_step`, `erasure_runs`, `erasure_heartbeat_at`,
 `erasure_failure_code`, `erased_at`; and `school_erasure_certificates`
 (school-owned, REQUIRED, kept with HQ's records and never exported): the
-offboarding (unique), the reference, the certificate JSON, its SHA-256 and the
-time it was issued.
+offboarding (unique), the reference, the certificate JSON as text (`body`),
+its SHA-256 and the time it was issued.
 
 ## Routes
 
@@ -277,6 +282,7 @@ default school and can never be archived; school 1 is the other school.
 | `test_after_two_approvals_and_the_cooling_off_period_the_school_is_erased_with_a_certificate` | Operations asks, an Owner approves | erasure refused during cooling-off and with a wrong reference; once started, hold and cancel are 409; every target table is left with only its held rows and each erased count equals the rows in scope less the held; memberships and roles gone; a learner's account erased in place; audit log, contracts and the archived school kept; export copy gone; the certificate holds no name, email or staff detail, names the audit entries, and its download matches its hash; erased is final |
 | `test_erasure_refuses_the_wrong_role_and_changes_nothing` | Support, Finance, Content, Sales and the school's Super Admin | 403 on start, resume and certificate; nothing changes, nothing queued, nothing audited |
 | `test_erasing_one_school_changes_nothing_of_another_school` | a person in both schools | every row of every table with the other school's id, its memberships, its members' accounts and status are byte-for-byte unchanged; the shared person keeps their account and loses only the leaving school's membership; the other school's erasure and certificate routes are 404 |
+| `test_another_schools_row_pointing_into_the_same_table_stops_the_erasure_and_the_schools_own_chain_erases_cleanly` | another school's activity group whose parent is the leaving school's team; the leaving school's team, squad and B side | starting is refused naming `activity_groups.parent_id→activity_groups`; neither school changes; once the stray link is gone, the chain of three erases and the other school's group is untouched |
 | `test_a_reference_from_another_schools_row_stops_the_erasure_before_anything_is_deleted` | a school A row pointing at a school B school year | starting is refused naming the reference; a running erasure stops with `blocked:…` before any batch; neither school changes |
 | `test_erasure_needs_two_different_people_who_still_may_approve_and_a_hold_in_the_cooling_off_period_voids_it` | | approvals by one person, or an approver whose grant ended, are 409; a hold voids the approvals and the cooling-off period; new approvals start a new cooling-off period |
 | `test_an_interrupted_erasure_resumes_where_it_stopped_and_counts_every_row_once` | batches of 7, stopped after 6 batches | progress shown; the scheduler resumes it after 30 minutes; HQ resumes it; it finishes with every row counted once and the other school unchanged; running it again does nothing |

@@ -40,6 +40,9 @@ class OffboardingDeletionPlan
     /** School rows outside SchoolOwnedTables::REQUIRED that erasure also removes. */
     private const ALSO_DELETED = ['notification_deliveries', 'settings', 'domain_events', 'idempotency_keys'];
 
+    /** @var list<string>|null the database's delete-refusing tables, read once */
+    private ?array $protected = null;
+
     /**
      * Every table erasure deletes from, with the query that selects the
      * school's rows in it. Nothing else is ever deleted.
@@ -73,9 +76,12 @@ class OffboardingDeletionPlan
      */
     public function protectedTables(): array
     {
+        if ($this->protected !== null) {
+            return $this->protected;
+        }
         $tables = DB::select("select distinct event_object_table as name from information_schema.triggers where trigger_schema = ? and event_manipulation = 'DELETE'", [DB::connection()->getDatabaseName()]);
 
-        return array_values(array_map(fn (object $row): string => (string) (array_change_key_case((array) $row)['name'] ?? ''), $tables));
+        return $this->protected = array_values(array_map(fn (object $row): string => (string) (array_change_key_case((array) $row)['name'] ?? ''), $tables));
     }
 
     /**

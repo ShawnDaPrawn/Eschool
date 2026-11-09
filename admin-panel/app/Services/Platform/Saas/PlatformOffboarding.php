@@ -374,10 +374,17 @@ class PlatformOffboarding
             $certificate = SchoolErasureCertificate::query()->latest('id')->first();
             abort_if($certificate === null, 404);
 
-            return ['reference' => $certificate->reference, 'sha256' => $certificate->certificate_sha256,
-                // Encoded exactly as when it was issued, so its SHA-256 is the recorded one.
-                'json' => (string) json_encode($certificate->certificate, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)];
+            // The bytes exactly as issued, so their SHA-256 is the recorded one.
+            return ['reference' => $certificate->reference, 'sha256' => $certificate->certificate_sha256, 'json' => $certificate->body];
         });
+    }
+
+    /** @return array{reference: string, certificate: array<string, mixed>, certificate_sha256: string}|null */
+    private function certificateSummary(int $offboardingId): ?array
+    {
+        $certificate = SchoolErasureCertificate::query()->where('offboarding_id', $offboardingId)->first();
+
+        return $certificate === null ? null : ['reference' => $certificate->reference, 'certificate' => $certificate->certificate, 'certificate_sha256' => $certificate->certificate_sha256];
     }
 
     private function resume(SchoolOffboarding $row, int $schoolId, ?int $actorId): void
@@ -539,7 +546,7 @@ class PlatformOffboarding
             'erasure_started_at' => $this->local($row->erasure_started_at), 'erasure_started_by' => $names[$row->erasure_started_by] ?? null,
             'erasure_progress' => $row->erasure_progress, 'erasure_step' => $row->erasure_step, 'erasure_runs' => (int) $row->erasure_runs,
             'erasure_heartbeat_at' => $this->local($row->erasure_heartbeat_at), 'erasure_failure_code' => $row->erasure_failure_code, 'erased_at' => $this->local($row->erased_at),
-            'certificate' => $row->state === SchoolOffboarding::ERASED ? SchoolErasureCertificate::query()->where('offboarding_id', $row->id)->first(['reference', 'certificate', 'certificate_sha256', 'issued_at'])?->toArray() : null,
+            'certificate' => $row->state === SchoolOffboarding::ERASED ? $this->certificateSummary((int) $row->id) : null,
         ];
     }
 
