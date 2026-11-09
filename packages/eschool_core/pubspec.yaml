@@ -25,7 +25,7 @@ dependencies:
   html: ">=0.15.4 <0.15.7"
   intl: any
   lottie: ^3.3.3
-  open_filex: ^4.7.0
+  open_filex: ^5.0.0
   path_provider: ^2.1.5
   # The PDF view of web builds; phones keep flutter_pdfview.
   pdfx: ^2.11.0
