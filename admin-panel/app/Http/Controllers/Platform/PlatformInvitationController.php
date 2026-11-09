@@ -33,6 +33,6 @@ class PlatformInvitationController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', __('Your password is set. Sign in with your email address and new password, then set up an authenticator app on your phone.'));
+        return redirect()->route('saas.login')->with('success', __('Your password is set. Sign in with your email address and new password, then set up an authenticator app on your phone.'));
     }
 }

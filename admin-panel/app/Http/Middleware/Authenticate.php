@@ -32,7 +32,7 @@ class Authenticate extends Middleware
     {
         // API clients get a 401, never the login page.
         if (! $request->expectsJson() && ! $request->is('api/*')) {
-            return route('login');
+            return route($request->is('saas', 'saas/*') ? 'saas.login' : 'login');
         }
 
         return null;

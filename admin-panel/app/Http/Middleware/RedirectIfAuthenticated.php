@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Providers\RouteServiceProvider;
+use App\Services\Platform\Saas\PlatformSignIn;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,10 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                if (PlatformSignIn::isBusinessAccount(Auth::guard($guard)->user())) {
+                    return redirect()->route(PlatformSignIn::passed($request->session(), Auth::guard($guard)->user()) ? 'saas.home' : 'saas.login');
+                }
+
                 return redirect(RouteServiceProvider::HOME);
             }
         }

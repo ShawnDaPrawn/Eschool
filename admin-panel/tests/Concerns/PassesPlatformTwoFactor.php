@@ -7,6 +7,7 @@ namespace Tests\Concerns;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\PlatformStaffTwoFactor;
 use App\Models\User;
+use App\Services\Platform\Saas\PlatformSignIn;
 use App\Services\Platform\Saas\PlatformTwoFactor;
 use App\Services\Platform\Saas\Totp;
 use Illuminate\Testing\TestResponse;
@@ -39,6 +40,7 @@ trait PassesPlatformTwoFactor
         PlatformStaffTwoFactor::query()->firstOrCreate(['user_id' => $user->id], ['secret' => Totp::generateSecret(), 'confirmed_at' => now(), 'recovery_codes' => []]);
         $this->startSession();
         $session = $this->app['session']->driver();
+        PlatformSignIn::mark($session, $user);
         // As after a fresh sign-in: AuthenticateSession records this account's password again.
         $session->forget('password_hash_'.config('auth.defaults.guard'));
         // As a sign-in does: the session carries the account's current two-factor generation.

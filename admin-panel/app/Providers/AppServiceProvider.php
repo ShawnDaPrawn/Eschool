@@ -21,6 +21,7 @@ use App\Services\Platform\Identity\LoginIdentity;
 use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Mail\SesConfigurationSets;
 use App\Services\Platform\Mail\SesIdentities;
+use App\Services\Platform\Saas\PlatformSignIn;
 use App\Services\SettingsConfigService;
 use Illuminate\Auth\Events\Attempting;
 use Illuminate\Auth\Events\Failed;
@@ -73,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Reset links always point at APP_URL, never at the host a request named.
         ResetPassword::createUrlUsing(fn ($user, string $token) => rtrim((string) config('app.url'), '/')
-            .route('password.reset', ['token' => $token, 'email' => $user->getEmailForPasswordReset()], false));
+            .route(PlatformSignIn::isBusinessAccount($user) ? 'saas.password.reset' : 'password.reset', ['token' => $token, 'email' => $user->getEmailForPasswordReset()], false));
 
         // A password reset signs the account out of the apps too, child mode included.
         Event::listen(PasswordReset::class, fn (PasswordReset $event) => $event->user instanceof User ? AppTokens::revokeAll($event->user) : $event->user->tokens()->delete());

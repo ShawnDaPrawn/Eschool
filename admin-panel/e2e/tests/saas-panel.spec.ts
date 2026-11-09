@@ -1,30 +1,14 @@
-import { createHmac } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { PASSWORD } from '../support/accounts';
+import { authenticatorCode } from '../support/authenticator';
 import { horizontalOverflow, seriousViolations } from '../support/checks';
 
 function fixture(action = 'initial'): { email: string } {
   return JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/saas-fixture.php'));"], {
     cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8', env: { ...process.env, SAAS_FIXTURE_ACTION: action },
   }).trim());
-}
-
-// Test-side authenticator for the setup key shown to this synthetic operator.
-function authenticatorCode(setupKey: string): string {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  const bits = setupKey.replace(/\s/g, '').split('').map(char => {
-    const value = alphabet.indexOf(char);
-    if (value < 0) throw new Error('Invalid authenticator setup key');
-    return value.toString(2).padStart(5, '0');
-  }).join('');
-  const key = Buffer.from(bits.match(/.{8}/g)!.map(byte => parseInt(byte, 2)));
-  const counter = Buffer.alloc(8);
-  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)));
-  const digest = createHmac('sha1', key).update(counter).digest();
-  const offset = digest[digest.length - 1] & 15;
-  return String((digest.readUInt32BE(offset) & 0x7fffffff) % 1000000).padStart(6, '0');
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -35,7 +19,15 @@ for (const width of [390, 820, 1280]) {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => { if (response.status() >= 500) errors.push(`HTTP ${response.status()}: ${new URL(response.url()).pathname}`); });
-    await page.goto('/login');
+    await page.goto('/saas/login');
+    await expect(page.getByRole('heading', { name: 'Business administration sign in', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.getByRole('link', { name: 'Forgot your password?', exact: true }).click();
+    await expect(page).toHaveURL(/\/saas\/password\/reset$/);
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.getByRole('link', { name: 'Back to business sign in', exact: true }).click();
     await page.locator('[name=email]').fill(operator.email);
     await page.locator('[name=password]').fill(PASSWORD);
     await page.locator('form button[type=submit], form input[type=submit]').first().click();

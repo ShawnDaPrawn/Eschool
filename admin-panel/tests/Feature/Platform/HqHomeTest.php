@@ -125,7 +125,7 @@ class HqHomeTest extends TestCase
     {
         $sales = $this->staff('sales');
 
-        $this->post('/login', ['email' => 'sales@platform.example', 'password' => 'Synthetic-hq-home-password-264!'])->assertRedirect('/saas/home');
+        $this->post('/saas/login', ['email' => 'sales@platform.example', 'password' => 'Synthetic-hq-home-password-264!'])->assertRedirect('/saas/home');
         $this->passPlatformTwoFactor($sales);
         $this->get('/saas/home')->assertOk()->assertSee('Schools by stage')
             ->assertSee('href="'.route('saas.index').'"', false);
@@ -231,7 +231,7 @@ class HqHomeTest extends TestCase
         $this->assertSame([], app(PlatformStaffAccess::class)->abilities($retired->fresh()));
 
         auth()->logout();
-        $this->get('/saas/home')->assertRedirect('/login');
+        $this->get('/saas/home')->assertRedirect('/saas/login');
     }
 
     public function test_an_empty_platform_shows_quiet_tiles(): void

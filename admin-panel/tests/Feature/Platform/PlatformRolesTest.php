@@ -108,12 +108,12 @@ class PlatformRolesTest extends TestCase
         $this->assertSame($invited['url'], $job->mailable->invitationUrl);
 
         $this->get($invited['url'])->assertOk()->assertSee('sipho@platform.example')->assertHeader('Cache-Control', 'no-store, private');
-        $this->post($invited['url'], ['password' => 'Sipho-chose-this-password-731!', 'password_confirmation' => 'Sipho-chose-this-password-731!'])->assertRedirect(route('login'));
+        $this->post($invited['url'], ['password' => 'Sipho-chose-this-password-731!', 'password_confirmation' => 'Sipho-chose-this-password-731!'])->assertRedirect(route('saas.login'));
         $this->assertTrue(Hash::check('Sipho-chose-this-password-731!', $user->fresh()->password));
         $this->assertNotNull($user->fresh()->email_verified_at);
         $this->get($invited['url'])->assertNotFound();
 
-        $this->keepSession($this->post('/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!']))->assertRedirect('/saas/home');
+        $this->keepSession($this->post('/saas/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!']))->assertRedirect('/saas/home');
         // Choosing the password leads into setting up two-factor sign-in (SA.2) before any HQ page.
         $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
         $this->get('/saas/staff')->assertRedirect(route('saas.two-factor.enrol'));

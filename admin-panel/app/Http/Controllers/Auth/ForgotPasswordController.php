@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Platform\Saas\PlatformSignIn;
 use App\Services\ResponseService;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,11 @@ class ForgotPasswordController extends Controller
     */
 
     use SendsPasswordResetEmails;
+
+    protected function credentials(Request $request)
+    {
+        return PlatformSignIn::credentials($request->only('email'), false);
+    }
 
     public function sendResetLinkEmail(Request $request): RedirectResponse|JsonResponse
     {

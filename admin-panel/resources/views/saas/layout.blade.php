@@ -18,7 +18,7 @@
     $platformCan = fn (string $ability): bool => in_array('*', $platformAbilities, true) || in_array($ability, $platformAbilities, true);
 @endphp
 <header class="saas-bar">
-    <a href="{{ auth()->check() ? route('saas.home') : route('login') }}">{{ __('NavigateEd platform') }}</a>
+    <a href="{{ auth()->check() ? route('saas.home') : route('saas.login') }}">{{ __('NavigateEd platform') }}</a>
     @auth
     <nav aria-label="{{ __('Platform') }}">
         @if ($platformCan('schools.view'))<a href="{{ route('saas.index') }}">{{ __('Schools') }}</a>@endif
@@ -45,7 +45,7 @@
         @if ($platformCan('mail.view'))<a href="{{ route('saas.mail-streams') }}">{{ __('Mail streams') }}</a>@endif
         @if ($platformCan('staff.manage'))<a href="{{ route('saas.staff.index') }}">{{ __('Platform staff') }}</a>@endif
     </nav>
-    <form method="POST" action="{{ route('logout') }}">
+    <form method="POST" action="{{ route('saas.logout') }}">
         @csrf
         <button class="saas-btn saas-btn--quiet" type="submit">{{ __('Sign out') }}</button>
     </form>

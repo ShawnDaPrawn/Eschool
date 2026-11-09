@@ -49,6 +49,6 @@ final class EnsureAccountActive
             ], Response::HTTP_UNAUTHORIZED)->header('Cache-Control', 'no-store, private');
         }
 
-        return redirect()->route('login')->withErrors(['email' => trans('auth.failed')]);
+        return redirect()->route($request->is('saas', 'saas/*') ? 'saas.login' : 'login')->withErrors(['email' => trans('auth.failed')]);
     }
 }

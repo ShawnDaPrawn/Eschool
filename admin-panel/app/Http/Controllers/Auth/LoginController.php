@@ -10,7 +10,7 @@ use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Providers\RouteServiceProvider;
 use App\Services\Platform\Groups\SchoolGroupAccess;
-use App\Services\Platform\Saas\PlatformStaffAccess;
+use App\Services\Platform\Saas\PlatformSignIn;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +47,11 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
     }
 
+    protected function credentials(Request $request)
+    {
+        return PlatformSignIn::credentials($request->only($this->username(), 'password'), false);
+    }
+
     /**
      * The user has been authenticated. Parents/Guardians and Students are
      * restricted to the mobile app only, so block them from the Laravel web
@@ -61,28 +66,17 @@ class LoginController extends Controller
             return $this->refuseLogin($request, $user->hasRole('Teacher') ? 'teacher_account_deactivated' : 'auth.failed');
         }
 
-        // Platform operators deliberately have no school role or membership.
-        // A fresh, explicit platform grant opens only /saas; default/flagged
-        // passwords still cannot enter that area.
-        if (app(PlatformStaffAccess::class)->allowed($user)
-            && ! RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
-            return redirect()->route('saas.home');
-        }
-
         if ($user->hasAnyRole(['Parent', 'Student'])) {
             return $this->refuseLogin($request, 'app_only_login_not_allowed_on_web');
         }
 
-        // An operator who holds both platform keys needs no school role: they
-        // belong to no school and go to the platform area (/saas).
-        $operator = $user->roles->isEmpty() && app(PlatformStaffAccess::class)->operatesPlatform($user);
         // A school group's administrator may hold no school role at all: they
         // see only the group's dashboard, never a school (Action Plan 5.7).
-        if ($user->roles->isEmpty() && ! $operator && app(SchoolGroupAccess::class)->groups($user) !== []
+        if ($user->roles->isEmpty() && app(SchoolGroupAccess::class)->groups($user) !== []
             && ! RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
             return redirect()->route('group.index');
         }
-        if ($user->roles->isEmpty() && ! $operator) {
+        if ($user->roles->isEmpty()) {
             return $this->refuseLogin($request, 'no_permission_message');
         }
 
@@ -97,7 +91,7 @@ class LoginController extends Controller
             $user->forceFill(['password_change_required' => true])->save();
         }
 
-        return $operator ? redirect()->route('saas.home') : null;
+        return null;
     }
 
     private function refuseLogin(Request $request, string $message): RedirectResponse

@@ -43,7 +43,7 @@ The identity alone grants nothing (its spec: "not a grant of platform capabiliti
 | Identity only, grant only, expired or revoked grant, deactivated or password-pending account | they open `/saas` | no platform metadata; 403, or the forced own-password redirect for an authenticated operator |
 | Any user | a school id that does not exist | 403 for non-staff, 404 for staff |
 | Staff | they set up a school | the school, its roles and profile defaults exist; the administrator has one membership, Super Admin of that school; they are sent a one-use invitation whose secret is in no audit row or session |
-| An operator with both keys and no school role | they sign in on the normal form | they land on `/saas`; they hold no membership; a role-less account without both keys is still refused |
+| An operator with both keys and no school role | they sign in on `/saas/login` | they land on `/saas/home`; they hold no membership; a role-less account without both keys is still refused |
 | The new school's administrator | they sign in and open `/home` | it opens (the school has its own current year, name, time zone and e-mail templates) and shows nothing of another school; the staff member's own session year is not changed |
 | Staff | they use the email of an account that may not be a school's administrator (platform staff, a learner, inactive, or unable to sign in to a school panel), a taken or malformed short name, an unknown package or time zone | nothing is created |
 | Staff | they use the email of a teacher at another school | the school is created, no second account; the person is invited to join as Super Admin, has no role there until they accept, and keeps their password (`ExistingAccountInvitationsTest`) |
@@ -95,7 +95,7 @@ Five standalone Material 3 pages (`resources/views/saas/`, `public/assets/css/sa
 
 ## Self-test steps
 
-1. `php artisan platform:staff-identity <your user id>` then `php artisan platform:admin-access <your user id> --hours=8`; sign in, set up an authenticator app (or type its code) and open `/saas` (a bare `/saas` link is not in the school menu).
+1. `php artisan platform:staff-identity <your user id>` then `php artisan platform:admin-access <your user id> --hours=8`; sign in at `/saas/login`, set up an authenticator app (or type its code) and open `/saas` (a bare `/saas` link is not in the school menu).
 2. See the schools and counts; open one; change its package; switch a module; confirm the school's own School modules page shows the change.
 3. Set up a school; open the invitation link in another browser; choose a password; sign in as the new administrator; confirm they see only their own school and `/saas` answers 403.
 4. Suspend that school with a reason; confirm its administrator is refused; restore it.

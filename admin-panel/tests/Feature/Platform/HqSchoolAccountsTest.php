@@ -149,7 +149,7 @@ class HqSchoolAccountsTest extends TestCase
         $this->get('/saas/schools/1/account')->assertForbidden();
         auth()->forgetGuards();
         $this->app['auth']->logout();
-        $this->get('/saas/schools/1/account')->assertRedirect('/login');
+        $this->get('/saas/schools/1/account')->assertRedirect('/saas/login');
         $this->assertSame(0, DB::table('school_account_events')->count());
     }
 }

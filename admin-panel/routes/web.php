@@ -5,6 +5,9 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PlatformForgotPasswordController;
+use App\Http\Controllers\Auth\PlatformLoginController;
+use App\Http\Controllers\Auth\PlatformResetPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CategoryController;
@@ -237,7 +240,19 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-// Manual Authentication Routes
+// Business administration has its own sign-in and recovery routes. They never
+// enter school.context or reuse the school's login page.
+Route::middleware([PrivateDomainResponse::class])->prefix('saas')->name('saas.')->group(function () {
+    Route::get('login', [PlatformLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [PlatformLoginController::class, 'login'])->middleware('throttle:login')->name('login.store');
+    Route::post('logout', [PlatformLoginController::class, 'logout'])->name('logout');
+    Route::get('password/reset', [PlatformForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('password/email', [PlatformForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:login')->name('password.email');
+    Route::get('password/reset/{token}', [PlatformResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('password/reset', [PlatformResetPasswordController::class, 'reset'])->middleware('throttle:login')->name('password.update');
+});
+
+// School Authentication Routes
 
 // Pages anyone may open work in the default school (or the signed-in
 // user's): school.context:public.
