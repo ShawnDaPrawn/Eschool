@@ -161,10 +161,10 @@ class SharedLibrary
             abort_if($this->live((int) $item->id)->lockForUpdate()->exists(), 409, __('This question is already shared or waiting for approval. Withdraw it first to share it again.'));
             abort_if(LibraryContribution::query()->where('practice_item_version_id', $version->id)->lockForUpdate()->exists(), 409,
                 __('This version of the question was shared before. Approve a new version of it to share it again.'));
-            $approval = $settings?->leader_approval;
+            $approval = $settings === null || $settings->leader_approval;
             $contribution = LibraryContribution::query()->create(['practice_item_id' => $item->id, 'practice_item_version_id' => $version->id, 'library_topic_id' => $topic->id,
                 'title' => $title, 'credit' => $data['credit'], 'licence' => $this->licence()['code'], 'contributed_by' => $actor->id, 'rights_confirmed_at' => now(),
-                'state' => ($approval ?? true) ? 'awaiting_approval' : 'shared']);
+                'state' => $approval ? 'awaiting_approval' : 'shared']);
             Audit::record('library.contribution_offered', $contribution, [], ['practice_item_id' => (int) $item->id, 'version_id' => (int) $version->id,
                 'library_topic_id' => (int) $topic->id, 'credit' => $data['credit'], 'licence' => $contribution->licence, 'state' => $contribution->state, 'changed_by' => $actor->id]);
             if ($contribution->state === 'shared') {
