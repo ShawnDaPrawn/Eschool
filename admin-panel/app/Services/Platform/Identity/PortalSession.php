@@ -46,9 +46,12 @@ final class PortalSession
     /**
      * Completes a sign-in whose checks have passed. For a portal: the web
      * guard on a regenerated session (new id and CSRF token), and an empty
-     * token in the v1 answer. For an app: a new token for that app.
+     * token in the v1 answer. For an app: a new token for that app, with
+     * $abilities (see AppTokens::issue).
+     *
+     * @param  list<string>  $abilities
      */
-    public static function signIn(Request $request, User $user, string $app): string
+    public static function signIn(Request $request, User $user, string $app, array $abilities = ['*']): string
     {
         abort_unless(EnsureAccountActive::isActive($user), 401);
         app(ApprovalService::class)->assertAccess($user);
@@ -58,7 +61,7 @@ final class PortalSession
         }
 
         if (! self::isPortal($request)) {
-            $plain = AppTokens::issue($user, $app);
+            $plain = AppTokens::issue($user, $app, $abilities);
             $fcm = $request->input('fcm_id');
             if (is_string($fcm) && $fcm !== '' && is_string($request->input('device_type'))) {
                 $tokenId = (int) strstr($plain, '|', true);

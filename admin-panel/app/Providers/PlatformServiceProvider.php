@@ -14,6 +14,10 @@ use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Saas\PlatformPackages;
+use App\Services\Platform\SignIn\HttpProviderCodes;
+use App\Services\Platform\SignIn\HttpProviderKeys;
+use App\Services\Platform\SignIn\ProviderCodes;
+use App\Services\Platform\SignIn\ProviderKeys;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolAwarePresenceVerifier;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -46,6 +50,9 @@ class PlatformServiceProvider extends ServiceProvider
         $this->app->scoped(ModuleGate::class);
         $this->app->scoped(PlatformPackages::class);
         $this->app->scoped(NotificationRules::class);
+        // Google and Microsoft sign-in (Action Plan 5.9): the providers' keys and token endpoints.
+        $this->app->bind(ProviderKeys::class, HttpProviderKeys::class);
+        $this->app->bind(ProviderCodes::class, HttpProviderCodes::class);
 
         // exists: and unique: rules see only the current school's rows.
         $this->app->extend('validation.presence', fn ($verifier, $app) => new SchoolAwarePresenceVerifier($app['db']));
