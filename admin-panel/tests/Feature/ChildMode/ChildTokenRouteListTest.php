@@ -88,7 +88,7 @@ class ChildTokenRouteListTest extends TestCase
         $outside = 0;
         foreach ($this->app['router']->getRoutes()->getRoutes() as $route) {
             /** @var Route $route */
-            $middleware = array_values(array_map('strval', $route->gatherMiddleware()));
+            $middleware = array_values(array_map(fn ($name): string => is_string($name) ? $name : get_debug_type($name), $route->gatherMiddleware()));
             if (! str_starts_with($route->uri(), 'api/') && in_array('auth:sanctum', $middleware, true)) {
                 foreach (array_diff($route->methods(), ['HEAD']) as $method) {
                     $routes[] = new ApiRoute($method, $route->uri(), $middleware);
