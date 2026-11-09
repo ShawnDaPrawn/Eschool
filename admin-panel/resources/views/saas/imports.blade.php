@@ -65,6 +65,10 @@
             <label for="import-paste">{{ __('Or paste the rows, with the header row first') }}</label>
             <textarea id="import-paste" name="csv" rows="5">{{ $check === null ? $csv : '' }}</textarea>
         </div>
+        <div class="saas-field">
+            <label for="import-reason">{{ __('Why Navigate Ed is importing this for the school (the school sees this)') }}</label>
+            <input id="import-reason" name="reason" required minlength="5" maxlength="500" value="{{ $check === null ? $reason : '' }}">
+        </div>
     </div>
     <p>{{ __('The check runs in the school as the leader you choose, with their permissions there, so it shows exactly what their own import would do.') }}</p>
     <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Check the file') }}</button></div>
@@ -128,6 +132,14 @@
             <label><input type="checkbox" name="invite" value="1" @checked($check['options']['invite'])> {{ __('Email the guardians their invitations once it is imported') }}</label>
             <label><input type="checkbox" name="from_sasams" value="1" @checked($check['options']['from_sasams'])> {{ __('This is a learner list exported from SA-SAMS') }}</label>
         @endif
+    </section>
+
+    <section class="saas-card" aria-labelledby="import-why">
+        <h2 id="import-why">{{ __('Reason') }}</h2>
+        <div class="saas-field">
+            <label for="import-reason-again">{{ __('Why Navigate Ed is importing this for the school (the school sees this)') }}</label>
+            <input id="import-reason-again" name="reason" required minlength="5" maxlength="500" value="{{ $reason }}">
+        </div>
     </section>
 
     <section class="saas-card" aria-labelledby="import-rows">

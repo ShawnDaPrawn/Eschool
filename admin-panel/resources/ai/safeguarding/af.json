@@ -1,0 +1,52 @@
+{
+    "language": "af",
+    "name": "Afrikaans",
+    "purpose": "DRAFT detection phrases only, for the local safeguarding guard. Needs review by safeguarding professionals and fluent Afrikaans speakers before Afrikaans is offered in the tutor. Never sent to an AI provider, never logged, read-only in HQ.",
+    "categories": {
+        "self_harm": [
+            "maak myself dood",
+            "myself doodmaak",
+            "ek maak my dood",
+            "wil my doodmaak",
+            "gaan my doodmaak",
+            "my lewe beëindig",
+            "einde aan my lewe",
+            "selfmoord pleeg",
+            "pleeg selfmoord",
+            "dink aan selfmoord",
+            "ek wil doodgaan",
+            "ek wil dood wees",
+            "ek wil nie meer lewe nie",
+            "ek wil nie meer leef nie",
+            "maak myself seer",
+            "myself seermaak",
+            "wil my seermaak",
+            "wil myself kill",
+            "gaan myself kill",
+            "wil myself hurt",
+            "gaan myself hurt"
+        ],
+        "abuse": [
+            "ek word mishandel",
+            "ek is mishandel",
+            "mishandel my",
+            "ek word misbruik",
+            "ek is misbruik",
+            "misbruik my",
+            "ek word abused"
+        ],
+        "sexual_violence": [
+            "seksueel aangerand",
+            "seksueel aangeval",
+            "seksueel misbruik",
+            "sexually aangerand",
+            "seksueel assaulted",
+            "ek is verkrag",
+            "word verkrag",
+            "my verkrag",
+            "ek is gemolesteer",
+            "my gemolesteer",
+            "betas my"
+        ]
+    }
+}

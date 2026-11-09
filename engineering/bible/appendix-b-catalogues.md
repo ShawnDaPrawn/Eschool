@@ -120,6 +120,13 @@ Navigate Ed Operations named when an onboarding import prepared on the school's
 behalf (SA.11) waits for their approval. The notice links to the import in the
 panel and names no learner, guardian or staff member.
 
+Imports by Navigate Ed: school.hq_import_activity (people module, admin portal,
+standard channel preferences) tells the school's active Super Admins (never
+platform staff) that Navigate Ed sent an import for approval (the kind, the
+number of rows and the approving leader's name) or applied an approved one. It
+links to the import in the panel and names no learner, guardian or staff member
+in the file.
+
 Announcements from Navigate Ed: platform.announcement (school module, which is
 always on; admin portal only; in-app and email on by default, no push; the
 school's notification rules apply) goes to the active Super Admins of each school

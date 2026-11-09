@@ -32,6 +32,12 @@ ProfileForm _$ProfileFormFromJson(Map<String, dynamic> json) => $checkedCreate(
             .map((e) => ProfileFormCategory.fromJson(e as Map<String, dynamic>))
             .toList(),
       ),
+      primaryIdentifier: $checkedConvert(
+        'primary_identifier',
+        (v) => v == null
+            ? null
+            : LearnerPrimaryIdentifier.fromJson(v as Map<String, dynamic>),
+      ),
     );
     return val;
   },
@@ -39,6 +45,7 @@ ProfileForm _$ProfileFormFromJson(Map<String, dynamic> json) => $checkedCreate(
     'personId': 'person_id',
     'profileType': 'profile_type',
     'availableProfiles': 'available_profiles',
+    'primaryIdentifier': 'primary_identifier',
   },
 );
 
@@ -48,4 +55,5 @@ Map<String, dynamic> _$ProfileFormToJson(ProfileForm instance) =>
       'profile_type': instance.profileType,
       'available_profiles': instance.availableProfiles,
       'categories': instance.categories.map((e) => e.toJson()).toList(),
+      'primary_identifier': ?instance.primaryIdentifier?.toJson(),
     };

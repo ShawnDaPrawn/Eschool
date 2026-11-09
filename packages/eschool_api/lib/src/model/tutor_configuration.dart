@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/tutor_home_language.dart';
 import 'package:eschool_api/src/model/tutor_group_choice.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -34,6 +35,14 @@ class TutorConfiguration {
     required this.feedbackIsProvisional,
 
     this.checkpointsEnabled,
+
+    this.tutorVersion,
+
+    this.explainBackEnabled,
+
+    this.homeLanguages,
+
+    this.memoryDays,
   });
 
   // minimum: 1
@@ -76,6 +85,27 @@ class TutorConfiguration {
   @JsonKey(name: r'checkpoints_enabled', required: false, includeIfNull: false)
   final bool? checkpointsEnabled;
 
+  /// The configured tutor prompt version. Version 2 adapts to the learner's stage and grade, uses worked examples, offers explain_back turns, a learner memory and home-language explanations.
+  @JsonKey(
+    name: r'tutor_version',
+    required: false,
+    includeIfNull: false,
+    unknownEnumValue: TutorConfigurationTutorVersionEnum.unknownDefaultOpenApi,
+  )
+  final TutorConfigurationTutorVersionEnum? tutorVersion;
+
+  @JsonKey(name: r'explain_back_enabled', required: false, includeIfNull: false)
+  final bool? explainBackEnabled;
+
+  /// Home languages the tutor offers now. A language appears only when the deployment enables it and its safeguarding phrase list has a recorded professional review; a draft list keeps it out.
+  @JsonKey(name: r'home_languages', required: false, includeIfNull: false)
+  final List<TutorHomeLanguage>? homeLanguages;
+
+  // minimum: 1
+  // maximum: 365
+  @JsonKey(name: r'memory_days', required: false, includeIfNull: false)
+  final int? memoryDays;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -88,7 +118,11 @@ class TutorConfiguration {
           other.inferenceEnabled == inferenceEnabled &&
           other.photoRequiresApprovedCrop == photoRequiresApprovedCrop &&
           other.feedbackIsProvisional == feedbackIsProvisional &&
-          other.checkpointsEnabled == checkpointsEnabled;
+          other.checkpointsEnabled == checkpointsEnabled &&
+          other.tutorVersion == tutorVersion &&
+          other.explainBackEnabled == explainBackEnabled &&
+          other.homeLanguages == homeLanguages &&
+          other.memoryDays == memoryDays;
 
   @override
   int get hashCode =>
@@ -100,7 +134,11 @@ class TutorConfiguration {
       inferenceEnabled.hashCode +
       photoRequiresApprovedCrop.hashCode +
       feedbackIsProvisional.hashCode +
-      checkpointsEnabled.hashCode;
+      checkpointsEnabled.hashCode +
+      tutorVersion.hashCode +
+      explainBackEnabled.hashCode +
+      homeLanguages.hashCode +
+      memoryDays.hashCode;
 
   factory TutorConfiguration.fromJson(Map<String, dynamic> json) =>
       _$TutorConfigurationFromJson(json);
@@ -111,4 +149,21 @@ class TutorConfiguration {
   String toString() {
     return toJson().toString();
   }
+}
+
+/// The configured tutor prompt version. Version 2 adapts to the learner's stage and grade, uses worked examples, offers explain_back turns, a learner memory and home-language explanations.
+enum TutorConfigurationTutorVersionEnum {
+  @JsonValue(1)
+  number1('1'),
+  @JsonValue(2)
+  number2('2'),
+  @JsonValue(11184809)
+  unknownDefaultOpenApi('11184809');
+
+  const TutorConfigurationTutorVersionEnum(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
 }

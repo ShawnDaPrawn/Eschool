@@ -30,7 +30,7 @@ Since Phase 1 one install serves many schools, and roles are per school (the Bui
 
 | Role | Created by | Assigned to | Can sign in to |
 |---|---|---|---|
-| `Super Admin` | `SchoolRoles` (from `InstallationSeeder`), per school | User id 1 by `AddSuperAdminSeeder` (`superadmin@gmail.com` / `superadmin`; change it) | Admin panel |
+| `Super Admin` | `SchoolRoles` (from `InstallationSeeder`), per school | User id 1 by `AddSuperAdminSeeder`, using configured `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Admin panel |
 | `Teacher` | `SchoolRoles`, per school | Every teacher created by `TeacherController` (`$user->assignRole('Teacher')`: the current school's Teacher role) | Admin panel (teacher view) and the teacher app |
 | `Parent` | `SchoolRoles`, per school (no permissions) | Father/mother/guardian users created with a student | Parent side of the student/parent app only |
 | `Student` | `SchoolRoles`, per school (no permissions) | Student users | Student side of the app only |
@@ -198,7 +198,7 @@ Other forms in use:
 - The self-registration route (`/register`) has been removed.
 - `POST /clear` (the header cache button, shown to Super Admins only) needs `auth` and `role:Super Admin`. There are no other maintenance URLs: the storage link, migrations and seeders run at deploy time, and the System Update page was removed.
 - A deactivated teacher (`users.status` 0) cannot sign in, and `CheckRole` signs out an open session on its next request.
-- Login, password-reset and app-login endpoints use the `login` rate limiter (`RouteServiceProvider`): 5 attempts a minute per path and account plus 20 a minute per IP. Parents' first passwords are still dates of birth, which is why the per-account limit exists.
+- Login, password-reset and app-login endpoints use the `login` rate limiter (`RouteServiceProvider`): 5 attempts a minute per canonical account across routes and identifier aliases, plus 20 a minute per IP. New parents receive random temporary passwords and must change them.
 
 ### Teacher status
 
@@ -241,7 +241,7 @@ The API group also has the default `throttle:api` limiter: 60 requests a minute 
 - **`CheckStudent`** (teacher API) finds the caller's teacher id, the class sections they are class teacher of (`class_teachers`, any session year) and the `students.class_section_id` of `student_id`; if it is not one of them it returns `Invalid Student ID Passed.` with code 105.
 - **`EnsureStudentSessionIsActive`**, **`EnsureParentChildrenSessionIsActive`**: see [Academic Structure](Academic-Structure#session-middleware-for-the-apps).
 - **`EnsureTeacherActive`** (`teacher.active`): see [Teacher status](#teacher-status).
-- **`EnforcePasswordChange`** (`password.change`): an account flagged `users.password_change_required` (its password is still its date of birth) gets 403 with `code` `PASSWORD_CHANGE_REQUIRED` on the role groups' routes (`/api/change-password` and `/api/logout` are outside them), but only when the app sends `X-Supports-Password-Change: 1`; today's apps don't, and keep working. The v1 login answers say `password_change_required`.
+- **`EnforcePasswordChange`** (`password.change`, also called by shared authentication): an account flagged `users.password_change_required` gets 403 on private v1/v2 routes regardless of client headers. v1 retains `code` `PASSWORD_CHANGE_REQUIRED`; v2 uses its documented `forbidden` code. Password changes, sign-out, session context, policy setup and pool consent withdrawal remain available. The v1 login answers retain `password_change_required`.
 
 ### Ownership scoping
 
@@ -263,7 +263,7 @@ Permissions say what kind of action a teacher may take; ownership rules say on w
 
 Staff are non-teaching users of the admin panel (for example an accountant or receptionist). [`StaffController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/StaffController.php):
 
-- `store` (permission `staff-create`) requires `role_id` to pass `assignableRoleRule()`: it must exist with `custom_role = 1` and not be named `Super Admin`. It creates a `users` row (initial password: date of birth as `ddmmyyyy`), assigns the role, creates a `staffs` row and sends the `staff_registration` email template.
+- `store` (permission `staff-create`) requires `role_id` to pass `assignableRoleRule()`: it must exist with `custom_role = 1` and not be named `Super Admin`. It creates a `users` row with an unknown random password and a required-change flag, assigns the role, creates a `staffs` row and issues a single-use `StaffInvitations` link for choosing a password.
 - If the email belongs to a soft-deleted user, that user is restored instead and `syncRoles($role)` replaces whatever roles they had before deletion. The restore path only revives an existing soft-deleted `staffs` row; because the `Staff` model does not use `SoftDeletes`, deleting staff removes that row outright, so a restored user may be left without a `staffs` row.
 - `update` (`staff-edit`) and `destroy` (`staff-delete`) go through `canManageStaffUser()`: the target must have a `staffs` row, and only a Super Admin may change a Super Admin account. Nobody can delete themself.
 - Staff attendance (`staff_attendances`) is managed on pages gated by `attendance-staff`.

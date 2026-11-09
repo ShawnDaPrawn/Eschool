@@ -15,6 +15,7 @@ use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\MailService;
 use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Identity\PasswordPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -162,13 +163,14 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 if ($row['parents'] == 'yes') {
                     if (isset($row['father_email']) && isset($row['mother_email'])) {
                         $father_email_check = Parents::select('email')->where('email', $row['father_email'])->count();
-                        $father_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['father_dob'])));
+                        $father_plaintext_password = $father_email_check == 0 ? PasswordPolicy::temporary() : trans('Use your existing password or choose Forgot Password.');
                         if ($father_email_check == 0) {
                             $father_user = new User;
                             $father_user->first_name = $row['father_first_name'];
                             $father_user->last_name = $row['father_last_name'];
                             $father_user->email = $row['father_email'];
                             $father_user->password = Hash::make($father_plaintext_password);
+                            $father_user->password_change_required = true;
                             $father_user->mobile = $row['father_mobile'];
                             $father_user->image = 'dummy_logo.jpg';
                             $father_user->dob = date('Y-m-d', strtotime($row['father_dob']));
@@ -198,11 +200,12 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                             $father_email = $row['father_email'];
                         }
                         $mother_email_check = Parents::select('email')->where('email', $row['mother_email'])->count();
-                        $mother_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['mother_dob'])));
+                        $mother_plaintext_password = $mother_email_check == 0 ? PasswordPolicy::temporary() : trans('Use your existing password or choose Forgot Password.');
                         if ($mother_email_check == 0) {
                             $mother_user = new User;
                             $mother_user->image = 'dummy_logo.jpg';
                             $mother_user->password = Hash::make($mother_plaintext_password);
+                            $mother_user->password_change_required = true;
                             $mother_user->first_name = $row['mother_first_name'];
                             $mother_user->last_name = $row['mother_last_name'];
                             $mother_user->email = $row['mother_email'];
@@ -239,11 +242,12 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 if ($row['guardian'] == 'yes') {
                     if (isset($row['guardian_email'])) {
                         $guardian_email_check = Parents::select('email')->where('email', $row['guardian_email'])->count();
-                        $guardian_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['guardian_dob'])));
+                        $guardian_plaintext_password = $guardian_email_check == 0 ? PasswordPolicy::temporary() : trans('Use your existing password or choose Forgot Password.');
                         if ($guardian_email_check == 0) {
                             $guardian_user = new User;
                             $guardian_user->image = 'dummy_logo.jpg';
                             $guardian_user->password = Hash::make($guardian_plaintext_password);
+                            $guardian_user->password_change_required = true;
                             $guardian_user->first_name = $row['guardian_first_name'];
                             $guardian_user->last_name = $row['guardian_last_name'];
                             $guardian_user->email = $row['guardian_email'];

@@ -232,7 +232,7 @@ class SaasPanelTest extends TestCase
                 $this->assertNotEmpty(array_filter($middleware, fn ($name) => is_string($name) && str_starts_with($name, 'platform.can:')), $route->uri().' names the ability its role must hold');
             }
         }
-        $this->assertSame(156, $count);
+        $this->assertSame(175, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void
@@ -433,11 +433,16 @@ class SaasPanelTest extends TestCase
 
     public function test_the_new_administrator_sees_only_their_own_school_and_never_the_platform(): void
     {
-        $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $created = $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
 
         auth()->forgetGuards();
+        $this->newBrowserSession()->actingAs($admin)->get('/home')->assertRedirect('/resetpassword');
+        $this->newBrowserSession()->post($created->viewData('invitationUrl'), [
+            'password' => 'Chosen-school-password-26', 'password_confirmation' => 'Chosen-school-password-26',
+        ])->assertRedirect(route('login'));
+        $this->assertFalse($admin->refresh()->password_change_required);
         $this->newBrowserSession()->actingAs($admin)->get('/saas')->assertForbidden();
         $this->get('/saas/schools/1')->assertForbidden();
 
@@ -447,10 +452,15 @@ class SaasPanelTest extends TestCase
 
     public function test_the_new_administrator_can_open_the_panel_home_and_sees_nothing_of_other_schools(): void
     {
-        $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $created = $this->actingAsHq($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
         $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
 
         auth()->forgetGuards();
+        $this->newBrowserSession()->actingAs($admin)->get('/home')->assertRedirect('/resetpassword');
+        $this->newBrowserSession()->post($created->viewData('invitationUrl'), [
+            'password' => 'Chosen-school-password-26', 'password_confirmation' => 'Chosen-school-password-26',
+        ])->assertRedirect(route('login'));
+        $this->assertFalse($admin->refresh()->password_change_required);
         $this->newBrowserSession()->actingAs($admin)->get('/home')->assertOk()->assertDontSee('Baobab')->assertDontSee('Jacaranda');
 
         // The school has its own current year and settings, and the staff member's session year was not touched.

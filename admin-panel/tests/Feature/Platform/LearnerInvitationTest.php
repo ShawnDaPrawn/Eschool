@@ -125,7 +125,8 @@ class LearnerInvitationTest extends TestCase
         // A printed code stops working once a newer one is printed.
         $setUp($learner->email, $first)->assertRedirect('/learner-setup')->assertSessionHasErrors('code');
         $setUp('GR-NOBODY', $code)->assertSessionHasErrors('code');
-        $setUp($learner->email, $code, 'weakweakweak')->assertSessionHasErrors('password');
+        $setUp($learner->email, $code, 'weakweakweak')->assertSessionHasErrors('password')
+            ->assertSessionMissing('_old_input.code')->assertSessionMissing('_old_input.password');
 
         // Lower case and without the dash is fine, once.
         $setUp($learner->email, strtolower(str_replace('-', '', $code)))->assertOk()->assertSee(trans('learner_setup_done_title'));
@@ -214,6 +215,9 @@ class LearnerInvitationTest extends TestCase
 
         $ivy = User::role('Student')->where('first_name', 'Ivy')->firstOrFail();
         $this->assertFalse(Hash::check('15032016', $ivy->password));
+        $guardian = User::where('email', 'gus@example.com')->sole();
+        $this->assertFalse(Hash::check('01011980', $guardian->password));
+        $this->assertTrue($guardian->password_change_required);
         $this->assertArrayHasKey('gus@example.com', $this->sentTo('learner-setup/'));
     }
 

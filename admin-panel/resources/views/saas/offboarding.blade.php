@@ -27,14 +27,14 @@
         @if ($contract !== null && $contract['delete_on'] !== null)
             <p>{{ __('Retention terms from the contract from :starts: data deleted :days days after it ends on :ends, so on :date.', ['starts' => $contract['starts_on'], 'days' => $contract['deletion_days_after_end'], 'ends' => $contract['ends_on'], 'date' => $contract['delete_on']]) }}</p>
         @else
-            <p>{{ __('The contract records no deletion term. Enter the date and the terms you are following.') }}</p>
+            <p>{{ __('The contract records no deletion term. Enter the date and the terms you are following, or leave both empty to use Navigate Ed\'s default: :days days after the school\'s deadline to collect its export.', ['days' => $defaultRetentionDays]) }}</p>
         @endif
         <div class="saas-grid">
             <div class="saas-field"><label for="reason">{{ __('Reason (why the school is leaving)') }}</label><textarea id="reason" name="reason" required minlength="10" maxlength="500" rows="2">{{ old('reason') }}</textarea></div>
             <div class="saas-field"><label for="receipt_deadline">{{ __('Deadline for the school to collect and confirm its export') }}</label><input id="receipt_deadline" name="receipt_deadline" type="date" min="{{ $minimumDeadline }}" required value="{{ old('receipt_deadline') }}"></div>
             @if ($contract === null || $contract['delete_on'] === null)
-                <div class="saas-field"><label for="delete_on">{{ __('Delete the school\'s data on') }}</label><input id="delete_on" name="delete_on" type="date" required value="{{ old('delete_on') }}"></div>
-                <div class="saas-field"><label for="retention_terms">{{ __('Retention terms followed (for example the contract clause)') }}</label><textarea id="retention_terms" name="retention_terms" required minlength="10" maxlength="500" rows="2">{{ old('retention_terms') }}</textarea></div>
+                <div class="saas-field"><label for="delete_on">{{ __('Delete the school\'s data on (optional)') }}</label><input id="delete_on" name="delete_on" type="date" value="{{ old('delete_on') }}"></div>
+                <div class="saas-field"><label for="retention_terms">{{ __('Retention terms followed, for example the contract clause (optional)') }}</label><textarea id="retention_terms" name="retention_terms" minlength="10" maxlength="500" rows="2">{{ old('retention_terms') }}</textarea></div>
             @endif
         </div>
         <div class="saas-actions"><button class="saas-btn saas-btn--danger" type="submit">{{ __('Start offboarding and prepare the export') }}</button></div>
@@ -47,7 +47,7 @@
         <dl class="saas-grid">
             <div><dt>{{ __('Started') }}</dt><dd>{{ $o['started_at'] }}@if ($o['started_by']) · {{ $o['started_by'] }}@endif</dd></div>
             <div><dt>{{ __('Reason') }}</dt><dd>{{ $o['reason'] }}</dd></div>
-            <div><dt>{{ __('Retention terms') }}</dt><dd>{{ $o['retention_source'] === 'contract' ? __('From the contract') : __('Entered') }}: {{ $o['retention_terms'] }}</dd></div>
+            <div><dt>{{ __('Retention terms') }}</dt><dd>{{ match ($o['retention_source']) { 'contract' => __('From the contract'), 'default' => __('Navigate Ed\'s default'), default => __('Entered') } }}: {{ $o['retention_terms'] }}</dd></div>
             <div><dt>{{ __('Receipt deadline') }}</dt><dd>{{ $o['receipt_deadline'] }}</dd></div>
             <div><dt>{{ __('Data deleted on') }}</dt><dd>{{ $o['delete_on'] }}</dd></div>
         </dl>
@@ -97,10 +97,11 @@
 
     <h2>{{ __('4. Deletion') }}</h2>
     <div class="saas-card">
-        <p>{{ __('Deletion needs two approvals by different people, the second by an Owner. Each re-checks that the export was delivered and is intact, and that no legal hold is on. In this release the approvals run a dry run only: nothing is deleted.') }}</p>
+        <p>{{ __('Deletion needs two approvals by different people, the second by an Owner. Each re-checks that the export was delivered and is intact, and that no legal hold is on. The approvals delete nothing: after the second one, a cooling-off period of :hours hours starts, and the erasure can begin once it is over and the deletion date has come. Until then a legal hold or a cancellation stops it.', ['hours' => $coolingOffHours]) }}</p>
         <ul>
             <li>{{ $o['deletion_requested_at'] ? __('Asked for :at by :name.', ['at' => $o['deletion_requested_at'], 'name' => $o['deletion_requested_by']]) : __('Not asked for yet.') }}</li>
             <li>{{ $o['deletion_approved_at'] ? __('Approved :at by :name.', ['at' => $o['deletion_approved_at'], 'name' => $o['deletion_approved_by']]) : __('Not approved yet.') }}</li>
+            @if ($o['erasure_not_before'])<li>{{ __('Erasure can start from :at.', ['at' => $o['erasure_not_before']]) }}</li>@endif
         </ul>
         @if ($o['state'] === SchoolOffboarding::ARCHIVED && ! $o['legal_hold'])
             <div class="saas-actions">
@@ -116,6 +117,9 @@
             </div>
         @endif
 
+        @if ($o['dry_run'] && ! empty($o['dry_run']['protected']))
+            <p>{{ __('History the database keeps immutable (money, ledger and similar records) is never deleted: :rows rows in :tables tables, and the rows they refer to stay with them.', ['rows' => array_sum($o['dry_run']['protected']), 'tables' => count($o['dry_run']['protected'])]) }}</p>
+        @endif
         @if ($o['dry_run'])
             <h3>{{ __('Deletion dry run, :at by :name', ['at' => $o['dry_run_at'], 'name' => $o['dry_run_by'] ?? __('System')]) }}</h3>
             <p>{{ __(':total rows in :tables of :checked tables would be deleted. Rows deleted: :deleted.', ['total' => $o['dry_run']['delete_total'], 'tables' => count($o['dry_run']['delete']), 'checked' => $o['dry_run']['tables_checked'], 'deleted' => $o['dry_run']['deleted']]) }}</p>
@@ -145,6 +149,42 @@
         @endif
     </div>
 
+    <h2>{{ __('5. Erasure') }}</h2>
+    <div class="saas-card">
+        @if ($o['state'] === SchoolOffboarding::ERASED && $o['certificate'])
+            <p>{{ __('Erased :at. Certificate :reference.', ['at' => $o['erased_at'], 'reference' => $o['certificate']['reference']]) }}</p>
+            <p>{{ __(':rows rows erased in :tables tables; :accounts accounts only this school knew were erased. Kept: the audit log and Navigate Ed\'s own records of the school.', ['rows' => $o['certificate']['certificate']['erased']['rows_total'], 'tables' => $o['certificate']['certificate']['erased']['tables'], 'accounts' => $o['certificate']['certificate']['erased']['accounts']]) }}</p>
+            @if ($o['certificate']['certificate']['held'] !== [])
+                <p>{{ __('Held back: :rows rows of history the database keeps immutable, or that this history refers to.', ['rows' => array_sum(array_column($o['certificate']['certificate']['held'], 'rows'))]) }}</p>
+            @endif
+            <p>{{ __('SHA-256') }}: <code>{{ $o['certificate']['certificate_sha256'] }}</code></p>
+            <p><a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.offboarding.certificate', $school['id']) }}">{{ __('Download the certificate') }}</a></p>
+        @elseif ($o['state'] === SchoolOffboarding::ERASING)
+            <p>{{ __('Erasing since :at (:name). Rows erased so far: :rows. Accounts erased: :accounts. Last progress :heartbeat.', ['at' => $o['erasure_started_at'], 'name' => $o['erasure_started_by'] ?? __('System'), 'rows' => array_sum((array) ($o['erasure_progress']['rows'] ?? [])), 'accounts' => (int) ($o['erasure_progress']['accounts_erased'] ?? 0), 'heartbeat' => $o['erasure_heartbeat_at'] ?? '—']) }}</p>
+            @if ($o['erasure_failure_code'])<p role="alert">{{ __('Stopped: :code. Nothing outside the school was touched. Fix the cause, then resume.', ['code' => $o['erasure_failure_code']]) }}</p>@endif
+            <p>{{ __('An erasure that has started cannot be stopped, only completed. If it stalls, it is resumed automatically from where it stopped.') }}</p>
+            @if ($manage)
+                <form method="POST" action="{{ route('saas.schools.offboarding.erase.resume', $school['id']) }}">@csrf<button class="saas-btn" type="submit">{{ __('Resume the erasure') }}</button></form>
+            @endif
+        @elseif ($o['state'] === SchoolOffboarding::ARCHIVED && $o['deletion_approved_at'] && ! $o['legal_hold'])
+            @if (! $o['erasure_due'])
+                <p>{{ __('Cooling-off: the erasure can start from :at.', ['at' => $o['erasure_not_before']]) }}</p>
+            @elseif ($manage)
+                <form method="POST" action="{{ route('saas.schools.offboarding.erase', $school['id']) }}" aria-label="{{ __('Start the erasure') }}">
+                    @csrf
+                    <p>{{ __('This erases the school\'s data for good. It cannot be stopped once it starts. The school\'s export, both approvals and that nothing outside the school refers to its rows are checked again first.') }}</p>
+                    <div class="saas-field"><label for="erase-confirm">{{ __('Type :reference to confirm', ['reference' => $o['reference']]) }}</label><input id="erase-confirm" name="confirm" required maxlength="16" autocomplete="off"></div>
+                    <div class="saas-actions"><button class="saas-btn saas-btn--danger" type="submit">{{ __('Erase the school\'s data') }}</button></div>
+                </form>
+            @else
+                <p>{{ __('The erasure can start now.') }}</p>
+            @endif
+        @else
+            <p>{{ __('The erasure can start once deletion is approved twice and the cooling-off period is over.') }}</p>
+        @endif
+    </div>
+
+    @if (! in_array($o['state'], [SchoolOffboarding::ERASING, SchoolOffboarding::ERASED], true))
     <h2>{{ __('Legal hold') }}</h2>
     <div class="saas-card">
         @if ($o['legal_hold'])
@@ -164,7 +204,9 @@
         @endif
     </div>
 
-    @if ($manage)
+    @endif
+
+    @if ($manage && ! in_array($o['state'], [SchoolOffboarding::ERASING, SchoolOffboarding::ERASED], true))
     <h2>{{ __('Cancel') }}</h2>
     <form method="POST" action="{{ route('saas.schools.offboarding.cancel', $school['id']) }}" class="saas-card" aria-label="{{ __('Cancel this offboarding') }}">
         @csrf

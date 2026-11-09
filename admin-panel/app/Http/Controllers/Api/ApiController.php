@@ -240,6 +240,10 @@ class ApiController extends Controller
                 return ResponseService::errorResponse('Current password is incorrect.');
             }
 
+            if (Hash::check($request->input('new_password'), $user->password)) {
+                return ResponseService::errorResponse('Choose a new password that differs from your current password.');
+            }
+
             $user->update([
                 'password' => Hash::make($request->input('new_password')),
             ]);

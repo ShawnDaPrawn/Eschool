@@ -119,7 +119,20 @@ final class OpenApiSpec
 
     private static function validator(): ResponseValidator
     {
-        return self::$validator ??= (new ValidatorBuilder)->fromYamlFile(self::file())->getResponseValidator();
+        if (self::$validator === null) {
+            $spec = Yaml::parseFile(self::file());
+            // league/openapi-psr7-validator 0.24 recognizes null in a type
+            // array, but rejects the equivalent OpenAPI 3.1 `type: 'null'`.
+            // Normalize that spelling without widening the permitted values.
+            array_walk_recursive($spec['components']['schemas'], static function (&$value, $key): void {
+                if ($key === 'type' && $value === 'null') {
+                    $value = ['null'];
+                }
+            });
+            self::$validator = (new ValidatorBuilder)->fromJson(json_encode($spec, JSON_THROW_ON_ERROR))->getResponseValidator();
+        }
+
+        return self::$validator;
     }
 
     /** The validator's reasons, outermost first, with where in the body each applies. */

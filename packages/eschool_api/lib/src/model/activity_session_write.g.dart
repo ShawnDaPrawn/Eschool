@@ -8,35 +8,47 @@ part of 'activity_session_write.dart';
 
 ActivitySessionWrite _$ActivitySessionWriteFromJson(
   Map<String, dynamic> json,
-) => $checkedCreate('ActivitySessionWrite', json, ($checkedConvert) {
-  $checkKeys(
-    json,
-    requiredKeys: const [
-      'operation_id',
-      'revision',
-      'on_date',
-      'name',
-      'venue',
-      'status',
-    ],
-  );
-  final val = ActivitySessionWrite(
-    operationId: $checkedConvert('operation_id', (v) => v as String),
-    revision: $checkedConvert('revision', (v) => (v as num).toInt()),
-    onDate: $checkedConvert('on_date', (v) => v as String),
-    name: $checkedConvert('name', (v) => v as String),
-    venue: $checkedConvert('venue', (v) => v as String),
-    status: $checkedConvert(
-      'status',
-      (v) => $enumDecode(
-        _$ActivitySessionWriteStatusEnumEnumMap,
-        v,
-        unknownValue: ActivitySessionWriteStatusEnum.unknownDefaultOpenApi,
+) => $checkedCreate(
+  'ActivitySessionWrite',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      requiredKeys: const [
+        'operation_id',
+        'revision',
+        'on_date',
+        'name',
+        'venue',
+        'status',
+      ],
+    );
+    final val = ActivitySessionWrite(
+      operationId: $checkedConvert('operation_id', (v) => v as String),
+      revision: $checkedConvert('revision', (v) => (v as num).toInt()),
+      onDate: $checkedConvert('on_date', (v) => v as String),
+      startsAt: $checkedConvert('starts_at', (v) => v as String?),
+      endsAt: $checkedConvert('ends_at', (v) => v as String?),
+      name: $checkedConvert('name', (v) => v as String),
+      venue: $checkedConvert('venue', (v) => v as String),
+      status: $checkedConvert(
+        'status',
+        (v) => $enumDecode(
+          _$ActivitySessionWriteStatusEnumEnumMap,
+          v,
+          unknownValue: ActivitySessionWriteStatusEnum.unknownDefaultOpenApi,
+        ),
       ),
-    ),
-  );
-  return val;
-}, fieldKeyMap: const {'operationId': 'operation_id', 'onDate': 'on_date'});
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'operationId': 'operation_id',
+    'onDate': 'on_date',
+    'startsAt': 'starts_at',
+    'endsAt': 'ends_at',
+  },
+);
 
 Map<String, dynamic> _$ActivitySessionWriteToJson(
   ActivitySessionWrite instance,
@@ -44,6 +56,8 @@ Map<String, dynamic> _$ActivitySessionWriteToJson(
   'operation_id': instance.operationId,
   'revision': instance.revision,
   'on_date': instance.onDate,
+  'starts_at': ?instance.startsAt,
+  'ends_at': ?instance.endsAt,
   'name': instance.name,
   'venue': instance.venue,
   'status': _$ActivitySessionWriteStatusEnumEnumMap[instance.status]!,

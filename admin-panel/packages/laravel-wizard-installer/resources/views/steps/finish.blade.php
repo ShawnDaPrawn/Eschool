@@ -40,7 +40,7 @@
                     <p class="pb-3 text-gray-800">
                         Email: <b>{{ config('installer.admin_area.user.email') }}</b>
                         <br>
-                        Password: <b>{{ config('installer.admin_area.user.password') }}</b>
+                        Sign in with the administrator password you configured during installation.
                     </p>
                 @endif
             </div>

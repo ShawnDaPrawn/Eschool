@@ -9,6 +9,7 @@ use App\Models\Platform\LearnerApproval;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
+use App\Services\ChildMode\ChildModeSessions;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
@@ -64,6 +65,8 @@ class ApprovalService
                 // Any authorised guardian can stop access, even if another approved.
                 LearnerApproval::query()->where('learner_id', $learner->id)->whereNull('withdrawn_at')->get()
                     ->each(fn (LearnerApproval $approval) => $approval->update(['withdrawn_at' => now()]));
+                // Child mode in the parent app ends with the approval (Action Plan 4.2).
+                ChildModeSessions::revokeForLearner((int) $learner->id, ChildModeSessions::APPROVAL_WITHDRAWN);
                 $user = $learner->user;
                 if ($user !== null) {
                     $user->tokens()->delete();

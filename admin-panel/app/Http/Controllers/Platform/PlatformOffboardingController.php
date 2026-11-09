@@ -9,6 +9,7 @@ use App\Http\Requests\Saas\OffboardingRequest;
 use App\Services\Platform\Saas\PlatformOffboarding;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 /** HQ: a leaving school's offboarding (Action Plan SA.11). States and counts only, never the school's data. */
 class PlatformOffboardingController extends Controller
@@ -66,7 +67,7 @@ class PlatformOffboardingController extends Controller
     {
         $this->offboarding->approveDeletion($school, $request->user());
 
-        return $this->back($school, __('Deletion approved and the dry run repeated. Nothing was deleted: deleting the rows is not built yet.'));
+        return $this->back($school, __('Deletion approved and the dry run repeated. Nothing was deleted: the erasure can start once the cooling-off period is over.'));
     }
 
     public function hold(OffboardingRequest $request, int $school): RedirectResponse
@@ -81,6 +82,33 @@ class PlatformOffboardingController extends Controller
         $this->offboarding->liftHold($school, $request->user());
 
         return $this->back($school, __('Legal hold lifted.'));
+    }
+
+    public function erase(OffboardingRequest $request, int $school): RedirectResponse
+    {
+        $this->offboarding->startErasure($school, $request->validated(), $request->user());
+
+        return $this->back($school, __('Erasure started. It runs in the background; this page shows its progress.'));
+    }
+
+    public function resume(OffboardingRequest $request, int $school): RedirectResponse
+    {
+        $this->offboarding->resumeErasure($school, $request->user());
+
+        return $this->back($school, __('Erasure resumed from where it stopped.'));
+    }
+
+    /** The erasure certificate as issued: counts, dates and audit entry ids, no personal information. */
+    public function certificate(int $school): Response
+    {
+        $certificate = $this->offboarding->certificate($school);
+
+        return response($certificate['json'], 200, [
+            'Content-Type' => 'application/json; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.$certificate['reference'].'.json"',
+            'X-Certificate-SHA256' => $certificate['sha256'],
+            'Cache-Control' => 'no-store, private',
+        ]);
     }
 
     private function back(int $school, string $message): RedirectResponse

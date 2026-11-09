@@ -23,6 +23,7 @@ class OffboardingRequest extends PlatformStaffRequest
         return match ((string) $this->route()?->getName()) {
             'saas.schools.offboarding.start' => PlatformOffboarding::startRules(),
             'saas.schools.offboarding.cancel', 'saas.schools.offboarding.hold' => PlatformOffboarding::reasonRules(),
+            'saas.schools.offboarding.erase' => PlatformOffboarding::erasureRules(),
             default => [],
         };
     }

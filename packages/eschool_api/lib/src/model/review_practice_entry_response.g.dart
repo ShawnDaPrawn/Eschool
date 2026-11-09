@@ -15,7 +15,8 @@ ReviewPracticeEntryResponse _$ReviewPracticeEntryResponseFromJson(
     message: $checkedConvert('message', (v) => v as String),
     data: $checkedConvert(
       'data',
-      (v) => PracticeReview.fromJson(v as Map<String, dynamic>),
+      (v) =>
+          ReviewPracticeEntryResponseData.fromJson(v as Map<String, dynamic>),
     ),
     code: $checkedConvert('code', (v) => (v as num).toInt()),
   );

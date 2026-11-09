@@ -97,11 +97,15 @@ unchanged. No billing or entitlement is added here.
 (`step`, `lead` true while teaching, `attempt`) to the approved context of a
 session the path opened, and the manifest records the path id and step; a
 later reauthorization checks the path is still this learner's in this group,
-not that the step is unchanged, so earlier turns stay readable. The tutor
-prompt (v1.2.0) gains one instruction: when `lead` is true, teach the topic in
-small steps (one idea, one short worked example, one question) instead of
-waiting; otherwise support the step with hints only, and never give the
-path's question answers. No safety rule changed.
+not that the step is unchanged, so earlier turns stay readable. Both tutor
+prompts carry one instruction for it (v1 `tutor` 1.2.0, and v2 `tutor-v2`
+2.1.0, the default): when `lead` is true, teach the topic in small steps (one
+idea, one short worked example, one question) instead of waiting; otherwise
+support the step with hints only, and never give the path's question answers.
+No safety rule changed. `LearningPathTest` sends a real v2 turn to a local
+fake provider and checks the path context and the instruction both reach the
+model; the `learning_path_tutor_leads` case in `resources/ai/evals/tutor.jsonl`
+is scored against the configured prompt (v2).
 
 **Practice and check questions.** From `LearningPathSources::candidates`: the
 school's approved questions on the topic in the group (active, latest

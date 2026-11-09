@@ -79,13 +79,11 @@ Memo authors in Physical Sciences should separate quantities with spaces or × (
 | Use | How |
 | --- | --- |
 | Teacher preview | `GET /exam-memos/groups/{group}/versions/{version}/marking` (`exam-memos.marking`) shows the paper's markable questions (points add up to the total), the memo's state, the subject profile, its conventions and whether learner marking is on. `POST` same path (`exam-memos.marking.preview`, `throttle:60,1`) marks the typed answer and shows the breakdown table. Linked from the memo page once it has mark points. Same middleware as the memo pages (`module:exam_coach,read`, private, no-store). It uses the memo's current points, draft or reviewed, and says which. Nothing is stored or audited. |
-| Exam coach flow (service) | `PaperMarking::learner($actor, $group, $version, ['question', 'answer'])`: only a reviewed memo (`PastPaperMemos::reviewed`, with the learner's own access checks: their group, the published version, the licence) and only when the subject's learner marking is on; otherwise null before anything is marked. Returns the learner shape. No endpoint calls it yet: 3.17 will. |
+| Exam coach flow (service) | `PaperMarking::learner($actor, $group, $version, ['question', 'answer'])`: only a reviewed memo (`PastPaperMemos::reviewed`, with the learner's own access checks: their group, the published version, the licence) and only when the subject's accuracy gate is open; otherwise null before anything is marked. Returns the learner shape. No endpoint calls it yet. Practice tests (3.17) mark only choice and number questions and never call the engine. |
 
-## The accuracy gate and the learner marking flag
+## The accuracy gate
 
-`config/marking.php` → `learner_marking.{mathematics, physical_sciences, generic}`, all `false`. Only a literal `true` switches a profile on (`SubjectProfile::learnerMarkingEnabled`); there is deliberately no environment variable, so switching on is a reviewed code change carrying the evidence.
-
-3.18 adds the gate: an evaluation harness with at least 200 real, teacher-marked scripts per subject. A subject is switched on only when the engine (at a stated `engine` version) agrees with teacher marks within the tolerance moderation accepts for human markers. Until then, marks that need a teacher are counted as disagreements unless a teacher confirms them, and the gate measures per rule and per profile so weak rules can be fixed or sent to teachers. Teacher marking assistance follows later. The teacher preview is not gated: it is for teachers checking their own memos.
+Learner marking in a subject follows the [accuracy gate](marking-accuracy-gate.md) (3.18): `SubjectProfile::learnerMarkingEnabled()` asks `MarkingGate::open($profile->key())`, which is true only after an HQ approver switched the subject on against its latest passing evaluation run on the current `MarkingEngine::VERSION` and the profile's `version()`. The generic profile is never switched on. The teacher preview is not gated: it is for teachers checking their own memos. Each profile has a `version()` (`mathematics-v1`, `physical_sciences-v1`, `generic-v1`); `MarkingVersionsTest` pins the engine and each profile version to its code, so a change in how they mark needs a new version and so a new passing run.
 
 ## Data changes
 
@@ -121,7 +119,7 @@ Unit (`tests/Unit/Learning/Marking/`):
 
 - `NumbersAndUnitsTest`: decimal comma and point, digit groups, scientific notation, significant figures and decimals (including ambiguous trailing zeros), tolerance and rounding, units written several ways, SI conversions with their factors, wrong, missing, unreadable and unknown units, answer lines and stated values, input bounds.
 - `ExpressionTest`: equivalent and non-equivalent forms, symbols versus letters, splitting by memo quantities, equivalent equations (rearranged, multiplied, solved for another variable) and trivial ones refused, constants, unreadable and oversized input.
-- `MarkingEngineTest`: breakdown and confidence shape and the learner shape; exact values (tolerance, final line first, several answers); method values; units by profile (required, converted, wrong, unreadable, unknown); `units_required`; Physical Sciences rounding and direction; significant figures; keywords; equivalent forms by profile and "asks for a form"; formula first; follow-through (awarded, wrong arithmetic, not from the earlier answer, unit, generic, nothing to follow); method and explanation to a teacher with the AI gateway mocked to never be called; judgement can never award or refuse; no AI reference in the marking code; learner marking off for every profile by default and only a literal true switches it on; profile choice by subject name; unknown rule kind.
+- `MarkingEngineTest`: breakdown and confidence shape and the learner shape; exact values (tolerance, final line first, several answers); method values; units by profile (required, converted, wrong, unreadable, unknown); `units_required`; Physical Sciences rounding and direction; significant figures; keywords; equivalent forms by profile and "asks for a form"; formula first; follow-through (awarded, wrong arithmetic, not from the earlier answer, unit, generic, nothing to follow); method and explanation to a teacher with the AI gateway mocked to never be called; judgement can never award or refuse; no AI reference in the marking code; each profile asks the accuracy gate about its own key and has a version; profile choice by subject name; unknown rule kind.
 
 Feature (`tests/Feature/Learning/MarkingPreviewTest`):
 
@@ -133,7 +131,7 @@ Feature (`tests/Feature/Learning/MarkingPreviewTest`):
 | `test_wrong_role_learner_and_parent_cannot_use_the_preview` | Learner 403, parent to sign-in, service refuses both |
 | `test_wrong_owner_a_teacher_outside_the_group_cannot_preview_until_allocated` | Refused before allocation, allowed after |
 | `test_wrong_school_school_b_memos_cannot_be_used_and_are_unchanged` | 404 from the page, the preview and the learner call, even with learner marking on; School B's memo row is identical |
-| `test_learner_marking_is_off_until_the_subject_passes_the_accuracy_gate` | With a reviewed memo and the flag off, the learner call returns null and the engine is never invoked |
+| `test_learner_marking_is_off_until_the_subject_passes_the_accuracy_gate` | With a reviewed memo and the gate closed, the learner call returns null and the engine is never invoked |
 | `test_learner_marking_once_switched_on_uses_only_the_reviewed_memo_and_hides_its_words` | A draft memo is never used; the result has no memo words; unknown question 404; another learner, a parent and a teacher are refused |
 
 ## Self-test steps
@@ -143,7 +141,7 @@ On staging, as a teacher of a Physical Sciences or Mathematics group: open a mem
 ## Not in this step
 
 - Test assembly, timed mode and any learner endpoint or app screen (3.17).
-- The evaluation harness and switching any subject on (3.18).
+- The evaluation harness and switching any subject on ([accuracy gate](marking-accuracy-gate.md), 3.18).
 - Photographed or handwritten answers (vision is a gateway feature, inference is off).
 - Judgement by a model for method and explanation marks.
 - Marking answers stored as `ExamAnswer` working text; storing marking results.

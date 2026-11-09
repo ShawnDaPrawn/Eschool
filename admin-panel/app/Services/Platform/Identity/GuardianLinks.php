@@ -9,6 +9,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
+use App\Services\ChildMode\ChildModeSessions;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
@@ -127,6 +128,10 @@ class GuardianLinks
             $before = $link->getAttributes();
             $link->fill(['relationship' => $data['relationship'], 'can_approve' => (bool) $data['can_approve'], 'can_see_fees' => (bool) $data['can_see_fees']])->save();
             Audit::record('guardian_link_changed', $link, $before, $link->getAttributes());
+            if (! $link->can_approve) {
+                // Child mode is for approving guardians (Action Plan 4.2): it ends at once.
+                ChildModeSessions::revokeForLearner((int) $link->learner_id, ChildModeSessions::APPROVAL_RIGHT_REMOVED, (int) $link->guardian_user_id);
+            }
             Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'people.guardians_changed'));
 
             return $link;
@@ -146,6 +151,7 @@ class GuardianLinks
             $before = $link->getAttributes();
             $link->fill(['status' => 'ended', 'ended_at' => now(), 'ended_by' => $actor->id, 'ended_reason' => $data['reason']])->save();
             Audit::record('guardian_link_ended', $link, $before, $link->getAttributes());
+            ChildModeSessions::revokeForLearner((int) $link->learner_id, ChildModeSessions::GUARDIAN_REMOVED, (int) $link->guardian_user_id);
             $school = app(CurrentSchool::class)->id();
             $guardian = User::query()->withTrashed()->findOrFail($link->guardian_user_id);
             $children = app(GuardianService::class)->childrenFor((int) $guardian->id, (int) (Parents::query()->where('user_id', $guardian->id)->value('id') ?? 0))->count();

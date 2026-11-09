@@ -34,6 +34,7 @@ use App\Services\People\RemoveLearner;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\LearnerInvitations;
 use App\Services\Platform\Identity\LuritsNumbers;
+use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\ResponseService;
@@ -213,7 +214,7 @@ class StudentController extends Controller
                     'mother_email.different' => 'Father and Mother email cannot be the same.',
                 ]);
 
-                $father_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->father_dob ?? '1990-01-01')));
+                $father_plaintext_password = PasswordPolicy::temporary();
 
                 if (! intval($request->father_email)) {
                     $father_email = $request->father_email;
@@ -232,6 +233,7 @@ class StudentController extends Controller
 
                     $father_user->image = $file_path;
                     $father_user->password = Hash::make($father_plaintext_password);
+                    $father_user->password_change_required = true;
                     $father_user->first_name = $request->father_first_name;
                     $father_user->last_name = $request->father_last_name;
                     $father_user->email = $father_email;
@@ -308,7 +310,7 @@ class StudentController extends Controller
                 }
 
                 // Add Mother in User and Parent table data
-                $mother_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->mother_dob)));
+                $mother_plaintext_password = PasswordPolicy::temporary();
                 if (! intval($request->mother_email)) {
                     $mother_email = $request->mother_email;
                     $mother_user = new User;
@@ -326,6 +328,7 @@ class StudentController extends Controller
 
                     $mother_user->image = $file_path;
                     $mother_user->password = Hash::make($mother_plaintext_password);
+                    $mother_user->password_change_required = true;
                     $mother_user->first_name = $request->mother_first_name;
                     $mother_user->last_name = $request->mother_last_name;
                     $mother_user->email = $mother_email;
@@ -415,7 +418,7 @@ class StudentController extends Controller
                             'guardian_image' => 'required|mimes:jpeg,png,jpg|image|max:2048',
                         ]);
                     }
-                    $guardian_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->guardian_dob)));
+                    $guardian_plaintext_password = PasswordPolicy::temporary();
                     if (! intval($request->guardian_email)) {
                         $guardian_email = $request->guardian_email;
                         $guardian_user = new User;
@@ -433,6 +436,7 @@ class StudentController extends Controller
 
                         $guardian_user->image = $file_path;
                         $guardian_user->password = Hash::make($guardian_plaintext_password);
+                        $guardian_user->password_change_required = true;
                         $guardian_user->first_name = $request->guardian_first_name;
                         $guardian_user->last_name = $request->guardian_last_name;
                         $guardian_user->email = $guardian_email;
@@ -1116,7 +1120,8 @@ class StudentController extends Controller
                 if (! intval($request->father_email)) {
                     $father_user = new User;
                     $father_user->image = $request->file('father_image')->store('parents', 'public');
-                    $father_user->password = Hash::make(str_replace('/', '', $request->father_dob));
+                    $father_user->password = Hash::make(PasswordPolicy::temporary());
+                    $father_user->password_change_required = true;
                     $father_user->first_name = $request->father_first_name;
                     $father_user->last_name = $request->father_last_name;
                     $father_user->email = $request->father_email;
@@ -1146,7 +1151,8 @@ class StudentController extends Controller
                 if (! intval($request->mother_email)) {
                     $mother_user = new User;
                     $mother_user->image = $request->file('mother_image')->store('parents', 'public');
-                    $mother_user->password = Hash::make(str_replace('/', '', $request->mother_dob));
+                    $mother_user->password = Hash::make(PasswordPolicy::temporary());
+                    $mother_user->password_change_required = true;
                     $mother_user->first_name = $request->mother_first_name;
                     $mother_user->last_name = $request->mother_last_name;
                     $mother_user->email = $request->mother_email;
@@ -1195,7 +1201,8 @@ class StudentController extends Controller
                         $guardian_image->move($destinationPath, $file_name);
 
                         $guardian_user->image = $file_path;
-                        $guardian_user->password = Hash::make(str_replace('/', '', $request->guardian_dob));
+                        $guardian_user->password = Hash::make(PasswordPolicy::temporary());
+                        $guardian_user->password_change_required = true;
                         $guardian_user->first_name = $request->guardian_first_name;
                         $guardian_user->last_name = $request->guardian_last_name;
                         $guardian_user->email = $guardian_email;

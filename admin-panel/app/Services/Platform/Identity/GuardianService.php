@@ -7,6 +7,7 @@ namespace App\Services\Platform\Identity;
 use App\Models\Parents;
 use App\Models\Platform\GuardianLink;
 use App\Models\Students;
+use App\Services\ChildMode\ChildModeSessions;
 use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
@@ -81,6 +82,9 @@ class GuardianService
         // directly (GuardianLinks) are never ended by a legacy edit.
         GuardianLink::query()->where('learner_id', $learner->id)
             ->where('source', GuardianLinks::LEGACY)->whereNotIn('guardian_user_id', $ids)->where('status', 'active')->get()
-            ->each(fn (GuardianLink $link) => $link->update(['status' => 'ended']));
+            ->each(function (GuardianLink $link): void {
+                $link->update(['status' => 'ended']);
+                ChildModeSessions::revokeForLearner((int) $link->learner_id, ChildModeSessions::GUARDIAN_REMOVED, (int) $link->guardian_user_id);
+            });
     }
 }

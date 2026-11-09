@@ -113,11 +113,11 @@ The permission lists are documented in [Roles-and-Permissions](Roles-and-Permiss
 
 [database/seeders/AddSuperAdminSeeder.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/AddSuperAdminSeeder.php):
 
-- `User::updateOrCreate(['id' => 1], [...])` with first name `super`, last name `admin`, email `superadmin@gmail.com`, password `superadmin` (hashed), gender `Male`, image `logo.svg`, and assigns the `Super Admin` role. It must run after `InstallationSeeder`, which creates the role.
+- Creates user id 1 with first name `super`, last name `admin`, the configured `ADMIN_EMAIL` and hashed `ADMIN_PASSWORD`, gender `Male`, image `logo.svg`, and the `Super Admin` role. Credentials are required; the password needs at least ten characters with letters and numbers. Existing credentials are preserved on reseeding. It must run after `InstallationSeeder`, which creates the role.
 - `SessionYear::updateOrCreate(['id' => 1], ['name' => '2022-23', 'default' => 1, 'start_date' => '2022-06-01', 'end_date' => '2023-04-30'])`.
 - Inserts a new `settings` row `session_year = 1` (a plain insert, so running the seeder twice leaves two `session_year` rows).
 
-Warning: these are well-known demo credentials, and the installer's finish page displays them. Change the Super Admin password (and email) immediately after installing. Then create the school's session year with "Make this the current session year" on (or use **Make current** on the Session Years list); the seeded one, 2022-23, has ended, and class subjects, teachers and students added before the switch are saved under it.
+Configure unique administrator credentials before running the wizard; its finish page never displays the password. Then create the school's session year with "Make this the current session year" on (or use **Make current** on the Session Years list); the seeded one, 2022-23, has ended, and class subjects, teachers and students added before the switch are saved under it.
 
 ### EmailSeeder
 
@@ -177,7 +177,7 @@ Notes:
 - `--force` is needed because `.env.example` sets `APP_ENV=production`.
 - Running `key:generate` once is enough here; the wizard's final `key:generate --force` only exists to replace a key that was shared or used to bootstrap the wizard.
 - This is what CI and the tests do: CI runs `cp .env.example .env && php artisan key:generate --force` and `php artisan test`, and `tests/Concerns/RunsAppServer.php` runs `migrate:fresh --force` followed by the three seeders. See [Testing-and-CI](Testing-and-CI).
-- Sign in at `/login` with `superadmin@gmail.com` / `superadmin` and change the password.
+- Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` before running the seeders, then sign in at `/login` with those values. Tests supply their own synthetic credentials in `tests/TestCase.php`.
 
 ## See also
 

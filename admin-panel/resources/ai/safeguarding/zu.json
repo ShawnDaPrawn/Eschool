@@ -1,0 +1,39 @@
+{
+    "language": "zu",
+    "name": "isiZulu",
+    "purpose": "DRAFT detection phrases only, for the local safeguarding guard. Needs review by safeguarding professionals and fluent isiZulu speakers before isiZulu is offered in the tutor. A word with * may carry any prefix (*word) or suffix (word*), because isiZulu joins subject, object and reflexive markers to the verb. Never sent to an AI provider, never logged, read-only in HQ.",
+    "categories": {
+        "self_harm": [
+            "*zibulala*",
+            "*zibulale*",
+            "*zibulele*",
+            "*zilimaza*",
+            "*zilimaze*",
+            "*zilimazil*",
+            "*ukuzikil*",
+            "ngifuna ukufa",
+            "sengifuna ukufa",
+            "ngfuna ukufa",
+            "angisafuni ukuphila",
+            "angifuni ukuphila",
+            "*qeda impilo yami",
+            "*qede impilo yami"
+        ],
+        "abuse": [
+            "*ngihlukumez*",
+            "*ngihlukunyez*",
+            "*ngiyahlukumezw*",
+            "*ngiyahlukunyezw*",
+            "*ngahlukumezw*",
+            "*ngahlukunyezw*",
+            "*ngiabus*"
+        ],
+        "sexual_violence": [
+            "*dlwengulw*",
+            "*dlwenguliwe*",
+            "*ngidlwengul*",
+            "*hlukunyezw* ngokocansi",
+            "*hlukumez* ngokocansi"
+        ]
+    }
+}

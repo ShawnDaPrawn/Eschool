@@ -18,7 +18,9 @@ class PracticeReviewInput {
   PracticeReviewInput({
     required this.operationId,
 
-    required this.answer,
+    this.answer,
+
+    this.parts,
 
     required this.rating,
   });
@@ -26,8 +28,11 @@ class PracticeReviewInput {
   @JsonKey(name: r'operation_id', required: true, includeIfNull: false)
   final String operationId;
 
-  @JsonKey(name: r'answer', required: true, includeIfNull: false)
-  final String answer;
+  @JsonKey(name: r'answer', required: false, includeIfNull: false)
+  final String? answer;
+
+  @JsonKey(name: r'parts', required: false, includeIfNull: false)
+  final Map<String, String>? parts;
 
   // minimum: 2
   // maximum: 4
@@ -40,10 +45,12 @@ class PracticeReviewInput {
       other is PracticeReviewInput &&
           other.operationId == operationId &&
           other.answer == answer &&
+          other.parts == parts &&
           other.rating == rating;
 
   @override
-  int get hashCode => operationId.hashCode + answer.hashCode + rating.hashCode;
+  int get hashCode =>
+      operationId.hashCode + answer.hashCode + parts.hashCode + rating.hashCode;
 
   factory PracticeReviewInput.fromJson(Map<String, dynamic> json) =>
       _$PracticeReviewInputFromJson(json);

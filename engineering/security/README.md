@@ -6,6 +6,7 @@ The threat model and the record of each phase's security checks (Build Bible sec
 | --- | --- |
 | [threat-model.md](threat-model.md) | Assets, actors, trust boundaries (panel, API, apps, worker, webhooks), top threats and their mitigations. Updated when a phase adds a surface. |
 | [phase-0.md](phase-0.md) | The Phase 0 security checklist: each item, how it is proven, and its status, plus secret-scanning findings that need the product owner. |
+| [authentication-review-2026-11-08.md](authentication-review-2026-11-08.md) | Manual authentication review, fixes, regression evidence and remaining release requirements. |
 | `phase-N.md` | The same for each later phase. |
 
 **Before a phase closes**, the Test and Review roles run the security checks the Build Bible lists in section 5.1 and record the results in that phase's file here.

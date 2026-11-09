@@ -22,6 +22,10 @@ class ActivitySession {
 
     required this.onDate,
 
+    this.startsAt,
+
+    this.endsAt,
+
     required this.name,
 
     required this.venue,
@@ -41,6 +45,12 @@ class ActivitySession {
 
   @JsonKey(name: r'on_date', required: true, includeIfNull: false)
   final String onDate;
+
+  @JsonKey(name: r'starts_at', required: false, includeIfNull: false)
+  final String? startsAt;
+
+  @JsonKey(name: r'ends_at', required: false, includeIfNull: false)
+  final String? endsAt;
 
   @JsonKey(name: r'name', required: true, includeIfNull: false)
   final String name;
@@ -67,6 +77,8 @@ class ActivitySession {
           other.id == id &&
           other.activityGroupId == activityGroupId &&
           other.onDate == onDate &&
+          other.startsAt == startsAt &&
+          other.endsAt == endsAt &&
           other.name == name &&
           other.venue == venue &&
           other.status == status &&
@@ -77,6 +89,8 @@ class ActivitySession {
       id.hashCode +
       activityGroupId.hashCode +
       onDate.hashCode +
+      (startsAt == null ? 0 : startsAt.hashCode) +
+      (endsAt == null ? 0 : endsAt.hashCode) +
       name.hashCode +
       venue.hashCode +
       status.hashCode +

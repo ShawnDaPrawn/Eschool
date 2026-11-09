@@ -155,15 +155,18 @@ use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLibraryController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformMailStreamsController;
+use App\Http\Controllers\Platform\PlatformMarkingAccuracyController;
 use App\Http\Controllers\Platform\PlatformMessagingController;
 use App\Http\Controllers\Platform\PlatformOffboardingController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
 use App\Http\Controllers\Platform\PlatformReadingController;
+use App\Http\Controllers\Platform\PlatformSafeguardingPhrasesController;
 use App\Http\Controllers\Platform\PlatformSchoolGroupController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformSchoolImportController;
 use App\Http\Controllers\Platform\PlatformStaffController;
+use App\Http\Controllers\Platform\PlatformSubscriptionController;
 use App\Http\Controllers\Platform\PlatformSupportAccessController;
 use App\Http\Controllers\Platform\PlatformSupportController;
 use App\Http\Controllers\Platform\PlatformTwoFactorController;
@@ -201,6 +204,7 @@ use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\Webhooks\MessagingWebhookController;
+use App\Http\Controllers\Webhooks\SubscriptionWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\AuthorizeCardEncodingPanel;
 use App\Http\Middleware\AuthorizeCardsPanel;
@@ -218,6 +222,7 @@ use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Requests\Emergency\EmergencyPanelRequest;
+use App\Services\Learning\SafeguardingPhrases;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -407,6 +412,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::post('/deletion/approval', [PlatformOffboardingController::class, 'approve'])->middleware('platform.can:offboarding.approve')->name('.approve');
         Route::post('/legal-hold', [PlatformOffboardingController::class, 'hold'])->middleware('platform.can:offboarding.manage')->name('.hold');
         Route::delete('/legal-hold', [PlatformOffboardingController::class, 'liftHold'])->middleware('platform.can:offboarding.approve')->name('.hold.lift');
+        // Erasure: after both approvals and the cooling-off period; resumable; ends with a certificate (counts and dates only).
+        Route::post('/erasure', [PlatformOffboardingController::class, 'erase'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.erase');
+        Route::post('/erasure/resume', [PlatformOffboardingController::class, 'resume'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.erase.resume');
+        Route::get('/certificate', [PlatformOffboardingController::class, 'certificate'])->middleware('platform.can:offboarding.view')->name('.certificate');
     });
     Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->middleware('platform.can:schools.package')->whereNumber('school')->name('schools.package');
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->middleware('platform.can:schools.status')->whereNumber('school')->name('schools.status');
@@ -438,6 +447,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // Safeguarding phrase lists (3.2): each language's read-only list and its professional review; never a learner's message.
+    Route::get('/safeguarding-phrases', [PlatformSafeguardingPhrasesController::class, 'index'])->middleware('platform.can:safeguarding.phrases')->name('safeguarding-phrases');
+    Route::post('/safeguarding-phrases/{language}/reviews', [PlatformSafeguardingPhrasesController::class, 'review'])->middleware(['platform.can:safeguarding.phrases', 'throttle:20,1'])
+        ->whereIn('language', array_keys(SafeguardingPhrases::LANGUAGES))->name('safeguarding-phrases.review');
     // The platform content library (3.3) and its review (SA.16): library rows only, never a school's material or people.
     Route::prefix('/library')->name('library.')->group(function () {
         Route::middleware('platform.can:library.manage')->group(function () {
@@ -466,6 +479,18 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
         });
+    });
+    // The marking accuracy gate (3.18): de-identified evaluation scripts, runs and each subject's learner-marking switch; never a school or a learner.
+    Route::prefix('/marking-accuracy')->name('marking-accuracy.')->group(function () {
+        Route::get('/', [PlatformMarkingAccuracyController::class, 'index'])->middleware('platform.can:marking.evaluate,marking.approve')->name('index');
+        Route::get('/runs/{run}', [PlatformMarkingAccuracyController::class, 'run'])->middleware('platform.can:marking.evaluate,marking.approve')->whereNumber('run')->name('runs.show');
+        Route::middleware('platform.can:marking.evaluate')->group(function () {
+            Route::post('/papers', [PlatformMarkingAccuracyController::class, 'storePaper'])->middleware('throttle:20,1')->name('papers.store');
+            Route::post('/scripts', [PlatformMarkingAccuracyController::class, 'storeScripts'])->middleware('throttle:20,1')->name('scripts.store');
+            Route::post('/subjects/{subject}/runs', [PlatformMarkingAccuracyController::class, 'evaluate'])->middleware('throttle:6,1')->where('subject', '[a-z_]{1,32}')->name('runs.store');
+        });
+        Route::put('/subjects/{subject}/gate', [PlatformMarkingAccuracyController::class, 'switchOn'])->middleware(['platform.can:marking.approve', 'throttle:20,1'])->where('subject', '[a-z_]{1,32}')->name('gate.on');
+        Route::delete('/subjects/{subject}/gate', [PlatformMarkingAccuracyController::class, 'switchOff'])->middleware(['platform.can:marking.approve,marking.evaluate', 'throttle:20,1'])->where('subject', '[a-z_]{1,32}')->name('gate.off');
     });
     // The reading library catalogue (4.4): public-domain books, rights decisions, shelves and questions; never a school's learners.
     Route::prefix('/reading')->name('reading.')->middleware('platform.can:reading.manage')->group(function () {
@@ -557,6 +582,19 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
             Route::post('/{group}/invoices/{invoice}/discard', [$c, 'discard'])->whereNumber(['group', 'invoice'])->name('discard');
             Route::post('/{group}/invoices/{invoice}/payments', [$c, 'pay'])->whereNumber(['group', 'invoice'])->name('payments.store');
             Route::post('/{group}/invoices/{invoice}/payments/{payment}/reverse', [$c, 'reverse'])->whereNumber(['group', 'invoice', 'payment'])->name('payments.reverse');
+        });
+    });
+    // Learner subscriptions and their revenue (3.20, SA.8 Build 3): billing.view reads, billing.manage records EFTs and sets up licences and sponsorships.
+    Route::prefix('/subscriptions')->name('subscriptions')->group(function () {
+        $c = PlatformSubscriptionController::class;
+        Route::get('/', [$c, 'index'])->middleware('platform.can:billing.view');
+        Route::get('/revenue', [$c, 'revenue'])->middleware('platform.can:billing.view')->name('.revenue');
+        Route::middleware(['platform.can:billing.manage', 'throttle:30,1'])->prefix('/schools/{school}')->whereNumber('school')->group(function () use ($c) {
+            Route::post('/licences', [$c, 'licence'])->name('.licences.store');
+            Route::post('/sponsorships', [$c, 'sponsorship'])->name('.sponsorships.store');
+            Route::post('/{subscription}/payments', [$c, 'payment'])->whereNumber('subscription')->name('.payments.store');
+            Route::post('/{subscription}/decline', [$c, 'decline'])->whereNumber('subscription')->name('.decline');
+            Route::post('/{subscription}/end', [$c, 'end'])->whereNumber('subscription')->name('.end');
         });
     });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
@@ -1605,6 +1643,10 @@ Route::post('webhook/mail/ses', [MailWebhookController::class, 'ses'])->middlewa
 // Twilio SMS and WhatsApp status callbacks (Action Plan 2.7), signed with the
 // platform's auth token (X-Twilio-Signature).
 Route::post('webhook/messaging/twilio', [MessagingWebhookController::class, 'twilio'])->middleware('throttle:messaging-webhook')->name('webhook.messaging.twilio');
+
+// Learner subscription notices from a payment gateway (Action Plan 3.20), signed;
+// only the gateway named in config('subscriptions.gateway') is acted on. None is chosen yet.
+Route::post('webhook/subscriptions/{gateway}', [SubscriptionWebhookController::class, 'handle'])->where('gateway', '[a-z][a-z0-9_]{1,31}')->middleware('throttle:120,1')->name('webhook.subscriptions');
 
 // Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {

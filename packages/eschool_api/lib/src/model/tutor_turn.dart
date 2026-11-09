@@ -34,6 +34,10 @@ class TutorTurn {
     required this.supportMessage,
 
     required this.provisional,
+
+    this.turnType,
+
+    this.explainLanguage,
   });
 
   @JsonKey(name: r'id', required: true, includeIfNull: false)
@@ -68,6 +72,24 @@ class TutorTurn {
   @JsonKey(name: r'provisional', required: true, includeIfNull: false)
   final bool provisional;
 
+  /// ask for an ordinary question, explain_back when the learner explained the idea in their own words (tutor v2).
+  @JsonKey(
+    name: r'turn_type',
+    required: false,
+    includeIfNull: false,
+    unknownEnumValue: TutorTurnTurnTypeEnum.unknownDefaultOpenApi,
+  )
+  final TutorTurnTurnTypeEnum? turnType;
+
+  /// The home language the tutor was asked to explain in (tutor v2), or null for English.
+  @JsonKey(
+    name: r'explain_language',
+    required: false,
+    includeIfNull: false,
+    unknownEnumValue: TutorTurnExplainLanguageEnum.unknownDefaultOpenApi,
+  )
+  final TutorTurnExplainLanguageEnum? explainLanguage;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -80,7 +102,9 @@ class TutorTurn {
           other.response == response &&
           other.failureCode == failureCode &&
           other.supportMessage == supportMessage &&
-          other.provisional == provisional;
+          other.provisional == provisional &&
+          other.turnType == turnType &&
+          other.explainLanguage == explainLanguage;
 
   @override
   int get hashCode =>
@@ -92,7 +116,9 @@ class TutorTurn {
       (response == null ? 0 : response.hashCode) +
       (failureCode == null ? 0 : failureCode.hashCode) +
       (supportMessage == null ? 0 : supportMessage.hashCode) +
-      provisional.hashCode;
+      provisional.hashCode +
+      turnType.hashCode +
+      (explainLanguage == null ? 0 : explainLanguage.hashCode);
 
   factory TutorTurn.fromJson(Map<String, dynamic> json) =>
       _$TutorTurnFromJson(json);
@@ -120,6 +146,40 @@ enum TutorTurnStateEnum {
   unknownDefaultOpenApi(r'unknown_default_open_api');
 
   const TutorTurnStateEnum(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
+/// ask for an ordinary question, explain_back when the learner explained the idea in their own words (tutor v2).
+enum TutorTurnTurnTypeEnum {
+  @JsonValue(r'ask')
+  ask(r'ask'),
+  @JsonValue(r'explain_back')
+  explainBack(r'explain_back'),
+  @JsonValue(r'unknown_default_open_api')
+  unknownDefaultOpenApi(r'unknown_default_open_api');
+
+  const TutorTurnTurnTypeEnum(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
+/// The home language the tutor was asked to explain in (tutor v2), or null for English.
+enum TutorTurnExplainLanguageEnum {
+  @JsonValue(r'af')
+  af(r'af'),
+  @JsonValue(r'zu')
+  zu(r'zu'),
+  @JsonValue(r'unknown_default_open_api')
+  unknownDefaultOpenApi(r'unknown_default_open_api');
+
+  const TutorTurnExplainLanguageEnum(this.value);
 
   final String value;
 

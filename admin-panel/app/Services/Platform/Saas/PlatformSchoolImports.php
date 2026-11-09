@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Services\People\SchoolImports;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Notifications\Notifier;
+use App\Services\Platform\Offboarding\SchoolExit;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Carbon\CarbonImmutable;
@@ -54,6 +55,9 @@ class PlatformSchoolImports
 
     /** The school leader's notice that an import waits for their approval. */
     public const NOTICE = 'people.hq_import_approval';
+
+    /** The school's Super Admins' notice that Navigate Ed sent or applied an import for the school. */
+    public const SUPER_ADMIN_NOTICE = 'school.hq_import_activity';
 
     public const KINDS = ['homerooms' => 'Homerooms', 'learners' => 'Learners and guardians', 'staff' => 'Staff'];
 
@@ -96,6 +100,8 @@ class PlatformSchoolImports
     public static function previewRules(): array
     {
         return [
+            // Why Navigate Ed is doing this for the school: required at every HQ step, audited, and shown to the school.
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
             'kind' => ['required', Rule::in(array_keys(self::KINDS))],
             'approver_id' => ['required', 'integer', 'min:1'],
             'csv' => ['nullable', 'string', 'max:1100000'],
@@ -120,6 +126,12 @@ class PlatformSchoolImports
     public static function reasonRules(): array
     {
         return ['reason' => ['required', 'string', 'min:5', 'max:500']];
+    }
+
+    /** Applying an approved import: Operations say why, as at every HQ step. */
+    public static function applyRules(): array
+    {
+        return self::reasonRules();
     }
 
     /** @return array{id: int, name: string, status: string} the school, or 404 */
@@ -188,7 +200,7 @@ class PlatformSchoolImports
             $check = $this->imports->check($approver, (string) $data['kind'], $csv, $this->mapping($data), $this->options($data));
             Audit::record('platform_import_previewed', null, [], [
                 'kind' => $data['kind'], 'file_sha256' => hash('sha256', $csv), 'rows' => count($check['rows']),
-                'counts' => $check['counts'], 'approver_id' => (int) $approver->id, 'changed_by' => (int) $operator->id,
+                'counts' => $check['counts'], 'approver_id' => (int) $approver->id, 'reason' => (string) $data['reason'], 'changed_by' => (int) $operator->id,
             ], $schoolId);
 
             return $check;
@@ -230,11 +242,13 @@ class PlatformSchoolImports
             ]);
             Audit::record('platform_import_requested', $import, [], [
                 'import_id' => (int) $import->id, 'kind' => $kind, 'file_sha256' => $import->file_sha256, 'rows' => $import->rows, 'counts' => $check['counts'],
-                'approver_id' => (int) $approver->id, 'expires_at' => $import->expires_at->toIso8601String(), 'changed_by' => (int) $operator->id,
+                'approver_id' => (int) $approver->id, 'expires_at' => $import->expires_at->toIso8601String(), 'reason' => (string) $data['reason'], 'changed_by' => (int) $operator->id,
             ]);
             $notifier = app(Notifier::class);
             $notice = $notifier->makeNotice(self::NOTICE, __('Import waiting for your approval'), __('Navigate Ed prepared an import for your school. Check the rows, then approve or decline it.'), '/hq-imports/'.$import->id);
             $notifier->assign($notice, [(int) $approver->id]);
+            $this->tellSuperAdmins($import, __('Navigate Ed prepared an import for your school'),
+                __(':kind: :rows rows, sent to :name for approval. You can see every step.', ['kind' => __(self::KINDS[$kind]), 'rows' => $import->rows, 'name' => trim($approver->first_name.' '.$approver->last_name)]), [(int) $approver->id]);
 
             return $import;
         }));
@@ -310,12 +324,13 @@ class PlatformSchoolImports
      *
      * @return array<string, int> what was written
      */
-    public function apply(User $operator, int $id): array
+    public function apply(User $operator, int $id, array $input = []): array
     {
         abort_unless($this->access->can($operator, 'imports.run'), 403);
+        $data = Validator::make($input, self::applyRules())->validate();
         $schoolId = $this->schoolOf($id);
         $this->activeSchool($schoolId);
-        [$outcome, $counts] = $this->currentSchool->run($schoolId, fn (): array => DB::transaction(function () use ($operator, $id): array {
+        [$outcome, $counts] = $this->currentSchool->run($schoolId, fn (): array => DB::transaction(function () use ($operator, $id, $data): array {
             // Read again inside the import's own school: no other school's row can be reached.
             $import = PlatformSchoolImport::query()->whereKey($id)->lockForUpdate()->firstOrFail();
             if ($import->isOpen() && $import->expires_at->isPast()) {
@@ -350,7 +365,9 @@ class PlatformSchoolImports
                 return ['records_changed', []];
             }
             $import->forceFill(['applied_by' => (int) $operator->id, 'applied_at' => now(), 'result' => $counts]);
-            $this->finish($import, PlatformSchoolImport::APPLIED, 'platform_import_applied', $operator, null, ['result' => $counts, 'approver_id' => (int) $approver->id]);
+            $this->finish($import, PlatformSchoolImport::APPLIED, 'platform_import_applied', $operator, (string) $data['reason'], ['result' => $counts, 'approver_id' => (int) $approver->id]);
+            $this->tellSuperAdmins($import, __('Navigate Ed imported into your school'),
+                __(':kind approved by your school is now imported. Open it to see what was written.', ['kind' => __(self::KINDS[$import->kind] ?? $import->kind)]), []);
 
             return ['applied', $counts];
         }));
@@ -372,6 +389,23 @@ class PlatformSchoolImports
             }
             $this->finish($import, PlatformSchoolImport::CANCELLED, 'platform_import_cancelled', $operator, $data['reason']);
         }));
+    }
+
+    /**
+     * Tells the current school's Super Admins (not platform staff) what
+     * Navigate Ed did for the school, linking to the import's page. Counts
+     * and the kind only, never a row.
+     *
+     * @param  list<int>  $already  people told already by another notice
+     */
+    private function tellSuperAdmins(PlatformSchoolImport $import, string $title, string $body, array $already): void
+    {
+        $ids = array_values(array_diff(SchoolExit::administratorIds(), $already));
+        if ($ids === []) {
+            return;
+        }
+        $notifier = app(Notifier::class);
+        $notifier->assign($notifier->makeNotice(self::SUPER_ADMIN_NOTICE, $title, $body, '/hq-imports/'.$import->id), $ids);
     }
 
     /** Expires every open import past its date and deletes its file. @return int how many */

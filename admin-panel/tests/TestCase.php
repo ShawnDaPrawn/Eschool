@@ -10,6 +10,7 @@ use Database\Seeders\EmailSeeder;
 use Database\Seeders\InstallationSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Http\Client\Request as HttpRequest;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 
 abstract class TestCase extends BaseTestCase
@@ -95,7 +96,22 @@ abstract class TestCase extends BaseTestCase
      */
     protected function seedLikeInstaller(): void
     {
-        $this->seed([InstallationSeeder::class, AddSuperAdminSeeder::class, EmailSeeder::class]);
+        $needsAdmin = ! User::acrossSchools()->whereKey(1)->exists();
+        $credentials = config('installer.admin_area.user');
+        config(['installer.admin_area.user' => [
+            'email' => 'superadmin@gmail.com',
+            'password' => 'Test-only-admin-password-123',
+        ]]);
+        try {
+            $this->seed([InstallationSeeder::class, AddSuperAdminSeeder::class, EmailSeeder::class]);
+        } finally {
+            config(['installer.admin_area.user' => $credentials]);
+        }
+        if ($needsAdmin) {
+            // Legacy-password regression fixtures belong only in tests; the
+            // production installer has no environment-dependent default.
+            $this->superAdmin()->forceFill(['password' => Hash::make('superadmin')])->saveQuietly();
+        }
     }
 
     protected function superAdmin(): User

@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/learner_primary_identifier.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -30,6 +31,8 @@ class Child {
     required this.image,
 
     this.studentNumber,
+
+    this.primaryIdentifier,
 
     this.approved,
 
@@ -60,6 +63,10 @@ class Child {
   @JsonKey(name: r'student_number', required: false, includeIfNull: false)
   final String? studentNumber;
 
+  /// The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+  @JsonKey(name: r'primary_identifier', required: false, includeIfNull: false)
+  final LearnerPrimaryIdentifier? primaryIdentifier;
+
   @JsonKey(name: r'approved', required: false, includeIfNull: false)
   final bool? approved;
 
@@ -80,6 +87,7 @@ class Child {
           other.name == name &&
           other.image == image &&
           other.studentNumber == studentNumber &&
+          other.primaryIdentifier == primaryIdentifier &&
           other.approved == approved &&
           other.homeroom == homeroom &&
           other.school == school;
@@ -93,6 +101,7 @@ class Child {
       name.hashCode +
       (image == null ? 0 : image.hashCode) +
       (studentNumber == null ? 0 : studentNumber.hashCode) +
+      (primaryIdentifier == null ? 0 : primaryIdentifier.hashCode) +
       approved.hashCode +
       (homeroom == null ? 0 : homeroom.hashCode) +
       school.hashCode;

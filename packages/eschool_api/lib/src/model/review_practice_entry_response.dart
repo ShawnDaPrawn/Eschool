@@ -3,7 +3,7 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:eschool_api/src/model/practice_review.dart';
+import 'package:eschool_api/src/model/review_practice_entry_response_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'review_practice_entry_response.g.dart';
@@ -33,7 +33,7 @@ class ReviewPracticeEntryResponse {
   final String message;
 
   @JsonKey(name: r'data', required: true, includeIfNull: false)
-  final PracticeReview data;
+  final ReviewPracticeEntryResponseData data;
 
   @JsonKey(name: r'code', required: true, includeIfNull: false)
   final int code;

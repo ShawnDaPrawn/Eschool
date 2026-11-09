@@ -659,7 +659,8 @@ class SchoolTransferTest extends TestCase
         $past = SessionYear::create(['name' => 'Transfer old year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31']);
         $this->withSession(['session_year' => $past->id])->post('/school-transfers/packages', $input)->assertStatus(423)->assertSessionMissing('_old_input.external_school');
         $this->sender->forceFill(['password_change_required' => true])->save();
-        $this->post('/school-transfers/packages', $input)->assertForbidden()->assertDontSee('Private receiving school');
+        $this->post('/school-transfers/packages', $input)->assertRedirect('/resetpassword')
+            ->assertSessionMissing('_old_input.external_school')->assertDontSee('Private receiving school');
     }
 
     public function test_disabled_transfer_panel_has_no_page_and_enabled_page_still_rechecks_authority(): void

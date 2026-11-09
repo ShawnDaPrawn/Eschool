@@ -2,7 +2,7 @@
 # Regenerates packages/eschool_api/lib from admin-panel/openapi.yaml.
 #
 # Run it after every change to openapi.yaml and commit the result; CI runs it
-# too and fails when the committed code differs. Needs Java 11 or newer and
+# too and fails when the committed code differs. Needs Python 3, Java 11 or newer and
 # the Dart SDK (Flutter's is fine).
 #
 # Generator: openapi-generator's dart-dio generator with json_serializable
@@ -46,7 +46,8 @@ java -jar "$jar" generate \
   >/dev/null
 
 cd "$package_dir"
+python3 tool/repair_generated.py lib
 dart pub get >/dev/null
-dart run build_runner build >/dev/null
+dart run build_runner build
 dart format lib >/dev/null
 echo "Regenerated $(find lib -name '*.dart' | wc -l | tr -d ' ') files in packages/eschool_api/lib from admin-panel/openapi.yaml"

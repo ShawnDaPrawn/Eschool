@@ -46,6 +46,22 @@ TutorTurn _$TutorTurnFromJson(Map<String, dynamic> json) => $checkedCreate(
       failureCode: $checkedConvert('failure_code', (v) => v as String?),
       supportMessage: $checkedConvert('support_message', (v) => v as String?),
       provisional: $checkedConvert('provisional', (v) => v as bool),
+      turnType: $checkedConvert(
+        'turn_type',
+        (v) => $enumDecodeNullable(
+          _$TutorTurnTurnTypeEnumEnumMap,
+          v,
+          unknownValue: TutorTurnTurnTypeEnum.unknownDefaultOpenApi,
+        ),
+      ),
+      explainLanguage: $checkedConvert(
+        'explain_language',
+        (v) => $enumDecodeNullable(
+          _$TutorTurnExplainLanguageEnumEnumMap,
+          v,
+          unknownValue: TutorTurnExplainLanguageEnum.unknownDefaultOpenApi,
+        ),
+      ),
     );
     return val;
   },
@@ -53,6 +69,8 @@ TutorTurn _$TutorTurnFromJson(Map<String, dynamic> json) => $checkedCreate(
     'operationId': 'operation_id',
     'failureCode': 'failure_code',
     'supportMessage': 'support_message',
+    'turnType': 'turn_type',
+    'explainLanguage': 'explain_language',
   },
 );
 
@@ -66,6 +84,9 @@ Map<String, dynamic> _$TutorTurnToJson(TutorTurn instance) => <String, dynamic>{
   'failure_code': instance.failureCode,
   'support_message': instance.supportMessage,
   'provisional': instance.provisional,
+  'turn_type': ?_$TutorTurnTurnTypeEnumEnumMap[instance.turnType],
+  'explain_language':
+      ?_$TutorTurnExplainLanguageEnumEnumMap[instance.explainLanguage],
 };
 
 const _$TutorTurnStateEnumEnumMap = {
@@ -75,4 +96,17 @@ const _$TutorTurnStateEnumEnumMap = {
   TutorTurnStateEnum.quarantined: 'quarantined',
   TutorTurnStateEnum.purged: 'purged',
   TutorTurnStateEnum.unknownDefaultOpenApi: 'unknown_default_open_api',
+};
+
+const _$TutorTurnTurnTypeEnumEnumMap = {
+  TutorTurnTurnTypeEnum.ask: 'ask',
+  TutorTurnTurnTypeEnum.explainBack: 'explain_back',
+  TutorTurnTurnTypeEnum.unknownDefaultOpenApi: 'unknown_default_open_api',
+};
+
+const _$TutorTurnExplainLanguageEnumEnumMap = {
+  TutorTurnExplainLanguageEnum.af: 'af',
+  TutorTurnExplainLanguageEnum.zu: 'zu',
+  TutorTurnExplainLanguageEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
 };

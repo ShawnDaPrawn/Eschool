@@ -28,6 +28,9 @@ Map<String, dynamic> messageConfigurationFixture({
             'active': true,
             'editable': true,
             'user_ids': [13],
+            'kind': 'fixed',
+            'shared': false,
+            'smart': null,
           },
         ]
       : [],

@@ -9,6 +9,7 @@ use App\Models\Academics\ContentItemGroup;
 use App\Models\Academics\ContentSource;
 use App\Models\Academics\ContentVersion;
 use App\Models\Academics\TeachingGroup;
+use App\Models\Ai\AiUsage;
 use App\Models\Growth\MasteryEvidence;
 use App\Models\Learning\LearningPath;
 use App\Models\Learning\LearningPathItem;
@@ -21,9 +22,12 @@ use App\Services\Learning\LearningPathQueries;
 use App\Services\Learning\LearningPathService;
 use App\Services\Learning\TutorAccess;
 use App\Services\Learning\TutorContext;
+use App\Services\Learning\TutorPrompts;
+use App\Services\Learning\TutorSessions;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Stages\SchoolStages;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -339,6 +343,47 @@ class LearningPathTest extends TestCase
         app(TutorContext::class)->reauthorize($this->actor('asha'), $row, $context['manifest']);
         $this->assertSame('practise', json_decode(app(TutorContext::class)->capture($this->actor('asha'), $row)['text'], true)['learning_path']['step']);
         Http::assertNothingSent();
+    }
+
+    public function test_the_default_v2_tutor_is_told_to_lead_the_teach_step_and_gets_the_path(): void
+    {
+        // v2 is the default prompt; a real turn goes through the gateway to a local fake provider.
+        $this->assertSame(TutorPrompts::V2, config('ai.inference.features.tutor.prompt'));
+        SchoolModule::updateOrCreate(['module' => 'tutor'], ['enabled' => true, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        config(['ai.inference.enabled' => true, 'ai.inference.features.tutor.enabled' => true, 'ai.inference.features.tutor.model' => 'tutor-protocol-test',
+            'ai.inference.features.tutor.cents_per_million_tokens' => 1000, 'ai.providers.openai.qualified' => true, 'ai.providers.openai.key' => 'synthetic-test-only']);
+        $inputs = [];
+        Http::swap(new Factory);
+        Http::preventStrayRequests();
+        Http::fake(function ($request) use (&$inputs) {
+            if (str_ends_with($request->url(), '/moderations')) {
+                return Http::response(['results' => [['flagged' => false]]]);
+            }
+            $content = $request['messages'][1]['content'];
+            $input = json_decode(is_string($content) ? $content : $content[0]['text'], true, 16, JSON_THROW_ON_ERROR);
+            $inputs[] = $input + ['system' => $request['messages'][0]['content']];
+            $output = ['subject_token' => $input['subject_token'], 'kind' => 'hint', 'text' => "Let's start with one idea: a fraction is equal parts of a whole.", 'question' => 'What does the bottom number tell us?'];
+
+            return Http::response(['model' => 'tutor-protocol-test', 'choices' => [['finish_reason' => 'stop', 'message' => ['role' => 'assistant', 'content' => json_encode($output)]]],
+                'usage' => ['prompt_tokens' => 120, 'completion_tokens' => 40, 'total_tokens' => 160]]);
+        });
+        $this->act('next', 0);
+        $session = $this->act('open_tutor')['teach']['tutor']['session_id'];
+        $turn = app(TutorSessions::class)->send($this->actor('asha'), $session, (string) Str::uuid(), 'Ready.');
+        $this->assertSame('completed', $turn['state']);
+        $this->assertCount(1, $inputs);
+        // The path context reaches the v2 model input, and the v2 prompt says what to do with it.
+        $this->assertSame(['step' => 'teach', 'lead' => true, 'attempt' => 1], json_decode($inputs[0]['approved_context'], true, 16, JSON_THROW_ON_ERROR)['learning_path']);
+        $this->assertStringContainsString('When approved_context.learning_path is provided', $inputs[0]['system']);
+        $this->assertStringContainsString('lead the lesson yourself', $inputs[0]['system']);
+        $this->assertStringContainsString('never give their answers', $inputs[0]['system']);
+        $usage = AiUsage::where('feature', 'tutor')->sole();
+        $this->assertSame([TutorPrompts::V2, '2.1.0'], [$usage->prompt_key, $usage->prompt_version]);
+        // v1 stays selectable and keeps the same instruction, so the two prompts cannot drift apart.
+        $v1 = json_decode((string) file_get_contents(resource_path('ai/prompts/'.TutorPrompts::V1.'.json')), true, 8, JSON_THROW_ON_ERROR)['system'];
+        $this->assertStringContainsString('When learning_path is provided', $v1);
+        $this->assertStringContainsString('lead the lesson yourself', $v1);
     }
 
     public function test_library_lessons_and_questions_follow_the_schools_own_only_while_the_switch_is_on(): void

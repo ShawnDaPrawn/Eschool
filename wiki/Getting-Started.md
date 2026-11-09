@@ -89,13 +89,11 @@ The image is built from your working tree, so rebuild (`docker compose up --buil
 
 ### First login
 
-Sign in at `/login` with the super admin account that `AddSuperAdminSeeder` creates:
-
-| Email | Password |
-|---|---|
-| `superadmin@gmail.com` | `superadmin` |
-
-Change this password at once. Any server reachable from outside must not keep the default. (The credentials in `admin-panel/README.md` are out of date. These are the real ones.)
+Before installing, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the panel's `.env`
+(or the container environment). Use an address you control and at least 10
+characters with letters and numbers. The installer requires these values and
+never displays the password. Sign in at `/login` with your configured account.
+Running the seeder again preserves an existing administrator's credentials.
 
 Next, set up the school in **Settings**: name, logo, time zone, the current session year, and the email, FCM and payment settings. See [Configuration](Configuration) and the end-user [admin panel guide](https://shawndaprawn.github.io/Eschool/admin-panel/).
 

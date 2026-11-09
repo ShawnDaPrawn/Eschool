@@ -35,7 +35,7 @@ class GuardianHandleProposal {
   @JsonKey(name: r'expires_at', required: true, includeIfNull: false)
   final DateTime expiresAt;
 
-  @JsonKey(name: r'learner', required: true, includeIfNull: false)
+  @JsonKey(name: r'learner', required: true, includeIfNull: true)
   final GuardianInvitationPreviewLearnersInner learner;
 
   @override

@@ -110,6 +110,13 @@ class HomeController extends Controller
             ]);
         }
 
+        if (Hash::check($request->input('new_password'), $user->password)) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('Choose a new password that differs from your current password.'),
+            ]);
+        }
+
         try {
             // Saved on the signed-in user so this session keeps working; other
             // sessions and the apps are signed out (AuthenticateSession, tokens).

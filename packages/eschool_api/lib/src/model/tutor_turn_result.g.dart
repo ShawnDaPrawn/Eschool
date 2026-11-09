@@ -54,6 +54,23 @@ TutorTurnResult _$TutorTurnResultFromJson(Map<String, dynamic> json) =>
             (v) => v as String?,
           ),
           provisional: $checkedConvert('provisional', (v) => v as bool),
+          turnType: $checkedConvert(
+            'turn_type',
+            (v) => $enumDecodeNullable(
+              _$TutorTurnResultTurnTypeEnumEnumMap,
+              v,
+              unknownValue: TutorTurnResultTurnTypeEnum.unknownDefaultOpenApi,
+            ),
+          ),
+          explainLanguage: $checkedConvert(
+            'explain_language',
+            (v) => $enumDecodeNullable(
+              _$TutorTurnResultExplainLanguageEnumEnumMap,
+              v,
+              unknownValue:
+                  TutorTurnResultExplainLanguageEnum.unknownDefaultOpenApi,
+            ),
+          ),
         );
         return val;
       },
@@ -63,23 +80,29 @@ TutorTurnResult _$TutorTurnResultFromJson(Map<String, dynamic> json) =>
         'operationId': 'operation_id',
         'failureCode': 'failure_code',
         'supportMessage': 'support_message',
+        'turnType': 'turn_type',
+        'explainLanguage': 'explain_language',
       },
     );
 
-Map<String, dynamic> _$TutorTurnResultToJson(TutorTurnResult instance) =>
-    <String, dynamic>{
-      'school_id': instance.schoolId,
-      'reader_id': instance.readerId,
-      'id': instance.id,
-      'operation_id': instance.operationId,
-      'state': _$TutorTurnResultStateEnumEnumMap[instance.state]!,
-      'question': instance.question,
-      'working': instance.working,
-      'response': instance.response?.toJson(),
-      'failure_code': instance.failureCode,
-      'support_message': instance.supportMessage,
-      'provisional': instance.provisional,
-    };
+Map<String, dynamic> _$TutorTurnResultToJson(
+  TutorTurnResult instance,
+) => <String, dynamic>{
+  'school_id': instance.schoolId,
+  'reader_id': instance.readerId,
+  'id': instance.id,
+  'operation_id': instance.operationId,
+  'state': _$TutorTurnResultStateEnumEnumMap[instance.state]!,
+  'question': instance.question,
+  'working': instance.working,
+  'response': instance.response?.toJson(),
+  'failure_code': instance.failureCode,
+  'support_message': instance.supportMessage,
+  'provisional': instance.provisional,
+  'turn_type': ?_$TutorTurnResultTurnTypeEnumEnumMap[instance.turnType],
+  'explain_language':
+      ?_$TutorTurnResultExplainLanguageEnumEnumMap[instance.explainLanguage],
+};
 
 const _$TutorTurnResultStateEnumEnumMap = {
   TutorTurnResultStateEnum.pending: 'pending',
@@ -88,4 +111,17 @@ const _$TutorTurnResultStateEnumEnumMap = {
   TutorTurnResultStateEnum.quarantined: 'quarantined',
   TutorTurnResultStateEnum.purged: 'purged',
   TutorTurnResultStateEnum.unknownDefaultOpenApi: 'unknown_default_open_api',
+};
+
+const _$TutorTurnResultTurnTypeEnumEnumMap = {
+  TutorTurnResultTurnTypeEnum.ask: 'ask',
+  TutorTurnResultTurnTypeEnum.explainBack: 'explain_back',
+  TutorTurnResultTurnTypeEnum.unknownDefaultOpenApi: 'unknown_default_open_api',
+};
+
+const _$TutorTurnResultExplainLanguageEnumEnumMap = {
+  TutorTurnResultExplainLanguageEnum.af: 'af',
+  TutorTurnResultExplainLanguageEnum.zu: 'zu',
+  TutorTurnResultExplainLanguageEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
 };

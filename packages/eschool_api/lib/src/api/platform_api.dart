@@ -11,6 +11,7 @@ import 'package:dio/dio.dart';
 
 import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
+import 'package:eschool_api/src/model/confirm_my_text_messaging_code_request.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
 import 'package:eschool_api/src/model/create_profile_category_request.dart';
@@ -24,6 +25,8 @@ import 'package:eschool_api/src/model/facilitator_session_response.dart';
 import 'package:eschool_api/src/model/facilitator_sign_in_input.dart';
 import 'package:eschool_api/src/model/facilitator_sign_in_response.dart';
 import 'package:eschool_api/src/model/facilitator_sign_out_response.dart';
+import 'package:eschool_api/src/model/family_summary_preferences_response.dart';
+import 'package:eschool_api/src/model/family_summary_response.dart';
 import 'package:eschool_api/src/model/guardian_approvals_response.dart';
 import 'package:eschool_api/src/model/guardian_handle_proposals_response.dart';
 import 'package:eschool_api/src/model/guardian_invitation_accepted_response.dart';
@@ -31,15 +34,22 @@ import 'package:eschool_api/src/model/guardian_invitation_issued_response.dart';
 import 'package:eschool_api/src/model/guardian_invitation_preview_response.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
 import 'package:eschool_api/src/model/my_school_response.dart';
+import 'package:eschool_api/src/model/notification_detail_response.dart';
+import 'package:eschool_api/src/model/notification_inbox_response.dart';
 import 'package:eschool_api/src/model/notification_preferences_response.dart';
 import 'package:eschool_api/src/model/profile_category_response.dart';
 import 'package:eschool_api/src/model/profile_configuration_response.dart';
 import 'package:eschool_api/src/model/profile_definition_response.dart';
 import 'package:eschool_api/src/model/profile_form_response.dart';
 import 'package:eschool_api/src/model/profile_saved_response.dart';
+import 'package:eschool_api/src/model/quiet_hours_response.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
+import 'package:eschool_api/src/model/text_messaging_response.dart';
+import 'package:eschool_api/src/model/update_my_family_summary_preferences_request.dart';
 import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
 import 'package:eschool_api/src/model/update_my_profile_request.dart';
+import 'package:eschool_api/src/model/update_my_quiet_hours_request.dart';
+import 'package:eschool_api/src/model/update_my_text_messaging_request.dart';
 import 'package:eschool_api/src/model/update_person_profile_request.dart';
 import 'package:eschool_api/src/model/update_profile_category_request.dart';
 import 'package:eschool_api/src/model/update_profile_field_request.dart';
@@ -132,6 +142,113 @@ class PlatformApi {
     }
 
     return Response<GuardianInvitationAcceptedResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Type the code to verify your number
+  /// The code expires after ten minutes. Five wrong codes lock verification for an hour. A changed number is no longer verified.
+  ///
+  /// Parameters:
+  /// * [confirmMyTextMessagingCodeRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TextMessagingResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TextMessagingResponse>> confirmMyTextMessagingCode({
+    required ConfirmMyTextMessagingCodeRequest
+    confirmMyTextMessagingCodeRequest,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/text-messaging/verification/confirm';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(confirmMyTextMessagingCodeRequest);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TextMessagingResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TextMessagingResponse, TextMessagingResponse>(
+              rawData,
+              'TextMessagingResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TextMessagingResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1427,6 +1544,191 @@ class PlatformApi {
     );
   }
 
+  /// Read one of your daily family summaries
+  /// Your summary for one day, one section per school. A school&#39;s section is shown only while you are still that school&#39;s guardian of every child it is about. Another person&#39;s summary, an expired one and one with nothing left to show are all not found.
+  ///
+  /// Parameters:
+  /// * [summary]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [FamilySummaryResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<FamilySummaryResponse>> getMyFamilySummary({
+    required int summary,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/family-summaries/{summary}'.replaceAll(
+      '{'
+      r'summary'
+      '}',
+      summary.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    FamilySummaryResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<FamilySummaryResponse, FamilySummaryResponse>(
+              rawData,
+              'FamilySummaryResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<FamilySummaryResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read your daily family summary choice
+  /// Whether you get the daily family summary and at what time, one setting for every school. Only a guardian at the current school may read it; your quiet hours are included so the time can be chosen outside them.
+  ///
+  /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [FamilySummaryPreferencesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<FamilySummaryPreferencesResponse>>
+  getMyFamilySummaryPreferences({
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/family-summary/preferences';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    FamilySummaryPreferencesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              FamilySummaryPreferencesResponse,
+              FamilySummaryPreferencesResponse
+            >(rawData, 'FamilySummaryPreferencesResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<FamilySummaryPreferencesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Read your handle and pending proposal
   ///
   ///
@@ -1505,6 +1807,102 @@ class PlatformApi {
     }
 
     return Response<HandleStateResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// One of your notifications with its full body
+  /// The full body is returned only after the same fresh access check the notice&#39;s delivery uses (membership, the source record and any private-source rule). Another user&#39;s notice, another school&#39;s notice and a notice whose source no longer allows you all answer 404. Without a stored body (has_body false), body repeats the excerpt; private and notice-only types always answer with their generic text.
+  ///
+  /// Parameters:
+  /// * [notice]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [NotificationDetailResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<NotificationDetailResponse>> getMyNotification({
+    required int notice,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/notifications/{notice}'.replaceAll(
+      '{'
+      r'notice'
+      '}',
+      notice.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    NotificationDetailResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<NotificationDetailResponse, NotificationDetailResponse>(
+              rawData,
+              'NotificationDetailResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<NotificationDetailResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1701,6 +2099,95 @@ class PlatformApi {
     );
   }
 
+  /// Read your push quiet hours
+  /// Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held.
+  ///
+  /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [QuietHoursResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<QuietHoursResponse>> getMyQuietHours({
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/notification-quiet-hours';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    QuietHoursResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<QuietHoursResponse, QuietHoursResponse>(
+              rawData,
+              'QuietHoursResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<QuietHoursResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Published contacts, documents and current term dates for a school
   /// Requires active membership and the same school in X-School-Id. Document links are public school publications, not private person files.
   ///
@@ -1786,6 +2273,95 @@ class PlatformApi {
     }
 
     return Response<MySchoolResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read your SMS and WhatsApp at this school
+  /// Guardians and staff only (learners 403). Whether the number you are texted on at this school is on record and verified (only its last three digits are shown), when a code can be asked for, and, for each notice the school texts you, the channels the school switched on for you and your own choice. A number is texted only after you verify it.
+  ///
+  /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TextMessagingResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TextMessagingResponse>> getMyTextMessaging({
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/text-messaging';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TextMessagingResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TextMessagingResponse, TextMessagingResponse>(
+              rawData,
+              'TextMessagingResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TextMessagingResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -2090,6 +2666,189 @@ class PlatformApi {
     );
   }
 
+  /// Your notifications in this school, newest first
+  /// Three-layer notifications (Action Plan 1.4). Each row has the title, a short excerpt (at most 140 characters) and the app path it opens, plus has_body when a fuller text can be read with getMyNotification. Only notices sent to you in the selected school (and older whole-school notices) are listed; private sources are filtered before paging. Private and notice-only types show only their generic text and never have a body. 25 a page.
+  ///
+  /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [NotificationInboxResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<NotificationInboxResponse>> listMyNotifications({
+    int? xAccountId,
+    int? xSchoolId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/notifications';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{if (page != null) r'page': page};
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    NotificationInboxResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<NotificationInboxResponse, NotificationInboxResponse>(
+              rawData,
+              'NotificationInboxResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<NotificationInboxResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Text a code to verify your number
+  /// Sends a six-digit code by SMS to the number you are texted on at this school (never another number). Nothing is sent when it is already verified. One code a minute and three an hour (429 with Retry-After); 422 when there is no number on record, the school texts you nothing yet, the number is locked after too many wrong codes, or SMS is not set up.
+  ///
+  /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TextMessagingResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TextMessagingResponse>> requestMyTextMessagingCode({
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/text-messaging/verification';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TextMessagingResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TextMessagingResponse, TextMessagingResponse>(
+              rawData,
+              'TextMessagingResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TextMessagingResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Choose a handle or request guardian approval
   ///
   ///
@@ -2372,6 +3131,113 @@ class PlatformApi {
     );
   }
 
+  /// Choose whether and when you get the daily family summary
+  /// One summary a day across all your children and schools, sent at the chosen time on your local day. The time must be a quarter hour (the job runs every 15 minutes) and outside your quiet hours, compared in the quiet hours&#39; own time zone. Without a timezone, the current school&#39;s is used.
+  ///
+  /// Parameters:
+  /// * [updateMyFamilySummaryPreferencesRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [FamilySummaryPreferencesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<FamilySummaryPreferencesResponse>>
+  updateMyFamilySummaryPreferences({
+    required UpdateMyFamilySummaryPreferencesRequest
+    updateMyFamilySummaryPreferencesRequest,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/family-summary/preferences';
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(updateMyFamilySummaryPreferencesRequest);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    FamilySummaryPreferencesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              FamilySummaryPreferencesResponse,
+              FamilySummaryPreferencesResponse
+            >(rawData, 'FamilySummaryPreferencesResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<FamilySummaryPreferencesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Change an optional notification channel
   ///
   ///
@@ -2574,6 +3440,218 @@ class PlatformApi {
     }
 
     return Response<ProfileSavedResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Set your push quiet hours
+  /// Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held. An end time before the start time means overnight. Without a timezone, the current school&#39;s is used.
+  ///
+  /// Parameters:
+  /// * [updateMyQuietHoursRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [QuietHoursResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<QuietHoursResponse>> updateMyQuietHours({
+    required UpdateMyQuietHoursRequest updateMyQuietHoursRequest,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/notification-quiet-hours';
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(updateMyQuietHoursRequest);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    QuietHoursResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<QuietHoursResponse, QuietHoursResponse>(
+              rawData,
+              'QuietHoursResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<QuietHoursResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Choose SMS, WhatsApp, both or neither for one notice
+  /// Your own choice for one notice type at this school. Only channels the school switched on for you can be chosen (422 otherwise); choosing neither is always allowed. The school sees only that you made a choice.
+  ///
+  /// Parameters:
+  /// * [updateMyTextMessagingRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TextMessagingResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TextMessagingResponse>> updateMyTextMessaging({
+    required UpdateMyTextMessagingRequest updateMyTextMessagingRequest,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/me/text-messaging';
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(updateMyTextMessagingRequest);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TextMessagingResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TextMessagingResponse, TextMessagingResponse>(
+              rawData,
+              'TextMessagingResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TextMessagingResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

@@ -19,6 +19,11 @@ final class MathematicsProfile extends SubjectProfile
         return __('Mathematics');
     }
 
+    public function version(): string
+    {
+        return 'mathematics-v1';
+    }
+
     public function acceptsEquivalentForms(): bool
     {
         return true;

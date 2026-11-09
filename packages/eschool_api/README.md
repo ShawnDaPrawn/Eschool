@@ -27,7 +27,11 @@ Pass your own `Dio` (`EschoolApi(dio: ...)`) to share timeouts, logging or other
 packages/eschool_api/tool/generate.sh
 ```
 
-Needs Java 11 or newer and the Dart SDK (Flutter's is fine). The script downloads the pinned generator JAR once (checked by its SHA-256) into `~/.cache/openapi-generator`, rewrites `lib/`, runs `build_runner` for the `*.g.dart` files and formats the result. CI runs it on every pull request and fails when the committed code differs, so commit what it produces with the change to `openapi.yaml`.
+Needs Python 3, Java 11 or newer and the Dart SDK (Flutter's is fine). The script downloads the pinned generator JAR once (checked by its SHA-256) into `~/.cache/openapi-generator`, rewrites `lib/`, runs `build_runner` for the `*.g.dart` files and formats the result. CI runs it on every pull request and fails when the committed code differs, so commit what it produces with the change to `openapi.yaml`.
+
+`tool/repair_generated.py` applies bounded compatibility repairs for dart-dio 7.25.0 before serialization: Boolean enums use explicit Boolean converters, enum lists use their member fallback, enum defaults retain their typed constants, mixed scalar response codes retain checked scalar values, and null-only response data uses a strict null converter. Guardian handle proposals retain their required, non-null learner when inline object schemas are reused. The tool also removes an unused import of a multipart-only model that the generator does not emit. The published server schema stays authoritative. `test/regeneration_boundaries_test.dart` verifies these wire representations. Remove a workaround only after an upstream generator produces equivalent models and those tests pass.
+
+Practice response unions use the adapters in `tool/compat/`: a response validates one complete contract and serializes that same variant. Common identifiers remain accessible directly; contract 2 callers use `.v2` for answer-free question items and richer marking results. A pending teacher mark retains null correctness and scheduling. Legacy callers keep the legacy representation.
 
 ## Why this generator
 

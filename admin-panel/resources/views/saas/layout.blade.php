@@ -26,6 +26,7 @@
         @if ($platformCan('packages.view'))<a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>@endif
         @if ($platformCan('health.view'))<a href="{{ route('saas.health') }}">{{ __('School health') }}</a>@endif
         @if ($platformCan('billing.view'))<a href="{{ route('saas.billing') }}">{{ __('Billing') }}</a>@endif
+        @if ($platformCan('billing.view'))<a href="{{ route('saas.subscriptions') }}">{{ __('Learning plans') }}</a>@endif
         @if ($platformCan('groups.view'))<a href="{{ route('saas.groups.index') }}">{{ __('School groups') }}</a>@endif
         @if ($platformCan('audit.view'))<a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>@endif
         @if ($platformCan('messaging.view'))<a href="{{ route('saas.messaging') }}">{{ __('SMS and WhatsApp') }}</a>@endif
@@ -36,6 +37,8 @@
         @if ($platformCan('library.manage'))<a href="{{ route('saas.library.index') }}">{{ __('Content library') }}</a>@endif
         @if ($platformCan('library.review'))<a href="{{ route('saas.library.reviews') }}">{{ __('Library reviews') }}</a>@endif
         @if ($platformCan('reading.manage'))<a href="{{ route('saas.reading.index') }}">{{ __('Reading library') }}</a>@endif
+        @if ($platformCan('marking.evaluate') || $platformCan('marking.approve'))<a href="{{ route('saas.marking-accuracy.index') }}">{{ __('Marking accuracy') }}</a>@endif
+        @if ($platformCan('safeguarding.phrases'))<a href="{{ route('saas.safeguarding-phrases') }}">{{ __('Safeguarding phrases') }}</a>@endif
         @if ($platformCan('support.manage'))<a href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
         @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('identity.review'))<a href="{{ route('saas.lurits') }}">{{ __('LURITS claims') }}</a>@endif

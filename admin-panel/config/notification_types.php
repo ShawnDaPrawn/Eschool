@@ -33,6 +33,8 @@ return [
     'academics.content_published' => ['label' => 'Learning content published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'people.hq_import_approval' => ['label' => 'Import waiting for approval', 'module' => 'people', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    // Imports by Navigate Ed (SA.11): the school's Super Admins hear when one is sent for approval and when it is applied.
+    'school.hq_import_activity' => ['label' => 'Imports by Navigate Ed', 'module' => 'people', 'portals' => ['admin'], 'channels' => $on],
     'platform.announcement' => ['label' => 'Announcements from Navigate Ed', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'off', 'email' => 'default_on', 'in_app' => 'default_on']],
     'school.new_year' => ['label' => 'New school year', 'module' => 'people', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'school.support_reply' => ['label' => 'Navigate Ed support replies', 'module' => 'school', 'portals' => ['admin'], 'channels' => $on],
@@ -71,6 +73,9 @@ return [
     // topic, score or child, so a lock screen or mailbox shows nothing private.
     'practice.goal_met' => ['label' => 'Weekly practice goal reached', 'module' => 'daily_practice', 'portals' => ['learner'], 'channels' => ['push' => 'default_on', 'email' => 'off', 'in_app' => 'default_on'], 'notice_only' => true],
     'practice.nudge' => ['label' => 'Gentle practice reminders', 'module' => 'daily_practice', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
+    // Action Plan 3.20: learning plan prompts to guardians. Off by default on every
+    // channel; a school switches them on in its rules. Names no child and no mark.
+    'subscription.prompt' => ['label' => 'Learning plan reminders', 'module' => 'tutor', 'portals' => ['parent'], 'channels' => ['push' => 'default_off', 'email' => 'default_off', 'in_app' => 'default_off'], 'notice_only' => true],
     'mastery.gap_closed' => ['label' => 'A topic is now secure', 'module' => 'mastery', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
     'school_assistance.parent_update' => ['label' => 'School support replies', 'module' => 'ask_school', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],

@@ -382,6 +382,22 @@ class PeoplePoolsTest extends TestCase
         $this->api(token: $escaped)->getJson('/api/v2/pool/bookings/'.$booking.'/attendance')->assertForbidden();
     }
 
+    public function test_required_password_change_preserves_sign_out_and_consent_withdrawal(): void
+    {
+        [$member, $token] = $this->consented();
+        $user = User::acrossSchools()->findOrFail($member->user_id);
+        $user->forceFill(['password_change_required' => true])->save();
+        $this->api(token: $token)->getJson('/api/v2/pool/bookings')->assertForbidden()
+            ->assertJsonPath('code', 'forbidden');
+        $this->api(token: $token)->postJson('/api/v2/pool/sign-out')->assertOk();
+        $this->assertSame(0, $user->tokens()->count());
+
+        $remaining = $user->createToken(AppTokens::POOL, [PoolAccess::ability(1)])->plainTextToken;
+        $this->api(token: $remaining)->postJson('/api/v2/pool/consent/withdraw')->assertOk();
+        $this->assertSame('withdrawn', $member->fresh()->consent_status);
+        $this->assertSame(0, $user->tokens()->count());
+    }
+
     public function test_a_switched_off_pool_refuses_members_but_withdrawal_still_works(): void
     {
         [$member, $token] = $this->consented();

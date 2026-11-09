@@ -146,12 +146,13 @@ Use the included deployment scripts for easy production setup:
 
 ## 📖 Usage
 
-### Default Login Credentials
-The installer (or `AddSuperAdminSeeder`) creates this account. Change the password after your first login:
+### Administrator sign-in
 
-- **Super Admin**: 
-  - Email: `superadmin@gmail.com`
-  - Password: `superadmin`
+Before the first installation, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`.
+Use an email address you control and a password of at least 10 characters with
+letters and numbers. The installer refuses missing or weak credentials. Sign in
+at `/login` with those values; no public default password is created or shown.
+Reseeding preserves the existing administrator's email and password.
 
 ### User Roles
 The system supports multiple user roles:

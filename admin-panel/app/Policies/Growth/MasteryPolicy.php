@@ -14,6 +14,7 @@ use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\ReleasedMarks;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Subscriptions\Entitlements;
 
 class MasteryPolicy
 {
@@ -45,6 +46,10 @@ class MasteryPolicy
         if (in_array('Student', app(ProfilePolicy::class)->roles($actor), true) && (int) $learner->user_id === (int) $actor->id) {
             abort_unless(app(ApprovalService::class)->approved($learner), 403, 'Guardian approval required.');
         }
+        // A guardian's view of the child (mastery map, learning path, starting
+        // point) is a parent insight: it needs the child's entitlement where the
+        // school asks for one (3.20). The learner's own view stays free.
+        app(Entitlements::class)->assertInsight($actor, $learner);
 
         return $learner;
     }

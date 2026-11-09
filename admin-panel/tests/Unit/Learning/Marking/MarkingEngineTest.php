@@ -6,6 +6,7 @@ namespace Tests\Unit\Learning\Marking;
 
 use App\Services\Ai\AiGateway;
 use App\Services\Ai\Inference\InferenceGateway;
+use App\Services\Learning\Marking\Accuracy\MarkingGate;
 use App\Services\Learning\Marking\DisabledMarkingJudgement;
 use App\Services\Learning\Marking\LearnerAnswer;
 use App\Services\Learning\Marking\MarkingEngine;
@@ -22,7 +23,7 @@ use Tests\TestCase;
 /**
  * The rules engine and subject profiles (Action Plan 3.16): each rule, each
  * profile's conventions, the per-mark-point breakdown, the switched-off
- * judgement seam and the learner marking flag.
+ * judgement seam and each profile's learner marking gate.
  * engineering/specs/learning/marking-engine.md.
  */
 class MarkingEngineTest extends TestCase
@@ -340,17 +341,17 @@ Ek = sqrt(81) J', $ps), 'functions are part of a calculation');
         }
     }
 
-    public function test_learner_marking_is_off_for_every_subject_by_default(): void
+    public function test_learner_marking_follows_the_accuracy_gate_for_each_profile(): void
     {
-        foreach ([new MathematicsProfile, new PhysicalSciencesProfile, new GenericProfile] as $profile) {
-            $this->assertFalse($profile->learnerMarkingEnabled(), $profile->key());
-            $this->assertFalse(config('marking.learner_marking.'.$profile->key()), $profile->key());
-        }
-        config(['marking.learner_marking.mathematics' => 'true']);
-        $this->assertFalse((new MathematicsProfile)->learnerMarkingEnabled(), 'only a literal true switches a subject on');
-        config(['marking.learner_marking.mathematics' => true]);
+        // The gate itself is tested in MarkingAccuracyGateTest; each profile asks it about its own key only.
+        $gate = $this->mock(MarkingGate::class);
+        $gate->shouldReceive('open')->with('mathematics')->andReturn(true);
+        $gate->shouldReceive('open')->with('physical_sciences')->andReturn(false);
+        $gate->shouldReceive('open')->with('generic')->andReturn(false);
         $this->assertTrue((new MathematicsProfile)->learnerMarkingEnabled());
         $this->assertFalse((new PhysicalSciencesProfile)->learnerMarkingEnabled());
+        $this->assertFalse((new GenericProfile)->learnerMarkingEnabled());
+        $this->assertSame(['mathematics-v1', 'physical_sciences-v1', 'generic-v1'], [(new MathematicsProfile)->version(), (new PhysicalSciencesProfile)->version(), (new GenericProfile)->version()]);
     }
 
     public function test_subjects_choose_their_profile_by_name(): void

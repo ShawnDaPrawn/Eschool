@@ -11,6 +11,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Identity\LoginIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -70,7 +71,7 @@ class AccessControlTest extends TestCase
 
         $limits = RateLimiter::limiter('login')(Request::create('/api/teacher/login', 'POST', ['email' => 'A@x.com']));
         $this->assertSame(5, $limits[0]->maxAttempts);
-        $this->assertStringContainsString('a@x.com', $limits[0]->key);
+        $this->assertSame('login:'.LoginIdentity::key('a@x.com'), $limits[0]->key);
     }
 
     public function test_the_admin_panel_needs_a_staff_role(): void

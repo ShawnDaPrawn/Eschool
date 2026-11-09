@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Identity;
 
+use App\Http\Middleware\EnsureAccountActive;
 use App\Models\User;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
+use App\Services\ChildMode\ChildModeSessions;
+use Carbon\CarbonInterface;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -43,6 +46,15 @@ final class AppTokens
      */
     public const POOL = 'people-pool-app';
 
+    /**
+     * Child mode in the parent app (Action Plan 4.2): a short-lived token on
+     * the guardian's account, bound to one child and school, issued only by
+     * ChildModeSessions from a parent-app sign-in. It authenticates on the
+     * child mode routes only, and ends with that parent-app sign-in, with
+     * the parent app's sign-out and with signing out everywhere.
+     */
+    public const CHILD = 'child-mode-app';
+
     /** The role each app is for. */
     public const APPS = [
         self::STUDENT => 'Student',
@@ -65,6 +77,7 @@ final class AppTokens
      */
     public static function issue(User $user, string $app): string
     {
+        abort_unless(EnsureAccountActive::isActive($user), 401);
         app(ApprovalService::class)->assertAccess($user);
         if ($app === self::STUDENT) {
             app(LearnerAcademicAccess::class)->assertUser($user);
@@ -88,8 +101,12 @@ final class AppTokens
     {
         // This new profile has no legacy tokens; never revoke another app's
         // pre-profile tokens, and allow its logout after school-role revocation.
-        if (in_array($app, [self::FACILITATOR, self::VENDOR, self::POOL], true)) {
+        if (in_array($app, [self::FACILITATOR, self::VENDOR, self::POOL, self::CHILD], true)) {
             return $user->tokens()->where('name', $app)->delete();
+        }
+        if ($app === self::PARENT) {
+            // Child mode lives inside the parent app: it signs out with it.
+            ChildModeSessions::revokeForGuardian((int) $user->getKey(), ChildModeSessions::PARENT_SIGNED_OUT);
         }
         $legacyAreThisApps = ! self::usesAnotherApp($user, $app);
 
@@ -113,6 +130,10 @@ final class AppTokens
         if (! in_array($token->name, [self::FACILITATOR, self::VENDOR], true) && array_key_exists($token->name, self::APPS)) {
             self::revokeLegacy($user, $token->name);
         }
+        if ($token->name === self::PARENT) {
+            // A child session started on this device ends with its parent-app sign-in.
+            ChildModeSessions::revokeIssuedFrom((int) $token->getKey(), ChildModeSessions::PARENT_SIGNED_OUT);
+        }
         $token->delete();
     }
 
@@ -128,15 +149,46 @@ final class AppTokens
     /** @return list<string> every token name an app gives; any other name is an older unnamed token */
     private static function named(): array
     {
-        return [...array_keys(self::APPS), self::POOL];
+        return [...array_keys(self::APPS), self::POOL, self::CHILD];
     }
 
     /** Revokes every token of the account, optionally keeping one. */
     public static function revokeAll(User $user, ?PersonalAccessToken $except = null): int
     {
+        // Signing out everywhere ends every child session too (Action Plan 4.2).
+        ChildModeSessions::revokeForGuardian((int) $user->getKey(), ChildModeSessions::SIGNED_OUT_EVERYWHERE);
+
         return $user->tokens()
             ->when($except !== null, fn ($query) => $query->whereKeyNot($except->getKey()))
             ->delete();
+    }
+
+    /**
+     * When Sanctum stops accepting this token: its own expires_at, or
+     * sanctum.expiration minutes after it was made, whichever comes first
+     * (the rules of Laravel\Sanctum\Guard::isValidAccessToken). Null when
+     * neither applies.
+     */
+    public static function expiresAt(PersonalAccessToken $token): ?CarbonInterface
+    {
+        $expiration = config('sanctum.expiration');
+        $byLifetime = $expiration && $token->created_at !== null ? $token->created_at->copy()->addMinutes((int) $expiration) : null;
+        $own = $token->expires_at;
+
+        return match (true) {
+            $byLifetime === null => $own,
+            $own === null => $byLifetime,
+            default => $own->lessThan($byLifetime) ? $own : $byLifetime,
+        };
+    }
+
+    /** Whether Sanctum would still accept this token now. */
+    public static function current(PersonalAccessToken $token): bool
+    {
+        $expiration = config('sanctum.expiration');
+
+        return (! $expiration || ($token->created_at !== null && $token->created_at->gt(now()->subMinutes((int) $expiration))))
+            && ($token->expires_at === null || ! $token->expires_at->isPast());
     }
 
     private static function usesAnotherApp(User $user, string $app): bool

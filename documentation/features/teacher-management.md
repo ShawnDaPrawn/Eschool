@@ -14,7 +14,7 @@ sidebar_position: 4
 
 Add the teacher's details which includes first name, last name, gender, email, mobile number, select a profile image, date of birth, qualification and current & permanent address. 
 
-After adding teacher's details, the teacher will be able to login to the web panel and also on the teacher app. The login id of the teacher will be the email which you register for the teacher and the first password will be the date of birth of the teacher in ddmmyyyy format. The teacher must choose a new password at their first sign-in to the web panel; new passwords need at least 10 characters with letters and numbers, and passwords found in known data breaches are refused.
+After adding a teacher, they receive an expiring, single-use email invitation to choose their password. They then sign in to the panel or teacher app with their registered email address. New passwords need at least 10 characters with letters and numbers, and passwords found in known data breaches are refused. No date-of-birth password is created.
 
 ## Deactivate a Teacher
 

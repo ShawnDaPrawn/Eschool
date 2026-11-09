@@ -161,6 +161,7 @@ class RiskApiTest extends TestCase
         $this->actor()->forceFill(['password_change_required' => true])->save();
         $this->actingAs($this->actor())->postJson($this->createUrl(), $input)->assertForbidden();
         $this->actor()->forceFill(['password_change_required' => false])->save();
+        $this->actingAs($this->actor());
         PlatformStaffIdentity::create(['user_id' => $this->actor()->id]);
         $this->postJson($this->createUrl(), $input)->assertForbidden();
         PlatformStaffIdentity::query()->delete();

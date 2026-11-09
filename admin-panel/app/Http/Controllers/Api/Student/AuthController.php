@@ -32,8 +32,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'gr_number' => 'required',
-            'password' => 'required',
+            'gr_number' => 'required|string|max:254',
+            'password' => 'required|string',
         ]);
 
         if ($validator->fails()) {
