@@ -14,6 +14,8 @@ return [
     'pathway' => ['name' => 'Subject choice and pathways', 'default' => false, 'dependencies' => ['people', 'academics']],
     'family_visits' => ['name' => 'Meetings and early collection', 'default' => false, 'dependencies' => ['people']],
     'emergency' => ['name' => 'Emergency alerts, drills, visitors and reunification', 'default' => false, 'dependencies' => ['people', 'communication']],
+    // Action Plan 5.3: AI feedback on reasoning for adjudicators of academic competitions (advice only).
+    'reasoning_feedback' => ['name' => 'AI feedback on reasoning for adjudicators', 'default' => false, 'dependencies' => ['groups']],
     'teaching_assistant' => ['name' => 'Teaching assistant', 'default' => false, 'dependencies' => ['academics']],
     'test_insights' => ['name' => 'Test insights', 'default' => false, 'dependencies' => ['mastery']],
     'exam_coach' => ['name' => 'Exam coach', 'default' => false, 'dependencies' => ['academics']],

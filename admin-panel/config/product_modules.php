@@ -49,7 +49,7 @@ return [
     'activities' => [
         'label' => 'Activities and culture', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
         'description' => 'Activity groups, house points, awards and peer tutoring.',
-        'modules' => ['groups', 'house_points', 'awards', 'peer_tutoring'],
+        'modules' => ['groups', 'house_points', 'awards', 'peer_tutoring', 'reasoning_feedback'],
     ],
     'futures' => [
         'label' => 'Futures', 'always_included' => false, 'readiness' => 3, 'price_cents' => null,
