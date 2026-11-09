@@ -20,6 +20,7 @@ use App\Services\Platform\Identity\LoginIdentity;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
+use Illuminate\Auth\Events\Attempting;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -303,8 +304,19 @@ final class ProviderSignIn
         return $user;
     }
 
+    /**
+     * The password again before a link, with the password sign-in's own
+     * lockout: Attempting runs AppServiceProvider::limitFailedLogins(), so a
+     * locked account is refused before its password is checked, and a wrong
+     * one (Failed) counts towards the same per-account limit.
+     */
     private function confirmPassword(User $user, string $password): void
     {
+        try {
+            Event::dispatch(new Attempting('web', ['id' => $user->id], false));
+        } catch (TooManyLoginFailures) {
+            throw new ProviderSignInRefused('locked');
+        }
         if ($password === '' || strlen($password) > 4096 || ! Hash::check($password, $user->getAuthPassword())) {
             // Counts towards the account's lockout, like any wrong password.
             Event::dispatch(new Failed('web', $user, ['id' => $user->id]));

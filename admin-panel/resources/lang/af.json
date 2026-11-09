@@ -7872,5 +7872,6 @@
     "Signed in.": "Aangemeld.",
     "Your linked accounts.": "Jou gekoppelde rekeninge.",
     "Use this nonce once, for this link.": "Gebruik hierdie eenmalige waarde een keer, vir hierdie koppeling.",
-    "sign_in_provider_session_ended": "Hierdie aanmelding met Google of Microsoft geld nie meer by jou skool nie. Meld weer aan."
+    "sign_in_provider_session_ended": "Hierdie aanmelding met Google of Microsoft geld nie meer by jou skool nie. Meld weer aan.",
+    "Too many wrong passwords for this account. Try again later.": "Te veel verkeerde wagwoorde vir hierdie rekening. Probeer later weer."
 }

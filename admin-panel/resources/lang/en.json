@@ -7872,5 +7872,6 @@
     "Signed in.": "Signed in.",
     "Your linked accounts.": "Your linked accounts.",
     "Use this nonce once, for this link.": "Use this nonce once, for this link.",
-    "sign_in_provider_session_ended": "This Google or Microsoft sign-in no longer holds at your school. Please sign in again."
+    "sign_in_provider_session_ended": "This Google or Microsoft sign-in no longer holds at your school. Please sign in again.",
+    "Too many wrong passwords for this account. Try again later.": "Too many wrong passwords for this account. Try again later."
 }

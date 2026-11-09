@@ -407,6 +407,40 @@ class ProviderSignInTest extends TestCase
         $this->assertTrue(AuditLog::query()->where('action', 'sign_in.provider_unlinked')->exists());
     }
 
+    public function test_a_locked_account_cannot_link_even_with_the_right_password(): void
+    {
+        $this->enableGoogle();
+        $token = AppTokens::issue($this->tara, AppTokens::TEACHER);
+        $nonce = $this->linkNonce($token);
+        // Ten wrong passwords at the ordinary sign-in lock the account for the hour.
+        for ($i = 0; $i < 10; $i++) {
+            Auth::guard('web')->attempt(['email' => 'tara@example.com', 'password' => 'guess'.$i]);
+        }
+        Auth::guard('web')->logout();
+        $this->forget();
+
+        // API: the right password, a valid nonce and ID token are still refused, and nothing is linked.
+        $this->linkFromApp($token, $nonce, $this->idToken($this->googleClaims('tara-sub', 'tara@example.com', ['nonce' => $nonce])))
+            ->assertForbidden()->assertJsonPath('message', 'Too many wrong passwords for this account. Try again later.');
+        // The nonce was never used: the refusal came before anything else.
+        $this->assertNull(SignInProviderChallenge::query()->where('purpose', SignInProviderChallenge::LINK)->value('consumed_at'));
+
+        // Panel: the same, and no provider sign-in is started.
+        $this->app['auth']->shouldUse('web');
+        $this->actingAs($this->tara);
+        $this->post('/sign-in-links/google', ['password' => 'secret123'])->assertRedirect(route('sign-in-links.index'))
+            ->assertSessionHasErrors(['provider' => 'Too many wrong passwords for this account. Try again later.']);
+        $this->assertSame(0, SignInProviderChallenge::query()->where('channel', SignInProviderChallenge::WEB)->count());
+
+        $this->assertSame(0, SignInProviderLink::query()->count());
+        $this->assertSame(['locked', 'locked'], $this->refusals());
+
+        // Once the hour is up, the same password links.
+        $this->travel(61)->minutes();
+        $nonce = $this->linkNonce($token);
+        $this->linkFromApp($token, $nonce, $this->idToken($this->googleClaims('tara-sub', 'tara@example.com', ['nonce' => $nonce])))->assertCreated();
+    }
+
     // ---- Accounts, schools, roles and owners ---------------------------------
 
     public function test_no_account_is_created_or_matched_by_email_and_the_subject_decides(): void

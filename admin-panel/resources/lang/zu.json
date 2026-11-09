@@ -7872,5 +7872,6 @@
     "Signed in.": "Ungenile.",
     "Your linked accounts.": "Ama-akhawunti akho axhunyiwe.",
     "Use this nonce once, for this link.": "Sebenzisa leli nani lesikhashana kanye, kulokhu kuxhumana.",
-    "sign_in_provider_session_ended": "Lokhu kungena nge-Google noma nge-Microsoft akusasebenzi esikoleni sakho. Ngena futhi."
+    "sign_in_provider_session_ended": "Lokhu kungena nge-Google noma nge-Microsoft akusasebenzi esikoleni sakho. Ngena futhi.",
+    "Too many wrong passwords for this account. Try again later.": "Amaphasiwedi angalungile mangaka kule akhawunti. Zama futhi emuva kwesikhashana."
 }

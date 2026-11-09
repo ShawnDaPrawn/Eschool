@@ -31,6 +31,7 @@ final class ProviderSignInRefused extends RuntimeException
         'subject_taken' => 'This account is already linked to someone else at this school.',
         'already_linked' => 'You have already linked an account of this kind. Remove that link first.',
         'password_wrong' => 'Your password is not right.',
+        'locked' => 'Too many wrong passwords for this account. Try again later.',
         'wrong_account' => 'Start linking again from your linked accounts page.',
     ];
 

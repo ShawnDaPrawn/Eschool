@@ -51,7 +51,7 @@ Every refusal is audited as `sign_in.provider_refused` with its reason and the c
 ## Linking (`ProviderLinks`, `sign_in_provider_links`)
 
 - **No account creation, ever.** A provider account opens only a NavigateEd account it was linked to.
-- **The person links their own account.** Signed in with their password, they type it again (wrong passwords count towards the account's lockout and are audited), then sign in with the provider. The provider's verified email must equal the account's email, and the domain or tenant and the person's role must be allowed. In the apps: `POST /api/v2/me/sign-in-links/providers/{provider}/nonce`, then `POST /api/v2/me/sign-in-links/providers/{provider}` with the ID token, the nonce and the password. A link nonce is bound to the account that asked for it.
+- **The person links their own account.** Signed in with their password, they type it again (the password sign-in's own lockout applies first: a locked account is refused before the password is checked, and wrong passwords count towards that same lockout and are audited), then sign in with the provider. The provider's verified email must equal the account's email, and the domain or tenant and the person's role must be allowed. In the apps: `POST /api/v2/me/sign-in-links/providers/{provider}/nonce`, then `POST /api/v2/me/sign-in-links/providers/{provider}` with the ID token, the nonce and the password. A link nonce is bound to the account that asked for it.
 - A link stores the provider's stable subject: Google `sub`; Microsoft `oid` with its `tid`. Sign-in matches the subject, never the email: an email changed at the provider cannot move a link to another account, and a new provider account with someone's address is not their link.
 - A subject links to one account per school; an account has one link per provider per school.
 - A link belongs to one school. A link made at school A is not found through school B's settings.
@@ -131,6 +131,7 @@ API v2 (`openapi.yaml`): `GET /auth/providers`, `POST /auth/providers/{provider}
 | `test_a_microsoft_work_account_signs_in_only_from_an_allowed_tenant_with_its_tenant_issuer` | Microsoft happy path, wrong issuer, tenant not allowed, email not verified, guest, wrong aud, same oid in another tenant |
 | `test_a_learner_signs_in_only_when_the_school_allows_learners_of_their_stage` | learners off by default, high school only by default, learner app only |
 | `test_an_app_links_with_the_password_and_never_to_someone_elses_account` | wrong password, someone else's email, someone else's nonce, subject already linked, wrong owner list and unlink |
+| `test_a_locked_account_cannot_link_even_with_the_right_password` | the wrong-password lockout refuses linking in the app and the panel before the password is checked; nothing linked; links again after the hour |
 | `test_no_account_is_created_or_matched_by_email_and_the_subject_decides` | no matching account, no account creation, email change at the provider |
 | `test_every_account_check_of_a_password_sign_in_still_applies` | disabled account, password change required, lockout, ended membership |
 | `test_a_session_ends_when_its_link_membership_or_setting_stops_holding` | provider switched off, role no longer allowed, link removed, membership ended |
