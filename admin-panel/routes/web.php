@@ -76,6 +76,7 @@ use App\Http\Controllers\Panel\Learning\PracticeMarkingController;
 use App\Http\Controllers\Panel\Learning\PracticeMotivationController;
 use App\Http\Controllers\Panel\Learning\PracticeTestPanelController;
 use App\Http\Controllers\Panel\Learning\QuestionBankController;
+use App\Http\Controllers\Panel\Learning\SharedLibraryController;
 use App\Http\Controllers\Panel\Learning\StartingCheckController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
@@ -478,6 +479,9 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::middleware('platform.can:library.review')->group(function () {
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
+            // The shared library (5.4): teachers' ratings of shared items, unnamed, and taking an item down.
+            Route::get('/ratings', [PlatformLibraryController::class, 'ratings'])->name('ratings');
+            Route::post('/items/{item}/unpublish', [PlatformLibraryController::class, 'unpublish'])->middleware('throttle:30,1')->whereNumber('item')->name('items.unpublish');
         });
     });
     // The marking accuracy gate (3.18): de-identified evaluation scripts, runs and each subject's learner-marking switch; never a school or a learner.
@@ -814,6 +818,20 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('marking', [PracticeMarkingController::class, 'index'])->name('marking');
             Route::get('marking/{group}/{review}/audio', [PracticeMarkingController::class, 'audio'])->whereNumber(['group', 'review'])->name('marking.audio');
             Route::post('marking/{group}/{review}', [PracticeMarkingController::class, 'mark'])->whereNumber(['group', 'review'])->middleware('throttle:120,1')->name('marking.mark');
+        });
+        // The shared library, teacher to teacher (Action Plan 5.4): share, browse, copy and rate questions across schools.
+        Route::prefix('shared-library')->name('shared-library.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
+            $c = SharedLibraryController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('items/{item}', [$c, 'item'])->whereNumber('item')->name('items.show');
+            Route::post('items/{item}/rating', [$c, 'rate'])->whereNumber('item')->middleware('throttle:30,1')->name('items.rate');
+            Route::post('items/{item}/copy', [$c, 'copy'])->whereNumber('item')->middleware('throttle:30,1')->name('items.copy');
+            Route::get('share/{item}', [$c, 'share'])->whereNumber('item')->name('share');
+            Route::post('contributions', [$c, 'contribute'])->middleware('throttle:30,1')->name('contributions.store');
+            Route::post('contributions/{contribution}/approve', [$c, 'approve'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.approve');
+            Route::post('contributions/{contribution}/decline', [$c, 'decline'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.decline');
+            Route::post('contributions/{contribution}/withdraw', [$c, 'withdraw'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.withdraw');
+            Route::put('settings', [$c, 'settings'])->middleware('throttle:30,1')->name('settings');
         });
         // Cycle tests teachers set for their groups (Action Plan 3.17).
         Route::prefix('practice-tests')->name('practice-tests.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {

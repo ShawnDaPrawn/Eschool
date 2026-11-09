@@ -190,6 +190,8 @@ tags:
   description: Registered source-scoped generic private staff inbox.
 - name: Practice
   description: Approved daily self-study and separate practice evidence.
+- name: SharedLibrary
+  description: Questions teachers share between schools, reviewed by Navigate Ed, with ratings.
 - name: Diagnostics
   description: The starting check from the library, marked on the server, as separate mastery evidence.
 - name: LiveUpdates
@@ -35919,6 +35921,364 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/shared-library/items:
+    get:
+      operationId: listSharedLibraryItems
+      tags:
+      - SharedLibrary
+      summary: Published questions other schools shared
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: framework
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 16
+      - name: subject_code
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 32
+      - name: grade_level_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: library_topic_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Published questions other schools shared.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryCatalogueResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/shared-library/items/{item}:
+    get:
+      operationId: getSharedLibraryItem
+      tags:
+      - SharedLibrary
+      summary: One shared question with its ratings and your own
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: One shared question with its ratings and your own.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/shared-library/items/{item}/rating:
+    put:
+      operationId: rateSharedLibraryItem
+      tags:
+      - SharedLibrary
+      summary: Rate a shared question your school used
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Rate a shared question your school used.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryRatingResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharedLibraryRateInput'
+  /learning/shared-library/items/{item}/copy:
+    post:
+      operationId: copySharedLibraryItem
+      tags:
+      - SharedLibrary
+      summary: Copy a shared question into your bank, approved for one of your groups
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Copy a shared question into your bank, approved for one of your groups.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryCopyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharedLibraryCopyInput'
+  /learning/shared-library/contributions:
+    get:
+      operationId: listSharedLibraryContributions
+      tags:
+      - SharedLibrary
+      summary: The questions you shared and where each stands
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The questions you shared and where each stands.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryContributionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: contributeToSharedLibrary
+      tags:
+      - SharedLibrary
+      summary: Share one of your approved questions
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Share one of your approved questions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryContributionStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharedLibraryContributeInput'
+  /learning/shared-library/contributions/{contribution}/withdraw:
+    post:
+      operationId: withdrawSharedLibraryContribution
+      tags:
+      - SharedLibrary
+      summary: Withdraw a question you shared
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: contribution
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Withdraw a question you shared.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryContributionStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /learning/shared-library/practice-items/{item}/share-options:
+    get:
+      operationId: getSharedLibraryShareOptions
+      tags:
+      - SharedLibrary
+      summary: What you may choose when sharing one of your questions
+      description: The shared library, teacher to teacher (Action Plan 5.4). Teachers at a school whose library switch is on
+        browse, copy and rate questions other schools shared, once Navigate Ed reviewed and published them; teachers share their
+        own approved questions (only the teaching content, scanned for identifying data, under the shared licence) and withdraw
+        them. Ratings show as an average and a count only from three counted ratings; ratings from the sharing school never
+        count, and no answer names who rated. Another school's contributions, drafts and ratings are never returned.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: What you may choose when sharing one of your questions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedLibraryShareOptionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
@@ -83838,5 +84198,699 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/SponsoredPlaceResult'
+        code:
+          type: integer
+    SharedLibraryTopic:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - framework
+      - subject_code
+      - grade
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        framework:
+          type: string
+        subject_code:
+          type: string
+        grade:
+          type: string
+    SharedLibraryRatingSummary:
+      oneOf:
+      - type: 'null'
+      - type: object
+        additionalProperties: false
+        required:
+        - count
+        - average
+        properties:
+          count:
+            type: integer
+            minimum: 1
+          average:
+            type: number
+            minimum: 1
+            maximum: 5
+    SharedLibraryItemSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - topic
+      - attribution
+      - licence
+      - rating
+      - copied
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        topic:
+          $ref: '#/components/schemas/SharedLibraryTopic'
+        attribution:
+          type: string
+        licence:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - url
+          properties:
+            code:
+              type: string
+            url:
+              type:
+              - string
+              - 'null'
+        rating:
+          $ref: '#/components/schemas/SharedLibraryRatingSummary'
+        copied:
+          type: boolean
+    SharedLibraryCatalogue:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      - total
+      - filters
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SharedLibraryItemSummary'
+        page:
+          type: integer
+        last_page:
+          type: integer
+        total:
+          type: integer
+        filters:
+          type: object
+          additionalProperties: false
+          required:
+          - frameworks
+          - subject_codes
+          - grades
+          - topics
+          properties:
+            frameworks:
+              type: array
+              items:
+                type: string
+            subject_codes:
+              type: array
+              items:
+                type: string
+            grades:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                - id
+                - name
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+            topics:
+              type: array
+              items:
+                $ref: '#/components/schemas/SharedLibraryTopic'
+    SharedLibraryItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - topic
+      - attribution
+      - licence
+      - rating
+      - copied
+      - version_id
+      - question
+      - estimated_seconds
+      - comments
+      - my_rating
+      - can_rate
+      - own_school
+      - copyable
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        topic:
+          $ref: '#/components/schemas/SharedLibraryTopic'
+        attribution:
+          type: string
+        licence:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - url
+          properties:
+            code:
+              type: string
+            url:
+              type:
+              - string
+              - 'null'
+        rating:
+          $ref: '#/components/schemas/SharedLibraryRatingSummary'
+        copied:
+          type: boolean
+        version_id:
+          type: integer
+        question:
+          type: object
+          additionalProperties: false
+          required:
+          - kind
+          - prompt
+          - options
+          - answers
+          - steps
+          - explanation
+          - max_seconds
+          properties:
+            kind:
+              type: string
+            prompt:
+              type: string
+            options:
+              type: array
+              items:
+                type: object
+            answers:
+              type: array
+              items:
+                type: string
+            steps:
+              type: array
+              items:
+                type: object
+            explanation:
+              type: string
+            max_seconds:
+              type:
+              - integer
+              - 'null'
+        estimated_seconds:
+          type: integer
+        comments:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - stars
+            - comment
+            properties:
+              stars:
+                type: integer
+              comment:
+                type: string
+        my_rating:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - stars
+            - comment
+            properties:
+              stars:
+                type: integer
+              comment:
+                type:
+                - string
+                - 'null'
+        can_rate:
+          type: boolean
+        own_school:
+          type: boolean
+        copyable:
+          type: boolean
+    SharedLibraryRating:
+      type: object
+      additionalProperties: false
+      required:
+      - stars
+      - comment
+      - counted
+      properties:
+        stars:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type:
+          - string
+          - 'null'
+        counted:
+          type: boolean
+    SharedLibraryCopy:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - version_id
+      - revision
+      - active
+      - library_item_id
+      properties:
+        id:
+          type: integer
+        version_id:
+          type: integer
+        revision:
+          type: integer
+        active:
+          type: boolean
+        library_item_id:
+          type: integer
+    SharedLibraryContribution:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - practice_item_id
+      - title
+      - state
+      - status
+      - status_label
+      - credit
+      - credit_label
+      - licence
+      - teacher
+      - mine
+      - topic
+      - library_item_id
+      - rating
+      - decline_reason
+      - contributed_at
+      - can_decide
+      - can_withdraw
+      properties:
+        id:
+          type: integer
+        practice_item_id:
+          type: integer
+        title:
+          type: string
+        state:
+          type: string
+          enum:
+          - awaiting_approval
+          - shared
+          - declined
+          - withdrawn
+        status:
+          type: string
+          enum:
+          - awaiting_approval
+          - declined
+          - in_review
+          - not_accepted
+          - published
+          - unpublished
+          - withdrawn
+        status_label:
+          type: string
+        credit:
+          type: string
+          enum:
+          - named
+          - school
+          - anonymous
+        credit_label:
+          type: string
+        licence:
+          type: string
+        teacher:
+          type: string
+        mine:
+          type: boolean
+        topic:
+          oneOf:
+          - type: 'null'
+          - type: object
+            additionalProperties: false
+            required:
+            - name
+            - framework
+            - subject_code
+            - grade
+            properties:
+              name:
+                type: string
+              framework:
+                type: string
+              subject_code:
+                type: string
+              grade:
+                type: string
+        library_item_id:
+          type:
+          - integer
+          - 'null'
+        rating:
+          $ref: '#/components/schemas/SharedLibraryRatingSummary'
+        decline_reason:
+          type:
+          - string
+          - 'null'
+        contributed_at:
+          type:
+          - string
+          - 'null'
+        can_decide:
+          type: boolean
+        can_withdraw:
+          type: boolean
+    SharedLibraryContributions:
+      type: object
+      additionalProperties: false
+      required:
+      - contributions
+      - sharing
+      properties:
+        contributions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SharedLibraryContribution'
+        sharing:
+          type: object
+          additionalProperties: false
+          required:
+          - sharing_enabled
+          - leader_approval
+          - library_enabled
+          properties:
+            sharing_enabled:
+              type: boolean
+            leader_approval:
+              type: boolean
+            library_enabled:
+              type: boolean
+    SharedLibraryContributionState:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - practice_item_id
+      properties:
+        id:
+          type: integer
+        state:
+          type: string
+          enum:
+          - awaiting_approval
+          - shared
+          - declined
+          - withdrawn
+        practice_item_id:
+          type: integer
+    SharedLibraryShareOptions:
+      type: object
+      additionalProperties: false
+      required:
+      - practice_item_id
+      - revision
+      - question
+      - suggested_title
+      - topics
+      - credits
+      - licence
+      - sharing_enabled
+      - leader_approval
+      - shareable
+      - current_contribution_id
+      - version_id
+      properties:
+        practice_item_id:
+          type: integer
+        revision:
+          type: integer
+        question:
+          type: object
+          additionalProperties: false
+          required:
+          - kind
+          - prompt
+          properties:
+            kind:
+              type: string
+            prompt:
+              type: string
+        suggested_title:
+          type: string
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SharedLibraryTopic'
+        credits:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - value
+            - label
+            properties:
+              value:
+                type: string
+                enum:
+                - named
+                - school
+                - anonymous
+              label:
+                type: string
+        licence:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - name
+          - url
+          properties:
+            code:
+              type: string
+            name:
+              type: string
+            url:
+              type: string
+        sharing_enabled:
+          type: boolean
+        leader_approval:
+          type: boolean
+        shareable:
+          type: boolean
+        current_contribution_id:
+          type:
+          - integer
+          - 'null'
+        version_id:
+          type: integer
+    SharedLibraryRateInput:
+      type: object
+      additionalProperties: false
+      required:
+      - stars
+      properties:
+        stars:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+    SharedLibraryCopyInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - group_id
+      - topic_id
+      - content_version_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        group_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        content_version_id:
+          type: integer
+          minimum: 1
+    SharedLibraryContributeInput:
+      type: object
+      additionalProperties: false
+      required:
+      - practice_item_id
+      - library_topic_id
+      - title
+      - credit
+      - rights_confirmed
+      - licence_accepted
+      properties:
+        practice_item_id:
+          type: integer
+          minimum: 1
+        library_topic_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 3
+          maxLength: 191
+        credit:
+          type: string
+          enum:
+          - named
+          - school
+          - anonymous
+        rights_confirmed:
+          type: boolean
+          description: The teacher wrote it or has the right to share it.
+        licence_accepted:
+          type: boolean
+          description: The teacher shares it under the shared library licence (CC BY 4.0 pending the owner's decision).
+    SharedLibraryCatalogueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SharedLibraryCatalogue'
+        code:
+          type: integer
+    SharedLibraryItemResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SharedLibraryItem'
+        code:
+          type: integer
+    SharedLibraryRatingResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SharedLibraryRating'
+        code:
+          type: integer
+    SharedLibraryCopyResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SharedLibraryCopy'
+        code:
+          type: integer
+    SharedLibraryContributionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SharedLibraryContributions'
+        code:
+          type: integer
+    SharedLibraryContributionStateResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SharedLibraryContributionState'
+        code:
+          type: integer
+    SharedLibraryShareOptionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SharedLibraryShareOptions'
         code:
           type: integer

@@ -61,6 +61,9 @@
                     </form>
                 @endif
 
+                @if ($item['mine'] && $item['active'])
+                    <p><a class="m3-button m3-button--text" href="{{ route('shared-library.share', ['item' => $item['id']]) }}">{{ __('Share with other schools') }}</a></p>
+                @endif
                 @if ($item['can_edit'])
                     <form method="POST" action="{{ route('question-banks.update', ['item' => $item['id']]) }}" aria-label="{{ __('Sharing and archiving') }}">
                         @csrf
