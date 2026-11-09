@@ -159,8 +159,12 @@ class Competitions
             if (! isset($teams['host'], $teams['guest'])) {
                 continue;
             }
-            $this->tally($table, $teams['host'], (int) $fixture->host_score, (int) $fixture->guest_score, $competition);
-            $this->tally($table, $teams['guest'], (int) $fixture->guest_score, (int) $fixture->host_score, $competition);
+            // An academic competition's adjudicators name the winning side; a match is won on the score.
+            $host = $fixture->winner === null ? (int) $fixture->host_score <=> (int) $fixture->guest_score : match ($fixture->winner) {
+                'host' => 1, 'guest' => -1, default => 0
+            };
+            $this->tally($table, $teams['host'], (int) $fixture->host_score, (int) $fixture->guest_score, $host, $competition);
+            $this->tally($table, $teams['guest'], (int) $fixture->guest_score, (int) $fixture->host_score, -$host, $competition);
         }
         $rows = array_values($table);
         usort($rows, fn ($a, $b) => [$b['points'], $b['difference'], $b['scored'], $a['team']] <=> [$a['points'], $a['difference'], $a['scored'], $b['team']]);
@@ -168,17 +172,17 @@ class Competitions
         return $rows;
     }
 
-    private function tally(array &$table, array $team, int $for, int $against, SharedCompetition $competition): void
+    private function tally(array &$table, array $team, int $for, int $against, int $outcome, SharedCompetition $competition): void
     {
         $row = $table[$team['key']] ?? ['team' => $team['team'], 'played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'scored' => 0, 'conceded' => 0, 'difference' => 0, 'points' => 0];
         $row['played']++;
         $row['scored'] += $for;
         $row['conceded'] += $against;
         $row['difference'] = $row['scored'] - $row['conceded'];
-        if ($for > $against) {
+        if ($outcome > 0) {
             $row['won']++;
             $row['points'] += $competition->points_win;
-        } elseif ($for === $against) {
+        } elseif ($outcome === 0) {
             $row['drawn']++;
             $row['points'] += $competition->points_draw;
         } else {

@@ -127,6 +127,11 @@ final class SchoolOwnedTables
         // group, team label, notes and score report) and its team sheet, whose
         // learner ids never leave the school (specs/platform/shared-records.md).
         'shared_participants', 'shared_record_operations', 'shared_fixture_sides', 'shared_fixture_selections',
+        // Academic competitions (Action Plan 5.3): each school's own adjudicators,
+        // its adjudicators' result (scores and places of its own entrants), the AI
+        // feedback on reasoning its adjudicators asked for and the awards it linked
+        // (specs/activities/academic-competitions.md).
+        'academic_adjudicators', 'academic_results', 'academic_reasoning_reviews', 'academic_award_links',
         'audiences', 'communication_role_rules', 'communication_operations', 'messages', 'message_recipients', 'message_reads',
         'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
@@ -214,7 +219,7 @@ final class SchoolOwnedTables
         'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
         'platform_package_modules' => 'which product modules each version of a package includes; names no school',
         'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
-        'shared_fixtures' => 'a fixture between schools: date, venue, field, the opponent\'s name when it is not on NavigateEd and the result both schools confirmed; names no school and holds no learner or group; each school reaches it only through its own shared_participants row',
+        'shared_fixtures' => 'a fixture or academic competition between schools: date, venue, field, motion, format, rounds, the opponent\'s name when it is not on NavigateEd and the result (and winning side) both schools confirmed; names no school and holds no learner or group; each school reaches it only through its own shared_participants row',
         'shared_competitions' => 'a league or competition between schools: name, kind, season and points rules; names no school; members reach it only through their own shared_participants row',
         'platform_announcements' => 'Navigate Ed\'s own announcements to schools, written only from /saas; a school reads one only through its own platform_announcement_schools row, and the audience list is never shown to a school',
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
