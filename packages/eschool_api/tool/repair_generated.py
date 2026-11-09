@@ -25,6 +25,13 @@ def repair(source: str) -> str:
         source,
     )
 
+    # Reusing a structurally identical nullable inline object leaks its
+    # nullability into this non-null guardian proposal property. The schema
+    # requires a learner, and the endpoint filters proposals without one.
+    if 'class GuardianHandleProposal ' in source:
+        source = source.replace('final GuardianInvitationPreviewLearnersInner? learner;', 'final GuardianInvitationPreviewLearnersInner learner;')
+        source = source.replace('(learner == null ? 0 : learner.hashCode)', 'learner.hashCode')
+
     boolean_names = []
 
     def boolean_enum(match: re.Match) -> str:

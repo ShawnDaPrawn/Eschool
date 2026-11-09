@@ -2,6 +2,22 @@ import 'package:eschool_api/eschool_api.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('guardian handle proposals require an identified learner', () {
+    final json = <String, dynamic>{
+      'id': 21,
+      'handle': 'orbit',
+      'expires_at': '2026-11-01T12:00:00.000Z',
+      'learner': {'id': 5, 'name': 'Asha'},
+    };
+    final proposal = GuardianHandleProposal.fromJson(json);
+    expect(proposal.learner.name, 'Asha');
+    expect(proposal.toJson(), json);
+    expect(
+      () => GuardianHandleProposal.fromJson({...json, 'learner': null}),
+      throwsA(anything),
+    );
+  });
+
   test(
     'practice contract 2 keeps pending marks nullable and validates its own fields',
     () {
