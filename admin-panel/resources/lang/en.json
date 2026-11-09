@@ -7715,5 +7715,6 @@
     "child_mode_pin_shape": "The PIN must be 4 to 6 numbers.",
     "child_mode_pin_mismatch": "The two PINs do not match.",
     "child_mode_pin_set_done": "Child mode PIN set.",
-    "child_mode_pin_changed_done": "Child mode PIN changed. Child mode has ended on every device."
+    "child_mode_pin_changed_done": "Child mode PIN changed. Child mode has ended on every device.",
+    "child_mode_not_member": "Child mode is open only to a guardian who is a current member of this child's school."
 }

@@ -6,11 +6,14 @@ namespace App\Services\ChildMode;
 
 use App\Http\Middleware\ChildModeContext;
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\School;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Stages\SchoolStages;
 use Illuminate\Http\Request;
@@ -25,9 +28,9 @@ use Laravel\Sanctum\PersonalAccessToken;
  *   Early years has no child mode on personal devices; high school learners
  *   use their own sign-in. A learner whose homeroom has no grade gets none,
  *   because the early-years rule could not be applied.
- * - Only an approving guardian (an active guardian link with the approval
- *   right, an active account and a verified email) sets the PIN or starts a
- *   child session, and only while the child holds a current guardian
+ * - Only an approving guardian (a current Parent membership at the child's
+ *   school, an active guardian link with the approval right, an active
+ *   account and a verified email) sets the PIN or starts a child session, and only while the child holds a current guardian
  *   approval and has not left the school.
  * - A child may open "my day" and the reading library, practice from Grade
  *   3 and the tutor from Grade 4, each only while the school has that
@@ -63,6 +66,7 @@ final class ChildModeAccess
         'early_years' => 'child_mode_early_years',
         'high_school' => 'child_mode_high_school',
         'grade_unknown' => 'child_mode_grade_unknown',
+        'not_member' => 'child_mode_not_member',
     ];
 
     private const SCHOOL = 'child-mode:school:';
@@ -129,6 +133,9 @@ final class ChildModeAccess
         if ($fresh === null || (int) $fresh->status !== 1 || $fresh->email_verified_at === null) {
             return 'guardian_unverified';
         }
+        if (! $this->parentMemberAt($fresh, (int) $learner->school_id)) {
+            return 'not_member';
+        }
         $approving = GuardianLink::query()->where('learner_id', $learner->id)->where('guardian_user_id', $guardian->id)
             ->where('status', 'active')->where('can_approve', true)->exists();
         if (! $approving) {
@@ -144,6 +151,37 @@ final class ChildModeAccess
             SchoolStages::HIGH_SCHOOL => 'high_school',
             default => 'grade_unknown',
         };
+    }
+
+    /**
+     * Whether the guardian holds a current, writable Parent membership at the
+     * school, read fresh through MembershipService as school.context reads it
+     * (active, or leaver until leaver_until, within its dates, at an active
+     * school). A leaver membership is read-only, so it does not count: child
+     * mode records what the child does.
+     */
+    public function parentMemberAt(User $guardian, int $schoolId): bool
+    {
+        $memberships = app(MembershipService::class);
+        $memberships->forget($guardian);
+
+        return $memberships->active($guardian)->contains(fn (SchoolMembership $membership) => (int) $membership->school_id === $schoolId
+            && $membership->role === 'Parent' && $membership->status === SchoolMembership::ACTIVE);
+    }
+
+    /** Whether a change to this membership means its holder's child sessions at that school must end. */
+    public static function endsChildMode(SchoolMembership $membership): bool
+    {
+        if ($membership->role !== 'Parent' || ! $membership->wasChanged(['status', 'ends_on', 'starts_on', 'leaver_until'])) {
+            return false;
+        }
+        if ($membership->status !== SchoolMembership::ACTIVE) {
+            return true;
+        }
+        $today = now(School::query()->whereKey($membership->school_id)->value('timezone') ?? 'Africa/Johannesburg')->toDateString();
+
+        return ($membership->starts_on !== null && $membership->starts_on->toDateString() > $today)
+            || ($membership->ends_on !== null && $membership->ends_on->toDateString() < $today);
     }
 
     /** Refuses with the reason's message unless child mode is open to this guardian for this child. */

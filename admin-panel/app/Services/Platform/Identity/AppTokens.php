@@ -7,6 +7,7 @@ namespace App\Services\Platform\Identity;
 use App\Models\User;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\ChildMode\ChildModeSessions;
+use Carbon\CarbonInterface;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -158,6 +159,34 @@ final class AppTokens
         return $user->tokens()
             ->when($except !== null, fn ($query) => $query->whereKeyNot($except->getKey()))
             ->delete();
+    }
+
+    /**
+     * When Sanctum stops accepting this token: its own expires_at, or
+     * sanctum.expiration minutes after it was made, whichever comes first
+     * (the rules of Laravel\Sanctum\Guard::isValidAccessToken). Null when
+     * neither applies.
+     */
+    public static function expiresAt(PersonalAccessToken $token): ?CarbonInterface
+    {
+        $expiration = config('sanctum.expiration');
+        $byLifetime = $expiration && $token->created_at !== null ? $token->created_at->copy()->addMinutes((int) $expiration) : null;
+        $own = $token->expires_at;
+
+        return match (true) {
+            $byLifetime === null => $own,
+            $own === null => $byLifetime,
+            default => $own->lessThan($byLifetime) ? $own : $byLifetime,
+        };
+    }
+
+    /** Whether Sanctum would still accept this token now. */
+    public static function current(PersonalAccessToken $token): bool
+    {
+        $expiration = config('sanctum.expiration');
+
+        return (! $expiration || ($token->created_at !== null && $token->created_at->gt(now()->subMinutes((int) $expiration))))
+            && ($token->expires_at === null || ! $token->expires_at->isPast());
     }
 
     private static function usesAnotherApp(User $user, string $app): bool

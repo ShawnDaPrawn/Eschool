@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\Platform\Role;
+use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
+use App\Services\ChildMode\ChildModeAccess;
+use App\Services\ChildMode\ChildModeSessions;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\NotificationRules;
@@ -118,6 +121,16 @@ class PlatformServiceProvider extends ServiceProvider
         Event::listen(RoleDetachedEvent::class, function (RoleDetachedEvent $event) {
             if ($event->model instanceof User) {
                 $this->withRoleNames($event->rolesOrIds, fn (string $role) => $this->app->make(MembershipService::class)->end($event->model, $this->app->make(CurrentSchool::class)->id(), $role));
+            }
+        });
+
+        // A Parent membership suspended, ended, or moved out of its dates ends
+        // that guardian's child sessions at the school at once (Action Plan
+        // 4.2). Every child request also re-checks the membership, which
+        // covers expiry by date and writes that skip model events.
+        SchoolMembership::saved(function (SchoolMembership $membership): void {
+            if (! $this->app->make(CurrentSchool::class)->isMigrating() && ChildModeAccess::endsChildMode($membership)) {
+                ChildModeSessions::revokeAtSchool((int) $membership->user_id, (int) $membership->school_id, ChildModeSessions::MEMBERSHIP_ENDED);
             }
         });
     }

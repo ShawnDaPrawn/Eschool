@@ -8,7 +8,9 @@ use App\Models\Academics\GradeLevel;
 use App\Models\ChildMode\ChildModePin;
 use App\Models\ChildMode\ChildModeSession;
 use App\Models\ClassSchool;
+use App\Models\Parents;
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\ChildMode\ChildModeSessions;
@@ -16,6 +18,7 @@ use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\GuardianLinks;
 use App\Services\Platform\Identity\GuardianService;
+use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Stages\SchoolStages;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -416,6 +419,123 @@ class ChildModeTest extends TestCase
         // Child mode starts only from a parent-app sign-in, not any other token of the account.
         $this->start($this->user('farid')->createToken(AppTokens::TEACHER)->plainTextToken)->assertForbidden();
         $this->assertSame(0, ChildModeSession::query()->count());
+    }
+
+    private function faridParentMembership(int $school = 1): SchoolMembership
+    {
+        return SchoolMembership::query()->where('school_id', $school)->where('user_id', $this->schoolA->ids['farid_user'])->where('role', 'Parent')->sole();
+    }
+
+    /** @return array<string, array{0: string}> */
+    public static function membershipChanges(): array
+    {
+        return [
+            'suspended' => ['suspended'],
+            'ended' => ['ended'],
+            'expired by its end date' => ['expired'],
+            'suspended by a write that skips model events' => ['suspended_raw'],
+        ];
+    }
+
+    #[DataProvider('membershipChanges')]
+    public function test_a_guardian_whose_parent_membership_stops_loses_child_mode_on_the_next_request(string $change): void
+    {
+        [$parent, $child] = $this->childSession();
+        $token = $this->childToken($child);
+        $this->api($child, [])->getJson('/api/v2/child-mode/session')->assertOk();
+        $membership = $this->faridParentMembership();
+
+        match ($change) {
+            'suspended' => $membership->update(['status' => SchoolMembership::SUSPENDED]),
+            'ended' => app(MembershipService::class)->end($this->user('farid'), 1, 'Parent'),
+            // No event: the date simply passed. Only the per-request check can see it.
+            'expired' => DB::table('school_memberships')->where('id', $membership->id)->update(['ends_on' => now()->subDay()->toDateString()]),
+            'suspended_raw' => DB::table('school_memberships')->where('id', $membership->id)->update(['status' => SchoolMembership::SUSPENDED]),
+        };
+
+        $this->api($child, [])->getJson('/api/v2/child-mode/session')->assertUnauthorized();
+        $this->assertNull(PersonalAccessToken::query()->find($token->id));
+        $session = ChildModeSession::query()->sole();
+        $this->assertSame(ChildModeSessions::MEMBERSHIP_ENDED, $session->end_reason);
+        $this->assertNotNull($session->ended_at);
+        $this->assertTrue(DB::table('audit_log')->where('action', 'child_mode.session_ended')->where('subject_id', $session->id)->exists());
+        // Nor can a new child session start.
+        $this->start($parent)->assertForbidden();
+    }
+
+    public function test_a_guardian_suspended_at_one_school_keeps_child_mode_at_their_other_school(): void
+    {
+        // Farid is also the parent of School B's Cara, with child mode there too.
+        $farid = $this->user('farid');
+        $caraB = $this->schoolB->ids['cara'];
+        app(CurrentSchool::class)->run(self::SCHOOL_B_ID, function () use ($farid, $caraB) {
+            $farid->unsetRelation('roles')->assignRole('Parent');
+            $parent = Parents::query()->forceCreate(['user_id' => $farid->id, 'first_name' => 'Farid', 'last_name' => 'Parent', 'gender' => 'Male', 'email' => $farid->email, 'mobile' => '0123456789']);
+            Students::query()->whereKey($caraB)->update(['father_id' => $parent->id]);
+            $learner = Students::query()->findOrFail($caraB);
+            app(GuardianService::class)->syncLegacy($learner);
+            ClassSchool::query()->whereKey($this->schoolB->ids['class_c'])->update(['grade_level_id' => (int) GradeLevel::query()->where('code', '6')->value('id')]);
+            app(ApprovalService::class)->decide($farid->fresh(), $learner, 'approve', (string) config('identity.consent_version'));
+        });
+        [, $childA] = $this->childSession();
+        $parentB = $this->parentToken('farid');
+        $b = ['X-School-Id' => (string) self::SCHOOL_B_ID];
+        $this->api($parentB, $b)->putJson('/api/v2/child-mode/children/'.$caraB.'/pin', ['pin' => self::PIN, 'pin_confirmation' => self::PIN])->assertOk();
+        $childB = $this->api($parentB, $b)->postJson('/api/v2/child-mode/children/'.$caraB.'/sessions', ['pin' => self::PIN])->assertOk()->json('data.token');
+
+        // Suspended at School A only.
+        $this->faridParentMembership()->update(['status' => SchoolMembership::SUSPENDED]);
+
+        $this->api($childA, [])->getJson('/api/v2/child-mode/session')->assertUnauthorized();
+        $this->assertSame(ChildModeSessions::MEMBERSHIP_ENDED, ChildModeSession::acrossSchools()->where('school_id', 1)->sole()->end_reason);
+        // School B: the child session and the parent sign-in keep working there.
+        $this->api($childB, [])->getJson('/api/v2/child-mode/session')->assertOk()->assertJsonPath('data.school.id', self::SCHOOL_B_ID)->assertJsonPath('data.learner_id', $caraB);
+        $this->assertNull(ChildModeSession::acrossSchools()->where('school_id', self::SCHOOL_B_ID)->sole()->ended_at);
+        $this->api($parentB, $b)->getJson('/api/v2/child-mode/children/'.$caraB)->assertOk()->assertJsonPath('data.available', true);
+        // Starting again at School A is refused: the membership there is suspended.
+        $this->api($parentB)->getJson($this->base('asha'))->assertForbidden();
+    }
+
+    public function test_a_parent_sign_in_past_sanctum_expiration_ends_the_child_session_even_if_its_row_remains(): void
+    {
+        config(['sanctum.expiration' => 60]);
+        [$parent, $child] = $this->childSession();
+        $this->api($child, [])->getJson('/api/v2/child-mode/session')->assertOk();
+        // The parent-app sign-in is now older than sanctum.expiration; its row is still there.
+        PersonalAccessToken::findToken($parent)->forceFill(['created_at' => now()->subMinutes(61)])->save();
+
+        $this->api($child, [])->getJson('/api/v2/child-mode/session')->assertUnauthorized();
+        $this->assertNotNull(PersonalAccessToken::findToken($parent));
+        $this->assertSame(ChildModeSessions::PARENT_SIGN_IN_EXPIRED, ChildModeSession::query()->sole()->end_reason);
+        $this->assertNull($this->childToken($child));
+    }
+
+    public function test_a_parent_sign_in_past_its_own_expiry_ends_the_child_session(): void
+    {
+        [$parent, $child] = $this->childSession();
+        PersonalAccessToken::findToken($parent)->forceFill(['expires_at' => now()->subMinute()])->save();
+
+        $this->api($child, [])->getJson('/api/v2/child-mode/session')->assertUnauthorized();
+        $this->assertSame(ChildModeSessions::PARENT_SIGN_IN_EXPIRED, ChildModeSession::query()->sole()->end_reason);
+    }
+
+    public function test_a_child_token_never_outlives_the_parent_sign_in_it_comes_from(): void
+    {
+        // The parent sign-in expires 10 minutes from now by its own expires_at.
+        $parent = $this->parentToken('farid');
+        $this->setPin($parent)->assertOk();
+        PersonalAccessToken::findToken($parent)->forceFill(['expires_at' => now()->addMinutes(10)])->save();
+        $response = $this->start($parent)->assertOk()->assertJsonPath('data.session.expires_at', now()->addMinutes(10)->toIso8601String());
+        $this->assertTrue($this->childToken($response->json('data.token'))->expires_at->equalTo(now()->addMinutes(10)));
+
+        // Or by sanctum.expiration: made 50 minutes ago with a 60-minute lifetime, so 10 minutes left.
+        config(['sanctum.expiration' => 60]);
+        $older = $this->parentToken('farid');
+        PersonalAccessToken::findToken($older)->forceFill(['created_at' => now()->subMinutes(50)])->save();
+        $response = $this->start($older)->assertOk()->assertJsonPath('data.session.expires_at', now()->addMinutes(10)->toIso8601String());
+        $this->assertTrue($this->childToken($response->json('data.token'))->expires_at->equalTo(now()->addMinutes(10)));
+        $this->travel(11)->minutes();
+        $this->api($response->json('data.token'), [])->getJson('/api/v2/child-mode/session')->assertUnauthorized();
     }
 
     public function test_a_child_token_is_not_a_guardian_sign_in_on_the_guardian_routes(): void

@@ -40867,6 +40867,7 @@ components:
             - early_years
             - high_school
             - grade_unknown
+            - not_member
           - type: 'null'
         message:
           type:

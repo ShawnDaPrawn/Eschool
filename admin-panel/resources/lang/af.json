@@ -7715,5 +7715,6 @@
     "child_mode_pin_shape": "Die PIN moet 4 tot 6 syfers wees.",
     "child_mode_pin_mismatch": "Die twee PIN'e stem nie ooreen nie.",
     "child_mode_pin_set_done": "PIN vir kindermodus is gestel.",
-    "child_mode_pin_changed_done": "PIN vir kindermodus is verander. Kindermodus het op elke toestel geëindig."
+    "child_mode_pin_changed_done": "PIN vir kindermodus is verander. Kindermodus het op elke toestel geëindig.",
+    "child_mode_not_member": "Kindermodus is slegs oop vir 'n voog wat 'n huidige lid van hierdie kind se skool is."
 }

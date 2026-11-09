@@ -14,6 +14,7 @@ use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,9 +29,11 @@ use Laravel\Sanctum\PersonalAccessToken;
  *
  * A child session ends, and its token is deleted at once, when the guardian
  * ends it, when the child leaves with the PIN, and when the guardian is
- * removed, loses the approval right, the child's approval is withdrawn, the
- * PIN changes, or the guardian signs out of that device, of the parent app
- * or everywhere. Every child request also re-reads all of this
+ * removed, loses the approval right or their Parent membership at the
+ * school, the child's approval is withdrawn, the PIN changes, or the
+ * guardian signs out of that device, of the parent app or everywhere, or
+ * that parent-app sign-in expires. A child token never outlives the
+ * parent-app sign-in it was issued from. Every child request also re-reads all of this
  * (verify), so nothing that changed is missed.
  *
  * The audit trail (child_mode_sessions and the audit log) holds ids, times
@@ -59,6 +62,10 @@ final class ChildModeSessions
     public const EXPIRED = 'expired';
 
     public const NO_LONGER_ALLOWED = 'no_longer_allowed';
+
+    public const MEMBERSHIP_ENDED = 'membership_ended';
+
+    public const PARENT_SIGN_IN_EXPIRED = 'parent_sign_in_expired';
 
     public function __construct(private readonly ChildModeAccess $access, private readonly ChildModePins $pins) {}
 
@@ -98,11 +105,17 @@ final class ChildModeSessions
             if ($row === null || $row->version !== $version) {
                 throw ValidationException::withMessages(['pin' => __('child_mode_pin_changed')]);
             }
-            abort_unless(PersonalAccessToken::query()->whereKey($parentToken->getKey())->lockForUpdate()->exists(), 401);
+            $parent = PersonalAccessToken::query()->whereKey($parentToken->getKey())->lockForUpdate()->first();
+            abort_unless($parent instanceof PersonalAccessToken && AppTokens::current($parent), 401);
             // Re-read after the lock: the guardian's rights may have changed meanwhile.
             $this->access->assertOpen($guardian, $learner);
             self::close(ChildModeSession::acrossSchools()->where('issued_from_token_id', $parentToken->getKey()), self::REPLACED);
+            // Never outlive the parent-app sign-in it comes from.
             $expires = now()->addMinutes(ChildModeAccess::minutes());
+            $parentExpires = AppTokens::expiresAt($parent);
+            if ($parentExpires !== null && $parentExpires->lessThan($expires)) {
+                $expires = Carbon::instance($parentExpires);
+            }
             $token = $guardian->createToken(AppTokens::CHILD, ChildModeAccess::abilities($schoolId, (int) $learner->id), $expires);
             $session = ChildModeSession::query()->create([
                 'learner_id' => $learner->id, 'guardian_user_id' => $guardian->id, 'token_id' => $token->accessToken->getKey(),
@@ -129,17 +142,25 @@ final class ChildModeSessions
         $session = ChildModeSession::query()->where('token_id', $token->getKey())->whereNull('ended_at')->first();
         abort_if($session === null, 401, __('child_mode_ended'));
         $guardian = $request->user();
+        $parent = $session->issued_from_token_id === null ? null : PersonalAccessToken::query()->find($session->issued_from_token_id);
         $reason = null;
         if ($session->learner_id !== $learnerId || $session->guardian_user_id !== (int) $guardian->getAuthIdentifier()) {
             $reason = self::NO_LONGER_ALLOWED;
-        } elseif ($session->issued_from_token_id !== null && ! PersonalAccessToken::query()->whereKey($session->issued_from_token_id)->exists()) {
+        } elseif ($session->issued_from_token_id !== null && $parent === null) {
             $reason = self::PARENT_SIGNED_OUT;
+        } elseif ($parent !== null && ! AppTokens::current($parent)) {
+            // Sanctum no longer accepts the parent-app sign-in, even if its row is still there.
+            $reason = self::PARENT_SIGN_IN_EXPIRED;
         } elseif (ChildModePin::query()->where('learner_id', $session->learner_id)->value('version') !== $session->pin_version) {
             $reason = self::PIN_CHANGED;
         } else {
             $learner = Students::query()->find($session->learner_id);
             $refusal = $learner === null ? 'learner_removed' : $this->access->refusal($guardian, $learner);
-            $reason = $refusal === null ? null : self::NO_LONGER_ALLOWED.':'.$refusal;
+            $reason = match ($refusal) {
+                null => null,
+                'not_member' => self::MEMBERSHIP_ENDED,
+                default => self::NO_LONGER_ALLOWED.':'.$refusal,
+            };
         }
         if ($reason !== null) {
             self::close(ChildModeSession::query()->whereKey($session->id), $reason);
@@ -192,6 +213,12 @@ final class ChildModeSessions
     public static function revokeForGuardian(int $guardianUserId, string $reason): int
     {
         return self::close(ChildModeSession::acrossSchools()->where('guardian_user_id', $guardianUserId), $reason);
+    }
+
+    /** Ends a guardian's child sessions at one school (their Parent membership there stopped). */
+    public static function revokeAtSchool(int $guardianUserId, int $schoolId, string $reason): int
+    {
+        return self::close(ChildModeSession::acrossSchools()->where('school_id', $schoolId)->where('guardian_user_id', $guardianUserId), $reason);
     }
 
     /** Ends the child sessions started from one parent-app sign-in. */
