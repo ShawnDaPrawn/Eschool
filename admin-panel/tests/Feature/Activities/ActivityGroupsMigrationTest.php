@@ -24,6 +24,9 @@ class ActivityGroupsMigrationTest extends TestCase
         sort($later);
         foreach (array_reverse($later) as $path) {
             (require $path)->down();
+            if (basename($path) === '2026_11_05_140000_add_activity_skills_to_peer_tutoring.php') {
+                $this->assertPeerTopicConstraint(false);
+            }
         }
         $migration->down();
         $this->assertFalse(Schema::hasTable('activity_groups'));
@@ -32,6 +35,9 @@ class ActivityGroupsMigrationTest extends TestCase
         $migration->up();
         foreach ($later as $path) {
             (require $path)->up();
+            if (basename($path) === '2026_11_05_140000_add_activity_skills_to_peer_tutoring.php') {
+                $this->assertPeerTopicConstraint(true);
+            }
         }
         $this->assertTrue(Schema::hasTable('activity_groups'));
         $this->assertTrue(Schema::hasTable('activity_operations'));
@@ -51,5 +57,16 @@ class ActivityGroupsMigrationTest extends TestCase
         }
         $this->assertTrue(Schema::hasTable('activity_groups'));
         $this->assertSame(1, ActivityOperation::count());
+    }
+
+    private function assertPeerTopicConstraint(bool $nullable): void
+    {
+        $topic = collect(Schema::getColumns('peer_tutoring_sessions'))->firstWhere('name', 'topic_id');
+        $this->assertNotNull($topic);
+        $this->assertSame($nullable, $topic['nullable']);
+        $foreign = collect(Schema::getForeignKeys('peer_tutoring_sessions'))->firstWhere('columns', ['topic_id']);
+        $this->assertNotNull($foreign);
+        $this->assertSame('mastery_topics', $foreign['foreign_table']);
+        $this->assertSame(['id'], $foreign['foreign_columns']);
     }
 }

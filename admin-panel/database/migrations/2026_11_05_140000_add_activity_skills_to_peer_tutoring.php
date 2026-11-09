@@ -30,11 +30,19 @@ return new class extends Migration
         if (DB::table('peer_tutoring_sessions')->whereNotNull('activity_group_id')->exists()) {
             throw new RuntimeException('Peer tutoring rollback refused: preserve supervised activity-skill sessions and their service history.');
         }
+        // MySQL requires the constraint to be removed before tightening the
+        // column's nullability. Restore it immediately after the alteration.
+        Schema::table('peer_tutoring_sessions', function (Blueprint $t) {
+            $t->dropForeign(['topic_id']);
+        });
         Schema::table('peer_tutoring_sessions', function (Blueprint $t) {
             $t->dropIndex('peer_status_calendar');
             $t->dropConstrainedForeignId('activity_group_id');
             $t->dropColumn('skill_name');
             $t->unsignedBigInteger('topic_id')->nullable(false)->change();
+        });
+        Schema::table('peer_tutoring_sessions', function (Blueprint $t) {
+            $t->foreign('topic_id')->references('id')->on('mastery_topics');
         });
     }
 };

@@ -102,7 +102,9 @@ class GroupChatNoticesTest extends TestCase
     {
         $message = $this->create();
         $event = OutboxEvent::where('type', 'group_chat.message_posted')->sole();
-        $this->assertSame(['group_id', 'thread_id', 'message_id', 'revision'], array_keys($event->payload));
+        $keys = array_keys($event->payload);
+        sort($keys);
+        $this->assertSame(['group_id', 'message_id', 'revision', 'thread_id'], $keys);
         $this->dispatch($message);
         $notice = $this->notice($this->parent, 'parent');
         $count = Notification::count();

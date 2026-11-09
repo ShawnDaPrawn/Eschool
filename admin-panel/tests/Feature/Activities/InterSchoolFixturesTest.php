@@ -36,6 +36,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\AssertsSameJson;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
@@ -50,6 +51,7 @@ use Tests\TestCase;
  */
 class InterSchoolFixturesTest extends TestCase
 {
+    use AssertsSameJson;
     use UsesTwoSchools;
     use ValidatesOpenApiResponses;
 
@@ -403,7 +405,8 @@ class InterSchoolFixturesTest extends TestCase
         $this->assertSame([], $this->as($this->gina, 1, fn () => app(Fixtures::class)->forLearner($this->gina, $this->ben))['items']);
         $this->refused(404, fn () => $this->as($this->gina, 1, fn () => app(Fixtures::class)->forLearner($this->gina, $this->asha)));
         $notice = Notification::acrossSchools()->where('school_id', 1)->where('type', FixtureNotices::TYPE)->sole();
-        $this->assertSame(['link' => FixtureNotices::LINK, 'fixture_id' => $id, 'result_revision' => 1], $notice->delivery_payload, 'no score or name in the notice');
+        // Only routing identifiers may enter delivery, regardless of JSON key order.
+        $this->assertSameJson(['link' => FixtureNotices::LINK, 'fixture_id' => $id, 'result_revision' => 1], $notice->delivery_payload);
         $this->inA(function () use ($notice) {
             UserNotification::firstOrCreate(['user_id' => $this->gina->id, 'notification_id' => $notice->id]);
             UserNotification::firstOrCreate(['user_id' => $this->farid->id, 'notification_id' => $notice->id]);
