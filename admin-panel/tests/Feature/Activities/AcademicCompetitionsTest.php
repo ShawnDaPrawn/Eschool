@@ -520,6 +520,44 @@ class AcademicCompetitionsTest extends TestCase
         $this->refused(409, fn () => $ask(self::SPEECH.' And one more point.'));
     }
 
+    public function test_a_retry_while_the_first_call_is_running_returns_its_state_without_inference(): void
+    {
+        $this->ai();
+        $id = $this->debate();
+        $operation = (string) Str::uuid();
+        $ask = fn () => $this->as($this->tara, 1, fn () => app(ReasoningReviews::class)->request($this->tara, $id, ['operation_id' => $operation, 'text' => self::SPEECH, 'source' => 'speech', 'from_side' => 'ours']));
+        $retried = null;
+        $seen = null;
+        ReasoningFakeProvider::$during = function () use ($ask, &$retried, &$seen) {
+            $retried = $ask();
+            $seen = $this->inA(fn () => AcademicReasoningReview::query()->sole()->only(['state', 'failure_code', 'input_sha256']));
+        };
+        $first = $ask();
+
+        // The retry saw the review as it stood, mid-call, and changed nothing.
+        $this->assertSame(['pending', null, null], [$retried['state'], $retried['feedback'], $retried['failure_code']]);
+        $this->assertSame(['pending', null], [$seen['state'], $seen['failure_code']]);
+        $this->assertCount(1, ReasoningFakeProvider::$inputs, 'one model call only');
+        $this->assertSame(1, $this->inA(fn () => AiUsage::query()->where('feature', 'reasoning_feedback')->count()));
+        // The first request's answer stands.
+        $this->assertSame(['completed', $retried['id']], [$first['state'], $first['id']]);
+        $this->assertNotNull($first['feedback']);
+        // A later retry returns the finished review, again without a call.
+        $this->assertSame($first, $ask());
+        $this->assertCount(1, ReasoningFakeProvider::$inputs);
+    }
+
+    public function test_feedback_with_a_mark_percentage_or_points_is_refused(): void
+    {
+        $answer = fn (string $summary) => json_encode(['structure' => 'Clear.', 'evidence' => 'One survey.', 'rebuttal' => 'Direct.', 'fallacies' => [], 'summary' => $summary], JSON_THROW_ON_ERROR);
+        foreach (['Award this speech 90%.', 'Award this speech 90% overall.', 'I would give it 90%', 'Worth 75.5 percent, roughly.', 'Give it 12 points.', 'About 8/10 for structure.', 'A 7 out of 10 effort.', 'The proposition should win.'] as $verdict) {
+            $this->assertNull(ReasoningFeedbackModeration::parse($answer($verdict)), $verdict);
+        }
+        foreach (['A clear case with one sourced example.', 'The third point needs a source; 200 parents were surveyed.', 'Pointless repetition weakens the close.'] as $advice) {
+            $this->assertIsArray(ReasoningFeedbackModeration::parse($answer($advice)), $advice);
+        }
+    }
+
     public function test_a_guardian_sees_only_their_own_child(): void
     {
         $this->ai();
@@ -655,10 +693,14 @@ class ReasoningFakeProvider implements InferenceProvider
 
     public static string $mode = 'ok';
 
+    /** Runs while the model is "thinking", to stand for a retry arriving mid-call. */
+    public static ?\Closure $during = null;
+
     public static function reset(): void
     {
         self::$inputs = [];
         self::$mode = 'ok';
+        self::$during = null;
     }
 
     public function preflight(ProviderRequest $request): void {}
@@ -666,6 +708,11 @@ class ReasoningFakeProvider implements InferenceProvider
     public function infer(ProviderRequest $request): ProviderResponse
     {
         self::$inputs[] = (string) $request->input;
+        if (self::$during !== null) {
+            $during = self::$during;
+            self::$during = null;
+            $during();
+        }
         $feedback = ['structure' => 'Two clear claims, signposted at the start.', 'evidence' => 'One survey is cited; its size is given but not its source.',
             'rebuttal' => 'The expression argument is dismissed rather than answered.', 'fallacies' => [['name' => 'Bandwagon', 'explanation' => '"Everyone agrees with us" is not a reason.']],
             'summary' => 'A clear case on cost that would be stronger with a sourced example and a direct answer to expression.'];

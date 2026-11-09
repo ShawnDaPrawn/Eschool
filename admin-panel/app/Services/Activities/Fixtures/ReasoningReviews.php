@@ -101,7 +101,11 @@ class ReasoningReviews
         $stance = $this->contests->stance($fixture, $data['from_side'] === 'ours' ? $part->role : ($part->role === 'host' ? 'guest' : 'host'));
         $prepared = $this->input($actor, $fixture, $side, $stance, $data);
         $hash = hash('sha256', $prepared);
-        $review = DB::transaction(function () use ($actor, $id, $data, $prepared, $hash, $stance) {
+        // Only the request that creates the review calls the model. A retry of the same
+        // operation (even while the first call is still running) returns the review as
+        // it stands, so it can never consume, fail or clear the first request's call.
+        $created = false;
+        $review = DB::transaction(function () use ($actor, $id, $data, $prepared, $hash, $stance, &$created) {
             School::query()->whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
             $this->judge($actor, $id);
             $old = AcademicReasoningReview::query()->where('operation_id', $data['operation_id'])->first();
@@ -113,10 +117,11 @@ class ReasoningReviews
             $row = AcademicReasoningReview::query()->create(['shared_fixture_id' => $id, 'requested_by' => $actor->id, 'operation_id' => $data['operation_id'], 'source' => $data['source'],
                 'stance' => $stance, 'from_side' => $data['from_side'], 'state' => 'pending', 'input' => $prepared, 'input_sha256' => $hash]);
             Audit::record('academic.reasoning_requested', $row, [], ['shared_fixture_id' => $id, 'source' => $row->source, 'from_side' => $row->from_side]);
+            $created = true;
 
             return $row;
         });
-        if ($review->state === 'pending') {
+        if ($created) {
             $this->run($actor, $review);
         }
 

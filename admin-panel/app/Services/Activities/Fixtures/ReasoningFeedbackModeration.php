@@ -24,7 +24,7 @@ class ReasoningFeedbackModeration implements InferenceModerator
     public const KEYS = ['structure', 'evidence', 'rebuttal', 'fallacies', 'summary'];
 
     /** A mark or a verdict is never part of advice to an adjudicator. */
-    private const VERDICT = '/\b\d+(?:[.,]\d+)?\s*(?:\/|out of)\s*\d+\b|\b\d+\s*(?:%|percent|points?)\b|\b(?:should|would|will|deserves? to) (?:win|lose)\b|\bthe winner\b/iu';
+    private const VERDICT = '/\b\d+(?:[.,]\d+)?\s*(?:\/|out of)\s*\d+\b|\b\d+(?:[.,]\d+)?\s*(?:%|percent(?!\w)|points?(?!\w))|\b(?:should|would|will|deserves? to) (?:win|lose)\b|\bthe winner\b/iu';
 
     public function preflight(Capability $capability, string|array $input, ModerationContext $context): void
     {
