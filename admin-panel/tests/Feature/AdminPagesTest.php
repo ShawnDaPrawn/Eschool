@@ -58,7 +58,13 @@ class AdminPagesTest extends TestCase
         $broken = [];
         foreach ($this->pageUris() as $uri) {
             $status = $client->get('/'.$uri)->status();
-            // Every platform area page (/saas) is for platform staff only.
+            // Business sign-in/recovery are public forms, never an HQ session.
+            if (in_array($uri, ['saas/login', 'saas/password/reset'], true)) {
+                $this->assertSame(200, $status, 'Business sign-in form did not open: '.$uri);
+
+                continue;
+            }
+            // Every other platform area page (/saas) is for platform staff only.
             if (in_array($uri, self::PURPOSE_RESTRICTED, true) || str_starts_with($uri, 'saas/')) {
                 $this->assertSame(403, $status, 'School admin acquired a separate purpose: '.$uri);
 

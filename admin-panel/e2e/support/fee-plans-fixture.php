@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\Ai\PlatformAiCostGrant;
 use App\Models\Money\FeePlan;
 use App\Models\People\Enrolment;
-use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
@@ -27,11 +25,6 @@ return app(CurrentSchool::class)->run(1, function (): array {
         return ['active_fixture_years' => SessionYear::whereIn('name', $names)->count()];
     }
     $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();
-    // The earlier AI-controls fixture borrows Finance as a platform operator.
-    // Restore its school-only identity; money must continue to refuse support.
-    $finance = User::where('email', 'finance.a@demo.navigateed.test')->firstOrFail();
-    PlatformAiCostGrant::where('user_id', $finance->id)->update(['active' => false]);
-    PlatformStaffIdentity::where('user_id', $finance->id)->update(['active' => false]);
     app(ModuleGate::class)->change('fees', true, $admin);
     $y = (int) now()->format('Y') + 2;
     $year = SessionYear::withTrashed()->firstOrCreate(['name' => $names[0]], ['start_date' => "$y-01-01", 'end_date' => "$y-12-31"]);

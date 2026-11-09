@@ -52,13 +52,16 @@ login and exercises password change, MFA, HQ work and revocation at three widths
 
 Local verification (10 November 2026):
 
-- 115 backend tests passed across the affected suites and targeted reruns:
+- 117 backend tests passed across the affected suites and targeted reruns:
   business sign-in, SaaS panel, platform roles/MFA, HQ home/school accounts,
   authentication boundaries, password policy, session concurrency, date-of-birth
-  passwords, translations, routes, Bootstrap and design-token checks.
-- The business/SaaS browser flow passed at 390, 820 and 1280 pixels, including
+  passwords, translations, routes, Bootstrap, design-token and admin-page checks.
+- All 13 affected browser checks passed: business/SaaS and AI-cost controls at
+  390, 820 and 1280 pixels, plus school fee planning. Coverage includes
   login/recovery accessibility and overflow checks, password change, MFA,
-  school setup, school-admin sign-in and revocation.
+  school setup, school-admin sign-in and revocation. The AI-cost fixture now
+  uses a distinct business account and completes MFA instead of converting a
+  school finance user into platform staff.
 - PHPStan, changed-file Pint, Playwright TypeScript, route cache generation and
   `git diff --check` passed. Two existing MFA audit assertions now compare JSON
   objects without depending on MySQL/MariaDB key ordering, preserving strict
