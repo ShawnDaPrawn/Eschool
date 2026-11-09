@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Tests\Concerns\OpensMarkingGate;
 use Tests\Concerns\UsesPracticeScenario;
 use Tests\TestCase;
 
@@ -34,7 +35,7 @@ use Tests\TestCase;
  */
 class MarkingPreviewTest extends TestCase
 {
-    use UsesPracticeScenario;
+    use OpensMarkingGate, UsesPracticeScenario;
 
     private array $paper;
 
@@ -226,7 +227,8 @@ class MarkingPreviewTest extends TestCase
         });
         $raw = fn () => (array) DB::table('past_paper_memos')->where('id', $other['memo'])->first();
         $before = $raw();
-        config(['marking.learner_marking.mathematics' => true, 'marking.learner_marking.generic' => true, 'marking.learner_marking.physical_sciences' => true]);
+        $this->openMarkingGate('mathematics', $this->actor()->id);
+        $this->openMarkingGate('physical_sciences', $this->actor()->id);
         $this->refuses(fn () => app(PaperMarking::class)->preview($this->actor(), $this->group, $other['version'], $this->answer('1.1', 'x = 4')), 404);
         $this->refuses(fn () => app(PaperMarking::class)->page($this->actor(), $this->group, $other['version']), 404);
         $this->refuses(fn () => app(PaperMarking::class)->learner($this->actor('asha'), $this->group, $other['version'], $this->answer('1.1', 'x = 4')), 404);
@@ -249,7 +251,7 @@ class MarkingPreviewTest extends TestCase
 
     public function test_learner_marking_once_switched_on_uses_only_the_reviewed_memo_and_hides_its_words(): void
     {
-        config(['marking.learner_marking.physical_sciences' => true]);
+        $this->openMarkingGate('physical_sciences', $this->actor()->id);
         $this->memo();
         $marking = app(PaperMarking::class);
         $this->assertNull($marking->learner($this->actor('asha'), $this->group, $this->paper['version_id'], $this->answer()), 'a draft memo is never used for learners');
@@ -273,7 +275,7 @@ class MarkingPreviewTest extends TestCase
                 $this->addToAssertionCount(1);
             }
         }
-        config(['marking.learner_marking.physical_sciences' => false]);
+        $this->closeMarkingGate('physical_sciences');
         $this->assertNull($marking->learner($this->actor('asha'), $this->group, $this->paper['version_id'], $this->answer()));
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Exceptions\TooManyLoginFailures;
+use App\Models\User;
+use App\Services\ChildMode\ChildModeAccess;
 use App\Services\FormService;
 use App\Services\Passport\NoReadingRecords;
 use App\Services\Passport\ReadingRecords;
@@ -14,6 +16,8 @@ use App\Services\People\Pools\BookablePeople;
 use App\Services\People\Pools\SchoolPoolPeople;
 use App\Services\Platform\Files\ClamAv;
 use App\Services\Platform\Files\UploadScanner;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\LoginIdentity;
 use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Mail\SesConfigurationSets;
 use App\Services\Platform\Mail\SesIdentities;
@@ -27,6 +31,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -69,8 +75,12 @@ class AppServiceProvider extends ServiceProvider
         ResetPassword::createUrlUsing(fn ($user, string $token) => rtrim((string) config('app.url'), '/')
             .route('password.reset', ['token' => $token, 'email' => $user->getEmailForPasswordReset()], false));
 
-        // A password reset signs the account out of the apps too.
-        Event::listen(PasswordReset::class, fn (PasswordReset $event) => $event->user->tokens()->delete());
+        // A password reset signs the account out of the apps too, child mode included.
+        Event::listen(PasswordReset::class, fn (PasswordReset $event) => $event->user instanceof User ? AppTokens::revokeAll($event->user) : $event->user->tokens()->delete());
+
+        // A child-mode token (Action Plan 4.2) is no token at all outside the
+        // child mode routes: Sanctum asks this for every token it finds.
+        Sanctum::authenticateAccessTokensUsing(fn (PersonalAccessToken $token, bool $valid): bool => $valid && ChildModeAccess::allowedHere($token));
 
         $this->limitFailedLogins();
     }
@@ -78,12 +88,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Wrong passwords are counted per account, whichever app, page or address
      * they come from, and 10 in an hour stop sign-ins to that account until the
-     * hour is up. App passwords default to dates of birth, which per-minute
+     * hour is up. Legacy passwords may still be dates of birth, which per-minute
      * limits alone would let someone guess within a day or two.
      */
     private function limitFailedLogins(): void
     {
-        $key = fn (array $credentials) => 'login-failures:'.strtolower(trim((string) ($credentials['email'] ?? '')));
+        $key = fn (array $credentials) => LoginIdentity::failureKey($credentials);
 
         Event::listen(Attempting::class, function (Attempting $event) use ($key) {
             if (RateLimiter::tooManyAttempts($key($event->credentials), TooManyLoginFailures::MAX_FAILURES)) {
@@ -91,6 +101,6 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         Event::listen(Failed::class, fn (Failed $event) => RateLimiter::hit($key($event->credentials), 3600));
-        Event::listen(Login::class, fn (Login $event) => RateLimiter::clear($key(['email' => $event->user->email ?? ''])));
+        Event::listen(Login::class, fn (Login $event) => RateLimiter::clear($key(['id' => $event->user->getAuthIdentifier()])));
     }
 }

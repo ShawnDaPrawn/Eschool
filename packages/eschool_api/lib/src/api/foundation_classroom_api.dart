@@ -208,6 +208,7 @@ class FoundationClassroomApi {
   ///
   /// Parameters:
   /// * [set_]
+  /// * [xPracticeContract] - 2 opts in to the answer-free practice contract (Action Plan 3.11): sets carry questions only, of every kind, and answers and explanations arrive in review.solution once the answer is recorded. Without it (or 1) the legacy contract applies, exactly as before: choice and number questions only, approved answers included. The legacy contract is retired with practice.legacy_set_contract; legacy requests are then refused with 426.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -219,6 +220,7 @@ class FoundationClassroomApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GetFoundationPracticeResponse>> getFoundationPractice({
     required int set_,
+    String? xPracticeContract,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -234,7 +236,11 @@ class FoundationClassroomApi {
     );
     final _options = Options(
       method: r'GET',
-      headers: <String, dynamic>{...?headers},
+      headers: <String, dynamic>{
+        if (xPracticeContract != null)
+          r'X-Practice-Contract': xPracticeContract,
+        ...?headers,
+      },
       extra: <String, dynamic>{
         'secure': <Map<String, String>>[
           {'type': 'http', 'scheme': 'bearer', 'name': 'foundationLearnerAuth'},
@@ -395,6 +401,7 @@ class FoundationClassroomApi {
   ///
   /// Parameters:
   /// * [foundationOperationInput]
+  /// * [xPracticeContract] - 2 opts in to the answer-free practice contract (Action Plan 3.11): sets carry questions only, of every kind, and answers and explanations arrive in review.solution once the answer is recorded. Without it (or 1) the legacy contract applies, exactly as before: choice and number questions only, approved answers included. The legacy contract is retired with practice.legacy_set_contract; legacy requests are then refused with 426.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -406,6 +413,7 @@ class FoundationClassroomApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<IssueFoundationPracticeResponse>> issueFoundationPractice({
     required FoundationOperationInput foundationOperationInput,
+    String? xPracticeContract,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -416,7 +424,11 @@ class FoundationClassroomApi {
     final _path = r'/foundation-learner/practice';
     final _options = Options(
       method: r'POST',
-      headers: <String, dynamic>{...?headers},
+      headers: <String, dynamic>{
+        if (xPracticeContract != null)
+          r'X-Practice-Contract': xPracticeContract,
+        ...?headers,
+      },
       extra: <String, dynamic>{
         'secure': <Map<String, String>>[
           {'type': 'http', 'scheme': 'bearer', 'name': 'foundationLearnerAuth'},
@@ -667,6 +679,7 @@ class FoundationClassroomApi {
   /// * [set_]
   /// * [entry]
   /// * [foundationReviewInput]
+  /// * [xPracticeContract] - 2 opts in to the answer-free practice contract (Action Plan 3.11): sets carry questions only, of every kind, and answers and explanations arrive in review.solution once the answer is recorded. Without it (or 1) the legacy contract applies, exactly as before: choice and number questions only, approved answers included. The legacy contract is retired with practice.legacy_set_contract; legacy requests are then refused with 426.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -680,6 +693,7 @@ class FoundationClassroomApi {
     required int set_,
     required int entry,
     required FoundationReviewInput foundationReviewInput,
+    String? xPracticeContract,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -702,7 +716,11 @@ class FoundationClassroomApi {
         );
     final _options = Options(
       method: r'POST',
-      headers: <String, dynamic>{...?headers},
+      headers: <String, dynamic>{
+        if (xPracticeContract != null)
+          r'X-Practice-Contract': xPracticeContract,
+        ...?headers,
+      },
       extra: <String, dynamic>{
         'secure': <Map<String, String>>[
           {'type': 'http', 'scheme': 'bearer', 'name': 'foundationLearnerAuth'},

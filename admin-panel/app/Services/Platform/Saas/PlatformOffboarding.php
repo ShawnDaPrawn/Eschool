@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Saas;
 
+use App\Jobs\Platform\EraseOffboardedSchool;
 use App\Jobs\Platform\PrepareOffboardingExport;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolContract;
+use App\Models\Platform\SchoolErasureCertificate;
 use App\Models\Platform\SchoolOffboarding;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Offboarding\OffboardingDeletionPlan;
 use App\Services\Platform\Offboarding\OffboardingExport;
+use App\Services\Platform\Offboarding\SchoolErasure;
 use App\Services\Platform\Offboarding\SchoolExit;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
@@ -36,7 +39,12 @@ use Illuminate\Validation\ValidationException;
  *    scheduled for the contract's date;
  * 5. deletion needs a request and a second approval by a different person, an
  *    Owner, each re-checking that the export was delivered and no legal hold
- *    is on. This step runs the deletion dry run only: nothing is deleted.
+ *    is on;
+ * 6. after a cooling-off period (and not before the deletion date) Operations
+ *    start the erasure (SchoolErasure), which runs in resumable batches and
+ *    ends with an erasure certificate. Until it starts, a legal hold or a
+ *    cancellation stops it and voids the approvals; once it has started it can
+ *    only be completed.
  *
  * Every step is audited with ids, states, dates and counts (never free
  * text), and HQ sees counts and states only, never a row of the school's data.
@@ -53,13 +61,19 @@ class PlatformOffboarding
         SchoolOffboarding::READY => 'Waiting for the school to confirm receipt',
         SchoolOffboarding::RECEIVED => 'Export received; ready to archive',
         SchoolOffboarding::ARCHIVED => 'Archived; deletion scheduled',
+        SchoolOffboarding::ERASING => 'Erasing the school\'s data',
+        SchoolOffboarding::ERASED => 'Erased; certificate issued',
         SchoolOffboarding::CANCELLED => 'Cancelled',
     ];
+
+    /** States in which nothing can be stopped or changed any more. */
+    private const IRREVERSIBLE = [SchoolOffboarding::ERASING, SchoolOffboarding::ERASED];
 
     public function __construct(
         private readonly CurrentSchool $currentSchool,
         private readonly OffboardingExport $export,
         private readonly OffboardingDeletionPlan $plan,
+        private readonly SchoolErasure $erasure,
     ) {}
 
     public static function startRules(): array
@@ -75,6 +89,12 @@ class PlatformOffboarding
     public static function reasonRules(): array
     {
         return ['reason' => ['required', 'string', 'min:10', 'max:500']];
+    }
+
+    /** Starting the erasure: the offboarding's reference typed again. */
+    public static function erasureRules(): array
+    {
+        return ['confirm' => ['required', 'string', 'max:16']];
     }
 
     public static function reference(int $id): string
@@ -105,6 +125,8 @@ class PlatformOffboarding
                 'contract' => $this->contractTerms(),
                 'administrators' => count(SchoolExit::administratorIds()),
                 'minimumDeadline' => $this->today()->addDays((int) config('offboarding.minimum_receipt_days'))->toDateString(),
+                'defaultRetentionDays' => (int) config('offboarding.default_retention_days'),
+                'coolingOffHours' => (int) config('offboarding.erasure_cooling_off_hours'),
             ];
         });
     }
@@ -179,10 +201,11 @@ class PlatformOffboarding
         $this->authorize($actor, 'offboarding.manage');
         Validator::make($input, self::reasonRules())->validate();
         $this->write($schoolId, function (SchoolOffboarding $row) use ($actor): void {
+            abort_if(in_array($row->state, self::IRREVERSIBLE, true), 409, __('The school\'s data is being erased or has been erased: the offboarding can no longer be cancelled.'));
             $before = $row->state;
             $this->export->discard($row);
             $row->forceFill(['state' => SchoolOffboarding::CANCELLED, 'cancelled_at' => now(), 'cancelled_by' => $actor->id, 'artifact_path' => null,
-                'deletion_requested_at' => null, 'deletion_requested_by' => null, 'deletion_approved_at' => null, 'deletion_approved_by' => null])->save();
+                'deletion_requested_at' => null, 'deletion_requested_by' => null, 'deletion_approved_at' => null, 'deletion_approved_by' => null, 'erasure_not_before' => null])->save();
             Audit::record('platform_school_offboarding_cancelled', $row, ['state' => $before], ['offboarding_id' => (int) $row->id, 'state' => $row->state, 'cancelled_by' => (int) $actor->id]);
         });
     }
@@ -212,7 +235,8 @@ class PlatformOffboarding
     /**
      * Step 5, second approval: an Owner who is not the person who asked. The
      * export and legal hold are checked again, and the dry run is run and
-     * stored. Deleting the rows is not built in this step: nothing is deleted.
+     * stored. Nothing is deleted: the cooling-off period starts, after which
+     * the erasure can be started (startErasure).
      */
     public function approveDeletion(int $schoolId, User $actor): void
     {
@@ -224,9 +248,11 @@ class PlatformOffboarding
             if ((int) $row->deletion_requested_by === (int) $actor->id) {
                 throw ValidationException::withMessages(['approval' => __('The second approval must come from someone other than the person who asked for deletion.')]);
             }
-            $row->forceFill(['deletion_approved_at' => now(), 'deletion_approved_by' => $actor->id])->save();
+            $notBefore = $this->erasureNotBefore($row);
+            $row->forceFill(['deletion_approved_at' => now(), 'deletion_approved_by' => $actor->id, 'erasure_not_before' => $notBefore])->save();
             Audit::record('platform_school_offboarding_deletion_approved', $row, [], ['offboarding_id' => (int) $row->id, 'requested_by' => (int) $row->deletion_requested_by,
-                'approved_by' => (int) $actor->id, 'export_delivered' => true, 'delete_on' => $row->delete_on->toDateString()]);
+                'approved_by' => (int) $actor->id, 'export_delivered' => true, 'delete_on' => $row->delete_on->toDateString(),
+                'cooling_off_hours' => (int) config('offboarding.erasure_cooling_off_hours'), 'erasure_not_before' => $notBefore->toIso8601String()]);
             $this->storeDryRun($row, $schoolId, $actor);
         });
     }
@@ -237,10 +263,11 @@ class PlatformOffboarding
         $this->authorize($actor, 'offboarding.manage');
         $data = Validator::make($input, self::reasonRules())->validate();
         $this->write($schoolId, function (SchoolOffboarding $row) use ($data, $actor): void {
+            abort_if(in_array($row->state, self::IRREVERSIBLE, true), 409, __('The school\'s data is being erased or has been erased: a legal hold can no longer stop it.'));
             abort_if($row->legal_hold, 409, __('A legal hold is already on.'));
             $voided = $row->deletion_requested_at !== null;
             $row->forceFill(['legal_hold' => true, 'legal_hold_reason' => $data['reason'], 'legal_hold_at' => now(), 'legal_hold_by' => $actor->id,
-                'deletion_requested_at' => null, 'deletion_requested_by' => null, 'deletion_approved_at' => null, 'deletion_approved_by' => null])->save();
+                'deletion_requested_at' => null, 'deletion_requested_by' => null, 'deletion_approved_at' => null, 'deletion_approved_by' => null, 'erasure_not_before' => null])->save();
             Audit::record('platform_school_offboarding_legal_hold_placed', $row, ['legal_hold' => false], ['offboarding_id' => (int) $row->id, 'legal_hold' => true,
                 'approvals_voided' => $voided, 'placed_by' => (int) $actor->id]);
         });
@@ -254,6 +281,133 @@ class PlatformOffboarding
             $row->forceFill(['legal_hold' => false, 'legal_hold_at' => now(), 'legal_hold_by' => $actor->id])->save();
             Audit::record('platform_school_offboarding_legal_hold_lifted', $row, ['legal_hold' => true], ['offboarding_id' => (int) $row->id, 'legal_hold' => false, 'lifted_by' => (int) $actor->id]);
         });
+    }
+
+    /**
+     * Step 6: start erasing the school's data. Only after both approvals by
+     * different people, who must still hold their abilities, once the
+     * cooling-off period is over and the deletion date has come, with the
+     * export still delivered and intact, no legal hold, and nothing outside
+     * the school referring to its rows. The offboarding's reference must be
+     * typed again. The erasure then runs in the background.
+     */
+    public function startErasure(int $schoolId, array $input, User $actor): void
+    {
+        $this->authorize($actor, 'offboarding.manage');
+        $data = Validator::make($input, self::erasureRules())->validate();
+        $this->write($schoolId, function (SchoolOffboarding $row) use ($schoolId, $data, $actor): void {
+            $this->deletable($row, $schoolId);
+            abort_if($row->deletion_requested_at === null || $row->deletion_approved_at === null || $row->erasure_not_before === null, 409,
+                __('Erasure needs both approvals first.'));
+            abort_if((int) $row->deletion_requested_by === (int) $row->deletion_approved_by, 409, __('Erasure needs approvals from two different people.'));
+            $access = app(PlatformStaffAccess::class);
+            $requester = $this->staffMember((int) $row->deletion_requested_by);
+            $approver = $this->staffMember((int) $row->deletion_approved_by);
+            abort_unless($requester !== null && $access->can($requester, 'offboarding.manage') && $approver !== null && $access->can($approver, 'offboarding.approve'), 409,
+                __('Someone who approved the erasure no longer may: ask for deletion and approve it again.'));
+            if (! hash_equals(self::reference((int) $row->id), strtoupper(trim((string) $data['confirm'])))) {
+                throw ValidationException::withMessages(['confirm' => __('Type the offboarding reference, :reference, to confirm.', ['reference' => self::reference((int) $row->id)])]);
+            }
+            $notBefore = CarbonImmutable::instance($row->erasure_not_before);
+            if (now()->lt($notBefore)) {
+                throw ValidationException::withMessages(['confirm' => __('The cooling-off period ends :at. Erasure can start then.', ['at' => $this->local($notBefore)])]);
+            }
+            $problems = $this->erasure->preflight($schoolId);
+            if ($problems !== []) {
+                throw ValidationException::withMessages(['confirm' => __('Erasure would touch rows outside this school (:where). Nothing was deleted. Fix this first.', ['where' => implode(', ', array_slice($problems, 0, 5))])]);
+            }
+            $row->forceFill(['state' => SchoolOffboarding::ERASING, 'erasure_started_at' => now(), 'erasure_started_by' => $actor->id, 'erasure_progress' => null,
+                'erasure_runs' => 1, 'erasure_heartbeat_at' => now(), 'erasure_failure_code' => null])->save();
+            Audit::record('platform_school_offboarding_erasure_started', $row, ['state' => SchoolOffboarding::ARCHIVED], ['offboarding_id' => (int) $row->id,
+                'state' => $row->state, 'started_by' => (int) $actor->id, 'requested_by' => (int) $row->deletion_requested_by, 'approved_by' => (int) $row->deletion_approved_by,
+                'erasure_not_before' => $notBefore->toIso8601String()]);
+            EraseOffboardedSchool::dispatch($schoolId, (int) $row->id)->afterCommit();
+        });
+    }
+
+    /** Queue an erasure again, from its saved progress (after a worker stopped, or a blocking reference was fixed). */
+    public function resumeErasure(int $schoolId, User $actor): void
+    {
+        $this->authorize($actor, 'offboarding.manage');
+        $this->write($schoolId, function (SchoolOffboarding $row) use ($schoolId, $actor): void {
+            abort_unless($row->state === SchoolOffboarding::ERASING, 409, __('Only an erasure that has started can be resumed.'));
+            $this->resume($row, $schoolId, (int) $actor->id);
+        });
+    }
+
+    /** Resumes every erasure with no progress for offboarding.erasure_stalled_minutes. Run by the scheduler. */
+    public function resumeStalledErasures(): int
+    {
+        $before = now()->subMinutes((int) config('offboarding.erasure_stalled_minutes'));
+        $stalled = $this->currentSchool->acrossSchools(fn () => SchoolOffboarding::acrossSchools()->where('state', SchoolOffboarding::ERASING)
+            ->whereNull('erasure_failure_code')->where(fn ($query) => $query->whereNull('erasure_heartbeat_at')->orWhere('erasure_heartbeat_at', '<', $before))
+            ->get(['id', 'school_id']));
+        $resumed = 0;
+        foreach ($stalled as $item) {
+            $resumed += (int) $this->currentSchool->run((int) $item->school_id, fn (): bool => DB::transaction(function () use ($item, $before): bool {
+                School::query()->whereKey($item->school_id)->lockForUpdate()->firstOrFail();
+                $row = SchoolOffboarding::query()->lockForUpdate()->find($item->id);
+                if ($row === null || $row->state !== SchoolOffboarding::ERASING || $row->erasure_failure_code !== null
+                    || ($row->erasure_heartbeat_at !== null && $row->erasure_heartbeat_at->gte($before))) {
+                    return false;
+                }
+                $this->resume($row, (int) $item->school_id, null);
+
+                return true;
+            }));
+        }
+
+        return $resumed;
+    }
+
+    /**
+     * The certificate of an erased school, as issued (counts, dates and audit
+     * entry ids only), or 404.
+     *
+     * @return array{reference: string, sha256: string, json: string}
+     */
+    public function certificate(int $schoolId): array
+    {
+        $this->school($schoolId);
+
+        return $this->currentSchool->run($schoolId, function (): array {
+            $certificate = SchoolErasureCertificate::query()->latest('id')->first();
+            abort_if($certificate === null, 404);
+
+            // The bytes exactly as issued, so their SHA-256 is the recorded one.
+            return ['reference' => $certificate->reference, 'sha256' => $certificate->certificate_sha256, 'json' => $certificate->body];
+        });
+    }
+
+    /** @return array{reference: string, certificate: array<string, mixed>, certificate_sha256: string}|null */
+    private function certificateSummary(int $offboardingId): ?array
+    {
+        $certificate = SchoolErasureCertificate::query()->where('offboarding_id', $offboardingId)->first();
+
+        return $certificate === null ? null : ['reference' => $certificate->reference, 'certificate' => $certificate->certificate, 'certificate_sha256' => $certificate->certificate_sha256];
+    }
+
+    private function resume(SchoolOffboarding $row, int $schoolId, ?int $actorId): void
+    {
+        $code = $row->erasure_failure_code;
+        $row->forceFill(['erasure_runs' => (int) $row->erasure_runs + 1, 'erasure_heartbeat_at' => now(), 'erasure_failure_code' => null])->save();
+        Audit::record('platform_school_offboarding_erasure_resumed', $row, [], array_filter(['offboarding_id' => (int) $row->id, 'run' => (int) $row->erasure_runs,
+            'after_code' => $code, 'resumed_by' => $actorId], fn ($value) => $value !== null));
+        EraseOffboardedSchool::dispatch($schoolId, (int) $row->id)->afterCommit();
+    }
+
+    /** The later of the end of the cooling-off period and the start of the deletion date. */
+    private function erasureNotBefore(SchoolOffboarding $row): CarbonImmutable
+    {
+        $coolingOff = CarbonImmutable::now()->addHours((int) config('offboarding.erasure_cooling_off_hours'));
+        $deleteOn = CarbonImmutable::createFromFormat('Y-m-d', $row->delete_on->toDateString(), self::TIMEZONE)->startOfDay();
+
+        return $coolingOff->max($deleteOn)->setTimezone(config('app.timezone'));
+    }
+
+    private function staffMember(int $id): ?User
+    {
+        return $id === 0 ? null : $this->currentSchool->acrossSchools(fn (): ?User => User::query()->find($id));
     }
 
     /**
@@ -326,12 +480,18 @@ class PlatformOffboarding
 
             return ['contract', $deleteOn, Str::limit($text, 500, ''), $terms['id']];
         }
+        if (($data['delete_on'] ?? null) === null && ($data['retention_terms'] ?? null) === null) {
+            // Neither the contract nor HQ gives a term: Navigate Ed's default retention period applies.
+            $days = (int) config('offboarding.default_retention_days');
+
+            return ['default', $deadline->addDays(max(1, $days)), __('Navigate Ed\'s default retention: the school\'s data is deleted :days days after its deadline to collect the export.', ['days' => max(1, $days)]), $terms['id'] ?? null];
+        }
         $errors = [];
         if (($data['delete_on'] ?? null) === null) {
-            $errors['delete_on'] = __('The contract records no deletion term: enter the date the school\'s data is to be deleted.');
+            $errors['delete_on'] = __('Enter the date the school\'s data is to be deleted with the terms, or leave both empty to use the default retention period.');
         }
         if (($data['retention_terms'] ?? null) === null) {
-            $errors['retention_terms'] = __('The contract records no deletion term: enter the terms you are following.');
+            $errors['retention_terms'] = __('Enter the terms you are following with the date, or leave both empty to use the default retention period.');
         }
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
@@ -365,7 +525,7 @@ class PlatformOffboarding
     /** @return array<string, mixed> */
     private function present(SchoolOffboarding $row): array
     {
-        $names = $this->actorNames([$row->started_by, $row->archived_by, $row->legal_hold_by, $row->deletion_requested_by, $row->deletion_approved_by, $row->dry_run_by]);
+        $names = $this->actorNames([$row->started_by, $row->archived_by, $row->legal_hold_by, $row->deletion_requested_by, $row->deletion_approved_by, $row->dry_run_by, $row->erasure_started_by]);
 
         return [
             'id' => (int) $row->id, 'reference' => self::reference((int) $row->id), 'state' => $row->state, 'state_label' => self::STATES[$row->state] ?? $row->state,
@@ -382,6 +542,11 @@ class PlatformOffboarding
             'deletion_requested_by_id' => $row->deletion_requested_by === null ? null : (int) $row->deletion_requested_by,
             'deletion_approved_at' => $this->local($row->deletion_approved_at), 'deletion_approved_by' => $names[$row->deletion_approved_by] ?? null,
             'dry_run' => $row->dry_run_report, 'dry_run_at' => $this->local($row->dry_run_at), 'dry_run_by' => $names[$row->dry_run_by] ?? null,
+            'erasure_not_before' => $this->local($row->erasure_not_before), 'erasure_due' => $row->erasure_not_before !== null && now()->gte($row->erasure_not_before),
+            'erasure_started_at' => $this->local($row->erasure_started_at), 'erasure_started_by' => $names[$row->erasure_started_by] ?? null,
+            'erasure_progress' => $row->erasure_progress, 'erasure_step' => $row->erasure_step, 'erasure_runs' => (int) $row->erasure_runs,
+            'erasure_heartbeat_at' => $this->local($row->erasure_heartbeat_at), 'erasure_failure_code' => $row->erasure_failure_code, 'erased_at' => $this->local($row->erased_at),
+            'certificate' => $row->state === SchoolOffboarding::ERASED ? $this->certificateSummary((int) $row->id) : null,
         ];
     }
 

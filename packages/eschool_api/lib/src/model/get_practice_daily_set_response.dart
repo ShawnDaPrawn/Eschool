@@ -3,7 +3,7 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:eschool_api/src/model/practice_daily_set.dart';
+import 'package:eschool_api/src/model/issue_practice_daily_set_response_data.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'get_practice_daily_set_response.g.dart';
@@ -33,7 +33,7 @@ class GetPracticeDailySetResponse {
   final String message;
 
   @JsonKey(name: r'data', required: true, includeIfNull: false)
-  final PracticeDailySet data;
+  final IssuePracticeDailySetResponseData data;
 
   @JsonKey(name: r'code', required: true, includeIfNull: false)
   final int code;

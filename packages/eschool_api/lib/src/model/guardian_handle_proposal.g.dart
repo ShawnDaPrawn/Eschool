@@ -22,9 +22,11 @@ GuardianHandleProposal _$GuardianHandleProposalFromJson(
     ),
     learner: $checkedConvert(
       'learner',
-      (v) => GuardianInvitationPreviewLearnersInner.fromJson(
-        v as Map<String, dynamic>,
-      ),
+      (v) => v == null
+          ? null
+          : GuardianInvitationPreviewLearnersInner.fromJson(
+              v as Map<String, dynamic>,
+            ),
     ),
   );
   return val;
@@ -36,5 +38,5 @@ Map<String, dynamic> _$GuardianHandleProposalToJson(
   'id': instance.id,
   'handle': instance.handle,
   'expires_at': instance.expiresAt.toIso8601String(),
-  'learner': instance.learner.toJson(),
+  'learner': instance.learner?.toJson(),
 };

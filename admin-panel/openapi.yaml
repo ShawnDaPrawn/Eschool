@@ -158,6 +158,8 @@ security:
 - bearerAuth: []
 - cookieAuth: []
 tags:
+- name: Subscriptions
+  description: Learning plans for the tutor and the parent insights; daily practice stays free.
 - name: Wallets
   description: Private personal wallets and guardian spending controls.
 - name: Gallery
@@ -230,6 +232,8 @@ tags:
   description: Private wallet storefronts, reviewed purchases and original order receipts.
 - name: PeoplePool
   description: The school's alumni and volunteer pool, vetting and group-session bookings, and the pool member's own restricted profile.
+- name: ChildMode
+  description: Child mode in the parent app - the child's PIN, short child sessions bound to one child and school, and what the child may open.
 - name: Reading
   description: The learner's reading library - public-domain books on shelves for their grade, their own progress and comprehension checks.
 - name: LearningPath
@@ -840,6 +844,222 @@ paths:
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/children/{child}:
+    get:
+      operationId: getChildMode
+      tags:
+      - ChildMode
+      summary: getChildMode
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Whether child mode is open for this child, why not, whether a PIN is set or locked, and what the child may open.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/children/{child}/pin:
+    put:
+      operationId: setChildModePin
+      tags:
+      - ChildMode
+      summary: setChildModePin
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Sets or changes the PIN (4 to 6 digits, typed twice, not one digit repeated or a straight run). It is stored only as a hash; changing it ends every child session for this child at once.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildModePinInput'
+  /child-mode/children/{child}/sessions:
+    post:
+      operationId: startChildMode
+      tags:
+      - ChildMode
+      summary: startChildMode
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Starts a child session with the PIN and returns the child token, short-lived and bound to this child and school. Wrong PINs are counted per child; after five the PIN locks for 15 minutes (429). Starting again from the same parent-app sign-in ends the earlier child session.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeStartResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildModePinEntry'
+  /child-mode/children/{child}/sessions/end:
+    post:
+      operationId: endChildModeForGuardian
+      tags:
+      - ChildMode
+      summary: endChildModeForGuardian
+      description: 'Child mode in the parent app (Action Plan 4.2), guardian side: a parent-app sign-in (role Parent, school.context, current policies accepted). Only the child''s approving guardian (active link with the approval right, verified email) may set the PIN or start child mode, and only for a junior-stage child with a current guardian approval. Another family''s or another school''s child answers 404. Private, never cached. Ends this guardian''s child sessions for this child on every device, without the PIN.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeEndedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: child
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/session:
+    get:
+      operationId: getChildModeSession
+      tags:
+      - ChildMode
+      summary: getChildModeSession
+      description: 'Child mode in the parent app (Action Plan 4.2), child side: only a child token, bound to the child and school it was issued for (an X-School-Id naming another school is refused). The guardian link, approval right, approval, PIN, stage and the parent-app sign-in that started it are re-read on every request; a session that is no longer allowed ends with 401. A child token authenticates on no other route. Private, never cached. The child''s first name, school, what the child may open now (my_day, practice from Grade 3, tutor from Grade 4, library; each only while its module is on) and when the session expires.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /child-mode/session/end:
+    post:
+      operationId: endChildMode
+      tags:
+      - ChildMode
+      summary: endChildMode
+      description: 'Child mode in the parent app (Action Plan 4.2), child side: only a child token, bound to the child and school it was issued for (an X-School-Id naming another school is refused). The guardian link, approval right, approval, PIN, stage and the parent-app sign-in that started it are re-read on every request; a session that is no longer allowed ends with 401. A child token authenticates on no other route. Private, never cached. Leaves child mode with the PIN (counted towards the lock like any other try); the child token is deleted at once.'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildModeLeftResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildModePinEntry'
   /academics/teaching-groups:
     get:
       operationId: getTeachingGroups
@@ -35418,6 +35638,293 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /subscriptions:
+    get:
+      operationId: getSubscriptionOverview
+      tags:
+      - Subscriptions
+      summary: getSubscriptionOverview
+      description: 'Learning plans (Action Plan 3.20) for the signed-in guardian at this school: the plans and their prices
+        (placeholders while pricing_confirmed is false), each of their own children here with their entitlement, and their
+        own subscriptions. required is false where the school does not ask for an entitlement; then everything is included.
+        Daily practice is free for every learner and never needs a plan.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The plans, the guardian's children and their subscriptions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionOverviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /subscriptions/learners/{learner}:
+    get:
+      operationId: getSubscriptionLearner
+      tags:
+      - Subscriptions
+      summary: getSubscriptionLearner
+      description: The plans and one of the guardian's own children with their entitlement. Another guardian's child, or a
+        learner at another school, is not found.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The plans and the child.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionLearnerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /subscriptions/learners/{learner}/requests:
+    post:
+      operationId: requestSubscription
+      tags:
+      - Subscriptions
+      summary: requestSubscription
+      description: Ask for a learning plan for one of the guardian's own approved children. The first child is on the per-child
+        price, each further child of the same guardian at this school on the family price; the price is fixed now. The plan
+        waits as requested until its EFT (quoting the reference) is recorded by Navigate Ed. Replaying the same operation_id
+        returns the same subscription (created false). Refused (409) when the school includes plans, the child is already
+        covered by the school or a sponsor, or the child already has a plan or a request waiting.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionOperationWrite'
+      responses:
+        '200':
+          description: The subscription, new or replayed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionRequestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Nothing to buy, already covered, or a plan or request already exists for the child.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /subscriptions/plans/{subscription}/cancel:
+    post:
+      operationId: cancelSubscription
+      tags:
+      - Subscriptions
+      summary: cancelSubscription
+      description: Cancel the guardian's own subscription. A request not yet paid stops at once; a paid plan keeps its paid
+        period (current_period_end). Replaying the same operation_id changes nothing. Another guardian's subscription is not
+        found.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: subscription
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionOperationWrite'
+      responses:
+        '200':
+          description: The cancelled subscription.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionCancelResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The plan is no longer running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /school/sponsored-places:
+    get:
+      operationId: listSponsoredPlaces
+      tags:
+      - Subscriptions
+      summary: listSponsoredPlaces
+      description: A sponsor's places at this school (Action Plan 3.20) and the learners the school named for them. The school's
+        Super Admin only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The school's sponsorships.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SponsoredPlacesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /school/sponsored-places/{subscription}/learners:
+    post:
+      operationId: addSponsoredLearner
+      tags:
+      - Subscriptions
+      summary: addSponsoredLearner
+      description: Name a learner of this school for one of the sponsor's places. Naming a learner already named changes nothing;
+        a full sponsorship is refused (409).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: subscription
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SponsoredLearnerWrite'
+      responses:
+        '200':
+          description: The sponsorship with its learners.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SponsoredPlaceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Every place is taken, or the sponsorship is no longer running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /school/sponsored-places/{subscription}/learners/{learner}/remove:
+    post:
+      operationId: removeSponsoredLearner
+      tags:
+      - Subscriptions
+      summary: removeSponsoredLearner
+      description: Free a sponsored place. Removing a learner who holds no place changes nothing.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: subscription
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The sponsorship with its learners.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SponsoredPlaceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -40613,6 +41120,248 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/PoolWithdrawal'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeStatus:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - first_name
+      - available
+      - reason
+      - message
+      - pin_set
+      - pin_locked_until
+      - opens
+      - session_minutes
+      properties:
+        learner_id:
+          type: integer
+        first_name:
+          type: string
+        available:
+          type: boolean
+        reason:
+          description: Why child mode is closed for this guardian and child; null when it is open.
+          anyOf:
+          - type: string
+            enum:
+            - not_approving
+            - guardian_unverified
+            - approval_needed
+            - early_years
+            - high_school
+            - grade_unknown
+            - not_member
+          - type: 'null'
+        message:
+          type:
+          - string
+          - 'null'
+        pin_set:
+          type: boolean
+        pin_locked_until:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        opens:
+          type: array
+          description: What the child may open, in the order the app shows it.
+          items:
+            type: string
+            enum:
+            - my_day
+            - practice
+            - tutor
+            - library
+        session_minutes:
+          type: integer
+          minimum: 5
+          maximum: 120
+    ChildModeSession:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - first_name
+      - school
+      - opens
+      - started_at
+      - expires_at
+      properties:
+        learner_id:
+          type: integer
+        first_name:
+          type: string
+        school:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - name
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        opens:
+          type: array
+          description: What the child may open, in the order the app shows it.
+          items:
+            type: string
+            enum:
+            - my_day
+            - practice
+            - tutor
+            - library
+        started_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+    ChildModePinInput:
+      type: object
+      additionalProperties: false
+      required:
+      - pin
+      - pin_confirmation
+      properties:
+        pin:
+          type: string
+          pattern: ^[0-9]{4,6}$
+        pin_confirmation:
+          type: string
+    ChildModePinEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - pin
+      properties:
+        pin:
+          type: string
+          pattern: ^[0-9]{4,6}$
+    ChildModeStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ChildModeStatus'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeSessionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ChildModeSession'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeStartResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - token
+          - session
+          properties:
+            token:
+              type: string
+              description: The child token. Send it as the bearer token on the child mode session routes only.
+            session:
+              $ref: '#/components/schemas/ChildModeSession'
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeEndedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - ended
+          properties:
+            ended:
+              type: integer
+              minimum: 0
+        code:
+          anyOf:
+          - type: integer
+          - type: string
+          - type: 'null'
+    ChildModeLeftResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          anyOf:
+          - type: object
+            additionalProperties: false
+            maxProperties: 0
+          - type: 'null'
         code:
           anyOf:
           - type: integer
@@ -62229,6 +62978,8 @@ components:
           type: boolean
         home_languages:
           type: array
+          description: Home languages the tutor offers now. A language appears only when the deployment enables it and
+            its safeguarding phrase list has a recorded professional review; a draft list keeps it out.
           maxItems: 2
           items:
             $ref: '#/components/schemas/TutorHomeLanguage'
@@ -62716,7 +63467,8 @@ components:
           - explain_back
         language:
           description: Ask for the explanation in a home language listed in the configuration's home_languages (tutor
-            v2 only).
+            v2 only). Any other language, including one whose safeguarding phrase list is still a draft, is refused
+            with 422.
           anyOf:
           - type: string
             enum:
@@ -82557,3 +83309,534 @@ components:
           type: integer
           enum:
           - 200
+    SubscriptionPlan:
+      type: object
+      additionalProperties: false
+      required:
+      - plan
+      - price_cents
+      - period_months
+      properties:
+        plan:
+          type: string
+          enum:
+          - per_child
+          - family
+        price_cents:
+          type: integer
+          minimum: 1
+        period_months:
+          type: integer
+          minimum: 1
+          maximum: 12
+    SubscriptionEntitlement:
+      type: object
+      additionalProperties: false
+      description: Whether the learner may use the tutor and their guardians the insights today. source is included where
+        the school asks for nothing, else school_licence, sponsored or subscription; until is the last paid day.
+      required:
+      - required
+      - entitled
+      - source
+      - until
+      properties:
+        required:
+          type: boolean
+        entitled:
+          type: boolean
+        source:
+          anyOf:
+          - type: string
+            enum:
+            - included
+            - school_licence
+            - sponsored
+            - subscription
+          - type: 'null'
+        until:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+    Subscription:
+      type: object
+      additionalProperties: false
+      description: A learning plan by its reference. effective_status adds lapsed (paid periods ran out without a renewal)
+        and shows a cancelled plan past its paid period as ended.
+      required:
+      - id
+      - reference
+      - plan
+      - status
+      - effective_status
+      - learner_id
+      - price_cents
+      - currency
+      - period_months
+      - current_period_end
+      - requested_on
+      - can_cancel
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        reference:
+          type: string
+          pattern: ^[A-Z]{2,8}-[0-9]{6,12}$
+        plan:
+          type: string
+          enum:
+          - per_child
+          - family
+          - school_licence
+          - sponsored
+        status:
+          type: string
+          enum:
+          - requested
+          - active
+          - cancelled
+          - ended
+          - declined
+        effective_status:
+          type: string
+          enum:
+          - requested
+          - active
+          - lapsed
+          - cancelled
+          - ended
+          - declined
+        learner_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        price_cents:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        period_months:
+          type: integer
+          minimum: 1
+          maximum: 12
+        current_period_end:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        requested_on:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        can_cancel:
+          type: boolean
+    SubscriptionChild:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - approved
+      - entitlement
+      - next_plan
+      - subscription
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        approved:
+          type: boolean
+        entitlement:
+          $ref: '#/components/schemas/SubscriptionEntitlement'
+        next_plan:
+          type: string
+          enum:
+          - per_child
+          - family
+        subscription:
+          anyOf:
+          - $ref: '#/components/schemas/Subscription'
+          - type: 'null'
+    SubscriptionOverview:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - children
+      - subscriptions
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionChild'
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+    SubscriptionLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - child
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        child:
+          $ref: '#/components/schemas/SubscriptionChild'
+    SubscriptionRequestResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - created
+      - subscription
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        created:
+          type: boolean
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+    SubscriptionCancelResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - required
+      - pricing_confirmed
+      - currency
+      - plans
+      - payment_instructions
+      - subscription
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        required:
+          type: boolean
+          description: Whether this school asks for an entitlement for the tutor and the parent insights.
+        pricing_confirmed:
+          type: boolean
+          description: False while the prices are placeholders awaiting the owner's decision.
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+        payment_instructions:
+          type: string
+          description: Navigate Ed's EFT details; quote the subscription reference.
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+    SubscriptionOperationWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    SponsoredLearnerWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+    SponsoredPlace:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - reference
+      - sponsor_name
+      - places
+      - status
+      - effective_status
+      - current_period_end
+      - learners
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        reference:
+          type: string
+        sponsor_name:
+          type: string
+        places:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - requested
+          - active
+          - cancelled
+          - ended
+          - declined
+        effective_status:
+          type: string
+          enum:
+          - requested
+          - active
+          - lapsed
+          - cancelled
+          - ended
+          - declined
+        current_period_end:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        learners:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - learner_id
+            - name
+            - added_on
+            properties:
+              learner_id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              added_on:
+                anyOf:
+                - type: string
+                  format: date
+                - type: 'null'
+    SponsoredPlaces:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - sponsorships
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        sponsorships:
+          type: array
+          items:
+            $ref: '#/components/schemas/SponsoredPlace'
+    SponsoredPlaceResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - sponsorship
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        sponsorship:
+          $ref: '#/components/schemas/SponsoredPlace'
+    SubscriptionOverviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionOverview'
+        code:
+          type: integer
+    SubscriptionLearnerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionLearner'
+        code:
+          type: integer
+    SubscriptionRequestResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionRequestResult'
+        code:
+          type: integer
+    SubscriptionCancelResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SubscriptionCancelResult'
+        code:
+          type: integer
+    SponsoredPlacesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SponsoredPlaces'
+        code:
+          type: integer
+    SponsoredPlaceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SponsoredPlaceResult'
+        code:
+          type: integer

@@ -26,12 +26,12 @@ class RequirePasswordChange
      * whoever was signed in on this browser. A platform operator who has set up
      * two-factor sign-in passes its challenge before changing their password.
      */
-    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'web-set-language/*', 'saas/password', 'saas/two-factor/challenge', 'invite/staff/*'];
+    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'vendor-counter/sign-out', 'web-set-language/*', 'saas/password', 'saas/two-factor/challenge', 'invite/staff/*'];
 
     public static function isDefaultPassword(User $user, string $password): bool
     {
-        // TeacherController and StaffController set the date of birth as ddmmyyyy;
-        // older code used other formats (DateOfBirthPasswords::FORMATS).
+        // Legacy staff creation used ddmmyyyy and other birth-date formats
+        // (DateOfBirthPasswords::FORMATS); existing accounts still need migration.
         return $password === 'superadmin' || DateOfBirthPasswords::isDateOfBirth($user, $password);
     }
 
@@ -43,7 +43,8 @@ class RequirePasswordChange
 
     public function handle(Request $request, Closure $next)
     {
-        if (! $request->hasSession() || ! $request->session()->get(self::SESSION_KEY) || ! $request->user() || $request->is(self::ALLOWED)) {
+        if (! $request->hasSession() || ! $request->user() || $request->is(self::ALLOWED)
+            || (! $request->session()->get(self::SESSION_KEY) && ! $request->user()->password_change_required)) {
             return $next($request);
         }
 

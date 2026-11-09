@@ -8,13 +8,16 @@ part of 'practice_review_input.dart';
 
 PracticeReviewInput _$PracticeReviewInputFromJson(Map<String, dynamic> json) =>
     $checkedCreate('PracticeReviewInput', json, ($checkedConvert) {
-      $checkKeys(
-        json,
-        requiredKeys: const ['operation_id', 'answer', 'rating'],
-      );
+      $checkKeys(json, requiredKeys: const ['operation_id', 'rating']);
       final val = PracticeReviewInput(
         operationId: $checkedConvert('operation_id', (v) => v as String),
-        answer: $checkedConvert('answer', (v) => v as String),
+        answer: $checkedConvert('answer', (v) => v as String?),
+        parts: $checkedConvert(
+          'parts',
+          (v) => (v as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ),
+        ),
         rating: $checkedConvert('rating', (v) => (v as num).toInt()),
       );
       return val;
@@ -24,6 +27,7 @@ Map<String, dynamic> _$PracticeReviewInputToJson(
   PracticeReviewInput instance,
 ) => <String, dynamic>{
   'operation_id': instance.operationId,
-  'answer': instance.answer,
+  'answer': ?instance.answer,
+  'parts': ?instance.parts,
   'rating': instance.rating,
 };

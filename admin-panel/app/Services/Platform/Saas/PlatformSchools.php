@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Platform\Saas;
 
 use App\Models\Platform\School;
+use App\Models\Platform\SchoolOffboarding;
 use App\Models\Platform\StaffInvitation;
 use App\Models\SessionYear;
 use App\Models\Settings;
@@ -206,6 +207,10 @@ class PlatformSchools
                 abort_if($school === null, 404);
                 if ($school->status === $status) {
                     return;
+                }
+                // A school whose data is being erased, or was erased (SA.11), stays archived.
+                if (DB::table('school_offboardings')->where('school_id', $schoolId)->whereIn('state', [SchoolOffboarding::ERASING, SchoolOffboarding::ERASED])->exists()) {
+                    throw ValidationException::withMessages(['status' => 'This school\'s data is being erased or has been erased: it stays archived.']);
                 }
                 DB::table('schools')->where('id', $schoolId)->update(['status' => $status, 'updated_at' => now()]);
                 Audit::record('platform_school_status_changed', School::query()->findOrFail($schoolId), ['status' => $school->status], ['status' => $status, 'reason' => $reason, 'changed_by' => $actor->id], $schoolId);

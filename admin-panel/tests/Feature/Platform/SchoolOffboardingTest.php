@@ -395,11 +395,11 @@ class SchoolOffboardingTest extends TestCase
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding', ['reason' => 'The school has moved to another provider.', 'receipt_deadline' => '2026-11-20', 'delete_on' => '2026-12-31', 'retention_terms' => 'Clause 12 of the agreement.'])
             ->assertSessionHasErrors('reason');
         $admin = $this->headOfB();
-        // No contract term recorded: the date and terms must be entered; the deadline gives at least a week; deletion comes after it.
+        // No contract term recorded: the date and terms are entered together (or both left for the default); the deadline gives at least a week; deletion comes after it.
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding', ['reason' => 'The school has moved to another provider.', 'receipt_deadline' => '2026-11-06'])
             ->assertSessionHasErrors(['receipt_deadline']);
-        $this->post('/saas/schools/'.self::LEAVING.'/offboarding', ['reason' => 'The school has moved to another provider.', 'receipt_deadline' => '2026-11-20'])
-            ->assertSessionHasErrors(['delete_on', 'retention_terms']);
+        $this->post('/saas/schools/'.self::LEAVING.'/offboarding', ['reason' => 'The school has moved to another provider.', 'receipt_deadline' => '2026-11-20', 'retention_terms' => 'Clause 12 of the agreement.'])
+            ->assertSessionHasErrors(['delete_on']);
         $this->post('/saas/schools/'.self::LEAVING.'/offboarding', ['reason' => 'The school has moved to another provider.', 'receipt_deadline' => '2026-11-20', 'delete_on' => '2026-11-15', 'retention_terms' => 'Clause 12 of the agreement.'])
             ->assertSessionHasErrors(['delete_on']);
         // A deletion term needs the contract's end date.

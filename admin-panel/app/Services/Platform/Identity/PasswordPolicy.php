@@ -7,6 +7,7 @@ namespace App\Services\Platform\Identity;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Support\Str;
 use Illuminate\Validation\NotPwnedVerifier;
 use Illuminate\Validation\Rules\Password;
 
@@ -31,6 +32,12 @@ final class PasswordPolicy
     public static function rule(): Password
     {
         return Password::min(self::MIN_LENGTH)->letters()->numbers()->uncompromised();
+    }
+
+    /** Initial credentials must be unpredictable, even when a birth date is public. */
+    public static function temporary(): string
+    {
+        return Str::password(24);
     }
 
     public static function register(Application $app): void

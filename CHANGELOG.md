@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-08
+
+- The subject tutor now leads the teach step of a learner's guided learning path again. The default tutor prompt (v2, now 2.1.0) had not been given the learning path instruction that the original prompt has, so it waited for the learner instead of teaching. It now leads in small steps and still never gives the path's practice or check answers. The tutor still needs a real-model evaluation before it is switched on.
+
+## 2026-11-11
+
+- School erasure (Action Plan SA.11): after a leaving school has its export and is archived, and two different HQ staff have approved deletion (the second an Owner), a cooling-off period starts (72 hours and not before the deletion date; a placeholder until the owner decides). Then Operations can start the erasure by typing the offboarding's reference. It deletes only the leaving school's own rows, checks first that no other school's row refers to them, erases in place the accounts only that school knew, keeps the audit log and Navigate Ed's own records, and leaves money and ledger history the database keeps immutable. It runs in small batches that resume where they stopped, and ends with an erasure certificate that holds counts and dates only, never personal information. Once started it can only be completed; until then a legal hold or a cancellation stops it.
+- Offboarding retention: when neither the contract nor HQ gives a deletion term, Navigate Ed's default applies (30 days after the school's deadline to collect its export; a placeholder until the owner decides).
+- Imports on a school's behalf: HQ must give a reason at every step (check, send, apply, cancel), which the school sees, and the school's Super Admins are told when an import is sent for approval and when it is applied. **Deploy:** run migrations; the scheduler runs `offboarding:resume-erasures` every 15 minutes.
+
 ## 2026-11-07
 
 - Bind daily family summaries to the exact children whose facts were collected, rechecking those relationships before saving so a revoked relationship cannot be hidden by a remaining sibling.
@@ -7,6 +17,12 @@
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 
 ## 2026-11-09
+
+- The tutor's safeguarding guard now works in Afrikaans and isiZulu as well as English, and in messages that mix them (Action Plan 3.2). Each language has its own phrase list; every message is checked against all of them on the server before any AI call, so a message that signals risk never reaches an AI provider. Matching allows for capitals, accents, repeated letters, words run together or split, and look-alike digits. The Afrikaans and isiZulu lists are drafts until safeguarding professionals and fluent speakers review them. A draft list still protects learners, but the tutor will not offer that language for explanations until a review is recorded in HQ (new "Safeguarding phrases" page, ability `safeguarding.phrases` for Content staff and Owners); any change to a list makes it draft again. **Deploy:** run migrations.
+
+- Child mode in the parent app, server side (Action Plan 4.2): an approving guardian sets a PIN for a junior child (stored only as a hash; five wrong PINs lock it for 15 minutes) and, in the parent app, enters it to hand the phone over in child mode. The child token lasts 30 minutes, is bound to that child and school, and works only on the two child mode routes; it shows what the child may open (my day, the reading library, practice from Grade 3, the tutor from Grade 4) and never chat, messages, marks or rankings. Early years has no child mode, and high school learners use their own sign-in. Removing the guardian, taking away their approval right, suspending or ending their Parent membership at the school, withdrawing the child's approval, changing the PIN, or the guardian signing out of that device or everywhere ends child mode at once; a child token also never outlives the parent-app sign-in it came from. Child sessions are audited with ids and times only. New API: `GET /api/v2/child-mode/children/{child}`, `PUT .../pin`, `POST .../sessions`, `POST .../sessions/end`, `GET /api/v2/child-mode/session`, `POST /api/v2/child-mode/session/end`. **Deploy:** run migrations. **Apps:** regenerate the Dart client; the child mode screens follow in the app step.
+
+- Marking accuracy gate (Action Plan 3.18): HQ content staff import de-identified, teacher-marked evaluation scripts (CSV or JSON, with a dry run; fields or text that identify a person or a school are refused, and a script's own reference is kept only as a keyed hash), run the marking engine over a subject's scripts, and see agreement with the teachers per mark point and script total, the mean difference, systematic bias, figures by mark point type and rule, and the mark points that disagree most, on the new HQ Marking accuracy page. Learner marking in Mathematics or Physical Sciences can now be switched on only by an HQ approver (`marking.approve`, Owner) against the latest passing run on the current engine and profile versions, and it is audited; a new engine or profile version, or a later failing run, closes it again. The threshold, tolerance and 200-script minimum in `config/marking.php` are placeholders until the owner confirms them, and no subject can be switched on before then. The `marking.learner_marking` config flags are replaced by this gate. **Deploy:** run migrations.
 
 - Daily family summary (Action Plan 5.11): a guardian can opt in to one short summary a day, at a time they choose outside their quiet hours, covering all their children at all their schools: today's and tomorrow's timetable changes, homework due, forms waiting for them, unread school messages and how many private updates are waiting (never what they say). Each school's part is read and written inside that school. The wording comes from the AI gateway when a school has it switched on, and from a plain template otherwise. New API: `GET`/`PUT /api/v2/me/family-summary/preferences`, `GET /api/v2/me/family-summaries/{summary}`. **Deploy:** run migrations; the scheduler runs `family:daily-summary` every 15 minutes and its retention daily.
 
@@ -17,6 +33,8 @@
 - Rebuild compiled routes when deploying this dependency update so the routing security fix is applied to cached routes too.
 
 ## 2026-11-04
+
+- Learning plans (Action Plan 3.20, SA.8): the subject tutor and the parent insights (a guardian's view of a child's mastery map, learning path, starting point and tutor summary) can become paid features, while daily practice stays free for every learner. Nothing changes for any school until HQ turns on the `mastery_subscriptions` feature flag for it. Then a learner needs a plan: the family's own (per child, with a lower price for each further child), the school's licence (every learner) or a sponsor's place the school names them for. Guardians see the plans, ask for one for their own child and cancel it through the v2 API (`/api/v2/subscriptions`); the school's Super Admin names sponsored learners (`/api/v2/school/sponsored-places`). Families pay by EFT quoting the plan's reference, and HQ Finance records it under Learning plans in HQ, which also shows the month's subscription revenue (also as JSON). One bank line is accepted once across every school. No payment gateway is chosen: a provider-neutral webhook (`/webhook/subscriptions/{gateway}`) is ready for one. Prices are placeholders (R 89 for the first child) until the owner decides them. Gentle prompts to guardians are off until a school switches "Learning plan reminders" on in its notification rules, and never mention a child's marks. **Deploy:** run migrations; the daily `subscriptions:prompt` schedule entry is added. **Apps:** the guardian screens follow; Afrikaans and isiZulu wording needs a fluent check.
 
 - Daily practice has four new question types: worked steps with a mark per step, short written answers, labelling a diagram, and spoken answers. Teachers write them on the new "Write a practice question" page or in the API, and HQ writes them in the content library (Action Plan 3.11).
 - Downloaded practice sets no longer carry the answers or worked explanations for apps that ask for the new practice contract (`X-Practice-Contract: 2`): answers are marked on the server when they sync, and the result and explanation appear only after the answer is saved. This applies to school and library questions and to the classroom tablet, which already asks for it. Apps that do not ask yet keep today's sets (choice and number questions, answers included) until `practice.legacy_set_contract` is switched off.
@@ -173,6 +191,20 @@ Earlier history is kept where it was written and is not repeated here:
 - This fork's work before NavigateEd Phase 0 (security hardening, tests and CI, dependency updates, translations, branding), with links to every commit and pull request: [`wiki/Release-History.md`](wiki/Release-History.md).
 
 ## Unreleased
+
+### Security
+
+- Apply disabled-account and required-password-change checks across authenticated
+  panel, v1 and v2 requests. Count login failures by account across every login
+  alias, and prevent password values being flashed after validation errors.
+- Use single-use invitations for new teachers/staff and random temporary
+  credentials for legacy parent creation/imports. New installations require
+  configured administrator credentials; reseeding no longer resets them.
+- Keep password-reset responses uniform even when mail delivery fails, and
+  throttle authenticated password changes.
+- **Deploy:** qualify older app password-change flows, reset existing predictable
+  passwords through invitations, and verify production settings before release.
+  Evidence and limits: `engineering/security/authentication-review-2026-11-08.md`.
 
 ### Fixed
 

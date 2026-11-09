@@ -79,7 +79,7 @@ The student app also calls the general endpoints (`settings`, `sliders`, `holida
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
 | `gr_number` | string | yes | GR/admission number. It is checked against `users.email`: `Student\StudentController` stores the admission number in `users.email` for student accounts. |
-| `password` | string | yes | The initial password, and the one set by a staff reset, is the date of birth as `ddmmyyyy` (see [forgot-password](#forgot-password)). |
+| `password` | string | yes | Chosen through a guardian invitation or printed setup code; no new date-of-birth password is issued (see [forgot-password](#forgot-password)). |
 | `fcm_id` | string | no | Saved to `users.fcm_id` for push notifications. |
 | `device_type` | string | no | Saved to `users.device_type`. |
 
@@ -110,7 +110,7 @@ The token is the top-level `token` key; `code` is 200.
 | `gr_no` | string | yes (matched against `students.admission_no`) |
 | `dob` | date | yes (matched against `users.dob`) |
 
-When both match, the user gets `users.reset_request = 1`. Nothing is emailed: staff see the request in the admin panel's student reset-password list (permission `student-reset-password`), and resetting sets the password to the stored date of birth in `dmY` format (`Student\PasswordController::change_password`, which only resets student accounts). The response is always `Request Send Successfully`, matched or not (since `839c9eb`), so the endpoint cannot be used to test GR numbers and birth dates.
+When both match, the user gets `users.reset_request = 1`. This request sends no email. Staff see it in the student reset-password list (permission `student-reset-password`); completing the reset replaces the old password with an unknown random value, revokes app tokens, and issues guardian invitations or a printed setup code (`Student\PasswordController::change_password`, which only resets student accounts). The response is always `Request Send Successfully`, matched or not, so the endpoint cannot be used to test GR numbers and birth dates.
 
 ### Profile
 

@@ -8,6 +8,7 @@ use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\CardEncoderContext;
 use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckStudent;
+use App\Http\Middleware\ChildModeContext;
 use App\Http\Middleware\FoundationCredentialContext;
 use App\Http\Middleware\PoolMemberContext;
 use App\Http\Middleware\PrivateDomainResponse;
@@ -182,6 +183,21 @@ class ApiRouteTenancyTest extends TestCase
             $this->json($method, $route->path())->assertUnauthorized();
             $this->asA('tara')->json($method, $route->path())->assertForbidden();
             $this->asB('tara')->json($method, $route->path())->assertForbidden();
+
+            return;
+        }
+
+        if (in_array(ChildModeContext::class, $route->middleware, true)) {
+            // Child mode (Action Plan 4.2): a child token bound to one child
+            // and school, never school.context. Staff and family sign-ins are
+            // refused; a child token opens nothing else (ChildTokenRouteListTest).
+            $this->assertContains($label, ['GET api/v2/child-mode/session', 'POST api/v2/child-mode/session/end'], 'The child token must not escape its two isolated operations');
+            $this->assertContains(PrivateDomainResponse::class, $route->middleware);
+            $this->assertTrue($route->requiresAuthentication());
+            $this->assertFalse($this->hasMiddleware($route, ['school.context', 'school.context:optional']), 'ChildModeContext chooses the school from the child token');
+            $this->json($method, $route->path())->assertUnauthorized();
+            $this->asA('farid')->json($method, $route->path())->assertForbidden();
+            $this->asB('farid')->json($method, $route->path())->assertForbidden();
 
             return;
         }

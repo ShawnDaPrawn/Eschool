@@ -165,8 +165,8 @@ The ownership checks behind these rules are described on [Roles and Permissions]
 
 `Student\StudentController::store` (permission `student-create`) creates, in one transaction:
 
-- The parents. `parent_guardian_type` is `parent` (father and mother) or `guardian`. For each one the form either sends the numeric id of an existing `parents` row in the email field (the record is reused) or new details, in which case a `users` row with the `Parent` role and a `parents` row are created (initial password: date of birth as `ddmmyyyy`).
-- The student's `users` row with the `Student` role. Its `email` column holds the **admission number** (the "GR number" the student logs in with), and the initial password is the date of birth as `ddmmyyyy`.
+- The parents. `parent_guardian_type` is `parent` (father and mother) or `guardian`. For each one the form either sends the numeric id of an existing `parents` row in the email field (the record is reused) or new details, in which case a `users` row with the `Parent` role and a `parents` row are created with a random temporary password and a required-change flag.
+- The student's `users` row with the `Student` role. Its `email` column holds the **admission number** (the "GR number" the student logs in with). An unknown random password protects it until a guardian chooses a password through a single-use invitation or printed setup code.
 - The `students` row. `admission_no` is generated server-side as the current session year's **name** followed by (highest student id including trashed + 1). `roll_number` is the highest roll number in the chosen class section + 1 (it can be renumbered later from the roll-number page).
 - A `student_sessions` row for the current session year with the chosen `class_section_id`, `status = 1`, `result = 1`, `previous_session_year_id = NULL`.
 

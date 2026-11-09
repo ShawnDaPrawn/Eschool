@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Learning\Marking;
 
+use App\Services\Learning\Marking\Accuracy\MarkingGate;
+
 /**
  * A subject's marking conventions (Action Plan 3.16). The memo's rules decide
  * each mark; a profile says how they are read in the subject: whether
@@ -12,14 +14,24 @@ namespace App\Services\Learning\Marking;
  * treated, and how a run of letters reads in an expression.
  *
  * Learner marking for a subject stays off until the subject passes the
- * accuracy gate (Action Plan 3.18): config('marking.learner_marking').
- * engineering/specs/learning/marking-engine.md.
+ * accuracy gate (Action Plan 3.18) on this profile's version() and the
+ * engine's version, and an HQ approver switches it on (MarkingGate).
+ * engineering/specs/learning/marking-engine.md,
+ * engineering/specs/learning/marking-accuracy-gate.md.
  */
 abstract class SubjectProfile
 {
     abstract public function key(): string;
 
     abstract public function label(): string;
+
+    /**
+     * The version of this profile's conventions. Change it whenever the profile
+     * marks differently: a passing accuracy run counts only for the version it
+     * measured, so learner marking in the subject stops until a new run passes.
+     * MarkingVersionsTest pins each version to the code it was measured on.
+     */
+    abstract public function version(): string;
 
     /** Whether an equivalent expression or rearranged equation earns an expression rule. */
     public function acceptsEquivalentForms(): bool
@@ -72,9 +84,9 @@ abstract class SubjectProfile
     /** Plain descriptions of the conventions, for the teacher preview. @return list<string> */
     abstract public function conventions(): array;
 
-    /** Learner marking is off until the subject passes the accuracy gate; only a literal true switches it on. */
+    /** Learner marking is off until the subject passes the accuracy gate and an HQ approver switches it on (Action Plan 3.18). */
     public function learnerMarkingEnabled(): bool
     {
-        return config('marking.learner_marking.'.$this->key()) === true;
+        return app(MarkingGate::class)->open($this->key());
     }
 }

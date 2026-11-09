@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Cards\CardEncodingController;
 use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
+use App\Http\Controllers\Api\V2\ChildMode\ChildModeController;
 use App\Http\Controllers\Api\V2\Classroom\FoundationController;
 use App\Http\Controllers\Api\V2\Commerce\TicketController;
 use App\Http\Controllers\Api\V2\Commerce\VendorCounterController;
@@ -79,6 +80,7 @@ use App\Http\Controllers\Api\V2\Platform\NotificationInboxController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
 use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
+use App\Http\Controllers\Api\V2\Platform\SubscriptionController;
 use App\Http\Controllers\Api\V2\Platform\TextMessagingController;
 use App\Http\Controllers\Api\V2\Reading\ReadingController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
@@ -107,6 +109,7 @@ use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\CardEncoderContext;
+use App\Http\Middleware\ChildModeContext;
 use App\Http\Middleware\FoundationCredentialContext;
 use App\Http\Middleware\FoundationStaffContext;
 use App\Http\Middleware\PoolMemberContext;
@@ -252,6 +255,25 @@ Route::prefix('pool')->name('api.v2.pool.')->group(function () {
         Route::get('bookings/{booking}/attendance', [$c, 'attendance'])->where('booking', '[1-9][0-9]{0,17}')->name('attendance');
         Route::post('consent/withdraw', [$c, 'withdraw'])->name('withdraw');
         Route::post('sign-out', [$c, 'signOut'])->name('sign-out');
+    });
+});
+
+// Child mode in the parent app (Action Plan 4.2). An approving guardian, in
+// the parent app, sets the child's PIN and starts a child session with it;
+// the child token it returns opens the child-session routes below and
+// nothing else (ChildModeAccess::allowedHere).
+Route::prefix('child-mode')->name('api.v2.child-mode.')->group(function () {
+    $c = ChildModeController::class;
+    Route::prefix('children/{child}')->where(['child' => '[1-9][0-9]{0,17}'])
+        ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role:Parent', 'parent.policy'])->group(function () use ($c) {
+            Route::get('/', [$c, 'status'])->name('status');
+            Route::put('pin', [$c, 'pin'])->middleware('throttle:child-mode-pin')->name('pin');
+            Route::post('sessions', [$c, 'start'])->middleware('throttle:child-mode-pin')->name('start');
+            Route::post('sessions/end', [$c, 'endForGuardian'])->name('end-for-guardian');
+        });
+    Route::middleware([PrivateDomainResponse::class, 'auth:sanctum', ChildModeContext::class])->group(function () use ($c) {
+        Route::get('session', [$c, 'session'])->name('session');
+        Route::post('session/end', [$c, 'end'])->middleware('throttle:child-mode-pin')->name('end');
     });
 });
 
@@ -593,6 +615,22 @@ Route::prefix('guardian')->middleware(['auth:sanctum', 'school.context', 'role:P
     Route::post('handle-proposals/{proposal}', [HandleController::class, 'decide'])->whereNumber('proposal');
     Route::get('approvals', [GuardianApprovalController::class, 'index']);
     Route::post('approvals/{learner}', [GuardianApprovalController::class, 'store'])->whereNumber('learner');
+});
+
+// Learning plans (Action Plan 3.20): a guardian's own children only; the services check the child and school on every call.
+Route::prefix('subscriptions')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role:Parent', 'idempotent', 'cache.headers:private;no_store'])->name('api.v2.subscriptions.')->group(function () {
+    $c = SubscriptionController::class;
+    Route::get('/', [$c, 'overview'])->name('overview');
+    Route::get('learners/{learner}', [$c, 'learner'])->whereNumber('learner')->name('learner');
+    Route::post('learners/{learner}/requests', [$c, 'request'])->whereNumber('learner')->middleware('throttle:20,1')->name('request');
+    Route::post('plans/{subscription}/cancel', [$c, 'cancel'])->whereNumber('subscription')->middleware('throttle:20,1')->name('cancel');
+});
+// A sponsor's places at the school (3.20): the school's Super Admin names the learners.
+Route::prefix('school/sponsored-places')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'staff', 'idempotent', 'cache.headers:private;no_store'])->name('api.v2.sponsored-places.')->group(function () {
+    $c = SubscriptionController::class;
+    Route::get('/', [$c, 'sponsored'])->name('index');
+    Route::post('{subscription}/learners', [$c, 'addLearner'])->whereNumber('subscription')->middleware('throttle:60,1')->name('add');
+    Route::post('{subscription}/learners/{learner}/remove', [$c, 'removeLearner'])->whereNumber(['subscription', 'learner'])->middleware('throttle:60,1')->name('remove');
 });
 
 Route::prefix('guardian/invitations')->middleware(['school.context:public', 'throttle:auth'])->group(function () {

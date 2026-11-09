@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Mail\Platform\TemplateMail;
 use App\Models\ClassTeacher;
-use App\Models\EmailTemplate;
 use App\Models\FormField;
 use App\Models\Platform\Role;
-use App\Models\Settings;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
-use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\SharedAccounts;
+use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Exception;
@@ -140,8 +138,8 @@ class TeacherController extends Controller
                 } else {
                     $user->image = '';
                 }
-                $teacher_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($teacher_plain_text_password);
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;
@@ -230,19 +228,6 @@ class TeacherController extends Controller
                     ]);
                 }
                 $user->assignRole('Teacher');
-                $school_name = getSettings('school_name');
-
-                $data = [
-                    'subject' => 'Welcome to '.$school_name['school_name'],
-                    'name' => $request->first_name,
-                    'email' => $request->email,
-                    'password' => $teacher_plain_text_password,
-                    'school_name' => $school_name['school_name'],
-                ];
-
-                MailService::sendWithFallback('teacher.email', $data, function ($message) use ($data) {
-                    $message->to($data['email'])->subject($data['subject']);
-                });
             } else {
                 $user = new User;
                 if ($request->hasFile('image')) {
@@ -261,8 +246,8 @@ class TeacherController extends Controller
                 } else {
                     $user->image = '';
                 }
-                $teacher_plain_text_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
-                $user->password = Hash::make($teacher_plain_text_password);
+                $user->password = Hash::make(PasswordPolicy::temporary());
+                $user->password_change_required = true;
 
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;
@@ -344,58 +329,8 @@ class TeacherController extends Controller
                     ]);
                 }
                 $user->assignRole('Teacher');
-                $roleName = $user->getRoleNames()->first();
-                $school_name = getSettings('school_name');
-                $school_email = getSettings('school_email');
-                $school_contact = getSettings('school_phone');
-
-                $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])->pluck('message', 'type')->toArray();
-                $staffTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
-
-                $cleanSchoolName = is_array($school_name) ? ($school_name['school_name'] ?? '') : $school_name;
-                $cleanSchoolEmail = is_array($school_email) ? ($school_email['school_email'] ?? '') : $school_email;
-                $cleanSchoolContact = is_array($school_contact) ? ($school_contact['school_phone'] ?? $school_contact['school_contact'] ?? '') : $school_contact;
-
-                $androidLink = '';
-                $iosLink = '';
-                if (isset($applink)) {
-                    // If $applink is an array or object, extract the string value
-                    $androidLink = is_array($applink) ? ($applink['teacher_app_link'] ?? '') : ($applink->teacher_app_link ?? '');
-                    $iosLink = is_array($applink) ? ($applink['teacher_ios_app_link'] ?? '') : ($applink->teacher_ios_app_link ?? '');
-                }
-
-                $data = [
-                    'subject' => 'Welcome to '.(string) $cleanSchoolName,
-                    'name' => (string) $request->first_name,
-                    'email' => (string) $request->email,
-                    'password' => (string) $teacher_plain_text_password,
-                    'role' => (string) $roleName,
-                    'school_name' => (string) $cleanSchoolName,
-                    'school_email' => (string) $cleanSchoolEmail,
-                    'school_contact' => (string) $cleanSchoolContact,
-                    'android_app' => (string) $androidLink,
-                    'ios_app' => (string) $iosLink,
-                    'url' => (string) url('/'),
-                    'support_email' => (string) $cleanSchoolEmail,
-                    'support_contact' => (string) $cleanSchoolContact,
-
-                ];
-
-                // Sending the welcome email must never fail teacher creation
-                try {
-                    if (empty($staffTemplate)) {
-                        Log::warning('Skipped teacher welcome email: staff_registration email template is missing', [
-                            'user_id' => $user->id,
-                        ]);
-                    } else {
-                        MailService::queue(TemplateMail::staffWelcome($data, 'teacher.email'), (int) $user->id);
-                    }
-                } catch (Throwable $e) {
-                    Log::error('Failed to send teacher welcome email: '.$e->getMessage(), [
-                        'user_id' => $user->id,
-                    ]);
-                }
             }
+            app(StaffInvitations::class)->issue($user->refresh(), Auth::user());
             $joins->recordAdded(Auth::user(), 'Teacher');
             $response = [
                 'error' => false,

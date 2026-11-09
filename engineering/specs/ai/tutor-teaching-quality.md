@@ -19,8 +19,8 @@ The first tutor prompt gives a short hint, a question and a correction, the same
 
 ## Prompt versions
 
-- `resources/ai/prompts/tutor.json` (key `tutor`, version 1.1.0) is unchanged: v1.
-- `resources/ai/prompts/tutor-v2.json` (key `tutor-v2`, version 2.0.0): v2.
+- `resources/ai/prompts/tutor.json` (key `tutor`, version 1.2.0): v1. Its only change since this step is the guided learning path's instruction (Action Plan 3.9).
+- `resources/ai/prompts/tutor-v2.json` (key `tutor-v2`, version 2.1.0): v2. 2.1.0 adds the guided learning path's instruction (below); nothing else changed from 2.0.0.
 - `ai.inference.features.tutor.prompt` selects the version (`AI_TUTOR_PROMPT`, default `tutor-v2`). `TutorPrompts` allows only these two keys; anything else is refused as `prompt_not_allowed`.
 - Each turn stores the prompt key it was built for (`tutor_messages.prompt_key`; older rows are v1). The feature policy sends that key, and the gateway refuses it if the configuration has since changed, so a turn is never answered by a prompt it was not built for. Usage receipts record the prompt key, version and hash as before.
 - v1 keeps its exact original input and context (first 3,000 characters, no stage, memory, section or language). v1 refuses `explain_back` turns and home-language requests with 422.
@@ -34,6 +34,7 @@ The first tutor prompt gives a short hint, a question and a correction, the same
 5. **Memory** (below), current subject only, without the session being taught.
 6. **Relevant section** (below).
 7. **Home language** (below).
+8. **Guided learning path** (Action Plan 3.9). A session opened from a learner's learning path carries `approved_context.learning_path` (`step`, `lead`, `attempt`), the same as v1. When `lead` is true (the teach step) the tutor leads the lesson from the supplied curriculum in small steps (a short explanation of one idea, one short worked example, then one question) instead of waiting; on any other step it gives hints only. It never gives the answers to the path's practice or check questions, which the server grades.
 
 ## Memory across sessions
 
@@ -59,7 +60,7 @@ The first tutor prompt gives a short hint, a question and a correction, the same
 ## Home-language explanations
 
 - `language` on a turn may be one of the platform's offered languages besides English (`af`, `zu`, `TutorLanguages::OFFERED`) that the deployment lists in `ai.tutor.home_languages` (`AI_TUTOR_HOME_LANGUAGES`, empty by default). Anything else is refused with 422.
-- The default is empty because Action Plan 3.2 requires each language's safeguarding phrase list to be professionally reviewed before it is offered in the tutor.
+- A listed language is offered only while its safeguarding phrase list has a recorded professional review for the list as it is now (Action Plan 3.2, [safeguarding phrases](safeguarding-phrases.md)); a draft list keeps it out of the configuration, the turn validation and the send-time check. The default list is empty.
 - The tutor writes `text` and `question` in that language, with the English subject term in brackets the first time. A language switched off after a turn was written fails that turn (`tutor_language_unavailable`) rather than sending it.
 
 ## Data changes
@@ -87,7 +88,7 @@ Migration `2026_11_08_310000_add_tutor_teaching_quality`:
 
 | Test | What it proves |
 | --- | --- |
-| `test_v2_turn_adapts_to_stage_and_grade_with_a_warm_structured_answer` | Happy path: v2 sends stage and grade, no date of birth, the same four-field answer; receipts record `tutor-v2` 2.0.0 |
+| `test_v2_turn_adapts_to_stage_and_grade_with_a_warm_structured_answer` | Happy path: v2 sends stage and grade, no date of birth, the same four-field answer; receipts record `tutor-v2` 2.1.0 |
 | `test_v1_stays_selectable_with_its_original_context_and_refuses_v2_options` | v1 still works with its exact input and first-3,000-character context, uses no embeddings, refuses explain-back and home language |
 | `test_explain_back_turn_gets_feedback_on_the_learners_own_explanation` | Explain-back phase and feedback; an ordinary question still refuses a correction |
 | `test_home_language_explanations_are_limited_to_offered_and_enabled_languages` | Off by default; only af and zu, and only when listed |
@@ -107,7 +108,6 @@ The existing tutor suites run on v2 by default and still pass; `HqAiControlsTest
 
 - App screens for explain-back, memory and the language choice (Flutter cannot be built here), and the regenerated Dart client.
 - Real-model qualification of v2 and of the embedding model (Action Plan 3.1), and teacher-panel rating of teaching quality.
-- Switching on Afrikaans or isiZulu explanations: waits for the reviewed safeguarding phrase lists (Action Plan 3.2).
+- Switching on Afrikaans or isiZulu explanations: the draft lists now exist and the tutor enforces the review (Action Plan 3.2); the professional reviews themselves are still to be done.
 - Voice for home-language explanations (Action Plan 3.12).
 - A shared per-school cache of section vectors: vectors are replayed per learner session.
-- Telling the tutor the learner's current learning-path step (Action Plan 3.9, open in another pull request): it would join the v2 context next to `learner`.

@@ -18,6 +18,7 @@ use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Saas\MessagingCharges;
 use App\Services\Platform\Saas\PlatformBilling;
 use App\Services\Platform\Saas\PlatformStaffAccess;
+use App\Services\Platform\Subscriptions\LearnerSubscriptions;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -261,6 +262,10 @@ class SchoolGroupBilling
             $reference = trim((string) $data['bank_reference']);
             if (SchoolGroupPayment::query()->where('school_group_id', $groupId)->where('bank_reference', $reference)->whereNull('reversed_at')->lockForUpdate()->exists()) {
                 throw ValidationException::withMessages(['bank_reference' => __('This bank reference is already on a payment of this group.')]);
+            }
+            // The same bank account takes learner subscription EFTs (3.20): a bank line registered there is not this group's payment.
+            if (DB::table('platform_bank_receipts')->where('method', 'eft')->where('source_reference', LearnerSubscriptions::normaliseReference($reference))->lockForUpdate()->exists()) {
+                throw ValidationException::withMessages(['bank_reference' => __('This bank line is already recorded as a learning plan payment.')]);
             }
             $payment = SchoolGroupPayment::query()->create(['school_group_id' => $groupId, 'group_invoice_id' => $invoice->id, 'received_on' => $data['received_on'],
                 'amount_cents' => $amount, 'currency' => $invoice->currency, 'bank_reference' => $reference, 'note' => $data['note'] ?? null, 'recorded_by' => $actor->id]);

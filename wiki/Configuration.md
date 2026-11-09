@@ -181,8 +181,8 @@ Read by the Docker image's entrypoint ([docker/entrypoint.sh](https://github.com
 | Variable | Default | Meaning |
 |---|---|---|
 | `CONTAINER_ROLE` | `web` | What the container runs: `web` (migrate, provision the admin, run the installer seeders, serve Apache on 8080), `worker` (`queue:work`, restarted when it exits), `scheduler` (one `schedule:run`, then exit), `scheduler-loop` (`schedule:work`, for Docker Compose) or `artisan` (the Artisan command given as the container's arguments). Only `web` migrates and seeds. See [Deployment](Deployment#container-roles). |
-| `ADMIN_EMAIL` | `info@tokensoft.tech` | The admin login `docker/provision-admin.php` puts in place of the seeded `superadmin@gmail.com` on a new database. |
-| `ADMIN_PASSWORD` | none | That admin's password; on Cloud Run the secret `navigateed-admin-password`. The web role refuses to start while the seeded login is still in place and this is empty. |
+| `ADMIN_EMAIL` | none for new installations | Required by the installer for the first administrator. `docker/provision-admin.php` retains `info@tokensoft.tech` only as a fallback when provisioning older databases. |
+| `ADMIN_PASSWORD` | none | Initial administrator password; at least ten characters with letters and numbers. On Cloud Run use the secret `navigateed-admin-password`. Never display or commit it. |
 | `PORT` | `8080` | The worker role's probe responder listens here (Cloud Run sets it). |
 | `APP_RELEASE` | `dev` | Build argument and variable: the release the image was built from (see above). |
 
@@ -240,7 +240,7 @@ Besides the usual keys, `timezone` reads `TIMEZONE` (not `APP_TIMEZONE`) and `de
 | `folders` | `../storage/framework`, `../storage/logs`, `../bootstrap/cache` | Permission checks (paths relative to `public/`). |
 | `database.seeders` | `false` | `migrate` runs without `--seed`. |
 | `commands` | `db:seed --class=InstallationSeeder --force`, `db:seed --class=AddSuperAdminSeeder --force`, `db:seed --class=EmailSeeder --force`, `key:generate --force` | Run after the Keys step. |
-| `admin_area.user` | `superadmin@gmail.com` / `superadmin` | Shown on the finish page. These are the credentials `AddSuperAdminSeeder` creates; change the password after the first login. |
+| `admin_area.user` | `ADMIN_EMAIL` / `ADMIN_PASSWORD` (required) | Credentials used by `AddSuperAdminSeeder` only when creating the first administrator. The password is hashed and never displayed; reseeding preserves existing credentials. |
 | `login` | `/login` | Login link on the finish page. |
 
 See [Installation-Wizard](Installation-Wizard) for how these are used.

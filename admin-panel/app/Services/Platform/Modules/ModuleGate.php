@@ -12,6 +12,7 @@ use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\RequestContext;
 use App\Services\Platform\Saas\PlatformPackages;
 use App\Services\Platform\Stages\SchoolStages;
+use App\Services\Platform\Subscriptions\Entitlements;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -93,17 +94,22 @@ class ModuleGate
      * stage (Action Plan 4.1): a module with `stages` in config/modules.php
      * is refused to a learner whose grade is in another stage. Guardians,
      * staff and jobs are never limited by stage.
+     *
+     * A module marked `paid` (Action Plan 3.20) is also refused to a signed-in
+     * learner without an entitlement, where the school asks for one
+     * (Entitlements). Guardians, staff and jobs are not limited by this; the
+     * parent insights check the child's entitlement themselves.
      */
     public function allows(string $key): bool
     {
-        return $this->state($key)['enabled'] && $this->stageAllows($key);
+        return $this->state($key)['enabled'] && $this->stageAllows($key) && $this->entitlementAllows($key);
     }
 
     public function writable(string $key, bool $locked = false): bool
     {
         $state = $this->state($key, [], $locked);
 
-        return $state['enabled'] && ! $state['read_only'] && $this->stageAllows($key);
+        return $state['enabled'] && ! $state['read_only'] && $this->stageAllows($key) && $this->entitlementAllows($key);
     }
 
     /** Whether a module's stages admit this person: only learners are limited. */
@@ -127,13 +133,25 @@ class ModuleGate
         return ! $user instanceof User || $this->allowsStageOf($key, $user);
     }
 
+    /** A paid module and a signed-in learner at one school: the learner's entitlement decides. */
+    private function entitlementAllows(string $key): bool
+    {
+        $school = app(CurrentSchool::class);
+        if (! (config('modules.'.$key.'.paid') ?? false) || ! $school->isSet() || $school->isAcrossSchools()) {
+            return true;
+        }
+        $user = Auth::user();
+
+        return ! $user instanceof User || ! $user->hasRole('Student') || app(Entitlements::class)->allowsSignedInLearner($user);
+    }
+
     /** @return list<array{key: string, read_only: bool}> */
     public function context(): array
     {
         $answer = [];
         foreach (array_keys(config('modules', [])) as $key) {
             $state = $this->state($key);
-            if ($state['enabled'] && $this->stageAllows($key)) {
+            if ($state['enabled'] && $this->stageAllows($key) && $this->entitlementAllows($key)) {
                 $answer[] = ['key' => $key, 'read_only' => $state['read_only']];
             }
         }

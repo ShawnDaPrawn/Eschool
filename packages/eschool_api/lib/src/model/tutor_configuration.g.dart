@@ -52,6 +52,26 @@ TutorConfiguration _$TutorConfigurationFromJson(
         'checkpoints_enabled',
         (v) => v as bool?,
       ),
+      tutorVersion: $checkedConvert(
+        'tutor_version',
+        (v) => $enumDecodeNullable(
+          _$TutorConfigurationTutorVersionEnumEnumMap,
+          v,
+          unknownValue:
+              TutorConfigurationTutorVersionEnum.unknownDefaultOpenApi,
+        ),
+      ),
+      explainBackEnabled: $checkedConvert(
+        'explain_back_enabled',
+        (v) => v as bool?,
+      ),
+      homeLanguages: $checkedConvert(
+        'home_languages',
+        (v) => (v as List<dynamic>?)
+            ?.map((e) => TutorHomeLanguage.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      ),
+      memoryDays: $checkedConvert('memory_days', (v) => (v as num?)?.toInt()),
     );
     return val;
   },
@@ -64,18 +84,34 @@ TutorConfiguration _$TutorConfigurationFromJson(
     'photoRequiresApprovedCrop': 'photo_requires_approved_crop',
     'feedbackIsProvisional': 'feedback_is_provisional',
     'checkpointsEnabled': 'checkpoints_enabled',
+    'tutorVersion': 'tutor_version',
+    'explainBackEnabled': 'explain_back_enabled',
+    'homeLanguages': 'home_languages',
+    'memoryDays': 'memory_days',
   },
 );
 
-Map<String, dynamic> _$TutorConfigurationToJson(TutorConfiguration instance) =>
-    <String, dynamic>{
-      'school_id': instance.schoolId,
-      'reader_id': instance.readerId,
-      'learner_id': instance.learnerId,
-      'session_year_id': instance.sessionYearId,
-      'groups': instance.groups.map((e) => e.toJson()).toList(),
-      'inference_enabled': instance.inferenceEnabled,
-      'photo_requires_approved_crop': instance.photoRequiresApprovedCrop,
-      'feedback_is_provisional': instance.feedbackIsProvisional,
-      'checkpoints_enabled': ?instance.checkpointsEnabled,
-    };
+Map<String, dynamic> _$TutorConfigurationToJson(
+  TutorConfiguration instance,
+) => <String, dynamic>{
+  'school_id': instance.schoolId,
+  'reader_id': instance.readerId,
+  'learner_id': instance.learnerId,
+  'session_year_id': instance.sessionYearId,
+  'groups': instance.groups.map((e) => e.toJson()).toList(),
+  'inference_enabled': instance.inferenceEnabled,
+  'photo_requires_approved_crop': instance.photoRequiresApprovedCrop,
+  'feedback_is_provisional': instance.feedbackIsProvisional,
+  'checkpoints_enabled': ?instance.checkpointsEnabled,
+  'tutor_version':
+      ?_$TutorConfigurationTutorVersionEnumEnumMap[instance.tutorVersion],
+  'explain_back_enabled': ?instance.explainBackEnabled,
+  'home_languages': ?instance.homeLanguages?.map((e) => e.toJson()).toList(),
+  'memory_days': ?instance.memoryDays,
+};
+
+const _$TutorConfigurationTutorVersionEnumEnumMap = {
+  TutorConfigurationTutorVersionEnum.number1: 1,
+  TutorConfigurationTutorVersionEnum.number2: 2,
+  TutorConfigurationTutorVersionEnum.unknownDefaultOpenApi: 11184809,
+};

@@ -96,6 +96,7 @@ class StructuredLoggingTest extends TestCase
         });
         $user = new User;
         $user->id = 123;
+        $user->status = 1;
 
         $response = $this->actingAs($user)
             ->withHeaders(['X-Cloud-Trace-Context' => '105445aa7843bc8bf206b12000100000/1;o=1'])

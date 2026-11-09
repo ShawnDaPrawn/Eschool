@@ -16,10 +16,14 @@ use Throwable;
 
 class TutorModeration implements InferenceModerator
 {
+    /**
+     * The local safeguarding guard (Action Plan 3.2): every language's phrase
+     * list, reviewed or draft, checked before any network call. Only the flag
+     * leaves here, never the phrase that matched.
+     */
     public function localFlags(string $text): array
     {
-        return preg_match('/\b(kill myself|end my life|hurt myself|being abused|sexually assaulted)\b/iu', $text)
-            ? ['safeguarding_disclosure'] : [];
+        return app(SafeguardingPhrases::class)->caught($text) ? ['safeguarding_disclosure'] : [];
     }
 
     public function preflight(Capability $capability, string|array $input, ModerationContext $context): void

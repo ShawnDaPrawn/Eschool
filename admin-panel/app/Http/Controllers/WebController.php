@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Models\WebSetting;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -414,7 +415,7 @@ class WebController extends Controller
             // $fatherParent / $motherParent were already validated and looked up
             // above, before the reCAPTCHA check.
             if ($request->parent_guardian_type === 'Parent') {
-                $father_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->father_dob)));
+                $father_plaintext_password = PasswordPolicy::temporary();
 
                 if ($fatherParent) {
                     $father_parent_id = $fatherParent->id;
@@ -444,6 +445,8 @@ class WebController extends Controller
                     ];
 
                     $father_user = User::create($father_user_array);
+
+                    $father_user->forceFill(['password_change_required' => true])->save();
                     $father_user->assignRole($parentRole);
 
                     $father_parent_array = [
@@ -463,7 +466,7 @@ class WebController extends Controller
                 }
 
                 // Add Mother in User and Parent table data
-                $mother_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->mother_dob)));
+                $mother_plaintext_password = PasswordPolicy::temporary();
                 if ($motherParent) {
                     $mother_parent_id = $motherParent->id;
                 } else {
@@ -493,6 +496,8 @@ class WebController extends Controller
                     ];
 
                     $mother_user = User::create($mother_user_array);
+
+                    $mother_user->forceFill(['password_change_required' => true])->save();
                     $mother_user->assignRole($parentRole);
 
                     $mother_parent_array = [
@@ -521,7 +526,7 @@ class WebController extends Controller
                 if ($guardianParent) {
                     $guardian_parent_id = $guardianParent->id;
                 } else {
-                    $guardian_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->guardian_dob)));
+                    $guardian_plaintext_password = PasswordPolicy::temporary();
 
                     $guardian_image = $request->file('guardian_image');
                     $file_name = time().'-'.FileNames::forUpload($guardian_image);
@@ -544,6 +549,8 @@ class WebController extends Controller
                     ];
 
                     $guardian_user = User::create($guardian_user_array);
+
+                    $guardian_user->forceFill(['password_change_required' => true])->save();
                     $guardian_user->assignRole($parentRole);
 
                     $guardian_parent_array = [

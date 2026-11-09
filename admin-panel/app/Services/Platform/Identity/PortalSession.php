@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Identity;
 
+use App\Http\Middleware\EnsureAccountActive;
 use App\Models\User;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Modules\ModuleGate;
@@ -49,6 +50,7 @@ final class PortalSession
      */
     public static function signIn(Request $request, User $user, string $app): string
     {
+        abort_unless(EnsureAccountActive::isActive($user), 401);
         app(ApprovalService::class)->assertAccess($user);
         if ($app === AppTokens::STUDENT) {
             // Early years learners never sign in themselves (Action Plan 4.1); guardians keep their own sign-in.

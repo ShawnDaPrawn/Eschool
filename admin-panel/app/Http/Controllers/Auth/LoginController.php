@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Providers\RouteServiceProvider;
@@ -56,6 +57,10 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): ?RedirectResponse
     {
+        if (! EnsureAccountActive::isActive($user)) {
+            return $this->refuseLogin($request, $user->hasRole('Teacher') ? 'teacher_account_deactivated' : 'auth.failed');
+        }
+
         // Platform operators deliberately have no school role or membership.
         // A fresh, explicit platform grant opens only /saas; default/flagged
         // passwords still cannot enter that area.
@@ -87,9 +92,9 @@ class LoginController extends Controller
 
         if (RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
             $request->session()->put(RequirePasswordChange::SESSION_KEY, true);
-            if ($operator) {
-                $user->forceFill(['password_change_required' => true])->save();
-            }
+            // The same cookie also authenticates API calls. Keep the account
+            // flag authoritative across the panel and both API versions.
+            $user->forceFill(['password_change_required' => true])->save();
         }
 
         return $operator ? redirect()->route('saas.home') : null;

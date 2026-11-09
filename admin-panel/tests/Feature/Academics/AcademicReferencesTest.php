@@ -171,7 +171,7 @@ class AcademicReferencesTest extends TestCase
         $admin = $this->superAdmin();
         $admin->status = 0;
         $admin->save();
-        $this->asAdmin()->putJson($this->path(), ['grade_level_id' => 1])->assertNotFound();
+        $this->asAdmin()->putJson($this->path(), ['grade_level_id' => 1])->assertUnauthorized()->assertJsonPath('code', 'unauthenticated');
     }
 
     public function test_service_rechecks_authority_without_http_middleware(): void
@@ -201,6 +201,7 @@ class AcademicReferencesTest extends TestCase
         $this->assertSame(1, DB::table('audit_log')->where('action', 'academics.class_grade_mapped')->count());
         $admin->status = 0;
         $admin->save();
-        $this->putJson($this->path(), ['grade_level_id' => 1])->assertNotFound();
+        $this->asAdmin()->withHeader('Idempotency-Key', 'revoked-map-test')
+            ->putJson($this->path(), ['grade_level_id' => 1])->assertUnauthorized()->assertJsonPath('code', 'unauthenticated');
     }
 }

@@ -37,6 +37,11 @@ final class SchoolOwnedTables
         // (written inside it from /saas); only HQ reads them, never the school.
         // platform_billing_reminders logs each overdue reminder sent to it.
         'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
+        // Learner subscriptions (3.20, SA.8 Build 3): a child's learning plan, the
+        // school's licence or a sponsor's places at the school, each period paid,
+        // the learners named for sponsored places, the audit trail and the prompts
+        // sent to guardians. Each row is about one school's learner or the school.
+        'learner_subscriptions', 'learner_subscription_members', 'learner_subscription_payments', 'learner_subscription_events', 'learner_subscription_prompts',
         // School groups (5.7, SA.18): each school's own membership of a group
         // (HQ's invitation and the school's agreement), and its month on a
         // group invoice (the claim on its own draft, and the lines copied
@@ -67,6 +72,9 @@ final class SchoolOwnedTables
         'admission_requirements', 'admission_requirement_versions', 'pathway_operations',
         'career_profiles', 'career_profile_versions',
         'people_pool_members', 'people_pool_vettings', 'people_pool_bookings', 'people_pool_operations',
+        // Child mode in the parent app (4.2): each child's PIN (a hash) and the
+        // record of each child session (ids and times, never content).
+        'child_mode_pins', 'child_mode_sessions',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'diary_entries', 'diary_item_states',
         // Independent school business tools (5.10): re-enrolment contracts and
@@ -128,7 +136,7 @@ final class SchoolOwnedTables
         'assessment_marks', 'question_marks', 'mark_snapshots', 'mark_releases', 'mark_release_entries', 'academic_exam_links',
         'teaching_groups', 'teaching_group_memberships', 'teaching_allocations', 'homeroom_allocations', 'academic_leaderships',
         'curriculum_plans', 'curriculum_topics', 'assessment_plans', 'assessment_tasks', 'assessment_questions',
-        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations', 'staff_invitations', 'school_join_invitations', 'school_accounts', 'school_contacts', 'school_contracts', 'school_account_events', 'school_offboardings',
+        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations', 'staff_invitations', 'school_join_invitations', 'school_accounts', 'school_contacts', 'school_contracts', 'school_account_events', 'school_offboardings', 'school_erasure_certificates',
         'term_templates', 'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
         'class_sections', 'class_session_configs', 'class_subjects', 'class_teachers', 'classes',
@@ -190,6 +198,11 @@ final class SchoolOwnedTables
         'reading_shelf_books' => 'which books are on each HQ shelf, written only from /saas/reading',
         'reading_questions' => 'HQ-written comprehension questions per book, written only from /saas/reading; learners\' answers are school-owned in reading_answers',
         'library_ai_drafts' => 'HQ requests for AI drafts of library items (topic, source, brief, outcome), written only from /saas/library; the model is given library data only, never a school\'s',
+        // The marking accuracy gate (Action Plan 3.18): Navigate Ed's own evaluation data, written only from /saas/marking-accuracy.
+        'marking_evaluation_papers' => 'HQ evaluation papers: a memo\'s questions and mark points per subject, written only from /saas/marking-accuracy; no school paper or memo',
+        'marking_evaluation_scripts' => 'de-identified, teacher-marked evaluation scripts (answers, marks per mark point, a marker code, the source), never linked to a learner or a school; the source\'s reference is kept only as a keyed hash',
+        'marking_evaluation_runs' => 'the marking engine\'s agreement with teachers over the evaluation scripts, per subject, engine and profile version; names platform staff only',
+        'marking_subject_gates' => 'whether learners receive engine marking in each subject, switched on by an HQ approver against a passing run; platform-wide, names platform staff only',
         'platform_ai_usage' => 'HQ\'s own AI metering for model calls made from /saas with no school (tokens, cents, hashes and flag codes, never a prompt or an answer); a school\'s calls stay in its own ai_usage',
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
@@ -207,6 +220,7 @@ final class SchoolOwnedTables
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_ai_caps' => 'Navigate Ed\'s own daily AI spending caps per feature, set only from /saas/ai; a school\'s own lower limits stay in ai_school_limits',
         'platform_ai_cap_changes' => 'the history of HQ AI cap changes (who, when, old and new cents, reason), written only from /saas/ai; names no school',
+        'safeguarding_phrase_reviews' => 'professional reviews of each language\'s safeguarding phrase list (language, outcome, list hash, reviewer, date, note), written only from /saas/safeguarding-phrases; names no school and holds no learner message or phrase',
         'platform_support_views' => 'when each HQ staff member last opened the support queue; one row per staff user, no school data',
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'platform_staff_two_factor' => 'a platform staff member\'s own authenticator app (encrypted secret, hashed recovery codes) for signing in to /saas; platform staff belong to no school',
@@ -224,6 +238,8 @@ final class SchoolOwnedTables
         'learner_identifiers' => 'one immutable student number and the LURITS number per human across schools; accessed by user id under a lock',
         'user_devices' => 'push registrations belong to one human across schools, like users; each notification carries its own school',
         'platform_counters' => 'platform-wide sequence allocation under a row lock',
+        'platform_bank_receipts' => 'Navigate Ed\'s own register of outside receipts (one bank line or gateway charge, one receipt), filled only by the learner subscription payment trigger; method, reference, amount and the payment row id, never a school or a person',
+        'subscription_gateway_events' => 'each payment gateway notice recorded once by its id with its outcome and the subscription reference it named; never a school or a person',
         'schools' => 'the schools themselves',
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',
         'users' => 'one row per human across schools; a user belongs to a school through school_memberships',

@@ -16,6 +16,7 @@ use App\Services\Academics\ReleasedMarks;
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Subscriptions\Entitlements;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -88,6 +89,8 @@ class TutorQueries
         abort_unless(in_array('Parent', app(ProfilePolicy::class)->roles($fresh), true), 404);
         $person = app(ReleasedMarks::class)->learner($fresh, $learner);
         abort_unless(app(ApprovalService::class)->approved($person), 403);
+        // A parent insight: the child's entitlement, where the school asks for one (3.20).
+        app(Entitlements::class)->assertInsight($fresh, $person);
         $subjectRow = Subject::findOrFail($subject);
         $sessions = TutorSession::where('learner_id', $learner)->where('subject_id', $subject)->where('session_year_id', (int) schoolSetting('session_year'))->select('id');
         $rows = TutorMessage::whereIn('tutor_session_id', $sessions)->where('state', 'completed')->whereNull('purged_at')

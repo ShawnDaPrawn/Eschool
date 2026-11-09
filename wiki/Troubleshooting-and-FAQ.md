@@ -8,8 +8,8 @@ The installer's `ToInstallMiddleware` runs on every web request until the file `
 **`/install` returns 404.**
 The app is already installed: `InstallerMiddleware` answers 404 once `storage/installed` exists. To reinstall, delete that file and empty the database.
 
-**The default login from the README doesn't work.**
-`admin-panel/README.md` lists `admin@admin.com` / `password`, which is out of date. `AddSuperAdminSeeder` creates **`superadmin@gmail.com` / `superadmin`**. Change the password after the first login.
+**The old default login doesn't work.**
+New installations have no public default login. Configure `ADMIN_EMAIL` and `ADMIN_PASSWORD` before running the installer, then use those values. The password must have at least ten characters with letters and numbers. Reseeding an existing installation preserves its credentials; use password recovery if needed.
 
 **`php artisan db:seed` does nothing.**
 `DatabaseSeeder` is empty. Run the seeders the installer uses, in this order: `InstallationSeeder`, `AddSuperAdminSeeder`, `EmailSeeder`. See [Getting Started](Getting-Started#option-b-command-line).

@@ -35,8 +35,8 @@ class GuardianHandleProposal {
   @JsonKey(name: r'expires_at', required: true, includeIfNull: false)
   final DateTime expiresAt;
 
-  @JsonKey(name: r'learner', required: true, includeIfNull: false)
-  final GuardianInvitationPreviewLearnersInner learner;
+  @JsonKey(name: r'learner', required: true, includeIfNull: true)
+  final GuardianInvitationPreviewLearnersInner? learner;
 
   @override
   bool operator ==(Object other) =>
@@ -49,7 +49,10 @@ class GuardianHandleProposal {
 
   @override
   int get hashCode =>
-      id.hashCode + handle.hashCode + expiresAt.hashCode + learner.hashCode;
+      id.hashCode +
+      handle.hashCode +
+      expiresAt.hashCode +
+      (learner == null ? 0 : learner.hashCode);
 
   factory GuardianHandleProposal.fromJson(Map<String, dynamic> json) =>
       _$GuardianHandleProposalFromJson(json);

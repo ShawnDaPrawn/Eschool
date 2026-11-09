@@ -239,6 +239,8 @@ bounded tenant purge removes message bodies while retaining minimal receipts.
 
 `people_pool_members`, `people_pool_vettings`, `people_pool_bookings` and `people_pool_operations` (Action Plan 5.6) are school-owned: each school's pool, vetting history and bookings. Vettings and bookings reference members by `(school_id, pool_member_id)`. Pool accounts hold no school membership; their token is bound to one school and opens only the pool member routes. Nothing is shared between schools in this step (see engineering/specs/community/people-pools.md).
 
+`child_mode_pins` and `child_mode_sessions` (Action Plan 4.2) are school-owned: a child's child-mode PIN (a hash only) and the record of each child session (ids, times and why it ended, never content). A child token is bound by its abilities to the school and child it was issued for; ChildModeContext runs it in that school only and refuses an X-School-Id naming another. A guardian with children at two schools has a separate PIN and separate sessions at each (see engineering/specs/platform/child-mode.md).
+
 Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_hours` and reference-only `peer_tutoring_operations`. All models use the existing school boundary.
 
 The learner diary adds school-owned `diary_entries` and `diary_item_states`, each bound to one learner's `user_id`. Text is encrypted with a key derived per school and learner, so a row copied into another school's context cannot be read there either. School items are computed per read from the current school's own homework, holidays and events; nothing is copied across schools.
@@ -281,6 +283,14 @@ open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 daily AI caps per feature and their history, read and written only from
 `/saas/ai`. They name no school. A school's own lower limits stay in the
 school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+
+### Safeguarding phrase reviews
+
+`safeguarding_phrase_reviews` is global: HQ's record of each professional
+review of a language's safeguarding phrase list (language, outcome, list hash,
+reviewer, date, note), written only from `/saas/safeguarding-phrases`. It names
+no school and holds no learner message and no phrase; the lists themselves are
+files in `resources/ai/safeguarding` ([safeguarding phrases](../ai/safeguarding-phrases.md)).
 ### HQ feature flags
 
 `platform_feature_flags` is global: platform-wide switches written only from
@@ -313,7 +323,11 @@ counts, never the school's data. HQ writes it from `/saas` inside the school and
 the school's Super Admin confirms receipt from the panel, where an id from
 another school is not found ([Offboarding](offboarding.md)). The export and the
 deletion dry run read the school's rows through `SchoolOwnedTables`, always with
-the school's id.
+the school's id, and so does the erasure, which deletes only rows carrying the
+leaving school's id (and the role grants of its own roles).
+`school_erasure_certificates` is required school-owned too: one certificate per
+erased school, kept after erasure with HQ's other records of the school. It
+holds counts, dates and audit entry ids, never personal information.
 
 ### Platform content library (Action Plan 3.3)
 
@@ -356,6 +370,17 @@ book), holding no school or learner data. A school's hidden shelves and books
 (`reading_hidden_items`), badge switches (`reading_settings`) and its learners'
 `reading_progress`, `reading_days` and `reading_answers` are required
 school-owned ([reading library](../learning/reading-library.md)).
+
+### Marking accuracy gate (Action Plan 3.18)
+
+`marking_evaluation_papers`, `marking_evaluation_scripts`,
+`marking_evaluation_runs` and `marking_subject_gates` are global: Navigate Ed's
+own evaluation data, written only from `/saas/marking-accuracy`; their models
+refuse any write while a school is the current school. Scripts are
+de-identified on import and have no learner, school or school-record column;
+the source's own script reference is kept only as a keyed hash. Evaluation
+papers carry their own mark points rather than pointing at a school's memo
+([marking accuracy gate](../learning/marking-accuracy-gate.md)).
 
 ### Invitations to join another school
 
@@ -507,6 +532,29 @@ written inside that school from `/saas`. The models use `BelongsToSchool`, so
 another school's invoice or payment id resolves to "not found". HQ reads them
 across schools; no school reads them in this step
 ([HQ billing](hq-billing.md)).
+
+
+
+### Learner subscriptions
+
+`learner_subscriptions`, `learner_subscription_members`,
+`learner_subscription_payments`, `learner_subscription_events` and
+`learner_subscription_prompts` are required school-owned: each learning plan is
+one school's learner's, the school's licence or a sponsor's places at that
+school, and its paid periods, named learners, audit trail and prompts carry the
+same school, with composite foreign keys (`school_id`, id) so no row can point
+into another school. Guardians write theirs from the v2 API inside the school;
+HQ writes inside the school from `/saas` and reads across schools by reference,
+never by name.
+
+`platform_bank_receipts` is global: Navigate Ed's own register of outside
+receipts (one bank line or gateway charge, one receipt) across every school,
+because every family and sponsor pays into the same Navigate Ed account. It
+holds the method, the reference, the amount and the payment row id, never a
+school or a person, and only the payment trigger writes it.
+`subscription_gateway_events` is global: each payment gateway notice once, by
+its id, with its outcome and the subscription reference it named
+([learner subscriptions](learner-subscriptions.md)).
 
 
 ### HQ announcements to schools

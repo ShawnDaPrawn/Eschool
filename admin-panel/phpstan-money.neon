@@ -31,6 +31,15 @@ parameters:
         - app/Http/Controllers/Api/V2/SchoolBusiness
         - app/Http/Requests/SchoolBusiness
         - database/migrations/2026_11_09_510000_create_school_business_tools.php
+        - app/Services/Platform/Subscriptions
+        - app/Models/Platform/Subscriptions
+        - app/Http/Controllers/Platform/PlatformSubscriptionController.php
+        - app/Http/Controllers/Api/V2/Platform/SubscriptionController.php
+        - app/Http/Controllers/Webhooks/SubscriptionWebhookController.php
+        - app/Http/Requests/Platform/SubscriptionRequest.php
+        - app/Http/Requests/Saas/SubscriptionAdminRequest.php
+        - app/Console/Commands/PromptLearnerSubscriptions.php
+        - database/migrations/2026_11_11_310000_create_learner_subscriptions.php
         - app/Services/Money
         - app/Policies/Money
         - app/Models/Money

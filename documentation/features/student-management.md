@@ -38,7 +38,7 @@ The same menu has **Email guardians a sign-in link**, which sends a fresh link t
 
 On the set-up page the family enters the GR number and the code (or simply opens the emailed link), chooses a password and saves it. Passwords need at least 10 characters with letters and numbers, and passwords found in known data breaches are refused. The learner then signs in to the app with the GR number and the new password.
 
-Learners whose password is still their date of birth can keep signing in. The app asks them to choose a new password once it supports this.
+Learners whose password is still their date of birth must change it before accessing school records. Open the password settings after signing in; password changes and sign-out remain available while access is restricted.
 
 ## Parent Master Details
 

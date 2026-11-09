@@ -9,7 +9,11 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -109,5 +113,36 @@ class SchoolContextTest extends TestCase
 
         $token = $this->teacher->createToken('test')->plainTextToken;
         $this->withToken($token)->getJson('api/_tenancy/public')->assertExactJson(['school' => 2]);
+    }
+
+    public function test_password_setup_reaches_an_account_in_another_school_without_changing_other_accounts(): void
+    {
+        Notification::fake();
+        $this->teacher->removeRole('Teacher');
+        SchoolMembership::query()->where('user_id', $this->teacher->id)->where('school_id', 1)->delete();
+        app(SchoolRoles::class)->seed(2);
+        app(CurrentSchool::class)->run(2, fn () => $this->teacher->assignRole('Teacher'));
+        $this->teacher->forceFill(['password_change_required' => true])->save();
+        $this->teacher->createToken('before-password-setup');
+        $otherPassword = $this->superAdmin()->password;
+        $this->assertFalse(User::query()->whereKey($this->teacher->id)->exists());
+
+        $this->withHeader('X-School-Id', '1')->postJson('/password/email', ['email' => $this->teacher->email])->assertOk();
+        Notification::assertSentTo($this->teacher, ResetPassword::class);
+        $notification = Notification::sent($this->teacher, ResetPassword::class)->sole();
+        $payload = [
+            'email' => $this->teacher->email, 'token' => $notification->token,
+            'password' => 'Chosen-school-two-password-26', 'password_confirmation' => 'Chosen-school-two-password-26',
+        ];
+        $this->post('/password/reset', $payload)->assertRedirect('/home');
+        $updated = User::acrossSchools()->findOrFail($this->teacher->id);
+        $this->assertTrue(Hash::check($payload['password'], $updated->password));
+        $this->assertFalse($updated->password_change_required);
+        $this->assertSame(0, $updated->tokens()->count());
+        $this->assertSame($otherPassword, $this->superAdmin()->password);
+
+        $this->app['auth']->forgetGuards();
+        $this->flushSession();
+        $this->postJson('/password/reset', $payload)->assertUnprocessable();
     }
 }

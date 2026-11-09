@@ -23,6 +23,7 @@ class SchoolImportRunRequest extends PlatformStaffRequest
             'saas.schools.imports.preview' => PlatformSchoolImports::previewRules() + $file,
             'saas.schools.imports.store' => PlatformSchoolImports::requestRules(),
             'saas.imports.cancel' => PlatformSchoolImports::reasonRules(),
+            'saas.imports.apply' => PlatformSchoolImports::applyRules(),
             default => [],
         };
     }

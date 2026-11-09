@@ -20,7 +20,6 @@ CommunicationAudienceWrite _$CommunicationAudienceWriteFromJson(
         'session_year_id',
         'name',
         'active',
-        'user_ids',
       ],
     );
     final val = CommunicationAudienceWrite(
@@ -34,7 +33,39 @@ CommunicationAudienceWrite _$CommunicationAudienceWriteFromJson(
       active: $checkedConvert('active', (v) => v as bool),
       userIds: $checkedConvert(
         'user_ids',
-        (v) => (v as List<dynamic>).map((e) => (e as num).toInt()).toSet(),
+        (v) => (v as List<dynamic>?)?.map((e) => (e as num).toInt()).toSet(),
+      ),
+      kind: $checkedConvert(
+        'kind',
+        (v) =>
+            $enumDecodeNullable(
+              _$CommunicationAudienceWriteKindEnumEnumMap,
+              v,
+              unknownValue:
+                  CommunicationAudienceWriteKindEnum.unknownDefaultOpenApi,
+            ) ??
+            CommunicationAudienceWriteKindEnum.fixed,
+      ),
+      shared: $checkedConvert('shared', (v) => v as bool? ?? true),
+      match: $checkedConvert(
+        'match',
+        (v) => $enumDecodeNullable(
+          _$CommunicationAudienceWriteMatchEnumEnumMap,
+          v,
+          unknownValue:
+              CommunicationAudienceWriteMatchEnum.unknownDefaultOpenApi,
+        ),
+      ),
+      parents: $checkedConvert('parents', (v) => v as bool?),
+      rules: $checkedConvert(
+        'rules',
+        (v) => (v as List<dynamic>?)
+            ?.map(
+              (e) => CommunicationSmartRulesInner.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            )
+            .toList(),
       ),
     );
     return val;
@@ -54,5 +85,24 @@ Map<String, dynamic> _$CommunicationAudienceWriteToJson(
   'session_year_id': instance.sessionYearId,
   'name': instance.name,
   'active': instance.active,
-  'user_ids': instance.userIds.toList(),
+  'user_ids': ?instance.userIds?.toList(),
+  'kind': ?_$CommunicationAudienceWriteKindEnumEnumMap[instance.kind],
+  'shared': ?instance.shared,
+  'match': ?_$CommunicationAudienceWriteMatchEnumEnumMap[instance.match],
+  'parents': ?instance.parents,
+  'rules': ?instance.rules?.map((e) => e.toJson()).toList(),
+};
+
+const _$CommunicationAudienceWriteKindEnumEnumMap = {
+  CommunicationAudienceWriteKindEnum.fixed: 'fixed',
+  CommunicationAudienceWriteKindEnum.smart: 'smart',
+  CommunicationAudienceWriteKindEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
+};
+
+const _$CommunicationAudienceWriteMatchEnumEnumMap = {
+  CommunicationAudienceWriteMatchEnum.any: 'any',
+  CommunicationAudienceWriteMatchEnum.all: 'all',
+  CommunicationAudienceWriteMatchEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
 };
