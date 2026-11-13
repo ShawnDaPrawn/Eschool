@@ -86,10 +86,10 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Check | Result |
 |---|---|
 | Final integrated Unit suite | 331 tests, 15,714 assertions; one existing skip |
-| Full Pint | 3,364 files passed after integration |
+| Full Pint | 3,365 files passed on the final source |
 | Shared HTTP and workspace boundaries | 15 tests, 38,582 assertions passed; covers 48 new route boundaries |
 | Personal notification endpoints | 6 tests, 39 assertions passed |
-| Blade compile and PHP token parsing | 694 templates, zero syntax errors |
+| Blade compile and PHP token parsing | 698 templates compile; PHP token parsing and uncompiled-directive assertions pass |
 | Isolated configuration, route and view caches | Passed |
 | Standard PHPStan; Finance level 5 | Zero findings |
 | Shared form recovery, confirmation and CSRF refresh browser regressions | 20 passed in 28.1 seconds |
@@ -106,6 +106,11 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Classroom and global year activation/restoration | Classroom 3/3 at 390/820/1280 px; wizard 1/1; original year and module state independently verified |
 | Recognition: house points and Golden Boot creation/nomination/award history | 4 browser workflows passed at 390/1280 px |
 | Mobile global Search and language utilities | 2 passed at 320/375 px: actual language change/restore, all module links, drawer Axe/overflow, learner search to report |
+| Final Blade, translations and navigation rendering batch | 8 tests, 72,059 assertions passed on final source |
+| Global search and shrinking Bootstrap baseline | 9 tests, 45 assertions passed |
+| Persistence badge dedicated configuration and protected writes | 1 test, 14 assertions passed |
+| Notification list/chooser and default-value form controls | 2 notification workflows; 2 strict field pages and both mobile/desktop option add/remove proofs passed |
+| Role and staff-attendance page corrections | 4 strict phone/desktop page checks passed; source record actions and filters retained |
 | TypeScript compilation | Passed after final mobile utility tests |
 | CI Playwright partition inventory | Full suite ancestry retained; 1,241 tests complete/disjoint (310 per bulk shard and one wizard) |
 | Generated Dart API contracts | 193 tests passed; analyzer zero errors/warnings (parent verification logs) |
