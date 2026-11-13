@@ -41,17 +41,17 @@ export default defineConfig({
     {
       name: 'pages-1280',
       testMatch: /pages\.spec\.ts/,
-      use: { ...desktop, viewport: { width: 1280, height: 800 }, storageState: '.auth/admin-pages.json' },
+      use: { ...desktop, viewport: { width: 1280, height: 800 } },
     },
     {
       name: 'pages-1024',
       testMatch: /pages\.spec\.ts/,
-      use: { ...desktop, viewport: { width: 1024, height: 768 }, storageState: '.auth/admin-pages.json' },
+      use: { ...desktop, viewport: { width: 1024, height: 768 } },
     },
     {
       name: 'pages-375',
       testMatch: /pages\.spec\.ts/,
-      use: { ...desktop, viewport: { width: 375, height: 812 }, storageState: '.auth/admin-pages.json' },
+      use: { ...desktop, viewport: { width: 375, height: 812 } },
     },
     {
       name: 'flows',

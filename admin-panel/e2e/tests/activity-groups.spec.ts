@@ -7,7 +7,7 @@ import { collectErrors, horizontalOverflow, seriousViolations } from '../support
 test.describe.configure({ mode: 'serial' });
 test.setTimeout(420_000);
 test.use({ storageState: { cookies: [], origins: [] } });
-let setup: {learner: number};
+let setup: {learner: number; starts_on: string; ends_on: string};
 test.beforeAll(() => { setup = JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/activity-fixture.php'));"], {cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8'}).trim()); });
 for (const width of [390, 820, 1280]) {
   test(`manage activity group and explicit register at ${width}px`, async ({page, baseURL}) => {
@@ -21,6 +21,8 @@ for (const width of [390, 820, 1280]) {
     await form.getByRole('textbox', {name: 'Group name', exact: true}).fill(name);
     await form.getByRole('textbox', {name: 'Discipline', exact: true}).fill('Culture');
     await form.getByRole('textbox', {name: 'Season', exact: true}).fill('Browser rehearsal');
+    await form.locator('[name="starts_on"]').fill(setup.starts_on);
+    await form.locator('[name="ends_on"]').fill(setup.ends_on);
     await page.screenshot({path: test.info().outputPath(`activity-group-editor-${width}.png`), fullPage: true});
     await form.getByRole('button', {name: 'Save group', exact: true}).click();
     await expect(page.getByRole('status').filter({hasText: 'Activity saved'})).toBeVisible();
@@ -30,6 +32,8 @@ for (const width of [390, 820, 1280]) {
     form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save allocation', exact: true})}).filter({has: page.getByRole('combobox', {name: 'Learner', exact: true})});
     const learner = form.getByRole('combobox', {name: 'Learner', exact: true});
     await learner.selectOption(String(setup.learner));
+    await form.locator('[name="starts_on"]').fill(setup.starts_on);
+    await form.locator('[name="ends_on"]').fill(setup.ends_on);
     await form.getByRole('textbox', {name: 'Reason', exact: true}).fill('Synthetic browser allocation');
     await form.getByRole('button', {name: 'Save allocation', exact: true}).click();
     await page.getByRole('link', {name:'Sessions', exact:true}).click();

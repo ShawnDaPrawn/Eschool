@@ -8,6 +8,11 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Str;
 
 // Explicitly synthetic local browser records; no admissions are sold or issued.
+$database = (string) config('database.connections.'.config('database.default').'.database');
+if (! str_ends_with($database, '_test') && $database !== 'eschool_e2e') {
+    throw new RuntimeException('Event readiness browser fixtures require an isolated test database.');
+}
+
 return app(CurrentSchool::class)->run(1, function (): array {
     foreach (['vendors', 'ticketing'] as $module) {
         SchoolModule::updateOrCreate(['module' => $module], ['enabled' => true, 'in_package' => true, 'read_only' => false]);

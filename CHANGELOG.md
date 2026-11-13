@@ -3,6 +3,7 @@
 ## 2026-11-13
 
 - Reorganise school administration around the revision-3 designs: twelve school workspaces, separate operational and configuration pages, People and Community dropdowns, central learner attendance and leave, global school-year preparation/activation, and a shared responsive Material 3 layout. Add source-backed facilitator, alumni, bursary, giving, sponsorship, re-enrolment and personal notification screens; complete award creation, nomination, review and presentation paths. Preserve domain permissions, private records, money idempotency and existing API behavior. **Deploy:** apply the additive migrations after qualification; this entry does not authorize deployment. See `engineering/ui-rework/README.md` and the verification ledgers.
+- Patch the converter's two CI-blocking transitive dependencies, OpenTelemetry API and SoupSieve, with regenerated artifact hashes. The dependency audit and all 42 converter tests, including real audio/video transcription, pass; no unrelated dependency version changes are included.
 
 ## 2026-11-08
 

@@ -99,11 +99,12 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Awards/activities/discipline feature batch | 36 tests, 479 assertions passed |
 | Finance and ticket feature batch | 23 tests, 305 assertions passed |
 | Finance family billing, receipts, giving/bursaries and settlement browser workflows | 8 passed at 390/1280 px; ticket workflow checks tracked separately |
-| Real native context cancellation and populated responsive tables | Earlier 5 passed; final context rerun pending |
+| Complete responsive shell, navigation, native context cancellation and populated tables | 95 passed across 320/375/768/1024/1280 px; two diagnosed failures passed targeted final reruns |
 | TypeScript compilation | Passed after final shared form tests |
 | CI Playwright partition inventory | Full suite ancestry retained; 1,139 tests complete/disjoint before final expanded page manifest |
 | Generated Dart API contracts | 193 tests passed; analyzer zero errors/warnings (parent verification logs) |
-| Final complete page/mobile manifest and module workflows | In progress; do not treat this row as passed |
+| Expanded source/authorized-task discovery | 434 URLs, 255 panel screens; zero server/network failures after explicit retries |
+| Final complete 375/1280 px page sweeps | 516 checks in progress; do not treat this row as passed |
 
 The shared-form checks cover cleared checkbox/multiselect restoration,
 draft isolation by user/school/year/form scope, excluded sensitive fields,
@@ -137,5 +138,11 @@ captured before a dependency arrived; these runs are not final acceptance.
 Record successful reruns after integration and retain any unresolved failures.
 The full-page acceptance sweep uses `E2E_STRICT_ACCESSIBILITY=1`, so existing
 legacy exceptions cannot conceal remaining label or contrast findings.
+The first discovery pass had five request timeouts under concurrent load; their
+explicit successful retries are retained in the runtime artifacts. The final
+status inventory also records 43 permission refusals, primarily SaaS/platform
+and role-private endpoints, plus redirects and parameter/state requirements.
+These responses are not claimed as administrator page coverage. Separate
+domain fixtures exercise their authorized school-role workflows.
 No live payment provider, private Build Bible acceptance, production rollout,
 or native mobile device qualification is implied by this local verification.

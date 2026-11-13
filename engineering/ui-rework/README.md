@@ -20,6 +20,8 @@ The header chooses the school year being viewed. Preparing and activating the sc
 - Browser drafts require explicit opt-in and are scoped to account, school, year, URL, action and form. Hidden/password/file fields and fields marked `data-no-draft` are excluded. Private workflows disable persisted drafts. A dirty boolean also protects native POST forms when changing school/year or leaving; it does not persist their contents.
 - HTTP recovery pages distinguish expired sign-in, missing access, stale data, throttling and an unconfirmed save. An unconfirmed money/approval operation directs the person to inspect the saved record before resubmitting.
 - After expired sign-in, enhanced forms can explicitly refresh their token only when the account, school, year, page and form still match. The refresh keeps live entries and attachments, leaves record revisions unchanged and never resubmits automatically. Background reads preserve document recovery destinations and one-time feedback without extending private old-input lifetime.
+- Material tables own their loading, selection and refresh state; legacy Bootstrap initialization excludes them. A failed reload clears old rows and selections, and a confirmation cannot act on selections from a replaced result set.
+- One GET document reuses its permission-filtered navigation across the sidebar, workspace and breadcrumbs. The result stays on that request and is keyed to the actor, school, year, locale and page. Writes and explicit authority checks remain fresh. Gallery and family-form menu availability stops after proving access instead of building every group's editor configuration.
 
 ## New panel adapters and domain additions
 

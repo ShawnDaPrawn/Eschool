@@ -5,9 +5,22 @@
 @endsection
 
 @section('content')
+    @php
+        $facilitatorContext = request('view') === 'create' && request('role') === 'Facilitator';
+        $staffNavigation = app(\App\Services\Panel\Navigation::class);
+        $facilitatorDestination = collect($staffNavigation->definitions())->firstWhere('key', 'facilitators');
+        $canReturnToFacilitators = $facilitatorContext && $facilitatorDestination && $staffNavigation->visible($facilitatorDestination, auth()->user());
+    @endphp
     <div class="content-wrapper m3 page-content">
         <x-page.header :title="request('view') === 'create' ? (request('role') === 'Facilitator' ? __('Add facilitator') : __('Add admin staff')) : __('Admin staff')" :subtitle="__('School staff accounts, role assignments and contact details.')" :primary-label="request('view') === 'create' ? null : __('Add staff member')" :primary-href="route('staff.index', ['view' => 'create'])" primary-permission="staff-create" />
-        <nav class="workspace-tabs" aria-label="{{ __('Staff workspace') }}"><a class="m3-button m3-button--text" href="{{ route('staff.index') }}" @if(request('view') !== 'create') aria-current="page" @endif>{{ __('Staff directory') }}</a>@can('staff-create')<a class="m3-button m3-button--text" href="{{ route('staff.index', ['view' => 'create']) }}" @if(request('view') === 'create') aria-current="page" @endif>{{ __('Add staff member') }}</a>@endcan</nav>
+        <nav class="workspace-tabs" aria-label="{{ __('Staff workspace') }}">
+            @if($canReturnToFacilitators)
+                <a class="m3-button m3-button--text" href="{{ route('people.facilitators.index') }}">{{ __('Facilitators') }}</a>
+            @else
+                @can('staff-list')<a class="m3-button m3-button--text" href="{{ route('staff.index') }}" @if(request('view') !== 'create') aria-current="page" @endif>{{ __('Staff directory') }}</a>@endcan
+            @endif
+            @can('staff-create')<a class="m3-button m3-button--text" href="{{ route('staff.index', $facilitatorContext ? ['view' => 'create', 'role' => 'Facilitator'] : ['view' => 'create']) }}" @if(request('view') === 'create') aria-current="page" @endif>{{ $facilitatorContext ? __('Add facilitator') : __('Add staff member') }}</a>@endcan
+        </nav>
         <div class="row">
             @if(request('view') === 'create')
             @can('staff-create')
