@@ -21,6 +21,12 @@ class FeePlanPanelRequest extends FormRequest
             abort_unless((int) $this->input('expected_account_id') === (int) $actor->id && (int) $this->input('expected_school_id') === app(CurrentSchool::class)->id(), 403);
             abort_unless($this->query->count() === 0, 422);
         }
+        if ($this->input('rules_present') === '1' && ! $this->exists('rule_rows')) {
+            $this->merge(['rule_rows' => []]);
+        }
+        if ($this->input('options_present') === '1' && ! $this->exists('option_rows')) {
+            $this->merge(['option_rows' => []]);
+        }
         if ($this->exists('rule_rows')) {
             $rows = $this->input('rule_rows');
             abort_unless(is_array($rows) && count($rows) <= 20, 422);
@@ -71,11 +77,31 @@ class FeePlanPanelRequest extends FormRequest
                     abort_unless(is_string($row[$key]), 422);
                 }
                 abort_unless(strlen($row['schedule']) <= 8192, 422);
-                if ($row['key'] === '' && $row['label'] === '' && trim($row['schedule']) === '') {
+                if ($row['key'] === '' && $row['label'] === '' && trim($row['schedule']) === '' && empty($row['installments'])) {
                     continue;
                 }
                 $parts = [];
-                if (trim($row['schedule']) !== '') {
+                if (array_key_exists('installments', $row)) {
+                    abort_unless(is_array($row['installments']) && count($row['installments']) <= 24 && trim($row['schedule']) === '', 422);
+                    foreach ($row['installments'] as $part) {
+                        abort_unless(is_array($part) && array_diff(array_keys($part), ['month', 'day', 'percentage']) === [], 422);
+                        if (collect($part)->every(fn ($value) => $value === null || $value === '')) {
+                            continue;
+                        }
+                        $validator = \Illuminate\Support\Facades\Validator::make($part, [
+                            'month' => ['required', 'integer', 'between:1,12'],
+                            'day' => ['required', 'integer', 'between:1,31'],
+                            'percentage' => ['required', 'regex:/\\A(?:100(?:\\.0{1,2})?|[0-9]{1,2}(?:\\.[0-9]{1,2})?)\\z/D'],
+                        ]);
+                        if ($validator->fails()) {
+                            $this->refusal(__('Each installment needs a valid month, day and percentage with at most two decimal places.'));
+                        }
+                        $checked = $validator->validated();
+                        [$whole, $decimal] = array_pad(explode('.', (string) $checked['percentage'], 2), 2, '');
+                        $parts[] = ['month' => (int) $checked['month'], 'day' => (int) $checked['day'],
+                            'weight_bp' => (int) $whole * 100 + (int) str_pad($decimal, 2, '0')];
+                    }
+                } elseif (trim($row['schedule']) !== '') {
                     $lines = preg_split('/\\R/u', trim($row['schedule']));
                     abort_unless(is_array($lines) && count($lines) <= 24, 422);
                     foreach ($lines as $line) {

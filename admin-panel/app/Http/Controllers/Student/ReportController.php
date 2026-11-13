@@ -9,6 +9,7 @@ use App\Models\AssignmentSubmission;
 use App\Models\Attendance;
 use App\Models\Category;
 use App\Models\ClassSection;
+use App\Models\ClassTeacher;
 use App\Models\Exam;
 use App\Models\ExamMarks;
 use App\Models\FormField;
@@ -21,8 +22,10 @@ use App\Models\OnlineExamStudentAnswer;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Models\Teacher;
 use App\Models\Term;
 use App\Services\OnlineExamScoringService;
+use App\Services\Panel\SessionYearContext;
 use App\Services\Platform\Identity\LearnerIdentifiers;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -34,7 +37,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class ReportController extends Controller
 {
-    public function detail()
+    public function detail(Request $request)
     {
         if (! Auth::user()->can('student-list')) {
             $response = [
@@ -43,6 +46,9 @@ class ReportController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
+
+        $selection = $request->validate(['report_tab' => ['sometimes', 'nullable', 'in:personal,attendance,leave']]);
+        $reportTab = $selection['report_tab'] ?? 'personal';
 
         $is_restricted_teacher = Auth::user()->hasRole('Teacher') && ! Auth::user()->can('student-create');
 
@@ -57,23 +63,24 @@ class ReportController extends Controller
         $formFields = FormField::where('for', 1)->orderBy('rank', 'ASC')->get();
         $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
-        return view('students.stu-detail', compact('class_section', 'category', 'formFields', 'session_years', 'is_restricted_teacher'));
+        return view('students.stu-detail', compact('class_section', 'category', 'formFields', 'session_years', 'is_restricted_teacher', 'reportTab'));
     }
 
     public function showStudentReport(Request $request, $id)
     {
         ResponseService::noPermissionThenRedirect('student-report');
-        $tab = $request->get('tab', 'personal');
+        $selection = $request->validate(['tab' => ['sometimes', 'in:personal,attendance,leave,exam,assignment,fees']]);
+        $tab = $selection['tab'] ?? 'personal';
 
-        $student = $this->getStudent($id);
+        $sessionYear = $this->getSelectedSessionYear($request);
+        $student = $this->getStudent($id, $sessionYear);
 
         $data = $this->defaultReportData($student);
+        $data['sessionYearId'] = $sessionYear?->id;
 
         if ($tab == 'personal') {
             return $this->response($request, $tab, $data);
         }
-
-        $sessionYear = $this->getSelectedSessionYear($request);
 
         if (! $sessionYear) {
             return $this->response($request, $tab, $data);
@@ -125,14 +132,22 @@ class ReportController extends Controller
 
     public function studentAttendanceReport($id)
     {
-        return redirect()->route('student.report', $id.'?tab=attendance');
+        return redirect()->route('student.report', ['id' => $id, 'tab' => 'attendance']);
     }
 
-    private function getstudent($id)
+    private function getStudent($id, ?SessionYear $year): Students
     {
-        return $student = Students::with(['user', 'guardian', 'class_section'])
-            ->findOrFail($id);
+        $query = Students::with(['user', 'guardian', 'class_section']);
+        $actor = Auth::user();
+        // Match the chooser's homeroom authority on direct URLs and AJAX tabs.
+        // Custom staff and teachers granted broader learner management keep that authority.
+        if ($actor->hasRole('Teacher') && ! $actor->can('student-create')) {
+            $classes = ClassTeacher::whereIn('class_teacher_id', Teacher::where('user_id', $actor->id)->select('id'))
+                ->where('session_year_id', $year?->id)->select('class_section_id');
+            $query->whereHas('studentSessions', fn ($sessions) => $sessions->where('session_year_id', $year?->id)->whereIn('class_section_id', $classes));
+        }
 
+        return $query->findOrFail($id);
     }
 
     private function defaultReportData($student)
@@ -159,13 +174,12 @@ class ReportController extends Controller
         ];
     }
 
-    private function getSelectedSessionYear(Request $request)
+    private function getSelectedSessionYear(Request $request): ?SessionYear
     {
-        $currentSessionYearId = $request->session_year_id
-            ?: (getSettings('session_year')['session_year'] ?? null);
+        $input = $request->validate(['session_year_id' => ['sometimes', 'nullable', 'integer', 'min:1']]);
+        $yearId = $input['session_year_id'] ?? app(SessionYearContext::class)->selectedId();
 
-        return $sessionYear = SessionYear::find($currentSessionYearId);
-
+        return $yearId ? SessionYear::findOrFail((int) $yearId) : null;
     }
 
     private function getStudentSession($studentId, $sessionYearId)

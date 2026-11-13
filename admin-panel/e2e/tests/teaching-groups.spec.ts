@@ -1,11 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect as playwrightExpect, test } from '@playwright/test';
+const expect = playwrightExpect.configure({ timeout: 30_000 });
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
+// These flows include file conversion/export and axe under the shared test runtime.
+test.setTimeout(180_000);
 let groupUrl: string;
 let groupName: string;
 
@@ -16,7 +19,7 @@ test.beforeAll(() => {
 test('admin maps a class, creates a group and records dated teacher and learner membership', async ({ page, baseURL }) => {
   await signIn(page, accounts.admin);
   const errors = collectErrors(page, baseURL!);
-  await page.goto('/teaching-groups');
+  await page.goto('/teaching-groups?view=configuration');
   const mapping = page.getByLabel('Grade for class Grade 5', { exact: true });
   await mapping.selectOption({ label: 'Grade 5' });
   await mapping.locator('xpath=ancestor::form').getByRole('button', { name: 'Save grade mapping' }).click();

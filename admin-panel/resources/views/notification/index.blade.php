@@ -33,19 +33,17 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('notifications') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('notifications')" />
 
-        <div class="row">
-            <div class="col-12 col-lg-6 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
+        <x-panel-view-nav :current="request('view') === 'create' ? 'create' : 'list'" :items="['list'=>['label'=>'School notifications','href'=>request()->url()], 'create'=>['label'=>'Create notification','href'=>request()->url().'?view=create']]" />
+<div class="panel-form-grid">
+            @if(request('view') === 'create')
+<div class="   ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
+                        <div class="panel-form-grid">
+                            <div class="">
                                 <h4 class="card-title">
                                     {{ __('create') . ' ' . __('notifications') }}
                                 </h4>
@@ -54,8 +52,8 @@
                         <form class="pt-3 create-notification" id="create_notification" method="POST"
                             novalidate="novalidate" action="{{ route('notifications.store') }}">
                             @csrf
-                            <div class="row">
-                                <div class="form-group col-12 col-sm-6">
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
                                     <label>{{ __('send_to') }} <span class="text-danger">*</span></label>
                                     <select name="send_to[]" id="send_to" multiple
                                         data-placeholder="{{ __('Please Select') }}"
@@ -66,43 +64,45 @@
                                         <option value="5">{{ __('teacher') }}</option>
                                     </select>
                                 </div>
-                                <div class="form-group col-12 col-sm-6">
+                                <div class="form-group  ">
                                     <label>{{ __('title') }} <span class="text-danger">*</span></label>
                                     <input name="title" maxlength="128" type="text" placeholder="{{ __('title') }}"
                                         class="form-control" />
                                 </div>
-                                <div class="form-group col-12">
+                                <div class="form-group ">
                                     <label>{{ __('message') }} <span class="text-danger">*</span></label>
                                     <textarea name="message" maxlength="128" cols="10" rows="3" placeholder="{{ __('message') }}" class="form-control"></textarea>
                                 </div>
-                                <div class="form-group col-12">
+                                <div class="form-group ">
                                     <label><input type="checkbox" name="urgent" value="1"> {{ __('Urgent notice (required for recipients)') }}</label>
                                 </div>
-                                <div class="form-group col-12">
+                                <div class="form-group ">
                                     <label>{{ __('image') }}</label>
                                     <input type="file" name="image" class="file-upload-default" accept="image/*" />
-                                    <div class="input-group col-xs-12">
+                                    <div class="input-group ">
                                         <input type="text" class="form-control file-upload-info" disabled=""
                                             placeholder="{{ __('image') }}" />
                                         <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-theme"
+                                            <button class="file-upload-browse m3-button m3-button--filled"
                                                 type="button">{{ __('upload') }}</button>
                                         </span>
                                     </div>
                                 </div>
                                 <div id="selected_recipients_inputs"></div>
-                                <div class="col-12">
-                                    <input class="btn btn-theme" type="submit" value="{{ __('submit') }}">
+                                <div class="">
+                                    <input class="m3-button m3-button--filled" type="submit" value="{{ __('submit') }}">
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+@endif
 
-            <div class="col-12 col-lg-6 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
+            @if(request('view') === 'create')
+<div class="   ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">{{ __('recipients') }}</h4>
 
                         <div id="recipients_empty_state" class="text-center" style="padding: 2.5rem 1rem; color: var(--md-sys-color-on-surface-variant);">
@@ -215,15 +215,17 @@
                     </div>
                 </div>
             </div>
+@endif
 
-            <div class="col-md-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
+            @if(request('view') !== 'create')
+<div class="  ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">
                             {{ __('list') . ' ' . __('notifications') }}
                         </h4>
-                        <div class="row">
-                            <div class="col-12">
+                        <div class="panel-form-grid">
+                            <div class="">
                                 <table aria-describedby="mydesc" class='table' id='table_list' data-toggle="table"
                                     data-url="{{ route('notifications.show', 1) }}" data-click-to-select="true"
                                     data-side-pagination="server" data-pagination="true"
@@ -273,6 +275,7 @@
                     </div>
                 </div>
             </div>
+@endif
 
         </div>
     </div>

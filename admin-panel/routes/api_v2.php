@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Activities\AcademicContestController;
 use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
 use App\Http\Controllers\Api\V2\Activities\FixtureController;
 use App\Http\Controllers\Api\V2\Activities\GroupChatController;
@@ -48,6 +49,7 @@ use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
 use App\Http\Controllers\Api\V2\Learning\LearningPathController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Learning\PracticeTestController;
+use App\Http\Controllers\Api\V2\Learning\SharedLibraryController;
 use App\Http\Controllers\Api\V2\Learning\StrengthsMirrorController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
@@ -79,7 +81,9 @@ use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationInboxController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
+use App\Http\Controllers\Api\V2\Platform\ProviderSignInController;
 use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
+use App\Http\Controllers\Api\V2\Platform\SignInLinkController;
 use App\Http\Controllers\Api\V2\Platform\SubscriptionController;
 use App\Http\Controllers\Api\V2\Platform\TextMessagingController;
 use App\Http\Controllers\Api\V2\Reading\ReadingController;
@@ -125,6 +129,7 @@ use App\Http\Middleware\RequireVendorCounter;
 use App\Http\Middleware\RequireWalletAuthority;
 use App\Http\Middleware\RequireWalletDepositAuthority;
 use App\Http\Middleware\RequireWalletWithdrawalAuthority;
+use App\Services\Platform\SignIn\ProviderCatalogue;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -232,6 +237,24 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
 });
 
+// Google and Microsoft sign-in for the apps (Action Plan 5.9). The school is
+// named by its slug and ProviderSignIn runs every step inside it; the app
+// token it issues is bound to that school. Nothing creates an account.
+Route::prefix('auth/providers')->middleware([PrivateDomainResponse::class, 'school.context:public', 'throttle:sign-in-provider'])->name('api.v2.sign-in-providers.')->group(function () {
+    $c = ProviderSignInController::class;
+    Route::get('/', [$c, 'providers'])->name('index');
+    Route::post('{provider}/nonce', [$c, 'nonce'])->whereIn('provider', ProviderCatalogue::ALL)->name('nonce');
+    Route::post('{provider}/sign-in', [$c, 'signIn'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('portal.sign-in')->name('sign-in');
+});
+// The signed-in person's own links at their current school: linking needs their password again.
+Route::prefix('me/sign-in-links')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved'])->name('api.v2.sign-in-links.')->group(function () {
+    $c = SignInLinkController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('providers/{provider}/nonce', [$c, 'nonce'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:password')->name('nonce');
+    Route::post('providers/{provider}', [$c, 'store'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:password')->name('store');
+    Route::delete('{link}', [$c, 'destroy'])->where('link', '[1-9][0-9]{0,17}')->middleware('throttle:password')->name('destroy');
+});
+
 // The alumni and volunteer pool (Action Plan 5.6). Staff manage it under
 // people-pool; pool members use their own sign-in and pool-only token.
 Route::prefix('people-pool')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:people_pool'])
@@ -337,6 +360,24 @@ Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role
     Route::get('competitions/{competition}', [$c, 'competition'])->whereNumber('competition')->name('competition-show');
     Route::post('competitions/{competition}/invitations', [$c, 'competitionInvite'])->whereNumber('competition')->name('competition-invite');
     Route::post('competitions/{competition}/decision', [$c, 'competitionDecision'])->whereNumber('competition')->name('competition-decision');
+});
+
+// Academic competitions and debating between schools (Action Plan 5.3): a
+// shared fixture of an academic kind, its adjudicators and their result, AI
+// feedback on reasoning for adjudicators (advice only) and links to awards.
+Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.academic.')->group(function () {
+    $c = AcademicContestController::class;
+    Route::get('academic-competitions', [$c, 'index'])->name('index');
+    Route::post('academic-competitions', [$c, 'create'])->name('create');
+    Route::get('learners/{learner}/academic-competitions', [$c, 'learner'])->whereNumber('learner')->name('learner');
+    Route::get('academic-competitions/{competition}', [$c, 'show'])->whereNumber('competition')->name('show');
+    Route::put('academic-competitions/{competition}/details', [$c, 'details'])->whereNumber('competition')->name('details');
+    Route::put('academic-competitions/{competition}/adjudicators', [$c, 'adjudicators'])->whereNumber('competition')->name('adjudicators');
+    Route::put('academic-competitions/{competition}/result', [$c, 'result'])->whereNumber('competition')->name('result');
+    Route::post('academic-competitions/{competition}/awards', [$c, 'awards'])->whereNumber('competition')->name('awards');
+    Route::post('academic-competitions/{competition}/reasoning-reviews', [$c, 'review'])->whereNumber('competition')->middleware('throttle:20,1')->name('review');
+    Route::get('academic-competitions/{competition}/reasoning-reviews/{review}', [$c, 'reviewShow'])->whereNumber(['competition', 'review'])->name('review-show');
+    Route::post('academic-competitions/{competition}/reasoning-reviews/{review}/share', [$c, 'share'])->whereNumber(['competition', 'review'])->name('share');
 });
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
@@ -842,6 +883,19 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::get('groups/{group}/marking', [$c, 'marking'])->whereNumber('group')->name('marking');
     Route::get('groups/{group}/marking/{review}/audio', [$c, 'markingAudio'])->whereNumber('group')->whereNumber('review')->name('marking-audio');
     Route::post('groups/{group}/marking/{review}', [$c, 'mark'])->whereNumber('group')->whereNumber('review')->name('mark');
+});
+
+// The shared library, teacher to teacher (Action Plan 5.4): browse, rate and copy questions other schools shared; share and withdraw your own.
+Route::prefix('learning/shared-library')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'staff', 'module:daily_practice'])->name('api.v2.shared-library.')->group(function () {
+    $c = SharedLibraryController::class;
+    Route::get('items', [$c, 'items'])->name('items');
+    Route::get('items/{item}', [$c, 'item'])->whereNumber('item')->name('item');
+    Route::put('items/{item}/rating', [$c, 'rate'])->whereNumber('item')->middleware('throttle:30,1')->name('rate');
+    Route::post('items/{item}/copy', [$c, 'copy'])->whereNumber('item')->middleware('throttle:30,1')->name('copy');
+    Route::get('contributions', [$c, 'contributions'])->name('contributions');
+    Route::post('contributions', [$c, 'contribute'])->middleware('throttle:30,1')->name('contribute');
+    Route::post('contributions/{contribution}/withdraw', [$c, 'withdraw'])->whereNumber('contribution')->middleware('throttle:30,1')->name('withdraw');
+    Route::get('practice-items/{item}/share-options', [$c, 'options'])->whereNumber('item')->name('options');
 });
 
 // Practice tests (Action Plan 3.17): cycle tests set by teachers, quick quizzes, timed sittings with server-held answers.

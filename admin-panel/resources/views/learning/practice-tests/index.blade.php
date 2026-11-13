@@ -26,10 +26,15 @@
     @else
         <nav aria-label="{{ __('Teaching groups') }}"><ul>
             @foreach ($groups as $group)
-                <li>@if ($group['id'] === $groupId)<strong aria-current="page">{{ $group['name'] }} · {{ $group['subject_name'] }}</strong>@else<a href="{{ route('practice-tests.index', ['group' => $group['id']]) }}">{{ $group['name'] }} · {{ $group['subject_name'] }}</a>@endif</li>
+                <li>@if ($group['id'] === $groupId)<strong aria-current="page">{{ $group['name'] }} · {{ $group['subject_name'] }}</strong>@else<a href="{{ route('practice-tests.index', ['group' => $group['id'], 'view' => $workspaceView]) }}">{{ $group['name'] }} · {{ $group['subject_name'] }}</a>@endif</li>
             @endforeach
         </ul></nav>
 
+        <nav class="workspace-tabs" aria-label="{{ __('Practice tests') }}">
+            <a class="m3-button m3-button--text" href="{{ route('practice-tests.index', ['group' => $groupId]) }}" @if($workspaceView === 'tests') aria-current="page" @endif>{{ __('Cycle tests') }}</a>
+            @if($options['writable'])<a class="m3-button m3-button--text" href="{{ route('practice-tests.index', ['group' => $groupId, 'view' => 'create']) }}" @if($workspaceView === 'create') aria-current="page" @endif>{{ __('Set a cycle test') }}</a>@endif
+        </nav>
+        @if($workspaceView === 'tests')
         <section class="page-section" aria-labelledby="cycle-tests">
             <h2 id="cycle-tests">{{ __('Cycle tests') }}</h2>
             @if ($listing['tests'] === [])
@@ -53,7 +58,7 @@
             @endif
         </section>
 
-        @if ($options['writable'])
+        @elseif ($options['writable'])
         <section class="page-section" aria-labelledby="set-test">
             <h2 id="set-test">{{ __('Set a cycle test') }}</h2>
             @if (collect($options['topics'])->sum('available') === 0)

@@ -8,6 +8,14 @@
     :primary-label="__('nav_add_learner')" :primary-href="route('students.create')"
     primary-permission="student-create" :breadcrumbs="false" />
 
+@php($operationLinks = collect(app(\App\Services\Panel\Navigation::class)->items(auth()->user()))->whereIn('key',['emergency','family-visits','leadership-dashboard','mastery-impact']))
+@if($operationLinks->isNotEmpty())
+<section class="page-section" aria-labelledby="school-operations-title">
+    <h2 class="page-section-title" id="school-operations-title">{{ __('School operations') }}</h2>
+    <nav class="panel-actions" aria-label="{{ __('School operations') }}">@foreach($operationLinks as $operationLink)<a class="m3-button m3-button--outlined" href="{{ $operationLink['url'] }}">{{ $operationLink['label'] }}</a>@endforeach</nav>
+</section>
+@endif
+
 @if (! empty($checklist))
     @include('home.checklist', ['checklist' => $checklist])
 @endif

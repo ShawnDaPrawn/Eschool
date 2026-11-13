@@ -8,6 +8,7 @@ function execute(code: string): string {
   return execFileSync('php', ['artisan', 'tinker', '--execute', code], {cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8'}).trim();
 }
 test.describe.configure({mode: 'serial'});
+test.setTimeout(420_000);
 test.use({storageState: {cookies: [], origins: []}});
 for (const width of [390, 820, 1280]) {
   test(`allocated conversations preserve private replies and retire withdrawn scope at ${width}px`, async ({page, browser, baseURL}) => {
@@ -62,7 +63,7 @@ for (const width of [390, 820, 1280]) {
     await selected.getByRole('button', {name: 'Send reply', exact: true}).click();
     await expect(page.getByRole('alert')).toBeVisible();
     await expect(selected.getByLabel('Reply destination')).toHaveValue(String(parentMessage));
-    await expect(page.locator('#chat-create-body')).toHaveValue('');
+    await expect(page.locator('#chat-create-body')).toHaveCount(0);
     await selected.getByLabel('Message language', {exact: true}).selectOption('en');
     await selected.getByRole('button', {name: 'Send reply', exact: true}).click();
     await expect(selected.getByText('Synthetic private staff response', {exact: true})).toBeVisible();

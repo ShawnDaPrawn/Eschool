@@ -122,6 +122,16 @@ class DisciplineDetentions
         return $this->metadata($meta) + ['location' => $body->location, 'entries' => $result];
     }
 
+    public function versions(User $actor, int $id, int $before = 0): array
+    {
+        $this->authorize($actor, $id);
+        $history = DetentionVersion::where('session_id', $id)->when($before > 0, fn ($q) => $q->where('revision', '<', $before))->orderByDesc('revision')->limit(200)->get()
+            ->map(fn ($version) => ['revision' => $version->revision, 'at' => $version->created_at->toIso8601String(), 'change' => $version->payload])->all();
+        $this->authorize($actor, $id);
+
+        return $history;
+    }
+
     public function attendance(User $actor, int $session, int $entry, int $revision, int $sessionRevision, string $state, string $reason): array
     {
         $meta = $this->authorize($actor, $session, true);

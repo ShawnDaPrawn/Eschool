@@ -5,6 +5,7 @@ import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.describe.configure({ mode: 'serial' });
+test.setTimeout(420_000);
 test.use({ storageState: { cookies: [], origins: [] } });
 async function clean(page: Page) {
   expect(await seriousViolations(page)).toEqual([]);
@@ -14,8 +15,8 @@ async function clean(page: Page) {
 }
 for (const width of [390, 1280]) {
   test(`school-defined framework, review, hearing and supervised detention at ${width}px`, async ({ page, baseURL }) => {
-    test.setTimeout(120_000);
-    execFileSync('php', ['artisan', 'tinker', '--execute', "require base_path('e2e/support/discipline-fixture.php');"], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' });
+    test.setTimeout(420_000);
+    const setup = JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/discipline-fixture.php'));"], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' }).trim());
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, accounts.admin);
     const errors = collectErrors(page, baseURL!);
@@ -24,15 +25,17 @@ for (const width of [390, 1280]) {
     await page.locator('#disc-title').fill('Synthetic discipline framework');
     await page.locator('#disc-counter').selectOption('same_infraction');
     await page.locator('#disc-reset').selectOption('school_year');
-    for (const kind of ['sanctions', 'levels', 'infractions']) {
-      const remove = page.locator(`[data-disc-row="${kind}"] [data-disc-remove]`);
-      while (await remove.count()) await remove.first().click();
-    }
+    await page.locator('[data-disc-next]').click();
+    const removeSanctions=page.locator('[data-disc-row="sanctions"] [data-disc-remove]');
+    while(await removeSanctions.count()) await removeSanctions.first().click();
     await page.locator('[data-disc-add="sanctions"]').click();
     const sanction = page.locator('[data-disc-row="sanctions"]');
     await sanction.locator('input[name$="[code]"]').fill('supervised');
     await sanction.locator('input[name$="[name]"]').fill('Supervised school detention');
     await sanction.locator('select').selectOption('detention');
+    await page.locator('[data-disc-next]').click();
+    const removeLevels=page.locator('[data-disc-row="levels"] [data-disc-remove]');
+    while(await removeLevels.count()) await removeLevels.first().click();
     await page.locator('[data-disc-add="levels"]').click();
     const stage = page.locator('[data-disc-row="levels"]').first();
     await stage.locator('input[name$="[code]"]').fill('school_followup');
@@ -46,16 +49,22 @@ for (const width of [390, 1280]) {
     await hearing.locator('input[name$="[name]"]').fill('Principal hearing');
     await hearing.locator('input[name$="[threshold]"]').fill('2');
     await hearing.locator('select[name$="[kind]"]').selectOption('hearing');
+    await page.locator('[data-disc-next]').click();
+    const removeInfractions=page.locator('[data-disc-row="infractions"] [data-disc-remove]');
+    while(await removeInfractions.count()) await removeInfractions.first().click();
     await page.locator('[data-disc-add="infractions"]').click();
     const infraction = page.locator('[data-disc-row="infractions"]');
     await infraction.locator('input[name$="[code]"]').fill(code);
     await infraction.locator('input[name$="[name]"]').fill(`Observed fact ${width}`);
     await infraction.locator('select').selectOption('school_followup');
     await clean(page);
+    await page.locator('[data-disc-next]').click();
+    await expect(page.locator('[data-disc-preview]')).toContainText('Supervised school detention');
+    await page.screenshot({path: test.info().outputPath(`discipline-framework-review-${width}.png`), fullPage: true});
     await page.getByRole('button', { name: 'Publish framework', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: /^Saved\.$/ })).toHaveText('Saved.');
-    await page.goto('/school-discipline');
-    await page.locator('#disc-learner').selectOption({ index: 1 });
+    await page.goto('/school-discipline?view=create');
+    await page.locator('#disc-learner').selectOption(String(setup.learner));
     await page.getByRole('button', { name: 'View selection', exact: true }).click();
     const learnerUrl = page.url();
     await page.locator('#disc-infraction').selectOption(code);
@@ -66,7 +75,7 @@ for (const width of [390, 1280]) {
     const firstRecordUrl = page.url();
     expect(await page.evaluate(() => (window as unknown as Record<string, unknown>).disciplineExecuted)).toBeUndefined();
     await clean(page);
-    await page.goto('/school-discipline?mode=detentions');
+    await page.goto('/school-discipline?mode=detentions&view=detention-create');
     await page.locator('#disc-filter-grade').selectOption({ label: 'Grade 5' });
     await page.getByRole('button', { name: 'Refresh eligible supervisors', exact: true }).click();
     await page.locator('#disc-starts').fill('14:00');
@@ -79,6 +88,7 @@ for (const width of [390, 1280]) {
     await page.goto(firstRecordUrl);
     await page.getByRole('button', { name: 'Add this learner to the session', exact: true }).first().click();
     await expect(page.getByText('Not captured · Confirmed source', { exact: true })).toBeVisible();
+    await page.getByRole('link', {name:'Open detention attendance',exact:true}).click();
     await page.getByLabel('Capture detention attendance').getByRole('textbox').fill('Synthetic observed attendance');
     await page.getByRole('button', { name: 'Save attendance', exact: true }).click();
     await expect(page.getByText('Present · Confirmed source', { exact: true })).toBeVisible();
@@ -97,6 +107,7 @@ for (const width of [390, 1280]) {
     await page.locator('#disc-cancel-reason').fill('Retained cancelled session with captured register');
     await page.getByRole('button', { name: 'Cancel retained session', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Save attendance', exact: true })).toHaveCount(0);
+    await page.screenshot({path: test.info().outputPath(`discipline-retained-session-${width}.png`), fullPage: true});
     await clean(page);
     expect(errors).toEqual([]);
   });

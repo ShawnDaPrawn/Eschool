@@ -15,7 +15,7 @@ PANEL = Path(__file__).resolve().parents[2]
 E2E = PANEL / "e2e"
 CLI = E2E / "node_modules/.bin/playwright"
 PREPARED = "--config=playwright.partition.config.ts"
-BULK = ("pages-1280", "pages-1024", "flows", "teacher", "removed")
+BULK = ("pages-1280", "pages-1024", "pages-375", "flows", "teacher", "removed")
 PARTS = ("1", "2", "3", "4", "wizard")
 
 

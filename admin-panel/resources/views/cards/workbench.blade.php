@@ -6,11 +6,19 @@
 @unless($canWrite)<p role="status">{{ __('Card changes are read-only. You can still download permitted print files, freeze a lost card, or revoke a reader.') }}</p>@endunless
 @if($messages)<div role="alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</div>@endif
 @if($readers)
+@php($readerView = request('view') === 'register' || (request()->isMethod('post') && request()->routeIs('card-readers-panel.register')) ? 'register' : 'readers')
+<x-panel-view-nav :current="$readerView" label="Card reader workspace" :items="[
+ 'readers'=>['label'=>'Registered readers','href'=>route('card-readers-panel.index')],
+ 'register'=>['label'=>'Register reader','href'=>route('card-readers-panel.index',['view'=>'register']),'visible'=>$canWrite],
+]" />
+@if($readerView === 'readers')
 <p><a href="{{ route('card-reader.index') }}" target="_blank" rel="noopener noreferrer">{{ __('Open online card reader') }}</a></p>
 <section class="page-section" aria-labelledby="readers-heading"><h2 id="readers-heading">{{ __('Registered readers') }}</h2>
 @foreach($devices as $device)<article class="m3-card m3-card--outlined"><div class="m3-card__content"><h3>{{ $device->name }}</h3><p>{{ ucfirst($device->kind) }} · {{ $device->status }} · {{ $device->expires_at->toIso8601String() }}</p>
-@if($device->status==='active')<form method="POST" action="{{ route('card-readers-panel.write',['device'=>$device->id,'operation'=>'revoke']) }}">@include('cards.hidden')<button class="m3-button m3-button--outlined" type="submit">{{ __('Revoke reader') }}</button></form>@endif
+@if($device->status==='active')<form method="POST" action="{{ route('card-readers-panel.write',['device'=>$device->id,'operation'=>'revoke']) }}">@include('cards.hidden')<button class="m3-button m3-button--outlined" type="submit" data-confirm="{{ __('Revoke this reader authorisation?') }}">{{ __('Revoke reader') }}</button></form>@endif
 </div></article>@endforeach</section>
+@endif
+@if($readerView === 'register')
 <section class="page-section" aria-labelledby="reader-new"><h2 id="reader-new">{{ __('Register a reader') }}</h2><p>{{ __('Register only a school-controlled gate or encoder. A reader never receives a staff or learner account session.') }}</p>
 <form method="POST" action="{{ route('card-readers-panel.register') }}">@include('cards.hidden')
 <x-page.field id="reader-name" name="name" :label="__('Reader name')" maxlength="100" required :restore-old-input="false" />
@@ -18,6 +26,7 @@
 <x-page.field id="reader-key" name="public_key" :label="__('Device public encryption key')" maxlength="64" required :restore-old-input="false" :help="__('Use the public key generated on the controlled reader. Never enter a private key.')" />
 <x-page.field id="reader-days" name="days" type="number" :label="__('Valid for days')" min="1" max="30" value="1" required :restore-old-input="false" />
 <button class="m3-button m3-button--filled" type="submit" @disabled(!$canWrite)>{{ __('Register reader') }}</button></form></section>
+@endif
 @else
 <section class="page-section" aria-labelledby="card-people"><h2 id="card-people">{{ __('Choose a cardholder') }}</h2><form method="GET" action="{{ route('cards-panel.index') }}">
 <x-page.field id="card-type" name="type" type="select" :label="__('Cardholder type')" :options="['learner'=>__('Learner'),'staff'=>__('Staff'),'guardian'=>__('Guardian')]" :value="$type" :restore-old-input="false" />

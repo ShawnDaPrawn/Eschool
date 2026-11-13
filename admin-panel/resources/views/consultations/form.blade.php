@@ -2,8 +2,8 @@
 @section('title', __('Configure a consultation'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/consultations.css') }}">@endsection
 @section('content')
-<div class="content-wrapper consultations" data-consultations-root data-account="{{ $access['account_id'] }}" data-school="{{ $access['school_id'] }}" data-year="{{ $year }}" data-question-limit="{{ __('At most 20 questions are allowed.') }}" data-choice-limit="{{ __('At most 50 choices are allowed per question.') }}" data-question-required="{{ __('Keep at least one question.') }}" data-choose-audience="{{ __('Choose an audience') }}" data-no-audience="{{ __('No audiences match your current search and permission.') }}" data-audience-retry="{{ __('Audience search is unavailable. Your draft is retained; try again.') }}">
-<h1>{{ __('Configure a consultation') }}</h1>@include('consultations.header')
+<div class="content-wrapper m3 page-content consultations" data-consultations-root data-account="{{ $access['account_id'] }}" data-school="{{ $access['school_id'] }}" data-year="{{ $year }}" data-question-limit="{{ __('At most 20 questions are allowed.') }}" data-choice-limit="{{ __('At most 50 choices are allowed per question.') }}" data-question-required="{{ __('Keep at least one question.') }}" data-choose-audience="{{ __('Choose an audience') }}" data-no-audience="{{ __('No audiences match your current search and permission.') }}" data-audience-retry="{{ __('Audience search is unavailable. Your draft is retained; try again.') }}">
+<x-page.header :title="__('Configure a consultation')" />@include('consultations.header')
 @if($configuration)<p>{{ __(ucfirst($configuration['status'])) }} · {{ __('Revision') }} {{ $configuration['revision'] }}</p><nav aria-label="{{ __('Review consultation') }}"><a href="{{ route('consultations-panel.history',['consultation'=>$id]) }}">{{ __('Configuration history') }}</a>
 @if(!in_array($configuration['status'],['draft','cancelled'],true))<a href="{{ route('consultations-panel.results',['consultation'=>$id,'managed'=>1]) }}">{{ __('Results and closed responses') }}</a>@endif</nav>@endif
 @if($canWrite)

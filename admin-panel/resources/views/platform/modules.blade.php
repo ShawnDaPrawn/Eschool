@@ -3,16 +3,16 @@
 @section('title', __('School modules'))
 
 @section('content')
-<div class="content-wrapper">
-    <x-page.header :title="__('School modules')" />
+<div class="content-wrapper m3 page-content">
+    <x-page.header :title="__('School modules')"><x-slot:actions><a class="m3-button m3-button--outlined" href="{{ route('school-modules.readiness') }}">{{ __('Check setup readiness') }}</a></x-slot:actions></x-page.header>
     <p>{{ __('Choose the features available at this school. Required features stay on. Financial history remains readable when fees are switched off.') }}</p>
     @if ($errors->any())
-        <div role="alert">{{ $errors->first() }}</div>
+        <div class="m3-banner m3-banner--danger" role="alert">{{ $errors->first() }}</div>
     @endif
     @if (session('success'))
         <p role="status">{{ session('success') }}</p>
     @endif
-    <div class="m3 m3-card m3-card--outlined page-table">
+    <div class="m3 m3-card m3-card--outlined panel-table-scroll page-table">
         <table class="page-table__table">
             <caption>{{ __('Module availability and package entitlement') }}</caption>
             <thead><tr><th scope="col">{{ __('Module') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col">{{ __('Change') }}</th></tr></thead>

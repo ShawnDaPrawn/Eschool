@@ -16,15 +16,11 @@
             'sunday' => 'Sunday',
         ];
     @endphp
-    <div class="content-wrapper" id="timetable-page"
+    <div class="content-wrapper m3 page-content" id="timetable-page"
         data-url-class-sections="{{ url('get-class-sections-with-terms') }}"
         data-url-subjects="{{ url('get-subject-by-class-section') }}"
         data-url-teachers="{{ url('getteacherbysubject') }}" data-url-check="{{ url('checkTimetable') }}">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('create') . ' ' . __('timetable') }}
-            </h3>
-        </div>
+        <x-page.header :title="__('create') . ' ' . __('timetable')" />
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card search-container">
                 <div class="card">

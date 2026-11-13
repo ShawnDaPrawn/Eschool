@@ -71,12 +71,14 @@
             .error-btn {
                 display: inline-flex;
                 align-items: center;
-                height: 40px;
-                padding: 0 1.5rem;
+                min-height: 44px;
+                padding: .5rem 1.5rem;
                 border-radius: var(--md-sys-shape-corner-full);
                 font-size: var(--md-sys-typescale-label-large-size);
                 font-weight: 500;
                 text-decoration: none;
+                justify-content: center;
+                overflow-wrap: anywhere;
                 transition: background-color .15s ease, box-shadow .15s ease;
             }
 

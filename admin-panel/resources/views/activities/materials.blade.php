@@ -1,0 +1,5 @@
+<section class="m3-card m3-card--outlined"><div class="m3-card__content"><div class="panel-actions"><h2>{{ __('Group materials') }}</h2><a class="m3-button m3-button--filled" href="{{ route('activity-groups.index',['group_id'=>$group['id'],'view'=>'material-edit']) }}">{{ __('Create material') }}</a></div>
+@foreach($detail['materials'] as $row)<section><a href="{{ route('activity-files.listing',['group'=>$group['id'],'material'=>$row['id']]) }}">{{ __('Documents') }}</a><h3>{{ $row['title'] }}</h3><p>{{ $row['published'] ? __('Published') : __('Private draft') }}</p><div class="activity-markdown">{!! $row['html'] !!}</div><a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'view'=>'material-edit','edit'=>'material','record_id'=>$row['id']]) }}">{{ __('Edit material') }}</a></section>@endforeach
+
+@if(!$detail['materials'])<x-page.empty-state :title="__('No materials yet')" :message="__('Create a private draft, attach documents, then publish it to group members.')" />@endif
+</div></section>

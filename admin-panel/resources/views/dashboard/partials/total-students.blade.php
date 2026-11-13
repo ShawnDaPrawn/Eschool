@@ -1,7 +1,7 @@
 {{-- Total Students: donut (center total) + Boys / Girls progress bars (server-rendered) --}}
-<div class="dash-card dash-widget h-100">
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100">
     <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('total_students') }}</h4>
+        <h2 class="dash-card-title">{{ __('total_students') }}</h2>
     </div>
     <div class="dash-card-body">
         <div id="students-donut"

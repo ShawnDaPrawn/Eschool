@@ -61,7 +61,7 @@ class UnseenLearnersRequest extends FormRequest
         return match ($this->operation()) {
             'assign' => $identity + ['adult_user_id' => ['required', 'integer', 'min:1'], 'grade' => ['nullable', 'integer', 'min:1']],
             'configure' => $identity + ['school_days' => ['required', 'integer', 'between:'.PositiveContacts::MIN_SCHOOL_DAYS.','.PositiveContacts::MAX_SCHOOL_DAYS]],
-            default => ['grade' => ['sometimes', 'nullable', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1']],
+            default => ['grade' => ['sometimes', 'nullable', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1'], 'view' => ['sometimes', 'in:learners,configuration']],
         };
     }
 }

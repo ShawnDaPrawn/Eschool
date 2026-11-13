@@ -1,14 +1,26 @@
 @extends('layouts.master')
 @section('title', __('Profile fields'))
 @section('content')
-<div class="content-wrapper">
+<div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Profile fields')" :subtitle="__('Arrange the fields offered on each person profile. Locked defaults keep their type and privacy protection.')" />
+    @php
+        $profileView = $field ? 'field' : ($category ? 'category' : request('view', 'fields'));
+        if (!in_array($profileView, ['fields', 'field', 'category'], true)) $profileView = 'fields';
+    @endphp
+    <nav class="workspace-tabs" aria-label="{{ __('Profile configuration') }}">
+        <a class="m3-button m3-button--text" href="{{ route('profile-configuration.index', ['profile_type' => $profile]) }}" @if($profileView === 'fields') aria-current="page" @endif>{{ __('Profile fields') }}</a>
+        @can('form-field-create')
+        <a class="m3-button m3-button--text" href="{{ route('profile-configuration.index', ['profile_type' => $profile, 'view' => 'field']) }}" @if($profileView === 'field') aria-current="page" @endif>{{ __('Add field') }}</a>
+        <a class="m3-button m3-button--text" href="{{ route('profile-configuration.index', ['profile_type' => $profile, 'view' => 'category']) }}" @if($profileView === 'category') aria-current="page" @endif>{{ __('Add category') }}</a>
+        @endcan
+    </nav>
     <form method="GET" action="{{ route('profile-configuration.index') }}">
         <x-page.field name="profile_type" type="select" :label="__('Profile type')" :value="$profile" :options="array_combine(config('profile_fields.types'), array_map(fn ($value) => __(ucfirst($value)), config('profile_fields.types')))" />
         <button class="m3-button m3-button--outlined" type="submit">{{ __('View fields') }}</button>
     </form>
     @if ($errors->any())<div role="alert"><p>{{ $errors->first() }}</p></div>@endif
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
+    @if($profileView === 'category')
     @can($category ? 'form-field-edit' : 'form-field-create')
     <section class="m3 m3-card m3-card--outlined page-form-card">
         <div class="m3-card__content page-card__content">
@@ -25,6 +37,8 @@
         </div>
     </section>
     @endcan
+    @endif
+    @if($profileView === 'field')
     @can($field ? 'form-field-edit' : 'form-field-create')
     @if ($categories->isNotEmpty())
     <section class="m3 m3-card m3-card--outlined page-form-card">
@@ -43,6 +57,7 @@
                 <x-page.field name="type" type="select" :label="__('Field type')" :value="$field?->type ?? 'text'" :options="array_combine(config('profile_fields.field_types'), array_map(fn ($value) => __(ucfirst($value)), config('profile_fields.field_types')))" required />
             @endif
             <x-page.field name="options_text" type="textarea" :label="__('Choices, one per line')" :value="implode(chr(10), $field?->options ?? [])" />
+            @include('people.partials.structured-list', ['sourceField' => 'options_text', 'maximum' => 100, 'rowMaxlength' => 120, 'listTitle' => __('Field choices'), 'rowLabel' => __('Choice'), 'addLabel' => __('Add choice')])
             <div class="m3-grid">
                 <div class="m3-col-12 m3-col-expanded-6"><x-page.field name="validation[min]" type="number" :label="__('Minimum length or number')" :value="$field?->validation['min'] ?? null" min="0" max="10000" /></div>
                 <div class="m3-col-12 m3-col-expanded-6"><x-page.field name="validation[max]" type="number" :label="__('Maximum length or number')" :value="$field?->validation['max'] ?? null" min="1" max="10000" /></div>
@@ -68,8 +83,12 @@
         </form>
         </div>
     </section>
+    @else
+        <x-page.empty-state :title="__('Add a category first')" :message="__('Categories organise the fields on a person’s profile.')" :action-label="__('Add category')" :action-href="route('profile-configuration.index', ['profile_type' => $profile, 'view' => 'category'])" />
     @endif
     @endcan
+    @endif
+    @if($profileView === 'fields')
     @foreach ($categories as $item)
     <section class="m3 m3-card m3-card--outlined page-form-card">
         <div class="m3-card__content page-card__content">
@@ -91,5 +110,6 @@
         </div>
     </section>
     @endforeach
+    @endif
 </div>
 @endsection

@@ -24,12 +24,13 @@ test('admin sets grade calendars and previews then applies a school template', a
   const source = await createYear(year);
   await page.goto(`/term?session_year_id=${source}`);
   await expect(page.getByRole('heading', { level: 1, name: 'School terms' })).toBeVisible();
-  for (const width of [1024, 1280]) {
+  for (const width of [375, 1024, 1280]) {
     await page.setViewportSize({ width, height: 800 });
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
   }
   const addTerm = async (name: string, from: string, to: string) => {
+    await page.goto(`/term?session_year_id=${source}&view=create`);
     await page.locator('#new-term-name').fill(name);
     await page.locator('#new-term-start').fill(`${year}-01-14`);
     await page.locator('#new-term-end').fill(`${year}-03-20`);
@@ -43,16 +44,21 @@ test('admin sets grade calendars and previews then applies a school template', a
   await addTerm('Term 1 lower grades', '0', '6');
   await addTerm('Term 1 upper grades', '7', '12');
   await expect(page.locator('[data-term-id]')).toHaveCount(2);
+  await page.goto(`/term?session_year_id=${source}&view=templates`);
   await page.locator('#template-name').fill(`Calendar template ${stamp}`);
   await page.getByRole('button', { name: 'Save calendar template', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Calendar template saved' })).toBeVisible();
   const target = await createYear(year + 1);
-  await page.goto(`/term?session_year_id=${target}`);
+  await page.goto(`/term?session_year_id=${target}&view=templates`);
   await page.locator('#apply-template').selectOption({ label: `Calendar template ${stamp}` });
+  await expect(page.getByRole('button', { name: 'Apply calendar template', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Preview calendar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Calendar preview', exact: true })).toBeVisible();
   await expect(page.locator('[data-term-id]')).toHaveCount(0);
+  await expect(page.locator('#apply-template')).toHaveValue(await page.locator('#apply-template option').filter({ hasText: `Calendar template ${stamp}` }).getAttribute('value') as string);
   await page.getByRole('button', { name: 'Apply calendar template', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Calendar template applied' })).toBeVisible();
+  await page.goto(`/term?session_year_id=${target}`);
   await expect(page.locator('[data-term-id]')).toHaveCount(2);
   await expect(page.locator('[data-term-id]').first()).toContainText(`${year + 1}-03-25`);
   expect(await seriousViolations(page)).toEqual([]);
@@ -65,7 +71,7 @@ test('admin sets grade calendars and previews then applies a school template', a
       ends_on: `${year + 1}-06-20`, grade_from: '0', grade_to: '12' },
   });
   expect(term.ok()).toBe(true);
-  await page.goto(`/term?session_year_id=${target}`);
+  await page.goto(`/term?session_year_id=${target}&view=configuration`);
   await page.getByRole('button', { name: 'Enable terms and review subjects', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`class-subject-edit/.*session_year_id=${target}`));
   expect((await page.request.get(`/term?session_year_id=${target}`)).status()).toBe(200);

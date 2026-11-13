@@ -10,23 +10,23 @@
 
 @section('content')
 
-    <div class="content-wrapper">
+    <div class="content-wrapper m3 page-content">
         <div class="page-header">
             <h3 class="page-title">
                 {{ __('show_role') }}
             </h3>
             <div class="d-flex" style="gap: 8px;">
                 @can('role-edit')
-                    <a class="btn btn-sm btn-theme" href="{{ route('roles.edit', $role->id) }}">{{ __('edit') }}</a>
+                    <a class="m3-button m3-button--filled" href="{{ route('roles.edit', $role->id) }}">{{ __('edit') }}</a>
                 @endcan
-                <a class="btn btn-sm btn-secondary" href="{{ route('roles.index') }}">{{ __('back') }}</a>
+                <a class="m3-button m3-button--outlined" href="{{ route('roles.index') }}">{{ __('back') }}</a>
             </div>
         </div>
 
-        <div class="row grid-margin">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
+        <div class="panel-form-grid">
+            <div class="">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
 
                         <div class="role-permissions__summary">
                             <div>

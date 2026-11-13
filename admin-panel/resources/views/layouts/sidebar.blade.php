@@ -1,6 +1,6 @@
 {{--
-    Navigation by job: Home, People, Academics, Communication, Money,
-    Activities, Wellbeing, Settings. Built from config/navigation.php by
+    Revision 3 school navigation: twelve modules, with People and Community
+    grouped dropdowns. Detailed actions live in their module workspaces. Built from config/navigation.php by
     App\Services\Panel\Navigation, so an item shows only when its page exists and
     the person has one of its permissions. A Material 3 navigation drawer (the
     Dark Navy --inverse variant): each section is a disclosure button over
@@ -28,6 +28,9 @@
             <span class="m3-text-field__label" id="panel-nav-year-label">{{ __('nav_school_year') }}</span>
         </label>
         @include('layouts.partials.school-switcher', ['suffix' => '-mobile', 'class' => 'panel-nav__school'])
+        @canany(['session-year-create','session-year-edit'])
+            <a class="m3-button m3-button--text panel-nav__year-management" href="{{ route('new-year.index') }}">{{ __('Prepare school year') }}</a>
+        @endcanany
         <button type="button" id="sidebar-close" class="m3-icon-button panel-nav__close" aria-label="{{ __('close') }}">
             <x-icon name="close" :size="24" />
         </button>
@@ -52,20 +55,14 @@
                         <x-icon name="chevron-down" :size="20" class="panel-nav__chevron" />
                     </button>
                     <div class="panel-nav__panel" id="nav-section-{{ $section['key'] }}" @unless ($section['active']) hidden @endunless>
-                        @foreach ($section['groups'] as $group)
-                            @if (count($section['groups']) > 1)
-                                <p class="panel-nav__group" id="nav-group-{{ $section['key'] }}-{{ $group['key'] }}">{{ $group['label'] }}</p>
-                            @endif
-                            <ul class="panel-nav__items"
-                                @if (count($section['groups']) > 1) aria-labelledby="nav-group-{{ $section['key'] }}-{{ $group['key'] }}" @endif>
-                                @foreach ($group['items'] as $item)
-                                    <li data-nav-item="{{ $item['key'] }}">
-                                        <a class="panel-nav__item" href="{{ $item['url'] }}"
-                                            @if ($item['active']) aria-current="page" @endif>{{ $item['label'] }}</a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endforeach
+                        <ul class="panel-nav__items">
+                            @foreach ($section['groups'] as $group)
+                                <li data-nav-item="{{ $section['key'] }}-{{ $group['key'] }}">
+                                    <a class="panel-nav__item" href="{{ $group['url'] }}"
+                                        @if ($group['active']) aria-current="page" @endif>{{ $group['label'] }}</a>
+                                </li>
+                            @endforeach
+                        </ul>
                     </div>
                 </li>
             @endif

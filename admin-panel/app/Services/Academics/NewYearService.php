@@ -33,9 +33,11 @@ use App\Models\Learning\PracticeItemGroup;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
 use App\Models\People\Enrolment;
+use App\Models\Platform\School;
 use App\Models\Recognition\AwardWindow;
 use App\Models\Recognition\HouseMembership;
 use App\Models\SessionYear;
+use App\Models\Settings;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
@@ -46,6 +48,7 @@ use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\Notifier;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\SessionYearService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -320,6 +323,11 @@ class NewYearService
         }
 
         return DB::transaction(function () use ($from, $to, $chosen, $welcome) {
+            // Every activation takes the same school lock before reading the current-year setting.
+            School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
+            $currentYear = Settings::where('type', 'session_year')->lockForUpdate()->value('message');
+            abort_unless((int) $currentYear === (int) $from->id, 409,
+                __('The school current year changed. Reload the transition review before activating.'));
             $copied = [];
             $skipped = [];
             $after = [];
@@ -341,7 +349,7 @@ class NewYearService
                 $copied[] = $option['key'];
             }
 
-            $this->years->makeCurrent($to);
+            $this->years->makeCurrent($to, (int) $from->id);
             foreach ($after as $key) {
                 app(self::CARRY[$key][1])->execute($from->id, $to->id);
                 $copied[] = $key;

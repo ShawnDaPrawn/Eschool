@@ -1,367 +1,55 @@
 @extends('layouts.master')
-
-@section('title')
-    {{ __('announcement') }}
-@endsection
-
+@section('title', __('School notices'))
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('announcement') }}
-            </h3>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            {{ __('create') . ' ' . __('announcement') }}
-                        </h4>
-                        <form class="create-form pt-3" action="{{ route('announcement.store') }}" id="formdata"
-                            method="POST" novalidate="novalidate">
-                            @csrf
-                            <div class="row">
-                                <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('title') }} <span class="text-danger">*</span></label>
-                                    {!! Form::text('title', null, ['required', 'placeholder' => __('title'), 'class' => 'form-control']) !!}
-                                </div>
-                                <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('description') }} <span class="text-danger">*</span></label>
-                                    {!! Form::textarea('description', null, [
-                                        'rows' => '2',
-                                        'placeholder' => __('description'),
-                                        'class' => 'form-control',
-                                    ]) !!}
-                                </div>
-                                <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('files') }}</label>
-                                    <input type="file" name="file[]" class="form-control" multiple />
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-sm-12 col-md-3">
-                                    <label>{{ __('assign_to') }} <span class="text-danger">*</span></label>
-                                    <select name="set_data" id="set_data" class="form-control select2">
-                                        <option value="">{{ __('select') . ' ' . __('assign_to') }}</option>
-                                        @if (Auth::user()->hasRole('Teacher'))
-                                            <option value="class_section">{{ __('class') . ' ' . __('section') }}</option>
-                                        @else
-                                            {{-- <option value="class">{{ __('class') }}</option> --}}
-                                            <option value="noticeboard">{{ __('noticeboard') }}</option>
-                                        @endif
-                                    </select>
-                                </div>
-                                <div class="form-group col-sm-12 col-md-3 show_class_section_id">
-                                    <label>&nbsp;</label>
-                                    <select name="class_section_id" id="class_section_id"
-                                        class="announcement_class_section_id form-control" style="width:100%;"
-                                        tabindex="-1" aria-hidden="true">
-                                        <option value="">{{ __('select') . ' ' . __('class_section') }}</option>
-                                    </select>
-                                    <input type="hidden" name="term_id" id="term_id" value="">
-                                </div>
-                                <div class="form-group col-sm-12 col-md-3 show_class_section_id">
-                                    <label>&nbsp;</label>
-                                    <select name="get_data[]" id="get_data" class="subject_id form-control"
-                                        style="width:100%; display: none"></select>
-                                </div>
-                            </div>
-                            <input class="btn btn-theme" type="submit" value={{ __('submit') }}>
-                        </form>
-                    </div>
-                </div>
+@php
+    $noticeView = $editingNotice ? 'edit' : (request('view') === 'create' ? 'create' : 'list');
+    $isTeacher = auth()->user()->hasRole('Teacher');
+    $notice = $editingNotice;
+    $scope = $notice?->table_type === \App\Models\SubjectTeacher::class ? 'class_section' : ($notice?->table_type === \App\Models\ClassSchool::class ? 'class' : 'noticeboard');
+    if (!$notice && $isTeacher) $scope = 'class_section';
+    $noticeYear = $notice?->session_year_id ?? app(\App\Services\Panel\SessionYearContext::class)->selectedId();
+@endphp
+<div class="content-wrapper m3 page-content" data-notice-workspace data-assign-url="{{ url('getAssignData') }}" data-sections-url="{{ url('announcement-class-sections') }}" data-year="{{ $noticeYear }}" data-choose-label="{{ __('Please select') }}" data-load-error="{{ __('Audience choices could not be loaded. Retry without losing your notice.') }}" data-delete-message="{{ __('Delete this school notice? Its original files are retained by the source record policy.') }}" data-delete-error="{{ __('The notice could not be deleted. Refresh its saved status before retrying.') }}">
+    <x-page.header :title="$notice ? __('Edit school notice') : __('School notices')" :subtitle="__('Publish notices to a class or the school noticeboard. Teachers use their current allocated subjects.')" :primary-label="$noticeView === 'list' ? __('Create notice') : null" :primary-href="$noticeView === 'list' ? route('announcement.index',['view'=>'create']) : null" primary-permission="announcement-create" />
+    <x-panel-view-nav :current="$noticeView === 'edit' ? 'list' : $noticeView" :items="[
+        'list'=>['label'=>'Notices','href'=>route('announcement.index')],
+        'create'=>['label'=>'Create notice','href'=>route('announcement.index',['view'=>'create']),'visible'=>auth()->user()->can('announcement-create')],
+    ]" />
+    <p id="notice-action-status" role="alert" tabindex="-1" hidden></p>
+    @if($noticeView === 'list')
+        <x-page.table id="school-notices" :url="url('announcement-list')" query-params="noticeListParams" :empty-title="__('No school notices')" :empty-message="__('Create a notice for the selected school year.')">
+            <x-slot:columns>
+                <th data-field="title">{{ __('title') }}</th>
+                <th data-field="description">{{ __('description') }}</th>
+                <th data-field="assignto">{{ __('assign_to') }}</th>
+                <th data-field="file" data-formatter="fileFormatter" data-escape="false">{{ __('files') }}</th>
+                <th data-field="operate" data-escape="false">{{ __('action') }}</th>
+            </x-slot:columns>
+        </x-page.table>
+    @elseif($notice || auth()->user()->can('announcement-create'))
+        <x-page.form-card id="school-notice-editor" :action="$notice ? route('announcement.update',$notice->id) : route('announcement.store')" :method="$notice ? 'PUT' : 'POST'" :title="$notice ? __('Notice details') : __('Create notice')" :submit-label="$notice ? __('Save notice') : __('Publish notice')" :redirect="route('announcement.index')" :draft="false">
+            @if($notice)<input type="hidden" name="edit_id" value="{{ $notice->id }}">@endif
+            <x-page.field name="title" :label="__('title')" :value="$notice?->title" :restore-old-input="false" required />
+            <x-page.field name="description" type="textarea" :label="__('description')" :value="$notice?->description" :restore-old-input="false" rows="5" />
+            <x-page.field name="set_data" id="notice-scope" type="select" :label="__('assign_to')" :options="$isTeacher ? ['class_section'=>__('Allocated class and subject')] : ['noticeboard'=>__('noticeboard'),'class'=>__('Whole class')]" :value="$scope" :restore-old-input="false" required />
+            <div data-notice-section hidden>
+                <x-page.field name="class_section_id" id="notice-section" type="select" :label="__('class_section')" :options="[]" data-selected="{{ $notice?->table_type === \App\Models\SubjectTeacher::class ? $notice->table?->class_section_id : '' }}" data-selected-term="{{ $notice?->term_id }}" :restore-old-input="false" />
             </div>
-            <div class="col-lg-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            {{ __('list') . ' ' . __('announcement') }}
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <table aria-describedby="mydesc" class='table' id='table_list' data-toggle="table"
-                                    data-url="{{ url('announcement-list') }}" data-click-to-select="true"
-                                    data-side-pagination="server" data-pagination="true"
-                                    data-page-list="[5, 10, 20, 50, 100, 200]" data-search="true" data-toolbar="#toolbar"
-                                    data-show-columns="true" data-show-refresh="true" data-fixed-columns="true"
-                                    data-fixed-right-number="1" data-trim-on-search="false" data-mobile-responsive="true"
-                                    data-sort-name="id" data-sort-order="desc" data-maintain-selected="true"
-                                    data-export-types='["txt","excel"]'
-                                    data-export-options='{ "fileName": "announcement-list-<?= date('d-m-y') ?>"
-                                    ,"ignoreColumn": ["operate"]}'
-                                    data-query-params="announcementQueryParams" data-escape="true">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" data-field="id" data-sortable="true" data-visible="false">
-                                                {{ __('id') }}</th>
-                                            <th scope="col" data-field="no" data-sortable="false">{{ __('no.') }}
-                                            </th>
-                                            <th scope="col" data-field="title" data-sortable="false">
-                                                {{ __('title') }}
-                                            </th>
-                                            <th scope="col" data-field="description" data-sortable="false">
-                                                {{ __('description') }}</th>
-                                            <th scope="col" data-field="assignto" data-sortable="false">
-                                                {{ __('assign_to') }}</th>
-                                            <th scope="col" data-field="file" data-sortable="false"
-                                                data-formatter="fileFormatter">{{ __('files') }}</th>
-                                            <th data-events="announcementEvents" data-escape="false" data-width="150"
-                                                scope="col" data-field="operate" data-sortable="false">
-                                                {{ __('action') }}</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <input type="hidden" name="term_id" id="notice-term" value="{{ $notice?->term_id }}">
+            <div data-notice-target hidden>
+                <x-page.field :name="$notice ? 'get_data' : 'get_data[]'" id="notice-target" type="select" :label="$isTeacher ? __('subject') : __('class')" :options="[]" :multiple="!$notice" data-selected="{{ $notice?->table_type === \App\Models\SubjectTeacher::class ? $notice->table?->subject_id : ($notice?->table_id ?? '') }}" :restore-old-input="false" />
             </div>
-        </div>
-    </div>
-
-
-    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel"> {{ __('edit') . ' ' . __('announcement') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true"><i class="fa fa-close"></i></span>
-                    </button>
-                </div>
-                <form class="pt-3 edit-announcement-form" id="edit-announcement-form"
-                    action="{{ url('announcement/update') }}" method="POST" novalidate="novalidate">
-                    @csrf
-                    <div class="modal-body">
-                        <input type="hidden" name="edit_id" id="edit_id">
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-12">
-                                <label>{{ __('title') }} <span class="text-danger">*</span></label>
-                                {!! Form::text('title', null, [
-                                    'required',
-                                    'placeholder' => __('title'),
-                                    'class' => 'form-control',
-                                    'id' => 'title',
-                                ]) !!}
-                            </div>
-                            <div class="form-group col-sm-12 col-md-12">
-                                <label>{{ __('description') }}</label>
-                                {!! Form::textarea('description', null, [
-                                    'rows' => 2,
-                                    'placeholder' => __('description'),
-                                    'class' => 'form-control',
-                                    'id' => 'description',
-                                ]) !!}
-                            </div>
-                            <div class="form-group col-sm-12 col-md-12">
-                                <label>{{ __('assign_to') }}</label>
-                                <select name="set_data" id="edit_set_data" class="form-control">
-                                    <option value="">
-                                        {{ __('--Please') . ' ' . __('select') . ' ' . __('assign_to') . '--' }}</option>
-                                    @if (Auth::user()->hasRole('Teacher'))
-                                        <option value="class_section">{{ __('class') . ' ' . __('section') }}</option>
-                                    @else
-                                        <option value="noticeboard">{{ __('noticeboard') }}</option>
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="form-group col-sm-12 col-md-12 edit_show_class_section_id">
-                                <label>{{ __('class_section') }}</label>
-                                <select name="class_section_id" id="edit_class_section_id" class="form-control"
-                                    style="width:100%;" tabindex="-1" aria-hidden="true">
-                                    <option value="">{{ __('select') . ' ' . __('class_section') }}</option>
-                                </select>
-                                <input type="hidden" name="term_id" id="edit_term_id" value="">
-                                <br>
-                                <br>
-                                <div class="form-group">
-                                    <label>{{ __('old_files') }} </label>
-                                    <div id="old_files"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>{{ __('upload_new_files') }} </label>
-                                    <input type="file" name="file[]" class="form-control" multiple />
-                                </div>
-                            </div>
-                            <div class="form-group col-sm-12 col-md-12 edit_show_class_section_id">
-                                <label>{{ __('subject') }}</label>
-                                <select name="get_data" id="edit_get_data" class="form-control" style="width:100%;"
-                                    tabindex="-1" aria-hidden="true"></select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('cancel') }}</button>
-                        <input class="btn btn-theme" type="submit" value={{ __('submit') }}>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+            <p data-notice-load-status role="status" hidden></p>
+            <button type="button" class="m3-button m3-button--outlined" data-notice-retry hidden>{{ __('Retry audience choices') }}</button>
+            @if($notice)
+                <section><h3>{{ __('Current attachments') }}</h3>
+                    @forelse($notice->file as $file)<p><a href="{{ $file->file_url }}" target="_blank" rel="noopener noreferrer">{{ $file->file_name }}</a></p>@empty<p>{{ __('No files attached') }}</p>@endforelse
+                </section>
+            @endif
+            <x-page.field name="file[]" type="file" multiple :label="$notice ? __('Add attachments') : __('files')" :help="__('PDF, office documents or images, up to 4 MB per file.')" />
+            <x-slot:actions><a class="m3-button m3-button--text" href="{{ route('announcement.index') }}">{{ __('Cancel') }}</a></x-slot:actions>
+        </x-page.form-card>
+    @endif
+</div>
 @endsection
-
-@section('js')
-    <script>
-        $('.show_class_section_id').hide();
-
-        // Load class sections with term support
-        function loadAnnouncementClassSections(targetSelector, subjectSelector, termInputSelector) {
-            let session_year_id = '{{ getSettings('session_year')['session_year'] }}';
-            $.ajax({
-                url: "{{ url('announcement-class-sections') }}",
-                type: "GET",
-                data: {
-                    session_year_id: session_year_id
-                },
-                success: function(response) {
-                    let html = '<option value="">{{ __('select') . ' ' . __('class_section') }}</option>';
-                    for (let i = 0; i < response.length; i++) {
-                        html += '<option value="' + response[i]['id'] + '" data-class="' + response[i][
-                            'class_id'
-                        ] + '" data-term="' + (response[i]['term_id'] || '') + '">' + response[i][
-                            'name'
-                        ] + '</option>';
-                    }
-                    $(targetSelector).html(html);
-                    $(subjectSelector).html('');
-                    $(termInputSelector).val('');
-                }
-            });
-        }
-
-        // Load class sections on page load
-        loadAnnouncementClassSections('#class_section_id', '#get_data', '#term_id');
-        loadAnnouncementClassSections('#edit_class_section_id', '#edit_get_data', '#edit_term_id');
-
-        $('#set_data').on('change', function() {
-            data = $(this).val();
-            if (data == 'class_section') {
-                $('.show_class_section_id').show();
-                $('#get_data').show();
-            } else {
-                $('.show_class_section_id').hide();
-                $('#get_data').hide();
-            }
-            $.ajax({
-                url: "{{ url('getAssignData') }}",
-                type: "GET",
-                data: {
-                    data: data
-                },
-                success: function(response) {
-                    html = '';
-                    if (data == 'class') {
-                        for (let i = 0; i < response.length; i++) {
-                            html += '<option value=' + response[i]['id'] + '>' + response[i]['name'] +
-                                '</option>';
-                        }
-                    }
-                    $('#get_data').html(html);
-                }
-            });
-        });
-
-        // Create form: class section change -> load subjects with term
-        $('#class_section_id').on('change', function() {
-            let class_id = $(this).find(':selected').attr('data-class');
-            let term_id = $(this).find(':selected').data('term') || '';
-            $('#term_id').val(term_id);
-
-            if (!$(this).val()) {
-                $('#get_data').html('');
-                return;
-            }
-
-            $.ajax({
-                url: "{{ url('getAssignData') }}",
-                type: "GET",
-                data: {
-                    data: 'class_section',
-                    class_id: class_id,
-                    class_section_id: $('#class_section_id').val(),
-                    term_id: term_id
-                },
-                success: function(response) {
-                    let html = '';
-                    if (response != '' && response.length > 0) {
-                        html += '<option value="">' + trans('select') + ' ' + trans('subject') +
-                            '</option>';
-                        for (let i = 0; i < response.length; i++) {
-                            html += '<option value="' + response[i]['subject']['id'] + '">' +
-                                response[i]['subject']['name'] + '</option>';
-                        }
-                    }
-                    $('#get_data').html(html);
-                    $('#get_data').show();
-                }
-            });
-        });
-
-        $('.edit_show_class_section_id').hide();
-        $('#edit_set_data').on('change', function(e, type_id) {
-            data = $(this).val();
-            if (data == 'class_section') {
-                $('.edit_show_class_section_id').show();
-            } else {
-                $('.edit_show_class_section_id').hide();
-            }
-            $.ajax({
-                url: "{{ url('getAssignData') }}",
-                type: "GET",
-                data: {
-                    data: data
-                },
-                success: function(response) {
-                    html = '';
-                    if (data == 'class') {
-                        for (let i = 0; i < response.length; i++) {
-                            var chk = (response[i]['id'] == type_id) ? 'selected' : '';
-                            html += '<option value=' + response[i]['id'] + '' + chk + '>' + response[i][
-                                    'name'
-                                ] +
-                                '</option>';
-                        }
-                    }
-                    $('#edit_get_data').html(html);
-                }
-            });
-        });
-
-        // Edit form: class section change -> load subjects with term
-        $('#edit_class_section_id').on('change', function(e, subjectid) {
-            data = $('#edit_set_data').val();
-            let class_id = $(this).find(':selected').attr('data-class');
-            let term_id = $(this).find(':selected').data('term') || '';
-            $('#edit_term_id').val(term_id);
-
-            $.ajax({
-                url: "{{ url('getAssignData') }}",
-                type: "GET",
-                data: {
-                    data: data,
-                    class_id: class_id,
-                    class_section_id: $('#edit_class_section_id').val(),
-                    term_id: term_id
-                },
-                success: function(response) {
-                    html = '';
-                    if (response != '') {
-                        html += '<option value="">' + trans('select') + ' ' + trans('subject') +
-                            '</option>';
-                        for (let i = 0; i < response.length; i++) {
-                            var chk = (response[i]['subject']['id'] == subjectid) ? 'selected' : '';
-                            html += '<option value=' + response[i]['subject']['id'] + ' ' + chk + '>' +
-                                response[i]['subject']['name'] + '</option>';
-
-                        }
-                    }
-                    $('#edit_get_data').html(html);
-                }
-            });
-        });
-    </script>
-@endsection
+@section('script')<script src="{{ asset('assets/js/announcement-workspace.js') }}" defer></script>@endsection

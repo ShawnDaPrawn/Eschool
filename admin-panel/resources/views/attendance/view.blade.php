@@ -1,82 +1,15 @@
 @extends('layouts.master')
-
-@section('title')
-{{ __('attendance') }}
-@endsection
-
+@section('title', __('Daily attendance records'))
 @section('content')
-<div class="content-wrapper">
-    <div class="page-header">
-        <h3 class="page-title">
-            {{ __('manage') . ' ' . __('attendance') }}
-        </h3>
-    </div>
-    <div class="row">
-        <div class="col-md-12 grid-margin stretch-card">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">
-                        {{ __('view') . ' ' . __('attendance') }}
-                    </h4>
-                    <div class="row mb-3 align-items-end">
-                        <div class="col-sm-12 col-md-2">
-                            <div class="form-group">
-                                <label class="d-none d-md-block">{{ __('class') }} {{ __('section') }}</label>
-                                <select required name="class_section_id" id="timetable_class_section"
-                                    class="form-control select2" style="width:100%;">
-                                    <option value="">{{ __('select') }}</option>
-                                </select>
-                            </div>
-                        </div>
+<div class="content-wrapper m3 page-content" data-attendance-workspace="records" data-class-options-url="{{ url('get-class-sections-with-terms') }}" data-class-scope="{{ auth()->user()->hasRole('Teacher') ? 'teacher' : '' }}">
+<x-page.header :title="__('Daily attendance records')" :subtitle="__('Choose a class and date to review recorded learner attendance.')" />
+<x-page.filters id="attendance-filters"><x-page.field id="timetable_class_section" name="class_section_id" type="select" :label="__('Class and section')" :options="[]" :placeholder="__('Choose a class')" data-filter="table_list" />
+<x-page.field id="attendance-date" name="date" type="date" :label="__('Date')" data-filter="table_list" />
+<x-page.field id="attendance-type" name="attendance_type" type="select" :label="__('Status')" :options="['1'=>__('Present'),'0'=>__('Absent'),'3'=>__('Holiday'),'4'=>__('First half absent'),'5'=>__('Second half absent')]" :placeholder="__('All statuses')" data-filter="table_list" /></x-page.filters>
+<p data-attendance-message role="status"></p>
+<x-page.table id="table_list" :url="url('student-attendance-list')" toolbar="#attendance-filters" query-params="attendanceWorkspaceParams" sort-name="student_id" :caption="__('Daily attendance records')" :empty-title="__('No attendance records')" :empty-message="__('Choose a class and date range with recorded attendance.')">
+<x-slot:columns>
 
-                        <div class="col-sm-12 col-md-2">
-                            <div class="form-group">
-                                <label class="d-none d-md-block">{{ __('date') }}</label>
-                                @php
-                                    $currentSY = $session_years->firstWhere('id', $currentSessionYearId);
-                                    $viewStartDate = date('d-m-Y', strtotime($currentSY->start_date));
-                                    $viewEndDate = date('d-m-Y', strtotime($currentSY->end_date));
-                                @endphp
-                                {!! Form::text('date', null, [
-                                'required',
-                                'placeholder' => __('date'),
-                                'class' => 'datepicker-popup form-control',
-                                'id' => 'date',
-                                'data-date-start-date' => $viewStartDate,
-                                'data-date-end-date' => $viewEndDate,
-                                ]) !!}
-                            </div>
-                        </div>
-
-                        <div class="col-sm-12 col-md-2">
-                            <div class="form-group">
-                                <label class="d-none d-md-block">{{ __('type') }}</label>
-                                <select required name="attendance_type" id="attendance_type"
-                                    class="form-control select2" style="width:100%;">
-                                    <option value="">{{ __('select') }}</option>
-                                    <option value="1">{{ __('present') }}</option>
-                                    <option value="0">{{ __('absent') }}</option>
-                                    <option value="3">{{ __('holiday') }}</option>
-                                    <option value="4">{{ __('first_half_absent') }}</option>
-                                    <option value="5">{{ __('second_half_absent') }}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="show_attendance_student_list">
-                        <table aria-describedby="mydesc" class='table student_table' id='table_list' data-toggle="table"
-                            data-click-to-select="true"
-                            data-side-pagination="server" data-pagination="true"
-                            data-page-list="[5, 10, 20, 50, 100, 200,All]" data-search="true" data-toolbar="#toolbar"
-                            data-show-columns="true" data-show-refresh="true" data-trim-on-search="false"
-                            data-mobile-responsive="true" data-sort-name="id" data-sort-order="asc"
-                            data-maintain-selected="true" data-export-types='["txt","excel"]' data-show-export="true"
-                            data-export-options='{ "fileName": "view-attendance-list-<?= date('d-m-y') ?>"
-                                ,"ignoreColumn": ["operate"]}'
-                            data-query-params="queryParams" data-escape="true">
-                            <thead>
-                                <tr>
                                     <th scope="col" data-field="id" data-sortable="true" data-visible="false">
                                         {{ __('id') }}
                                     </th>
@@ -97,163 +30,9 @@
                                         {{ __('type') }}
                                     </th>
                                     {{-- <th scope="col" data-field="note" data-sortable="false">{{__('note')}}</th> --}}
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
+                            </x-slot:columns>
+</x-page.table>
 </div>
 @endsection
-
-@section('script')
-<script>
-    function queryParams(p) {
-        return {
-            limit: p.limit,
-            sort: p.sort,
-            order: p.order,
-            offset: p.offset,
-            search: p.search,
-            'session_year_id': $('#filter_session_year_global').val(),
-            'class_section_id': $('#timetable_class_section').val(),
-            'date': $('#date').val(),
-            'attendance_type': $('#attendance_type').val(),
-        };
-    }
-</script>
-
-<script>
-    var tableInitialized = false;
-
-    function setDatePickerDisabled(disabled) {
-        $('#date').prop('disabled', disabled);
-    }
-
-    function getSessionYearDateBounds() {
-        var selectedSession = $('#filter_session_year_global').find('option:selected');
-        return {
-            startDate: selectedSession.data('start-date'),
-            endDate: selectedSession.data('end-date')
-        };
-    }
-
-    function setDatePickerBounds(startDate, endDate) {
-        var $datepicker = $('#date');
-        $datepicker.attr('data-date-start-date', startDate || '');
-        $datepicker.attr('data-date-end-date', endDate || '');
-        var el = $datepicker[0];
-        if (!el) return;
-        if (!el._flatpickr) initDatePicker(el, datePickerClassOptions(el));
-        el._flatpickr.set('minDate', startDate || null);
-        el._flatpickr.set('maxDate', endDate || null);
-        if (startDate) {
-            el._flatpickr.setDate(startDate, false);
-        }
-    }
-
-    function applyDateBoundsByClassSection() {
-        var selectedClassSection = $('#timetable_class_section').find('option:selected');
-        var termStartDate = selectedClassSection.attr('data-term-start-date');
-        var termEndDate = selectedClassSection.attr('data-term-end-date');
-        var sessionBounds = getSessionYearDateBounds();
-
-        if (termStartDate && termEndDate) {
-            setDatePickerBounds(termStartDate, termEndDate);
-        } else {
-            setDatePickerBounds(sessionBounds.startDate, sessionBounds.endDate);
-        }
-
-        $('#date').val('');
-    }
-
-    function loadAttendanceClassSectionsWithTerms() {
-        var session_year_id = $('#filter_session_year_global').val();
-        setDatePickerDisabled(true);
-
-        if (!session_year_id) {
-            $('#timetable_class_section').html('<option value="">{{ __("select") }}</option>').trigger('change.select2');
-            setDatePickerDisabled(false);
-            return;
-        }
-
-        $.ajax({
-            url: "{{ url('get-class-sections-with-terms') }}",
-            type: "GET",
-            data: {
-                session_year_id: session_year_id,
-                scope: 'teacher'
-            },
-            success: function(response) {
-                var html = '<option value="">{{ __("select") }}</option>';
-
-                for (var i = 0; i < response.length; i++) {
-                    var label = response[i].label ? response[i].label : '';
-
-                    if (!label) {
-                        label = response[i].name || '';
-                    }
-
-                    html += '<option value="' + response[i].class_section_id + '"' +
-                        ' data-class="' + response[i].class_id + '"' +
-                        ' data-term="' + (response[i].term_id || '') + '"' +
-                        ' data-term-start-date="' + (response[i].term_start_date || '') + '"' +
-                        ' data-term-end-date="' + (response[i].term_end_date || '') + '"' +
-                        '>' + label + '</option>';
-                }
-
-                $('#timetable_class_section').html(html).val('').trigger('change.select2');
-                applyDateBoundsByClassSection();
-            },
-            complete: function() {
-                setDatePickerDisabled(false);
-            }
-        });
-    }
-
-    function initializeOrRefreshTable() {
-        // Only call the API if all required fields are selected
-        var classSectionId = $('#timetable_class_section').val();
-        var date = $('#date').val();
-        var sessionYearId = $('#filter_session_year_global').val();
-
-        if (classSectionId && date && sessionYearId) {
-            if (!tableInitialized) {
-                // Initialize the table with the data-url for the first time
-                $('.student_table').bootstrapTable('refreshOptions', {
-                    url: "{{ url('student-attendance-list') }}"
-                });
-                tableInitialized = true;
-            } else {
-                // Refresh the table for subsequent calls
-                $('.student_table').bootstrapTable('refresh');
-            }
-        }
-    }
-
-    $('#date,#attendance_type,#timetable_class_section,#filter_session_year_global').on('input change', function() {
-        initializeOrRefreshTable();
-    });
-
-    $('#timetable_class_section').on('change', function() {
-        applyDateBoundsByClassSection();
-    });
-
-    // Update date picker bounds when session year changes
-    $('#filter_session_year_global').on('change', function() {
-        var sessionBounds = getSessionYearDateBounds();
-        setDatePickerBounds(sessionBounds.startDate, sessionBounds.endDate);
-        $('#date').val('');
-
-        loadAttendanceClassSectionsWithTerms();
-    });
-
-    $(document).ready(function() {
-        var sessionBounds = getSessionYearDateBounds();
-        setDatePickerBounds(sessionBounds.startDate, sessionBounds.endDate);
-        loadAttendanceClassSectionsWithTerms();
-    });
-</script>
-@endsection
+@section('script')<script src="{{ asset('assets/js/custom/attendance-workspace.js') }}" defer></script>@endsection

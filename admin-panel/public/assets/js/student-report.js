@@ -9,71 +9,63 @@ $(function () {
     var loadingText = $page.data("loading-text");
 
     function activeTab() {
-        return $(".tab-link.active").data("tab") || "personal";
+        return $page.find(".tab-link.active").data("tab") || "personal";
+    }
+
+    function workspaceFor(tab) {
+        return tab === "attendance" || tab === "leave" ? tab : "people";
     }
 
     function selectedSessionYearId() {
         return $("#filter_session_year_global").val();
     }
 
+    var pendingRequest;
     function loadTab(tab, extraData) {
-        $(".tab-link").removeClass("active");
-        $('.tab-link[data-tab="' + tab + '"]').addClass("active");
-
-        $("#tab-content").html(
-            '<div class="text-center p-3">' + loadingText + "</div>",
-        );
-
-        $.ajax({
+        if (pendingRequest) pendingRequest.abort();
+        var $content = $("#tab-content");
+        var $status = $page.find("[data-report-status]");
+        $content.attr("aria-busy", "true");
+        $status.attr("role", "status").text(loadingText);
+        pendingRequest = $.ajax({
             url: reportUrl,
             type: "GET",
-            data: $.extend(
-                { tab: tab, session_year_id: selectedSessionYearId() },
-                extraData || {},
-            ),
+            data: $.extend({ tab: tab, session_year_id: selectedSessionYearId() }, extraData || {}),
             success: function (response) {
-                // Clean URL BEFORE injecting HTML so the new tab's
-                // inline <script> never reads a stale term_id.
                 var url = new URL(window.location.href);
                 url.searchParams.set("tab", tab);
                 url.searchParams.delete("term_id");
                 url.searchParams.delete("status_filter");
+                if (extraData && extraData.month) url.searchParams.set("month", extraData.month);
+                else url.searchParams.delete("month");
                 window.history.replaceState({}, "", url.toString());
-
-                $("#tab-content").html(response);
-
-                if ($("#tab-content").find("#table_list").length) {
-                    try {
-                        $("#table_list").bootstrapTable("destroy");
-                    } catch (e) {}
+                $page.find(".tab-link").removeClass("active").removeAttr("aria-current");
+                $page.find('.tab-link[data-tab="' + tab + '"]').addClass("active").attr("aria-current", "page");
+                $content.html(response);
+                $status.text("");
+                if ($content.find("#table_list").length) {
+                    try { $("#table_list").bootstrapTable("destroy"); } catch (e) {}
                     $("#table_list").bootstrapTable();
                 }
             },
+            error: function (_xhr, status) {
+                if (status !== "abort") $status.attr("role", "alert").text($page.data("load-error"));
+            },
+            complete: function () { $content.removeAttr("aria-busy"); pendingRequest = null; },
         });
     }
-
-    $(document).on("refresh.bs.table", "#table_list", function () {
-        loadTab(activeTab());
-    });
-
-    $(document).on("click", ".tab-link", function () {
+    $(document).on("refresh.bs.table", "#table_list", function () { loadTab(activeTab()); });
+    $page.on("click", ".tab-link", function (event) {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        // These sections belong to different global workspaces. Follow their
+        // real links so the navigation trail and selected sidebar update too.
+        if (workspaceFor($(this).data("tab")) !== workspaceFor(activeTab())) return;
+        event.preventDefault();
         loadTab($(this).data("tab"));
     });
-
-    $(document).on("change", "#month-selector", function () {
-        $.ajax({
-            url: reportUrl,
-            type: "GET",
-            data: {
-                tab: "attendance",
-                session_year_id: selectedSessionYearId(),
-                month: $(this).val(),
-                calendar_only: 1,
-            },
-            success: function (response) {
-                $("#attendance-calendar").html(response);
-            },
-        });
+    $page.on("submit", ".sr-month-select-form", function (event) {
+        event.preventDefault();
+        loadTab("attendance", { month: $(this).find("[name=month]").val() });
     });
 
     $(document).on("session-year-synced", function () {

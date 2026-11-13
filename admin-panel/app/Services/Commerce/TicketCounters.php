@@ -58,13 +58,22 @@ final class TicketCounters
         return $root;
     }
 
-    private function usable(Ticket $ticket): bool
+    private function unavailableReason(Ticket $ticket): ?string
     {
         $type = TicketType::findOrFail($ticket->type_id);
         $event = TicketEvent::findOrFail($type->event_id);
         $state = app(TicketHolders::class)->state($ticket);
-        if ($state['status'] !== 'valid' || $type->status !== 'active' || $event->status !== 'active' || ! $event->starts_at->lessThanOrEqualTo(now('UTC')) || ! $event->ends_at->greaterThan(now('UTC'))) {
-            return false;
+        if ($state['status'] !== 'valid') {
+            return $state['status'] === 'redeemed' ? 'already_admitted' : 'ticket_not_valid';
+        }
+        if ($event->status !== 'active') {
+            return $event->status === 'cancelled' ? 'event_cancelled' : 'event_not_active';
+        }
+        if ($type->status !== 'active') {
+            return 'type_not_active';
+        }
+        if (! $event->starts_at->lessThanOrEqualTo(now('UTC')) || ! $event->ends_at->greaterThan(now('UTC'))) {
+            return 'outside_window';
         }
         try {
             app(WalletPolicy::class)->activePerson(User::findOrFail($state['holder_id']));
@@ -72,10 +81,29 @@ final class TicketCounters
                 app(WalletPolicy::class)->activePerson(User::findOrFail(Students::findOrFail($ticket->named_learner_id)->user_id));
             }
         } catch (HttpExceptionInterface) {
-            return false;
+            return 'holder_not_active';
         }
 
-        return true;
+        return null;
+    }
+
+    private function usable(Ticket $ticket): bool
+    {
+        return $this->unavailableReason($ticket) === null;
+    }
+
+    /** The private browser projection adds an explanation without changing the API response. */
+    public function lookupForPanel(User $actor, int $vendor, array $input): array
+    {
+        return DB::transaction(function () use ($actor, $vendor, $input): array {
+            $projection = $this->lookup($actor, $vendor, $input);
+            $reason = $this->unavailableReason(Ticket::findOrFail($projection['id']));
+            if ($reason === null && ! $projection['can_redeem']) {
+                $reason = 'module_paused';
+            }
+
+            return $projection + ['unavailable_reason' => $reason];
+        });
     }
 
     private function project(User $actor, int $vendor, Ticket $ticket): array

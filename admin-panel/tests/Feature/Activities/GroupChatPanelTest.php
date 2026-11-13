@@ -194,7 +194,7 @@ class GroupChatPanelTest extends TestCase
         $response = $this->post($path, $input)->assertUnprocessable()->assertSessionMissing('_old_input');
         $form = $this->formInput($response->getContent(), '/send');
         $this->assertSame((string) $reply['message_id'], $form['reply_to']);
-        $this->assertSame('', $this->formInput($response->getContent(), '/create')['body']);
+        $response->assertDontSee('id="chat-create-body"', false);
         $form['language'] = 'en';
         $this->post($path, $form)->assertRedirect();
         $message = GroupChatMessage::orderByDesc('id')->firstOrFail();
@@ -213,7 +213,7 @@ class GroupChatPanelTest extends TestCase
         $historical = SessionYear::create(['name' => 'Synthetic historic year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
         $this->actingAs($this->teacher, 'web')->withSession(['school_id' => 1, 'session_year' => (int) $historical->id]);
         $this->get($this->path())->assertOk()->assertDontSee('Create conversation');
-        $this->post($this->path('/create'), $this->input())->assertStatus(423)->assertSessionMissing('_old_input')->assertDontSee('Synthetic panel staff text');
+        $this->post($this->path('/create'), $this->input())->assertStatus(423)->assertSessionMissing('_old_input')->assertDontSee('Synthetic panel staff text')->assertHeader('Cache-Control', 'no-store, private');
         $this->assertSame(0, GroupChatMessage::count());
     }
 

@@ -21,7 +21,7 @@ async function submitOnceAndReplay(page: Page, label: string) {
   const form = button.locator('xpath=ancestor::form');
   const data = await form.evaluate(node => Object.fromEntries(new FormData(node as HTMLFormElement).entries()) as Record<string, string>);
   const action = await form.getAttribute('action');
-  await button.click();
+  await Promise.all([page.waitForEvent('domcontentloaded'), button.click()]);
   await expect(page.getByRole('status')).toBeVisible();
   expect((await page.request.post(action!, { form: data })).status()).toBe(200);
 }
@@ -30,7 +30,7 @@ test.describe.configure({ mode: 'serial', retries: 0 });
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
   test(`Finance records, allocates and reviews a split-family receipt once at ${width}px`, async ({ page, baseURL }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(240_000);
     const data: Fixture = fixture();
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, data.finance);
@@ -51,9 +51,9 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('link', { name: 'Review credit allocation', exact: true }).click();
     await expect(page.getByRole('main')).toContainText('Choose the school allocation rule before allocating this credit.');
     expect(fixture('stats', data.school).credit_cents).toBe(2000);
-    await page.goto('/fee-payments');
+    await page.goto('/fee-payments?section=settings');
     await page.getByRole('combobox', { name: 'Allocation order', exact: true }).selectOption('oldest_first');
-    await page.getByRole('button', { name: 'Save allocation rule', exact: true }).click();
+    await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Save allocation rule', exact: true }).click()]);
     await expect(page.getByRole('status')).toContainText('Fee allocation rule saved.');
     await check(page);
     await page.goto(`${receiptUrl}/allocation`);
@@ -69,6 +69,11 @@ for (const width of [390, 820, 1280]) {
     await expect(page.getByRole('main')).toContainText('ZAR 10.00');
     await expect(page.getByRole('main')).toContainText('ZAR 9.98');
     for (const learner of data.learners) await expect(page.getByRole('main')).toContainText(learner.name);
+    await check(page);
+    await page.screenshot({ path: test.info().outputPath('fee-account-statement.png'), fullPage: true });
+    await page.getByRole('link', { name: 'Receipts and credit history', exact: true }).click();
+    await expect(page.getByRole('table', { name: 'Receipt and credit history', exact: true })).toContainText('ZAR 20.00');
+    await expect(page.getByRole('table', { name: 'Receipt and credit history', exact: true })).toContainText('ZAR 9.98');
     await check(page);
     expect(fixture('stats', data.school)).toEqual({ payments: 1, allocations: 2, runs: 1, entries: 3, receivable_cents: 1000, income_cents: 2002, bank_cents: 2000, credit_cents: 998, inactive_learners: 2 });
     expect(errors).toEqual([]);

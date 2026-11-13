@@ -4,9 +4,21 @@
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
     <x-page.header :title="__('Adult wallet withdrawals')" />
+@php
+$section=request('section','history');
+if(!in_array($section,['settings','slots','return','history'],true)) $section='history';
+$tabs=[];
+$tabs['settings']=['label'=>__('Withdrawal configuration'),'url'=>request()->fullUrlWithQuery(['section'=>'settings','page'=>null])];
+$tabs['slots']=['label'=>__('Pickup slots'),'url'=>request()->fullUrlWithQuery(['section'=>'slots','page'=>null])];
+$tabs['return']=['label'=>__('Return holder funds'),'url'=>request()->fullUrlWithQuery(['section'=>'return','page'=>null])];
+$tabs['history']=['label'=>__('Withdrawal queue'),'url'=>request()->fullUrlWithQuery(['section'=>'history','page'=>null])];
+@endphp
+@include('money.billing.tabs')
+
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <p>{{ __('Requests reserve only the original adult wallet. Finance approval sends no money; record a payout only after verifying actual payment to that holder.') }}</p>
     @if(!$canWrite)<p>{{ __('Wallet history is read-only while wallets are disabled.') }}</p>@endif
+@if($section==='settings')
     <h2>{{ __('Cash-or-bank withdrawal rule') }}</h2>
     <p>{{ __('For rand wallets the boundary is R250. Choose whether exactly R250 is cash or bank. For another currency, enter the school-approved threshold explicitly.') }}</p>
     <form method="post" action="{{ route('wallet-withdrawals.policy') }}" data-year-safe>
@@ -18,6 +30,9 @@
             <x-m3.button type="submit">{{ __('Save withdrawal policy') }}</x-m3.button>
         </fieldset>
     </form>
+
+@endif
+@if($section==='slots')
     <h2>{{ __('Cash pickup slots') }}</h2><p>{{ __('Publish available collection times in the school timezone.') }} {{ $timezone }}</p>
     <form method="post" action="{{ route('wallet-withdrawals.slots.publish') }}" data-year-safe>
         @include('money.fee-plans.hidden',['revision'=>0])
@@ -43,6 +58,9 @@
             @endif
         </details>
     @endforeach
+
+@endif
+@if($section==='return')
     <details><summary>{{ __('Return a departing adult holder’s available funds') }}</summary>
         <p>{{ __('Use the existing original adult wallet and verified holder instructions. Learner wallets cannot use this return. Funds remain reserved until Finance approval and actual payment.') }}</p>
         <form method="post" action="{{ route('wallet-withdrawals.offboarding') }}" data-year-safe>
@@ -59,10 +77,15 @@
             </fieldset>
         </form>
     </details>
+
+@endif
+@if($section==='history')
     <h2>{{ __('Withdrawal queue and history') }}</h2>
     <div class="page-table__scroll" role="region" aria-label="{{ __('Adult withdrawal requests') }}" tabindex="0"><table class="page-table__table">
         <caption>{{ __('Adult withdrawal requests') }}</caption><thead><tr><th scope="col">{{ __('Request') }}</th><th scope="col">{{ __('Original holder') }}</th><th scope="col">{{ __('Amount') }}</th><th scope="col">{{ __('Method') }}</th><th scope="col">{{ __('Status') }}</th></tr></thead>
         <tbody>@foreach($rows as $row)<tr><td><a href="{{ route('wallet-withdrawals.show',['withdrawal'=>$row->id]) }}">WW-{{ $row->id }}</a></td><td>{{ $names[$row->holder_user_id]??'' }}</td><td>{{ \App\Services\Platform\Ledger\Money::ofCents($row->amount_cents,$row->currency)->format() }}</td><td>{{ $row->method==='cash'?__('Cash'):__('Bank EFT') }}</td><td>{{ match($receipts[$row->id]['status']){'approved'=>__('Approved, awaiting actual payment'),'paid'=>__('Paid'),'cancelled'=>__('Cancelled'),'rejected'=>__('Rejected'),default=>__('Awaiting Finance approval')} }}</td></tr>@endforeach</tbody>
-    </table></div>{{ $rows->links() }}
+    </table></div>{{ $rows->withQueryString()->links() }}
+
+@endif
 </div>
 @endsection

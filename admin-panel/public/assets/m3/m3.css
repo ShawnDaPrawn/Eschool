@@ -1686,7 +1686,7 @@ a.m3-chip {
 
 .m3-chip--status-neutral {
     background: var(--md-sys-color-surface-container);
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-surface);
 }
 
 /* ── 9. Cards ────────────────────────────────────────────────────────────

@@ -34,13 +34,13 @@ class SchoolInformationController extends Controller
     {
         $service->publish($request->user(), $request->validated());
 
-        return redirect()->route('school-information.index')->with('success', __('School document published.'));
+        return redirect()->route('school-information.index', ['view' => 'documents'])->with('success', __('School document published.'));
     }
 
     public function unpublish(SchoolInformationRequest $request, SchoolInformation $service, string $document): RedirectResponse
     {
         $service->unpublish($request->user(), $document);
 
-        return redirect()->route('school-information.index')->with('success', __('School document unlisted.'));
+        return redirect()->route('school-information.index', ['view' => 'documents'])->with('success', __('School document unlisted.'));
     }
 }

@@ -31,13 +31,13 @@ class PracticeTestPanelController extends Controller
         return view('learning.practice-tests.index', ['groups' => $groups, 'groupId' => $groupId,
             'listing' => $groupId === null ? null : $this->blueprints->index($request->user(), $groupId, (int) $request->validated('page', 1)),
             'options' => $groupId === null ? null : $this->blueprints->options($request->user(), $groupId),
-            'operationId' => (string) Str::uuid(), 'zone' => app(CurrentSchool::class)->school()->timezone]);
+            'operationId' => (string) Str::uuid(), 'zone' => app(CurrentSchool::class)->school()->timezone, 'workspaceView' => $request->validated('view', 'tests')]);
     }
 
     public function create(PracticeTestPanelRequest $request, int $group): RedirectResponse
     {
         return $this->done(fn () => $this->blueprints->create($request->user(), $group, $request->validated()), $group,
-            __('Cycle test set. Learners in the group can start it when it opens.'));
+            __('Cycle test set. Learners in the group can start it when it opens.'), true);
     }
 
     public function show(PracticeTestPanelRequest $request, int $group, int $blueprint): View
@@ -63,7 +63,7 @@ class PracticeTestPanelController extends Controller
     }
 
     /** A refusal the teacher can act on (a rule of the test) goes back to the page; 403 and 404 stay errors. */
-    private function done(callable $write, int $group, string $message): RedirectResponse
+    private function done(callable $write, int $group, string $message, bool $creating = false): RedirectResponse
     {
         try {
             $write();
@@ -72,7 +72,7 @@ class PracticeTestPanelController extends Controller
                 throw $error;
             }
 
-            return redirect()->route('practice-tests.index', ['group' => $group])->withErrors(['practice_test' => $error->getMessage()])->withInput();
+            return redirect()->route('practice-tests.index', ['group' => $group, 'view' => $creating ? 'create' : 'tests'])->withErrors(['practice_test' => $error->getMessage()])->withInput();
         }
 
         return redirect()->route('practice-tests.index', ['group' => $group])->with('success', $message);

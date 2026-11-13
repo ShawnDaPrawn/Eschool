@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('parents') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('Parents')" :subtitle="__('Review parent contact details and linked learner records. Guardian access follows the school’s verified relationships.')" />
 
         <div class="row">
             {{-- <div class="col-lg-12 grid-margin stretch-card">

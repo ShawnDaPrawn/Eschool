@@ -43,6 +43,8 @@ class ProfilePanelTest extends TestCase
     public function test_school_admin_adds_a_transport_field_and_it_appears_in_the_panel_form_and_export(): void
     {
         $this->actingAs($this->superAdmin())->get('/profile-configuration')->assertOk()->assertSee('Profile fields');
+        $this->get('/profile-configuration?view=category')->assertOk()->assertSee('name="key"', false)->assertDontSee('name="visible_to[]"', false);
+        $this->get('/profile-configuration?view=field')->assertOk()->assertSee('name="visible_to[]"', false)->assertSee('name="editable_by[]"', false);
         $this->post('/profile-configuration/categories', ['profile_type' => 'learner', 'key' => 'transport', 'label' => 'Transport'])
             ->assertRedirect('/profile-configuration?profile_type=learner');
         $category = ProfileFieldCategory::query()->where('key', 'transport')->firstOrFail();

@@ -5,26 +5,27 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('holiday') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('holiday')" />
 
-        <div class="row">
+        <x-panel-view-nav :current="request('view') === 'create' ? 'create' : 'list'" :items="[
+ 'list'=>['label'=>__('School holidays'),'href'=>request()->url()],
+ 'create'=>['label'=>'Create new','href'=>request()->url().'?view=create'],
+ ]" />
+<div class="panel-form-grid">
             @if (Auth::user()->can('holiday-create'))
-                <div class="col-lg-12 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
+                @if(request('view') === 'create')
+<div class="  ">
+                    <div class="m3-card m3-card--outlined">
+                        <div class="m3-card__content panel-record-card">
                             <h4 class="card-title">
                                 {{ __('create') . ' ' . __('holiday') }}
                             </h4>
                             <form class="create-form pt-3" id="formdata" action="{{ url('holiday') }}" method="POST"
                                 novalidate="novalidate">
                                 @csrf
-                                <div class="row">
-                                    <div class="form-group col-sm-12 col-md-4">
+                                <div class="panel-form-grid">
+                                    <div class="form-group  ">
                                         <label>{{ __('session_year') }} <span class="text-danger">*</span></label>
                                         <select required name="session_year_id" id="session_year_id" class="form-control">
                                             <option value="">{{ __('select') . ' ' . __('session_years') }}</option>
@@ -37,7 +38,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="form-group col-sm-12 col-md-4">
+                                    <div class="form-group  ">
                                         <label>{{ __('date') }} <span class="text-danger">*</span></label>
                                         {!! Form::text('date', null, [
                                             'required',
@@ -49,14 +50,14 @@
                                         <span class="input-group-addon input-group-append">
                                         </span>
                                     </div>
-                                    <div class="form-group col-sm-12 col-md-4">
+                                    <div class="form-group  ">
                                         <label>{{ __('title') }} <span class="text-danger">*</span></label>
                                         {!! Form::text('title', null, ['required', 'placeholder' => __('title'), 'class' => 'form-control']) !!}
 
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-12 col-md-12">
+                                <div class="panel-form-grid">
+                                    <div class="form-group  ">
                                         <label>{{ __('description') }}</label>
                                         {!! Form::textarea('description', null, [
                                             'rows' => '2',
@@ -66,21 +67,23 @@
 
                                     </div>
                                 </div>
-                                <input class="btn btn-theme" type="submit" value={{ __('submit') }}>
+                                <input class="m3-button m3-button--filled" type="submit" value={{ __('submit') }}>
                             </form>
                         </div>
                     </div>
                 </div>
+@endif
             @endif
             @if (Auth::user()->can('holiday-list'))
-                <div class="col-lg-12 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
+                @if(request('view') !== 'create')
+<div class="  ">
+                    <div class="m3-card m3-card--outlined">
+                        <div class="m3-card__content panel-record-card">
                             <h4 class="card-title">
                                 {{ __('list') . ' ' . __('holiday') }}
                             </h4>
-                            <div class="row">
-                                <div class="col-12">
+                            <div class="panel-form-grid">
+                                <div class="">
                                     <table aria-describedby="mydesc" class='table' id='table_list' data-toggle="table"
                                         data-url="{{ url('holiday-list') }}" data-click-to-select="true"
                                         data-side-pagination="server" data-pagination="true"
@@ -124,6 +127,7 @@
                         </div>
                     </div>
                 </div>
+@endif
             @endif
         </div>
     </div>
@@ -144,7 +148,7 @@
                     <div class="modal-body">
                         <input type="hidden" name="id" id="id">
                         <div class="row form-group">
-                            <div class="col-sm-12 col-md-12">
+                            <div class=" ">
                                 <label>{{ __('date') }} <span class="text-danger">*</span></label>
                                 {!! Form::text('date', null, [
                                     'required',
@@ -157,7 +161,7 @@
                             </div>
                         </div>
                         <div class="row form-group">
-                            <div class="col-sm-12 col-md-12">
+                            <div class=" ">
                                 <label>{{ __('title') }} <span class="text-danger">*</span></label>
                                 {!! Form::text('title', null, [
                                     'required',
@@ -168,7 +172,7 @@
                             </div>
                         </div>
                         <div class="row form-group">
-                            <div class="col-sm-12 col-md-12">
+                            <div class=" ">
                                 <label>{{ __('description') }}</label>
                                 {!! Form::textarea('description', null, [
                                     'placeholder' => __('description'),
@@ -179,9 +183,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary"
+                        <button type="button" class="m3-button m3-button--outlined"
                             data-dismiss="modal">{{ __('close') }}</button>
-                        <input class="btn btn-theme" type="submit" value={{ __('edit') }} />
+                        <input class="m3-button m3-button--filled" type="submit" value={{ __('edit') }} />
                     </div>
                 </form>
             </div>

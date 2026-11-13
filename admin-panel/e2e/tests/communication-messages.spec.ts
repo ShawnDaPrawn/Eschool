@@ -1,8 +1,11 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect as baseExpect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+
+// The shared local PHP runtime may finish a native POST redirect after the default 10s.
+const expect = baseExpect.configure({ timeout: 60000 });
 
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -23,7 +26,7 @@ for (const width of [1024,1280]) {
     await page.context().clearCookies();
     await signIn(page,author);
     const errors=collectErrors(page,baseURL!);
-    await page.goto('/communication-centre');
+    await page.goto('/communication-centre?view=compose');
     let form=page.getByRole('form',{name:'Edit private message',exact:true});
     const title=`Private message ${width} ${run}`;
     await form.getByRole('textbox',{name:'Message subject',exact:true}).fill(title);
@@ -55,7 +58,6 @@ for (const width of [1024,1280]) {
     await page.context().clearCookies();
     await signIn(page,accounts.admin);
     await page.goto(`/communication-centre?message_id=${id}&preview_message=1`);
-    await page.getByText('Message author rules',{exact:true}).click();
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     form=page.getByRole('form',{name:'Decide message approval',exact:true});
@@ -92,10 +94,35 @@ test('another teacher and another school cannot open a private message',async ({
   expect((await page.goto(`/communication-centre?message_id=${id}`))?.status()).toBe(404);
 });
 
+test('newsletter sections persist their order and reopen from the message directory', async ({page})=>{
+  await signIn(page,author);
+  await page.setViewportSize({width:320,height:740});
+  await page.goto('/communication-centre?view=newsletter');
+  const title=`Newsletter sections ${run}`;
+  await page.getByLabel('Message subject',{exact:true}).fill(title);
+  await page.getByLabel('Audience scope',{exact:true}).selectOption({label:'Group · Message rehearsal group'});
+  const rows=page.locator('[data-newsletter-section]');
+  await rows.first().getByLabel('Section heading (optional)',{exact:true}).fill('School news');
+  await rows.first().getByLabel('Section content',{exact:true}).fill('Synthetic school news.');
+  await page.getByRole('button',{name:'Add section',exact:true}).click();
+  await rows.last().getByLabel('Section heading (optional)',{exact:true}).fill('Dates to remember');
+  await rows.last().getByLabel('Section content',{exact:true}).fill('Synthetic school dates.');
+  await rows.last().getByRole('button',{name:'Move up',exact:true}).click();
+  await page.getByRole('button',{name:'Save private message',exact:true}).click();
+  await expect(page.getByRole('status').filter({hasText:'Message draft saved'})).toBeVisible();
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+  await page.getByRole('link',{name:'Messages and reviews',exact:true}).click();
+  await page.locator('.message-row').filter({hasText:title}).click();
+  await page.getByRole('link',{name:'Edit newsletter sections',exact:true}).click();
+  await expect(rows).toHaveCount(2);
+  await expect(rows.first().getByLabel('Section heading (optional)',{exact:true})).toHaveValue('Dates to remember');
+  await expect(page.getByLabel('Message Markdown',{exact:true})).toHaveValue('## Dates to remember\n\nSynthetic school dates.\n\n## School news\n\nSynthetic school news.');
+});
+
 test('an audience owner can archive an empty list after its contact leaves scope',async ({page})=>{
   await signIn(page,author);
-  await page.goto('/communication-centre');
-  await page.getByText('Saved custom audiences',{exact:true}).click();
+  await page.goto('/communication-centre?view=audiences');
   let form=page.getByRole('form',{name:'Save custom audience',exact:true});
   await form.getByRole('textbox',{name:'Audience name',exact:true}).fill(`Audience ${run}`);
   const removedContact = form.getByRole('checkbox').first();

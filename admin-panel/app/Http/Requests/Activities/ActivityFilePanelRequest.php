@@ -10,6 +10,12 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class ActivityFilePanelRequest extends ActivityFileRequest
 {
+    public function rules(): array
+    {
+        return parent::rules() + ($this->isMethod('GET') && $this->action() === 'listing'
+            ? ['screen' => ['sometimes', 'in:list,upload']] : []);
+    }
+
     public function validationData(): array
     {
         $data = parent::validationData();

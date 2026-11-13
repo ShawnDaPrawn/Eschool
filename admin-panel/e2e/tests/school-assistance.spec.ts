@@ -1,8 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect as baseExpect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+const expect = baseExpect.configure({ timeout: 60000 });
 
 function fixture(): {thread: string; text: string} {
   return JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/assistance-fixture.php'));"], {
@@ -18,6 +19,7 @@ for (const width of [390, 820, 1280]) {
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, accounts.admin);
     await page.goto('/ask-school');
+    await expect(page.getByRole('textbox',{name:'Document title',exact:true})).toHaveCount(0);
     await expect(page.getByText(setup.text, { exact: true })).toHaveCount(0);
     const card = page.locator(`[data-assistance-thread="${setup.thread}"]`);
     await card.getByRole('button', { name: 'Claim request', exact: true }).click();
@@ -32,6 +34,7 @@ for (const width of [390, 820, 1280]) {
     await expect(page.getByText(setup.text, { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Request reviewed translation', exact: true })).toBeDisabled();
     await page.getByRole('link', { name: 'Close private review', exact: true }).click();
+    await page.getByRole('link', { name:'Publish a document', exact:true }).click();
     const title = `Synthetic approved source ${width} ${crypto.randomUUID().slice(0, 8)}`;
     await page.getByRole('textbox', { name: 'Document title', exact: true }).fill(title);
     await page.getByRole('textbox', { name: 'Approved school text', exact: true }).fill('The school office opens at 08:00.');

@@ -1,10 +1,16 @@
 @extends('layouts.master')
-@section('title', __('Academic registers'))
+@section('title', __('Learner attendance'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/register-workbench.css') }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content register-workbench" data-register-workbench>
-    <x-page.header :title="__('Academic registers')" :subtitle="__('Capture attendance, review missing registers and follow up recorded absences.')" />
+    <x-page.header :title="__('Learner attendance')" :subtitle="__('Capture attendance, review missing registers and follow up recorded absences.')">
+        <x-slot:actions>
+            @if($choices['can_manage'])<a class="m3-button m3-button--outlined" href="{{ route('academic-registers.configuration') }}">{{ __('Configuration') }}</a>@endif
+            <a class="m3-button m3-button--text" href="{{ route('panel.workspace', ['section' => 'attendance']) }}">{{ __('All attendance') }}</a>
+        </x-slot:actions>
+    </x-page.header>
     @include('academics.groups-status')
+    @if(!$matrix)
     <form method="GET" action="{{ route('academic-registers.index') }}" class="register-fields" aria-label="{{ __('Choose register date') }}">
         <x-page.field name="on_date" type="date" :label="__('Register date')" :value="$choices['on_date']" required />
         <button type="submit" class="m3-button m3-button--outlined">{{ __('View registers') }}</button>
@@ -30,6 +36,9 @@
             <x-page.field name="scope" type="select" :label="__('Lesson')" :options="collect($choices['periods'])->mapWithKeys(fn ($p) => ['lesson:'.$p['id'] => $p['name']])->all()" required />
             <button type="submit" class="m3-button m3-button--outlined">{{ __('Open period register') }}</button>
         </form>
+    @endif
+    @else
+        <a class="m3-button m3-button--text" href="{{ route('academic-registers.index', ['on_date' => $matrix['on_date']]) }}">{{ __('Back to registers') }}</a>
     @endif
     @if($matrix)
         @php $states = ['unmarked' => __('Unmarked'), 'present' => __('Present'), 'absent' => __('Absent'), 'late' => __('Late'), 'excused' => __('Excused')]; if ($matrix['timetable_lesson_id'] === null) $states += ['first_half' => __('First half'), 'second_half' => __('Second half'), 'holiday' => __('Holiday')]; @endphp
@@ -71,16 +80,7 @@
             </form>
         </div></section>
     @endif
-    @if($choices['can_manage'])
-        <details class="page-section"><summary>{{ __('Absence alert settings') }}</summary>
-            <p>{{ __('Cut-off uses the school timezone. Approved leave suppresses absence alerts.') }}</p>
-            <form method="POST" action="{{ route('academic-registers.settings') }}" aria-label="{{ __('Save absence settings') }}">@csrf
-                <x-page.field name="absence_cutoff" type="time" :label="__('Absence alert cut-off')" :value="$choices['settings']['absence_cutoff']" required />
-                <fieldset><legend>{{ __('Teaching days') }}</legend>@foreach([1 => __('Monday'), 2 => __('Tuesday'), 3 => __('Wednesday'), 4 => __('Thursday'), 5 => __('Friday'), 6 => __('Saturday'), 7 => __('Sunday')] as $number => $day)<label><input type="checkbox" name="teaching_days[]" value="{{ $number }}" @checked(in_array($number, $choices['settings']['teaching_days'], true))> {{ $day }}</label> @endforeach</fieldset>
-                <button type="submit" class="m3-button m3-button--filled">{{ __('Save absence settings') }}</button>
-            </form>
-        </details>
-    @endif
+
 </div>
 @endsection
 @section('script')<script src="{{ asset('assets/js/custom/register-workbench.js') }}" defer></script>@endsection

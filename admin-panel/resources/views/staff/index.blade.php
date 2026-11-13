@@ -5,13 +5,11 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('staff') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="request('view') === 'create' ? (request('role') === 'Facilitator' ? __('Add facilitator') : __('Add admin staff')) : __('Admin staff')" :subtitle="__('School staff accounts, role assignments and contact details.')" :primary-label="request('view') === 'create' ? null : __('Add staff member')" :primary-href="route('staff.index', ['view' => 'create'])" primary-permission="staff-create" />
+        <nav class="workspace-tabs" aria-label="{{ __('Staff workspace') }}"><a class="m3-button m3-button--text" href="{{ route('staff.index') }}" @if(request('view') !== 'create') aria-current="page" @endif>{{ __('Staff directory') }}</a>@can('staff-create')<a class="m3-button m3-button--text" href="{{ route('staff.index', ['view' => 'create']) }}" @if(request('view') === 'create') aria-current="page" @endif>{{ __('Add staff member') }}</a>@endcan</nav>
         <div class="row">
+            @if(request('view') === 'create')
             @can('staff-create')
                 <div class="col-lg-12 grid-margin stretch-card">
                     <div class="card">
@@ -23,87 +21,30 @@
                             <form class="pt-3 staff-form" id="staff-form" enctype="multipart/form-data"
                                 action="{{ route('staff.store') }}" method="POST" novalidate="novalidate">
                                 @csrf
-                                <div class="row">
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label> {{ __('role') }} <span class="text-danger">*</span></label>
-                                        <select name="role_id" class="form-control">
-                                            <option value="">{{ __('select') . ' ' . __('role') }}</option>
-                                            @foreach ($roles as $role)
-                                                <option value="{{ $role->id }}">{{ $role->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label>{{ __('first_name') }} <span class="text-danger">*</span></label>
-                                        {!! Form::text('first_name', null, ['placeholder' => __('first_name'), 'class' => 'form-control']) !!}
-                                    </div>
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label>{{ __('last_name') }} <span class="text-danger">*</span></label>
-                                        {!! Form::text('last_name', null, ['placeholder' => __('last_name'), 'class' => 'form-control']) !!}
-                                    </div>
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label>{{ __('email') }} <span class="text-danger">*</span></label>
-                                        {!! Form::text('email', null, ['required', 'placeholder' => __('email'), 'class' => 'form-control']) !!}
-                                    </div>
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label>{{ __('mobile') }} <span class="text-danger">*</span></label>
-                                        {!! Form::number('mobile', null, [
-                                            'required',
-                                            'placeholder' => __('mobile'),
-                                            'class' => 'form-control mobile',
-                                            'min' => 10,
-                                        ]) !!}
-                                    </div>
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label>{{ __('gender') }} <span class="text-danger">*</span></label><br>
-                                        <div class="d-flex">
-                                            <div class="form-check form-check-inline">
-                                                <label class="form-check-label">
-                                                    {!! Form::radio('gender', 'male') !!}
-                                                    {{ __('male') }}
-                                                <i class="input-helper"></i>
-                                                </label>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <label class="form-check-label">
-                                                    {!! Form::radio('gender', 'female') !!}
-                                                    {{ __('female') }}
-                                                <i class="input-helper"></i>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label>{{ __('dob') }} <span class="text-danger">*</span></label>
-                                        {!! Form::text('dob', null, ['placeholder' => __('dob'), 'class' => 'datepicker-popup-no-future form-control']) !!}
-                                        <span class="input-group-addon input-group-append">
-                                        </span>
-                                    </div>
-                                    <div class="form-group col-sm-12 col-md-4">
-                                        <label>{{ __('image') }} <span class="text-danger">*</span></label>
-                                        <input type="file" name="image" class="file-upload-default" accept="image/*" />
-                                        <div class="input-group col-xs-12">
-                                            <input type="text" class="form-control file-upload-info" disabled=""
-                                                placeholder="{{ __('image') }}" required="required" />
-                                            <span class="input-group-append">
-                                                <button class="file-upload-browse btn btn-theme"
-                                                    type="button">{{ __('upload') }}</button>
-                                            </span>
-                                        </div>
-                                        <small class="form-text text-muted">{{ __('image_size_hint') }}</small>
-                                    </div>
-                                    <div class="form-group col-4">
-                                        <label>{{ __('address') }} <span class="text-danger">*</span></label>
-                                        {!! Form::textarea('address', null, ['placeholder' => __('address'), 'class' => 'form-control', 'rows' => 2]) !!}
-                                    </div>
+                                <p>{{ __('A staff invitation lets the account owner finish sign-in. Existing accounts must accept a school invitation before joining this school.') }}</p>
+                                <div class="panel-form-grid">
+                                    <x-page.field name="role_id" id="new-staff-role" type="select" :label="__('Role')" :placeholder="__('Choose a role')" :options="$roles->pluck('name', 'id')->all()" :value="$roles->firstWhere('name', request('role'))?->id" required />
+                                    <x-page.field name="first_name" id="new-staff-first-name" :label="__('First name')" autocomplete="given-name" required />
+                                    <x-page.field name="last_name" id="new-staff-last-name" :label="__('Last name')" autocomplete="family-name" required />
+                                    <x-page.field name="email" id="new-staff-email" type="email" :label="__('Email address')" autocomplete="email" required />
+                                    <x-page.field name="mobile" id="new-staff-mobile" type="tel" :label="__('Mobile number')" autocomplete="tel" class="mobile" required />
+                                    <fieldset class="page-section"><legend>{{ __('Gender') }}</legend>
+                                        <label class="page-choice"><input type="radio" name="gender" value="male" @checked(old('gender') === 'male') required> {{ __('male') }}</label>
+                                        <label class="page-choice"><input type="radio" name="gender" value="female" @checked(old('gender') === 'female') required> {{ __('female') }}</label>
+                                    </fieldset>
+                                    <x-page.field name="dob" id="new-staff-dob" type="date" :label="__('Date of birth')" :max="now()->toDateString()" required />
+                                    <x-m3.file-field name="image" id="new-staff-image" :label="__('Staff photo')" accept="image/jpeg,image/png" :hint="__('Choose a JPEG or PNG up to 2 MB.')" required />
+                                    <x-page.field name="address" id="new-staff-address" type="textarea" :label="__('Address')" autocomplete="street-address" required />
                                 </div>
-                                <input class="btn btn-theme" type="submit" value={{ __('submit') }}>
+                                <div class="panel-actions"><button class="m3-button m3-button--filled" type="submit">{{ __('Create staff invitation') }}</button></div>
                             </form>
                         </div>
                     </div>
                 </div>
             @endcan
 
+            @endif
+            @if(request('view') !== 'create')
             @can('staff-list')
                 <div class="col-md-12 grid-margin stretch-card search-container">
                     <div class="card">
@@ -155,6 +96,7 @@
             @endcan
 
 
+            @endif
             {{-- Edit Modal Starts --}}
             <div class="modal fade" id="editModal" data-backdrop="static" tabindex="-1" role="dialog"
                 aria-labelledby="exampleModalLabel" aria-hidden="true">

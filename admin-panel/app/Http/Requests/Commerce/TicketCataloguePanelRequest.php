@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Commerce;
 
+use App\Http\Controllers\Panel\Money\TicketCataloguePanelController;
 use App\Http\Requests\Money\MoneyPanelRequest;
 use App\Policies\Commerce\VendorPolicy;
 use App\Services\Commerce\TicketCatalogues;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Symfony\Component\HttpFoundation\Response;
 
 class TicketCataloguePanelRequest extends MoneyPanelRequest
 {
@@ -36,15 +38,30 @@ class TicketCataloguePanelRequest extends MoneyPanelRequest
 
     public function rules(): array
     {
-        return $this->isMethodSafe() ? ['event_id' => ['sometimes', 'integer', 'min:1'], 'type_id' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'types_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'new_event' => ['sometimes', 'boolean']] : $this->bindingRules() + ($this->routeIs('ticket-events.event') ? TicketCatalogues::eventRules() : TicketCatalogues::typeRules());
+        return $this->isMethodSafe() ? ['section' => ['sometimes', 'string', 'max:32'], 'revisions_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'event_id' => ['sometimes', 'integer', 'min:1'], 'type_id' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'types_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'new_event' => ['sometimes', 'boolean']] : $this->bindingRules() + ($this->routeIs('ticket-events.event') ? TicketCatalogues::eventRules() + ['confirmed_cancellation' => $this->input('status') === 'cancelled' ? ['required', 'accepted'] : ['sometimes', 'accepted']] : TicketCatalogues::typeRules());
     }
 
     protected function failedValidation(Validator $validator): void
     {
-        $title = __('Events and admission tickets');
-        $message = implode(' ', $validator->errors()->all());
-        $draft = [];
-        $returnUrl = route($this->returnRoute());
-        throw new HttpResponseException(response()->view('errors.private-year-refusal', compact('title', 'message', 'draft', 'returnUrl'), 422)->header('Cache-Control', 'private, no-store'));
+        throw new HttpResponseException($this->formFailure($validator->errors()->all()));
+    }
+
+    public function formFailure(array $messages): Response
+    {
+        $eventForm = $this->routeIs('ticket-events.event');
+        foreach (['id', 'event_id'] as $field) {
+            if ($this->has($field) && filter_var($this->input($field), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) {
+                abort(422, __('Review the event and admission type selection.'));
+            }
+        }
+        $this->attributes->set('ticketDraft', array_filter($this->except(['expected_school_id', 'expected_account_id', '_token']), fn ($value) => is_string($value) || is_int($value)));
+        $this->attributes->set('ticketErrors', $messages);
+        $this->merge(['event_id' => $eventForm ? $this->input('id') : $this->input('event_id'), 'type_id' => $eventForm ? null : $this->input('id'), 'section' => $eventForm ? ($this->input('status') === 'cancelled' ? 'cancel' : 'event') : 'type']);
+
+        $response = app(TicketCataloguePanelController::class)->index($this)->setStatusCode(422);
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
+
     }
 }

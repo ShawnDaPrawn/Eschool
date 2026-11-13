@@ -6,6 +6,12 @@
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     @foreach ($errors->all() as $problem)<p role="alert">{{ $problem }}</p>@endforeach
 
+    @php($readingView = request('view') === 'configuration' ? 'configuration' : 'library')
+    <nav class="workspace-tabs" aria-label="{{ __('Reading workspace') }}">
+        <a class="m3-button m3-button--text" href="{{ route('reading-library.index') }}" @if($readingView === 'library') aria-current="page" @endif>{{ __('Shelves and books') }}</a>
+        <a class="m3-button m3-button--text" href="{{ route('reading-library.index', ['view' => 'configuration']) }}" @if($readingView === 'configuration') aria-current="page" @endif>{{ __('Configuration') }}</a>
+    </nav>
+    @if($readingView === 'library')
     <section class="page-section" aria-labelledby="reading-shelves">
         <h2 id="reading-shelves">{{ __('Shelves and books') }}</h2>
         @if ($shelves === [])
@@ -51,6 +57,7 @@
         @endforeach
     </section>
 
+    @else
     <section class="page-section" aria-labelledby="reading-badges">
         <h2 id="reading-badges">{{ __('Reading badges') }}</h2>
         <p>{{ __('Badges are given through Awards, on the learner\'s own profile. They celebrate a learner\'s own reading and never compare learners.') }}</p>
@@ -69,5 +76,6 @@
             </div>
         </form>
     </section>
+    @endif
 </div>
 @endsection

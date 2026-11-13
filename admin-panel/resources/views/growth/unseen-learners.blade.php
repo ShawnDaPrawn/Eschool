@@ -15,6 +15,11 @@
     @if (session('success'))<p role="status" class="m3 m3-banner m3-banner--success">{{ session('success') }}</p>@endif
     <nav class="note-tabs" aria-label="{{ __('Intervention workbench') }}"><a href="{{ route('risk-interventions.index') }}">{{ __('Early warning and interventions') }}</a><a href="{{ route('risk-interventions.unseen') }}" aria-current="page">{{ __('No child unseen') }}</a></nav>
 
+    <nav class="workspace-tabs" aria-label="{{ __('No child unseen') }}">
+        <a class="m3-button m3-button--text" href="{{ route('risk-interventions.unseen') }}" @if($workspaceView === 'learners') aria-current="page" @endif>{{ __('Learners') }}</a>
+        @if($access['principal'])<a class="m3-button m3-button--text" href="{{ route('risk-interventions.unseen', ['view' => 'configuration']) }}" @if($workspaceView === 'configuration') aria-current="page" @endif>{{ __('Configuration') }}</a>@endif
+    </nav>
+    @if($workspaceView === 'learners')
     @if ($mine !== [])
         <section class="note-card"><h2>{{ __('Learners you were asked to check in with') }}</h2>
             @foreach ($mine as $row)
@@ -69,13 +74,14 @@
         </section>
     @endif
 
-    @if ($access['principal'] && $canWrite)
+    @endif
+    @if ($workspaceView === 'configuration' && $access['principal'])
         <section class="note-card"><h2>{{ __('School days without contact') }}</h2>
             <form method="post" action="{{ route('risk-interventions.unseen.configure') }}" class="note-filters">@csrf
                 <input type="hidden" name="expected_account_id" value="{{ $actorId }}">
                 <input type="hidden" name="expected_school_id" value="{{ $schoolId }}">
                 <label for="unseen-days">{{ __('Flag a learner after this many school days without a positive contact') }}<input id="unseen-days" name="school_days" type="number" min="{{ \App\Services\Growth\PositiveContacts::MIN_SCHOOL_DAYS }}" max="{{ \App\Services\Growth\PositiveContacts::MAX_SCHOOL_DAYS }}" value="{{ $schoolDays }}" required></label>
-                <button type="submit" class="m3-button m3-button--filled">{{ __('Save') }}</button>
+                <button type="submit" class="m3-button m3-button--filled" @disabled(!$canWrite)>{{ __('Save') }}</button>
             </form>
         </section>
     @endif

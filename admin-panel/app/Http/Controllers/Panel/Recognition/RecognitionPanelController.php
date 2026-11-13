@@ -10,6 +10,7 @@ use App\Models\Activities\ActivityGroup;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardCategoryAdmin;
+use App\Models\Recognition\AwardNominationVersion;
 use App\Models\Recognition\AwardPresentation;
 use App\Models\Recognition\HouseMembership;
 use App\Models\Recognition\HousePoint;
@@ -36,6 +37,24 @@ class RecognitionPanelController extends Controller
 {
     private function model(RecognitionPanelRequest $r, array $messages = []): array
     {
+        if (! $r->isMethodSafe() && ! $r->filled('view')) {
+            $op = (string) $r->route('operation');
+            $kind = (string) $r->route('kind');
+            $task = $op === 'catalogue' ? (['houses' => 'house', 'point-categories' => 'point-category', 'house-memberships' => 'membership', 'award-categories' => 'category', 'award-definitions' => 'definition', 'award-windows' => 'window', 'award-administrators' => 'administrator'][$kind] ?? '')
+                : (['configure' => 'settings', 'badges' => 'badges', 'issue' => 'points', 'reverse' => 'points', 'nominate' => 'nominate', 'present' => 'present', 'outside' => 'outside', 'void' => 'correct'][$op] ?? '');
+            $view = in_array($op, ['review', 'withdraw'], true) ? 'nominations'
+                : (in_array($task, ['house', 'point-category', 'category', 'definition', 'window', 'administrator', 'settings', 'badges'], true) ? 'editor' : 'learners');
+            $r->merge(['view' => $view, 'task' => $task]);
+            if ($op === 'catalogue') {
+                $r->merge(['edit_id' => $kind === 'award-windows' ? (int) $r->input('award_category_id') : (int) $r->route('record')]);
+            }
+            if (in_array($op, ['review', 'withdraw'], true)) {
+                $r->merge(['nomination_id' => (int) $r->route('record'), 'before' => (int) $r->route('record') + 1]);
+            }
+            if (in_array($op, ['reverse', 'void'], true)) {
+                $r->merge(['edit_id' => (int) $r->route('record'), 'before' => (int) $r->route('record') + 1]);
+            }
+        }
         $module = (string) $r->route('module');
         $q = app(RecognitionQueries::class);
         $config = $q->configuration($r->user(), $module);
@@ -55,7 +74,8 @@ class RecognitionPanelController extends Controller
                 $profile = app(AwardPresentations::class)->profile($r->user(), $learner, false, (int) $r->input('before', 0));
             }
         }
-        $choices = $q->learners($r->user(), $module, (string) $r->input('search', ''), (int) $r->input('after', 0));
+        $search = $r->input('search');
+        $choices = $q->learners($r->user(), $module, is_string($search) ? $search : '', (int) $r->input('after', 0));
         $counter = $module === 'house_points' ? app(HousePoints::class)->counters($r->user(), $year) : null;
         $queue = null;
         if ($module === 'awards') {
@@ -67,11 +87,12 @@ class RecognitionPanelController extends Controller
                 }
             }
         }
-        $operationId = Str::isUuid((string) $r->input('operation_id')) && $messages === [] ? (string) $r->input('operation_id') : (string) Str::uuid();
+        $submittedOperationId = $r->input('operation_id');
+        $operationId = is_string($submittedOperationId) && Str::isUuid($submittedOperationId) && $messages === [] ? $submittedOperationId : (string) Str::uuid();
         $account = (int) $r->user()->id;
         $school = $config['access']['school_id'];
         $canWrite = $config['access']['can_write'] && ! app(SessionYearContext::class)->isReadOnly() && $year === $config['access']['session_year_id'];
-        $assembly = $module === 'awards' && (bool) $r->input('assembly', false);
+        $assembly = $module === 'awards' && ((bool) $r->input('assembly', false) || $r->input('view') === 'assembly');
         $draft = [];
         if (! $r->isMethodSafe() && ! $assembly) {
             foreach (['reason' => 4000, 'criteria' => 4000, 'title' => 160, 'event' => 191, 'outside_organisation' => 160, 'name' => 160] as $key => $limit) {
@@ -152,7 +173,38 @@ class RecognitionPanelController extends Controller
 
         $badges = $module === 'awards' && $config['access']['manager'] ? app(PersistenceBadges::class)->current() : null;
 
-        return compact('badges', 'selectedGrade', 'nominationDefinitions', 'presentationDefinitions', 'canApprove', 'administrators', 'subjects', 'groups', 'staff', 'pointControls', 'presentationControls', 'module', 'config', 'year', 'learner', 'selected', 'history', 'profile', 'membership', 'choices', 'counter', 'queue', 'operationId', 'account', 'school', 'canWrite', 'assembly', 'draft', 'messages');
+        // A destination changes presentation only. Every read and write above
+        // still uses the recognition service's school and dated-role authority.
+        $views = ['catalogue', 'learners', 'nominations', 'configuration', 'editor', 'assembly'];
+        $view = $r->input('view', $learner !== null || $module === 'house_points' ? 'learners' : 'catalogue');
+        $view = is_string($view) && in_array($view, $views, true) ? $view : 'catalogue';
+        if ($assembly || $view === 'assembly') {
+            $assembly = $module === 'awards';
+            $view = $assembly ? 'assembly' : 'learners';
+        }
+        $tasks = ['settings', 'category', 'definition', 'window', 'badges', 'administrator', 'house', 'point-category', 'nominate', 'present', 'outside', 'correct', 'membership', 'points', 'history'];
+        $task = in_array($r->input('task'), $tasks, true) ? (string) $r->input('task') : '';
+        $editId = max(0, (int) $r->input('edit_id', 0));
+        $canConfigure = $config['access']['manager'] || collect($config['award_categories'] ?? [])->contains('can_manage', true);
+        $formInput = $messages === [] ? [] : array_filter($r->all(), fn ($value) => is_scalar($value) || $value === null);
+        $nominationId = max(0, (int) $r->input('nomination_id', 0));
+        $nominationHistory = [];
+        if ($nominationId && $queue !== null) {
+            $queue['items'] = array_values(array_filter($queue['items'], fn ($item) => $item['id'] === $nominationId));
+            abort_if($queue['items'] === [], 404);
+            $queue['next_before'] = null;
+            if (! $assembly) {
+                $nominationHistory = AwardNominationVersion::where('award_nomination_id', $nominationId)->orderByDesc('revision')->get()->map(fn ($version) => [
+                    'revision' => $version->revision, 'at' => $version->created_at->toIso8601String(),
+                    'state' => $version->snapshot['state'] ?? '', 'reason' => $version->snapshot['reason'] ?? '',
+                    'review_reason' => $version->snapshot['review_reason'] ?? '',
+                ])->all();
+            }
+        }
+        $presentationHistory = $task === 'history' && $module === 'awards' && $learner !== null
+            ? app(AwardPresentations::class)->staffHistory($r->user(), $learner, (int) $r->input('before', 0)) : null;
+
+        return compact('nominationHistory', 'presentationHistory', 'nominationId', 'view', 'task', 'editId', 'canConfigure', 'formInput', 'badges', 'selectedGrade', 'nominationDefinitions', 'presentationDefinitions', 'canApprove', 'administrators', 'subjects', 'groups', 'staff', 'pointControls', 'presentationControls', 'module', 'config', 'year', 'learner', 'selected', 'history', 'profile', 'membership', 'choices', 'counter', 'queue', 'operationId', 'account', 'school', 'canWrite', 'assembly', 'draft', 'messages');
     }
 
     public function index(RecognitionPanelRequest $r): Response
@@ -203,7 +255,13 @@ class RecognitionPanelController extends Controller
             return $this->failure($r, [$e->getMessage(), __('Review the current recognition record before trying again.')], $e->getStatusCode());
         }
 
-        $selection = ['module' => $module];
+        $selection = ['module' => $module, 'session_year_id' => (int) $r->input('session_year_id', schoolSetting('session_year'))];
+        if (in_array($r->input('view'), ['catalogue', 'learners', 'nominations', 'configuration', 'editor', 'assembly'], true)) {
+            $selection['view'] = $r->input('view') === 'editor' ? 'configuration' : $r->input('view');
+        }
+        if ($op === 'catalogue' && $module === 'awards' && $r->route('kind') === 'award-definitions') {
+            $selection['view'] = 'catalogue';
+        }
         if ($module === 'awards' && (bool) $r->input('assembly', false)) {
             $selection += ['assembly' => 1, 'session_year_id' => (int) $r->input('session_year_id', schoolSetting('session_year'))];
         } elseif ($r->filled('learner_id')) {

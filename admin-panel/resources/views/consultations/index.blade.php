@@ -2,8 +2,8 @@
 @section('title', __('Polls, surveys and elections'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/consultations.css') }}">@endsection
 @section('content')
-<div class="content-wrapper consultations" data-consultations-root>
-<h1>{{ __('Polls, surveys and elections') }}</h1>
+<div class="content-wrapper m3 page-content consultations" data-consultations-root>
+<x-page.header :title="__('Polls, surveys and elections')" />
 @include('consultations.header')
 @if($managed && $canWrite)<a class="m3-button m3-button--filled" href="{{ route('consultations-panel.new') }}">{{ __('Create a consultation') }}</a>@endif
 <p>{{ __('Only consultations within your current school and audience appear here.') }}</p>

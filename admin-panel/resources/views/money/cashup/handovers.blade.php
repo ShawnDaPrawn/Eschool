@@ -4,6 +4,15 @@
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
 <x-page.header :title="__('Cash custody handovers')" :subtitle="__('Hand over existing school cash to another operator. The recipient must confirm the actual notes and coins received.')" />
+@php
+$section=request('section','history');
+if(!in_array($section,['propose','history'],true)) $section='history';
+$tabs=[];
+$tabs['propose']=['label'=>__('New cash handover'),'url'=>request()->fullUrlWithQuery(['section'=>'propose','page'=>null])];
+$tabs['history']=['label'=>__('Cash handover history'),'url'=>request()->fullUrlWithQuery(['section'=>'history','page'=>null])];
+@endphp
+@include('money.billing.tabs')
+
 <p><a href="{{ route('cashups.index') }}">{{ __('Daily cash-up') }}</a></p>
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 @foreach($available as $currency => $a)
@@ -14,6 +23,7 @@
 </section>
 @endforeach
 <p>{{ __('A proposal reserves the sender’s cash. Acceptance moves custody once without changing the school ledger. Reject or cancel only when no cash was handed over.') }}</p>
+@if($section==='propose')
 @if($currencies!==[] && $recipients!==[])
 <form method="post" action="{{ route('cashups.handovers.propose') }}" aria-label="{{ __('Propose actual cash handover') }}" data-year-safe autocomplete="off">
 @include('money.fee-plans.hidden',['revision'=>0])
@@ -25,6 +35,9 @@
 <x-m3.button type="submit">{{ __('Propose actual cash handover') }}</x-m3.button>
 </form>
 @else<p>{{ __('A recorded currency and another authorized cash operator are required for a handover.') }}</p>@endif
+
+@endif
+@if($section==='history')
 <h2>{{ __('Your retained cash handovers') }}</h2>
 @forelse($rows as $row)
 @php($outcome=$outcomes->get($row->id))
@@ -43,6 +56,8 @@
 @endif
 </section>
 @empty<p>{{ __('No cash handovers are recorded for your account.') }}</p>@endforelse
-{{ $rows->links() }}
+{{ $rows->withQueryString()->links() }}
+
+@endif
 </div>
 @endsection

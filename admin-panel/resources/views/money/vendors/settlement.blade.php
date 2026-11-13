@@ -9,10 +9,13 @@
 <p>{{ $row->private_vendor_snapshot['settlement_terms'] }}</p>
 @if($row->method==='eft')<p>{{ __('Original merchant bank instructions') }}: {{ $row->private_vendor_snapshot['private_bank_instructions'] }}</p>@endif
 <dl>@foreach(['gross_cents'=>'Original gross','sales_net_cents'=>'VAT-exclusive sales net','vat_cents'=>'VAT included','collector_fee_cents'=>'Collector fee','payout_cents'=>'Vendor settlement amount'] as $key=>$label)<dt>{{ __($label) }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($row->$key,$row->currency)->format() }}</dd>@endforeach</dl>
-<p>{{ __('The school is the collector. NavigateEd collection remains disabled and collection accounts remain at zero.') }}</p>
-<ul>@foreach($lines as $line)<li><a href="{{ route('vendor-orders.show',['order'=>$line->order_id]) }}">{{ __('Original order') }} {{ $line->order_id }}</a> · {{ \App\Services\Platform\Ledger\Money::ofCents($line->gross_cents,$row->currency)->format() }}</li>@endforeach</ul>
+<p>{{ __('The school collected these payments. Recording a settlement confirms a verified payout or school sales recognition; it does not send money.') }}</p>
+<div class="page-table__scroll" role="region" aria-label="{{ __('Original settlement orders') }}" tabindex="0"><table class="page-table__table"><caption>{{ __('Original settlement orders') }}</caption><thead><tr><th scope="col">{{ __('Original order') }}</th><th scope="col">{{ __('Gross amount') }}</th><th scope="col">{{ __('VAT-exclusive sales net') }}</th><th scope="col">{{ __('VAT included') }}</th></tr></thead><tbody>
+@foreach($lines as $line)<tr><td><a href="{{ route('vendor-orders.show',['order'=>$line->order_id]) }}">{{ $orderNumbers[$line->order_id]??$line->order_id }}</a></td>@foreach(['gross_cents','sales_net_cents','vat_cents'] as $column)<td>{{ \App\Services\Platform\Ledger\Money::ofCents($line->$column,$row->currency)->format() }}</td>@endforeach</tr>@endforeach
+</tbody></table></div>
 @if($outcome)
 <p role="status">{{ __('Original vendor settlement recorded. Do not pay this batch again.') }}</p><p>{{ __('Actual settlement date') }}: {{ $outcome->paid_on }}</p>
+<section class="workspace-section"><h2>{{ __('Retained settlement evidence') }}</h2><dl><dt>{{ __('Original actual payout reference') }}</dt><dd>{{ $outcome->private_evidence['reference']??'—' }}</dd><dt>{{ __('Private settlement verification') }}</dt><dd>{{ $outcome->private_evidence['verification'] }}</dd><dt>{{ __('Recorded at') }}</dt><dd>{{ $outcome->created_at->toIso8601String() }}</dd></dl></section>
 @elseif(!$approval)
 <p>{{ __('Another Finance operator must approve this original batch before settlement. No money has moved.') }}</p>
 @if($canWrite && $row->prepared_by!==(int)auth()->id())

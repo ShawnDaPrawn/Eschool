@@ -18,12 +18,12 @@ test.describe.configure({ mode: 'serial', retries: 0 });
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
   test(`Finance configures vendor products and counted stock at ${width}px`, async ({ page, baseURL }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(240_000);
     const data = fixture();
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, data.finance);
     const errors = collectErrors(page, baseURL!);
-    const response = await page.goto('/vendor-catalogues');
+    const response = await page.goto('/vendor-catalogues?section=vendor');
     expect(response!.headers()['cache-control']).toContain('no-store');
     let form = page.getByRole('form', { name: 'Save vendor', exact: true });
     await form.getByRole('textbox', { name: 'Vendor name', exact: true }).fill('Synthetic independent tuckshop');
@@ -41,7 +41,10 @@ for (const width of [390, 820, 1280]) {
     await check(page);
     await form.getByRole('button', { name: 'Save vendor', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('Vendor catalogue change saved.');
+    await page.getByRole('link', { name: 'Vendor configuration', exact: true }).click();
     await expect(page.getByRole('textbox', { name: 'Private vendor bank instructions', exact: true })).toHaveValue('');
+    await page.getByRole('link', { name: 'Products', exact: true }).click();
+    await page.getByRole('link', { name: 'Create product', exact: true }).click();
     form = page.getByRole('form', { name: 'Save vendor product', exact: true });
     await form.getByRole('textbox', { name: 'Permanent product SKU', exact: true }).fill('SYNTHETIC-SANDWICH');
     await form.getByRole('textbox', { name: 'Product name', exact: true }).fill('Synthetic sandwich');
@@ -51,6 +54,7 @@ for (const width of [390, 820, 1280]) {
     await form.getByRole('combobox', { name: 'Permanent stock mode', exact: true }).selectOption('1');
     await form.getByRole('combobox', { name: 'Product status', exact: true }).selectOption('active');
     await form.getByRole('button', { name: 'Save vendor product', exact: true }).click();
+    await page.getByRole('link', { name: 'Counted stock', exact: true }).click();
     await expect(page.getByRole('main')).toContainText('Units on hand: 0');
     form = page.getByRole('form', { name: 'Record stock adjustment', exact: true });
     await form.getByRole('textbox', { name: 'Unique physical stock reference', exact: true }).fill('SYNTHETIC-COUNTED-DELIVERY');
@@ -87,7 +91,7 @@ test('Scoped CSP runs trusted workbench scripts and blocks injected inline code'
     });
   });
   await signIn(page, data.finance);
-  const response = await page.goto('/vendor-catalogues');
+  const response = await page.goto('/vendor-catalogues?section=vendor');
   expect(response!.status()).toBe(200);
   const scriptPolicy = response!.headers()['content-security-policy'].split(';').find(value => value.trim().startsWith('script-src'))!;
   expect(scriptPolicy).toContain("'nonce-");

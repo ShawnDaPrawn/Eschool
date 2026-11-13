@@ -47,7 +47,14 @@ class AssistancePanelController extends Controller
             }
         }
 
-        return compact('configuration', 'thread', 'document', 'turn', 'canWrite', 'draft', 'messages') + [
+        $officeView = $turn ? 'review' : ($thread ? 'thread' : ($document ? 'documents' : 'queue'));
+        if ($r->route('operation') === 'publish' || ($r->isMethodSafe() && $r->query('view') === 'publish' && ! $thread && ! $turn)) {
+            $officeView = 'publish';
+        } elseif ($r->route('operation') === 'withdraw' || ($r->isMethodSafe() && $r->query('view') === 'documents' && ! $thread && ! $turn)) {
+            $officeView = 'documents';
+        }
+
+        return compact('configuration', 'thread', 'document', 'turn', 'canWrite', 'draft', 'messages', 'officeView') + [
             'documents' => $q->officeDocuments($actor, (int) $r->input('document_page', 1)),
             'queue' => app(SchoolSupportThreads::class)->officeQueue($actor, (int) $r->input('page', 1)),
             'staff' => $thread === null ? [] : $q->officeStaff($actor)['staff'],
@@ -101,6 +108,10 @@ class AssistancePanelController extends Controller
             $args['thread'] = $row['id'];
         } elseif ($op === 'publish') {
             $args['document'] = $row['id'];
+            $args['view'] = 'documents';
+        } elseif ($op === 'withdraw') {
+            $args['document'] = $r->route('document');
+            $args['view'] = 'documents';
         } elseif (in_array($op, ['translate', 'run'], true)) {
             $args['turn'] = $row['id'];
         }

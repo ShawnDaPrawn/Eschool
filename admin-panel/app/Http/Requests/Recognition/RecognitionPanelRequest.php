@@ -21,6 +21,12 @@ class RecognitionPanelRequest extends RecognitionRequest
     public function rules(): array
     {
         $common = ['learner_id' => ['sometimes', 'nullable', 'integer', 'min:1'], 'session_year_id' => ['sometimes', 'integer', 'min:1'], 'before' => ['sometimes', 'integer', 'min:1'], 'after' => ['sometimes', 'integer', 'min:0'], 'search' => ['sometimes', 'nullable', 'string', 'max:100'], 'assembly' => ['sometimes', 'boolean']];
+        $common += [
+            'view' => ['sometimes', 'in:catalogue,learners,nominations,configuration,editor,assembly'],
+            'task' => ['sometimes', 'nullable', 'in:settings,category,definition,window,badges,administrator,house,point-category,nominate,present,outside,correct,membership,points,history'],
+            'edit_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'nomination_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
+        ];
         if ($this->isMethodSafe()) {
             return $common;
         }

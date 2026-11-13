@@ -15,6 +15,7 @@ use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Term;
 use App\Services\Platform\Files\FileNames;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,7 @@ class AnnouncementController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (! Auth::user()->can('announcement-list')) {
             $response = [
@@ -41,8 +42,15 @@ class AnnouncementController extends Controller
         }
         $class_section = ClassSection::SubjectTeacher()->with('class.medium', 'section')->get();
         $session_years = SessionYear::orderBy('id', 'ASC')->get();
+        $editingNotice = null;
+        if ($request->filled('notice_id')) {
+            $request->validate(['notice_id' => 'required|integer|min:1']);
+            abort_unless($request->user()->can('announcement-edit'), 403);
+            $editingNotice = Announcement::with(['table', 'file'])->findOrFail($request->integer('notice_id'));
+            abort_unless($this->canManageAnnouncement($editingNotice), 403);
+        }
 
-        return view('announcement.index', compact('class_section', 'session_years'));
+        return view('announcement.index', compact('class_section', 'session_years', 'editingNotice'));
     }
 
     public function getClassSectionsForAnnouncement(Request $request)
@@ -166,9 +174,14 @@ class AnnouncementController extends Controller
 
             return response()->json($response);
         }
+        $this->validateAudience($request, false);
+        if ($request->input('set_data') === 'class') {
+            $request->validate(['get_data' => 'required|array|min:1|max:100', 'get_data.*' => 'required|integer|min:1|distinct']);
+            abort_unless(ClassSchool::whereIn('id', $request->input('get_data'))->count() === count($request->input('get_data')), 404);
+        }
         $validator = Validator::make($request->all(), [
             'title' => 'required',
-            'set_data' => 'required',
+            'set_data' => 'required|in:class,class_section,noticeboard',
             'file' => 'nullable|array',
             'file.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif|max:4096',
         ], [
@@ -183,6 +196,7 @@ class AnnouncementController extends Controller
 
             return response()->json($response);
         }
+        DB::beginTransaction();
         try {
             $user = [];
             // $data = getSettings('session_year');
@@ -200,8 +214,9 @@ class AnnouncementController extends Controller
                 if (! empty($request->set_data)) {
                     if ($request->set_data == 'class_section') {
                         $teacher_id = Auth::user()->teacher->id;
-                        $subject_teacher_id = SubjectTeacher::select('id')->where(['class_section_id' => $request->class_section_id, 'teacher_id' => $teacher_id, 'subject_id' => $request->get_data[$i]])->get()->pluck('id');
-                        $subject_name = SubjectTeacher::where(['teacher_id' => $teacher_id, 'class_section_id' => $request->class_section_id, 'subject_id' => $request->get_data[$i]])->with('subject')->get();
+                        $allocation = $this->allocationQuery($request)->where('subject_id', $request->get_data[$i]);
+                        $subject_teacher_id = (clone $allocation)->pluck('id');
+                        $subject_name = $allocation->with('subject')->get();
                         if (count($subject_name)) {
                             if (count($subject_teacher_id) != 0) {
                                 for ($j = 0; $j < count($subject_teacher_id); $j++) {
@@ -213,6 +228,7 @@ class AnnouncementController extends Controller
                             $title = 'New announcement in '.$subject_name[0]->subject->name;
                             $body = $request->title;
                         } else {
+                            DB::rollBack();
                             $response = [
                                 'error' => true,
                                 'message' => trans('no_data_found'),
@@ -222,7 +238,8 @@ class AnnouncementController extends Controller
                         }
                     }
                     if ($request->set_data == 'class') {
-                        $class = ClassSchool::find($request->get_data[$i]);
+                        $class = ClassSchool::findOrFail($request->get_data[$i]);
+                        abort_if(Auth::user()->hasRole('Teacher'), 403);
                         $announcement->table()->associate($class);
                         $get_class = ClassSection::select('id')->where('class_id', $request->get_data[$i])->get()->pluck('id');
                         $user = Students::select('user_id')->whereIn('class_section_id', $get_class)->get()->pluck('user_id');
@@ -258,6 +275,7 @@ class AnnouncementController extends Controller
                 'error' => false,
                 'message' => trans('data_store_successfully'),
             ];
+            DB::commit();
         } catch (Throwable $e) {
             if (Str::contains($e->getMessage(), ['does not exist', 'file_get_contents'])) {
                 DB::commit();
@@ -294,29 +312,35 @@ class AnnouncementController extends Controller
 
             return response()->json($response);
         }
+        $announcement = Announcement::findOrFail($request->input('edit_id'));
+        abort_unless($this->canManageAnnouncement($announcement), 403);
+        abort_unless((int) $announcement->session_year_id === (int) getSettings('session_year')['session_year'], 423);
+        $this->validateAudience($request, true);
         $request->validate([
             'title' => 'required',
-            'set_data' => 'required',
+            'set_data' => 'required|in:class,class_section,noticeboard',
+            'file' => 'nullable|array',
+            'file.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif|max:4096',
         ], [
             'title.required' => trans('title_is_required'),
             'set_data.required' => trans('assign_to_field_is_required'),
         ]);
+        DB::beginTransaction();
         try {
-
             $user = [];
             $title = ''; // Initialize $title to avoid undefined variable
             $body = '';  // Initialize $body to avoid undefined variable
             if (Auth::user()->teacher) {
                 $teacher_id = Auth::user()->teacher->id;
             }
-            $announcement = Announcement::find($request->edit_id);
             $announcement->title = $request->title;
             $announcement->description = $request->description;
             $announcement->term_id = $request->term_id ?: null;
             if (! empty($request->set_data)) {
                 if ($request->set_data == 'class_section') {
-                    $subject_teacher_id = SubjectTeacher::select('id')->where(['class_section_id' => $request->class_section_id, 'subject_id' => $request->get_data, 'teacher_id' => $teacher_id])->get()->pluck('id');
-                    $subject_name = SubjectTeacher::where(['class_section_id' => $request->class_section_id, 'subject_id' => $request->get_data, 'teacher_id' => $teacher_id])->with('subject')->get();
+                    $allocation = $this->allocationQuery($request)->where('subject_id', $request->get_data);
+                    $subject_teacher_id = (clone $allocation)->pluck('id');
+                    $subject_name = $allocation->with('subject')->get();
                     if (count($subject_teacher_id) != 0) {
                         for ($j = 0; $j < count($subject_teacher_id); $j++) {
                             $subject_teacher = SubjectTeacher::find($subject_teacher_id[$j]);
@@ -332,7 +356,8 @@ class AnnouncementController extends Controller
                     }
                 }
                 if ($request->set_data == 'class') {
-                    $class = ClassSchool::find($request->get_data);
+                    $class = ClassSchool::findOrFail($request->get_data);
+                    abort_if(Auth::user()->hasRole('Teacher'), 403);
                     $announcement->table()->associate($class);
                     $get_class = ClassSection::select('id')->where('class_id', $request->get_data)->get()->pluck('id');
                     $user = Students::select('user_id')->whereIn('class_section_id', $get_class)->get()->pluck('user_id');
@@ -457,17 +482,15 @@ class AnnouncementController extends Controller
         $canDelete = $user->can('announcement-delete');
         foreach ($res as $row) {
             $operate = '';
-            // Teachers manage their own subject announcements; every other role manages noticeboard announcements.
+            // Teachers manage their own subject announcements; other authorised roles manage class and noticeboard announcements.
             // Gate the action buttons on the granular permissions so custom roles work, not on hardcoded role names.
-            $canManageRow = $isTeacher
-                ? $row->table_type == 'App\\Models\\SubjectTeacher'
-                : $row->table_type == '';
+            $canManageRow = $this->canManageAnnouncement($row);
             if ($canManageRow) {
                 if ($canEdit) {
-                    $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-announcement-form" data-id="'.$row->id.'"  title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                    $operate .= '<a class="m3-button m3-button--text" href="'.e(route('announcement.index', ['notice_id' => $row->id])).'">'.e(__('Edit notice')).'</a>';
                 }
                 if ($canDelete) {
-                    $operate .= '<a class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletedata" data-id="'.$row->id.'" data-url="'.url('announcement', $row->id).'" title="Delete"><i class="fa fa-trash"></i></a>';
+                    $operate .= '<a class="m3-button m3-button--text" data-notice-delete href="'.e(route('announcement.destroy', $row->id)).'">'.e(__('Delete notice')).'</a>';
                 }
             }
 
@@ -526,8 +549,10 @@ class AnnouncementController extends Controller
 
             return response()->json($response);
         }
+        $announcement = Announcement::findOrFail($id);
+        abort_unless($this->canManageAnnouncement($announcement), 403);
         try {
-            Announcement::find($id)->delete();
+            $announcement->delete();
             $response = [
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
@@ -540,5 +565,40 @@ class AnnouncementController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    private function canManageAnnouncement(Announcement $announcement): bool
+    {
+        $actor = Auth::user();
+        if ($actor->hasRole('Teacher')) {
+            return $announcement->table_type === SubjectTeacher::class && $actor->teacher
+                && SubjectTeacher::whereKey($announcement->table_id)->where('teacher_id', $actor->teacher->id)->exists();
+        }
+
+        return in_array($announcement->table_type, ['', ClassSchool::class], true);
+    }
+
+    private function validateAudience(Request $request, bool $editing): void
+    {
+        $request->validate(['set_data' => 'required|in:class,class_section,noticeboard']);
+        abort_if(Auth::user()->hasRole('Teacher') && $request->input('set_data') !== 'class_section', 403);
+        if ($request->input('set_data') === 'class_section') {
+            abort_unless(Auth::user()->teacher, 403);
+            $rules = ['class_section_id' => 'required|integer|min:1', 'term_id' => 'nullable|integer|min:1'];
+            $request->validate($rules + ($editing ? ['get_data' => 'required|integer|min:1'] : ['get_data' => 'required|array|min:1|max:100', 'get_data.*' => 'required|integer|min:1|distinct']));
+            $subjects = $editing ? [$request->integer('get_data')] : $request->input('get_data');
+            abort_unless($this->allocationQuery($request)->whereIn('subject_id', $subjects)->distinct()->count('subject_id') === count($subjects), 404);
+        } elseif ($editing && $request->input('set_data') === 'class') {
+            $request->validate(['get_data' => 'required|integer|min:1']);
+            ClassSchool::findOrFail($request->integer('get_data'));
+        }
+    }
+
+    private function allocationQuery(Request $request): Builder
+    {
+        return SubjectTeacher::where('class_section_id', $request->integer('class_section_id'))
+            ->where('teacher_id', Auth::user()->teacher->id)
+            ->where('session_year_id', getSettings('session_year')['session_year'])
+            ->where('term_id', $request->input('term_id') ?: null);
     }
 }

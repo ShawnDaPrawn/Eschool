@@ -22,12 +22,13 @@
             5 => __('new_year_step_switch'),
         ];
     @endphp
-    <div class="content-wrapper m3 page-content new-year" data-new-year data-start-step="{{ $step }}"
+    <div class="content-wrapper m3 page-content new-year" data-new-year data-start-step="{{ $step }}" data-source-year-id="{{ $current->id }}"
         @if ($next) data-preview-url="{{ route('new-year.preview') }}" data-year-id="{{ $next->id }}" @endif>
 
         <x-page.header :title="__('nav_new_year')"
             :subtitle="__('new_year_subtitle', ['year' => $current->name])" />
 
+        <p class="m3-banner m3-banner--info">{{ __('This is a school-wide year transition. Viewing another year in the header does not activate it. Promotions only prepare learner placements.') }}</p>
         <nav aria-label="{{ __('new_year_steps') }}">
             <ol class="wizard-steps">
                 @foreach ($steps as $number => $label)
@@ -70,7 +71,7 @@
                         </div>
                     </div>
                 </div>
-            @else
+            @elseif($canCreate)
                 <x-page.form-card id="new-year-form" :action="route('new-year.store')"
                     :title="__('new_year_create_title', ['current' => $current->name])"
                     :subtitle="__('new_year_create_hint', ['current' => $current->name])"
@@ -113,6 +114,8 @@
                         @endforeach
                     </fieldset>
                 </x-page.form-card>
+            @else
+                <p>{{ __('A school-year creator must prepare the next year before you can review activation.') }}</p>
             @endif
         </section>
 
@@ -121,6 +124,7 @@
                 data-page-form data-draft="new-year-switch-{{ $next->id }}">
                 @csrf
                 <input type="hidden" name="year_id" value="{{ $next->id }}">
+                <input type="hidden" name="source_year_id" value="{{ $current->id }}">
                 <div class="m3-banner m3-banner--danger page-form-summary" role="alert" data-form-summary hidden></div>
 
                 {{-- Step 2: carry forward --}}
@@ -133,17 +137,19 @@
                                 <p class="page-card-subtitle">{{ __('new_year_carry_hint') }}</p>
                                 <ul class="new-year-carry">
                                     @foreach ($carry as $option)
-                                        @php($usable = $option['source'] > 0 && $option['existing'] === 0)
+                                        @php($usable = $option['source'] > 0 && $option['existing'] === 0 && ($option['key'] !== 'curriculum' || $canCarryCurriculum))
                                         <li class="new-year-carry-option">
                                             <label class="m3-checkbox new-year-carry-check" for="carry-{{ $option['key'] }}">
                                                 <input class="m3-checkbox__input" type="checkbox" name="carry[]" value="{{ $option['key'] }}"
-                                                    id="carry-{{ $option['key'] }}" @checked($usable) @disabled(! $usable)
+                                                    id="carry-{{ $option['key'] }}" @checked($usable && $option['chosen']) @disabled(! $usable)
                                                     aria-describedby="carry-{{ $option['key'] }}-note" data-carry-option>
                                                 <span class="m3-checkbox__control"></span>
                                                 <span class="new-year-carry-label">{{ $option['label'] }}</span>
                                             </label>
                                             <span class="new-year-carry-note" id="carry-{{ $option['key'] }}-note">
-                                                @if ($option['existing'] > 0)
+                                                @if ($option['key'] === 'curriculum' && !$canCarryCurriculum)
+                                                    {{ __('Curriculum publishing permission is required to copy curriculum plans.') }}
+                                                @elseif ($option['existing'] > 0)
                                                     {{ __('new_year_carry_has_own', ['year' => $next->name, 'count' => $option['existing']]) }}
                                                 @elseif ($option['source'] === 0)
                                                     {{ __('new_year_carry_nothing', ['year' => $current->name]) }}
@@ -209,6 +215,7 @@
                     <div class="m3-card m3-card--outlined page-section">
                         <div class="m3-card__content">
                             <p class="page-card-title">{{ __('new_year_preview_title', ['next' => $next->name]) }}</p>
+                            <p class="m3-banner m3-banner--warning" role="status" data-year-preview-status hidden></p>
                             <ul class="new-year-preview" data-new-year-preview aria-live="polite">
                                 <li>{{ __('new_year_preview_current', ['next' => $next->name, 'current' => $current->name]) }}</li>
                                 @foreach ($preview['carry'] as $option)

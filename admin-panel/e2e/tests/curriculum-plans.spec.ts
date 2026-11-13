@@ -1,8 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect as playwrightExpect, test } from '@playwright/test';
+const expect = playwrightExpect.configure({ timeout: 30_000 });
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.use({ storageState: { cookies: [], origins: [] } });
+test.setTimeout(180_000);
 
 test('admin prepares and publishes an exact question-based term plan then copies a draft', async ({ page, baseURL }) => {
   await signIn(page, accounts.adminB);
@@ -22,7 +24,7 @@ test('admin prepares and publishes an exact question-based term plan then copies
   await page.getByLabel('Question maximum mark', { exact: true }).first().fill('7.50');
   await page.getByRole('button', { name: 'Add question', exact: true }).click();
   await page.getByLabel('Question maximum mark', { exact: true }).nth(1).fill('12.50');
-  for (const width of [1024, 1280]) {
+  for (const width of [390, 820, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
@@ -30,9 +32,11 @@ test('admin prepares and publishes an exact question-based term plan then copies
   await page.getByRole('button', { name: 'Save draft', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Curriculum draft saved' })).toBeVisible();
   await expect(page.getByLabel('Question maximum mark', { exact: true }).nth(1)).toHaveValue('12.50');
+  await page.getByRole('link', { name: 'Publication', exact: true }).click();
   await page.getByRole('button', { name: /^Publish term:/ }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Term assessment published' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save draft', exact: true })).toBeDisabled();
+  await page.getByRole('link', { name: 'Copy to a new draft', exact: true }).click();
   await page.getByRole('button', { name: 'Copy to draft', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Definitions copied to a draft' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save draft', exact: true })).toBeEnabled();

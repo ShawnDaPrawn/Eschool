@@ -46,6 +46,7 @@
 <link rel="stylesheet" href="{{ asset('/assets/css/tables.css') }}?v={{ filemtime(public_path('assets/css/tables.css')) }}">
 {{-- Panel shell (search, year switcher, read-only banner) and the shared page components (resources/views/components/page). Last, so a page pattern rule wins. --}}
 <link rel="stylesheet" href="{{ asset('/assets/css/panel.css') }}?v={{ filemtime(public_path('assets/css/panel.css')) }}">
+<link rel="stylesheet" href="{{ asset('/assets/css/admin-design.css') }}?v={{ filemtime(public_path('assets/css/admin-design.css')) }}">
 
 <script src="{{ route('common.language.read') }}"></script>
 

@@ -20,9 +20,10 @@ class ActivitySeasonController extends Controller
 
     public function index(Request $request): View
     {
-        $year = $this->year();
+        $year = SessionYear::query()->findOrFail(app(SessionYearContext::class)->selectedId() ?? $this->year()->id);
+        $readOnly = app(SessionYearContext::class)->isReadOnly();
 
-        return view('activities.seasons', ['year' => $year, 'seasons' => $this->seasons->seasons($request->user(), (int) $year->id)]);
+        return view('activities.seasons', ['year' => $year, 'readOnly' => $readOnly, 'seasons' => $this->seasons->seasons($request->user(), (int) $year->id)]);
     }
 
     public function store(ActivitySeasonRequest $request): RedirectResponse

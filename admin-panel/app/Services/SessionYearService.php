@@ -16,6 +16,7 @@ use App\Models\Exam;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\OnlineExam;
+use App\Models\Platform\School;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\Students;
@@ -24,6 +25,7 @@ use App\Models\SubjectTeacher;
 use App\Models\Term;
 use App\Services\Academics\TermCalendar;
 use App\Services\People\Leavers\LeaverState;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -71,12 +73,16 @@ class SessionYearService
      * Make a session year the school's current one: the year the apps show and
      * the admin panel opens on.
      */
-    public function makeCurrent(SessionYear $sessionYear): void
+    public function makeCurrent(SessionYear $sessionYear, ?int $expectedSourceYear = null): void
     {
-        $previous = Settings::where('type', 'session_year')->value('message');
-        $changed = (string) $previous !== (string) $sessionYear->id;
-
-        DB::transaction(function () use ($sessionYear, $changed) {
+        $changed = DB::transaction(function () use ($sessionYear, $expectedSourceYear) {
+            School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
+            $previous = Settings::where('type', 'session_year')->lockForUpdate()->value('message');
+            if ($expectedSourceYear !== null) {
+                abort_unless((int) $previous === $expectedSourceYear, 409,
+                    __('The school current year changed. Reload the transition review before activating.'));
+            }
+            $changed = (string) $previous !== (string) $sessionYear->id;
             SessionYear::where('default', 1)->whereKeyNot($sessionYear->id)->update(['default' => 0]);
             $sessionYear->default = 1;
             $sessionYear->save();
@@ -85,6 +91,8 @@ class SessionYearService
             if ($changed) {
                 $this->applyPromotions($sessionYear->id);
             }
+
+            return $changed;
         });
 
         // The admin panel's year picker follows the new current year.

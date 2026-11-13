@@ -39,38 +39,15 @@
 
 </div>
 
-<div class="row mb-3 align-items-end">
-
-    <div class="col-md-6">
-        <h4 class="mb-0">{{ __('attendance_calendar') }}</h4>
-    </div>
-
-    <div class="col-md-4 col-lg-3 ml-auto d-flex justify-content-end">
-        <form method="GET" class="sr-month-select-form">
-            <input type="hidden" name="tab" value="attendance">
-
-            <label class="d-block text-right small mb-1" for="month-selector">{{ __('select_month') }}</label>
-
-            <select id="month-selector" name="month" class="form-control">
-                @foreach($mounth as $month)
-                    <option value="{{ $month['value'] }}"
-                        {{ $calendarMonth == $month['value'] ? 'selected' : '' }}>
-                        {{ $month['name'] }}
-                    </option>
-                @endforeach
-            </select>
-        </form>
-    </div>
-</div>
+<section class="workspace-section" aria-labelledby="learner-attendance-calendar-title">
+    <h2 id="learner-attendance-calendar-title">{{ __('attendance_calendar') }}</h2>
+    <form method="GET" class="sr-month-select-form panel-form-grid">
+        <input type="hidden" name="tab" value="attendance">
+        <x-page.field name="month" id="month-selector" type="select" :label="__('select_month')" :options="collect($mounth)->pluck('name', 'value')->all()" :value="$calendarMonth" :restore-old-input="false" />
+        <button class="m3-button m3-button--outlined" type="submit">{{ __('Show month') }}</button>
+    </form>
+</section>
 
 <div id="attendance-calendar">
     @include('students.report.calendar')
 </div>
-
-<script>
-$(document).ready(function() {
-    $('#month-selector').change(function() {
-        $(this).closest('form').submit();
-    });
-});
-</script>

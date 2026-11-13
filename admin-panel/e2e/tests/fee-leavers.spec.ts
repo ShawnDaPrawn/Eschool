@@ -31,7 +31,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 for(const width of [390,820,1280]){
  test(`Finance reviews original payer leaver credits and posts once at ${width}px`,async({page,baseURL})=>{
   test.setTimeout(180_000);const data=fixture();await page.setViewportSize({width,height:1000});await signIn(page,data.finance);const errors=collectErrors(page,baseURL!);
-  const response=await page.goto('/fee-leavers');expect(response?.headers()['cache-control']).toContain('no-store');
+  const response=await page.goto('/fee-leavers?section=settings');expect(response?.headers()['cache-control']).toContain('no-store');
   await page.getByRole('combobox',{name:'Departure rule for invoices without an original saved policy',exact:true}).selectOption('daily');await page.getByRole('combobox',{name:'Existing fee reductions on departure',exact:true}).selectOption('retain_full');await page.getByRole('combobox',{name:'Separate Finance approval',exact:true}).selectOption('0');await check(page);await submitOnceAndReplay(page,'Save leaver credit policy');
   await page.goto('/fee-leavers/new?invoice_id='+data.invoice);await page.getByRole('combobox',{name:'Invoiced learner',exact:true}).selectOption(String(data.learners[0].id));await page.getByRole('textbox',{name:'Private Finance explanation',exact:true}).fill('PRIVATE-SYNTHETIC-LEAVER-EVIDENCE');await page.getByRole('button',{name:'Review leaver credit',exact:true}).click();
   await expect(page.getByRole('table',{name:'Original-holder leaver credits',exact:true})).toBeVisible();await expect(page.getByRole('main')).toContainText(data.departure);await check(page);

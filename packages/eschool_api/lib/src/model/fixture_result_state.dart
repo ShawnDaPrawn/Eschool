@@ -23,6 +23,8 @@ class FixtureResultState {
 
     required this.guestScore,
 
+    this.winner,
+
     this.myReport,
 
     this.theirReport,
@@ -43,6 +45,15 @@ class FixtureResultState {
 
   @JsonKey(name: r'guest_score', required: true, includeIfNull: true)
   final int? guestScore;
+
+  /// The winning side both schools confirmed, for an academic competition (null for a match or before confirmation).
+  @JsonKey(
+    name: r'winner',
+    required: false,
+    includeIfNull: false,
+    unknownEnumValue: FixtureResultStateWinnerEnum.unknownDefaultOpenApi,
+  )
+  final FixtureResultStateWinnerEnum? winner;
 
   @JsonKey(name: r'my_report', required: false, includeIfNull: false)
   final FixtureScores? myReport;
@@ -65,6 +76,7 @@ class FixtureResultState {
           other.state == state &&
           other.hostScore == hostScore &&
           other.guestScore == guestScore &&
+          other.winner == winner &&
           other.myReport == myReport &&
           other.theirReport == theirReport &&
           other.waitingFor == waitingFor;
@@ -74,6 +86,7 @@ class FixtureResultState {
       state.hashCode +
       (hostScore == null ? 0 : hostScore.hashCode) +
       (guestScore == null ? 0 : guestScore.hashCode) +
+      (winner == null ? 0 : winner.hashCode) +
       (myReport == null ? 0 : myReport.hashCode) +
       (theirReport == null ? 0 : theirReport.hashCode) +
       (waitingFor == null ? 0 : waitingFor.hashCode);
@@ -102,6 +115,25 @@ enum FixtureResultStateStateEnum {
   unknownDefaultOpenApi(r'unknown_default_open_api');
 
   const FixtureResultStateStateEnum(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
+/// The winning side both schools confirmed, for an academic competition (null for a match or before confirmation).
+enum FixtureResultStateWinnerEnum {
+  @JsonValue(r'host')
+  host(r'host'),
+  @JsonValue(r'guest')
+  guest(r'guest'),
+  @JsonValue(r'draw')
+  draw(r'draw'),
+  @JsonValue(r'unknown_default_open_api')
+  unknownDefaultOpenApi(r'unknown_default_open_api');
+
+  const FixtureResultStateWinnerEnum(this.value);
 
   final String value;
 

@@ -5,13 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-           
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('subject') . ' ' . __('teacher') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('subject') . ' ' . __('teacher')" />
 
         <div class="row">
             @can('subject-teacher-create')

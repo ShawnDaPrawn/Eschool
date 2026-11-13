@@ -7,6 +7,7 @@ namespace App\Services\Learning\Library;
 use App\Models\Library\LibraryItem;
 use App\Models\Library\LibraryItemVersion;
 use App\Models\Library\LibraryReview;
+use App\Models\Library\LibraryReviewer;
 use App\Models\Library\LibrarySource;
 use App\Models\Library\LibraryTopic;
 use App\Models\User;
@@ -48,6 +49,11 @@ class LibraryItems
     public static function publishRules(): array
     {
         return ['version_id' => ['required', 'integer', 'min:1'], 'revision' => ['required', 'integer', 'min:1']];
+    }
+
+    public static function unpublishRules(): array
+    {
+        return ['revision' => ['required', 'integer', 'min:1'], 'reason' => ['required', 'string', 'min:10', 'max:1000']];
     }
 
     public static function reviewRules(): array
@@ -180,6 +186,7 @@ class LibraryItems
             $item = LibraryItem::query()->lockForUpdate()->findOrFail($version->library_item_id);
             $version = LibraryItemVersion::query()->with('item.topic')->findOrFail($versionId);
             abort_unless($version->state === 'in_review', 409, 'This version is not waiting for review.');
+            abort_if($item->withdrawn_at !== null, 409, 'Its school withdrew this shared item.');
             $refusal = app(LibraryReviewers::class)->refusal($actor, $version);
             abort_if($refusal !== null, 403, (string) $refusal);
             $review = LibraryReview::create(['library_item_version_id' => $version->id, 'reviewer_id' => $actor->id, 'decision' => $data['decision'],
@@ -204,16 +211,44 @@ class LibraryItems
             $version = LibraryItemVersion::query()->where('library_item_id', $item->id)->find($data['version_id']);
             abort_if($version === null, 404);
             abort_unless($version->state === 'approved', 409, 'Only an approved version can be published.');
-            abort_if($item->published_version_id !== null && (int) LibraryItemVersion::query()->whereKey($item->published_version_id)->value('number') > $version->number,
-                409, 'A later version is already published.');
+            // Never older than any version published before, including one a reviewer has since unpublished (Action Plan 5.4).
+            $last = LibraryItemVersion::query()->where('library_item_id', $item->id)->where('state', 'published')->max('number');
+            abort_if($last !== null && (int) $last > $version->number, 409, 'A later version is already published.');
             $before = $item->published_version_id;
             $version->update(['state' => 'published', 'published_by' => $actor->id, 'published_at' => now()]);
-            $item->update(['published_version_id' => $version->id, 'revision' => $item->revision + 1]);
+            $item->update(['published_version_id' => $version->id, 'revision' => $item->revision + 1, 'unpublished_at' => null, 'unpublished_by' => null, 'unpublish_reason' => null]);
             $approval = LibraryReview::query()->where('library_item_version_id', $version->id)->where('decision', 'approved')->latest('id')->first();
             Audit::record('library_published', $item, ['published_version_id' => $before], ['published_version_id' => $version->id, 'number' => $version->number,
                 'origin' => $version->origin, 'changed_by' => $actor->id] + ($version->drafted() ? ['reviewed_by' => $this->name((int) $approval?->reviewer_id)] : []));
 
             return $version;
+        });
+    }
+
+    /**
+     * A reviewer assigned to the item's subject takes a published item out of
+     * the library (Action Plan 5.4), with a reason: no school is offered it
+     * again and practice sets stop using it. Its versions stay as they were,
+     * so evidence that used one keeps pointing at it. Content can publish a
+     * later version after review.
+     */
+    public function unpublish(User $actor, int $itemId, array $input): LibraryItem
+    {
+        $actor = app(LibraryAccess::class)->actor($actor, LibraryAccess::REVIEW);
+        $data = Validator::make($input, self::unpublishRules())->validate();
+
+        return DB::transaction(function () use ($actor, $itemId, $data) {
+            $item = LibraryItem::query()->with('topic')->lockForUpdate()->findOrFail($itemId);
+            abort_unless($item->revision === (int) $data['revision'], 409, 'This item changed. Reload it before saving.');
+            abort_unless(LibraryReviewer::query()->where('user_id', $actor->id)->where('library_framework_id', $item->topic->library_framework_id)
+                ->where('subject_code', $item->topic->subject_code)->exists(), 403, 'You are not a reviewer for this subject.');
+            abort_if($item->published_version_id === null, 409, 'This item is not published.');
+            $before = $item->published_version_id;
+            $item->update(['published_version_id' => null, 'unpublished_at' => now(), 'unpublished_by' => $actor->id, 'unpublish_reason' => trim((string) $data['reason']),
+                'revision' => $item->revision + 1]);
+            Audit::record('library_unpublished', $item, ['published_version_id' => $before], ['published_version_id' => null, 'reason' => $item->unpublish_reason, 'changed_by' => $actor->id]);
+
+            return $item;
         });
     }
 
@@ -251,6 +286,7 @@ class LibraryItems
     {
         $item = LibraryItem::query()->with('topic')->lockForUpdate()->findOrFail($itemId);
         abort_unless($item->revision === $revision, 409, 'This item changed. Reload it before saving.');
+        abort_if($item->withdrawn_at !== null, 409, 'Its school withdrew this shared item. It cannot be changed or published again.');
 
         return $item;
     }

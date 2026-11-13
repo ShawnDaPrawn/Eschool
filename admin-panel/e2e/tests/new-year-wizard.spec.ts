@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { csrfToken } from '../support/accounts';
+import { accounts, csrfToken, signIn } from '../support/accounts';
+
+test.use({ storageState: { cookies: [], origins: [] } });
 
 /**
  * The new-year wizard (a Phase 0 UX acceptance path): setting up next year,
@@ -14,6 +16,7 @@ test('the wizard creates next year and makes it current', async ({ page }) => {
   const year = new Date().getFullYear();
   const next = String(year + 1);
 
+  await signIn(page, accounts.admin);
   await page.goto('/new-year');
   await expect(page.getByRole('heading', { level: 1, name: 'Start the new school year' })).toBeVisible();
 
@@ -49,7 +52,7 @@ test('the wizard creates next year and makes it current', async ({ page }) => {
   await page.getByRole('button', { name: `Make ${next} current` }).click();
   const dialog = page.getByRole('alertdialog');
   await expect(dialog).toBeVisible();
-  await Promise.all([page.waitForURL(/\/home$/), dialog.getByRole('button', { name: `Make ${next} current` }).click()]);
+  await Promise.all([page.waitForURL(/\/new-year\/result$/), dialog.getByRole('button', { name: `Make ${next} current` }).click()]);
   await expect(page.getByRole('combobox', { name: 'School year' })).toContainText(`${next} (current)`);
   expect(Date.now() - started, 'the wizard took more than five minutes').toBeLessThan(300_000);
 

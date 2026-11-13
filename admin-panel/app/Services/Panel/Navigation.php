@@ -26,6 +26,7 @@ use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Leadership\MasteryImpact;
 use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Learning\ExamCoachAccess;
+use App\Services\Leave\FacilitatorLeave;
 use App\Services\Passport\PassportAuthority;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
@@ -34,6 +35,8 @@ use App\Services\Pathways\PathwayPanelScope;
 use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Offboarding\SchoolExit;
+use App\Services\Platform\SignIn\ProviderLinks;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Reading\ReadingAccess;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
@@ -60,18 +63,31 @@ class Navigation
      */
     public function sections(?User $user): array
     {
+        $renderKey = $this->renderKey($user);
+        $rendered = request()->attributes->get('panel.navigation.rendered');
+        if ($renderKey !== null && is_array($rendered) && ($rendered['key'] ?? null) === $renderKey) {
+            return $rendered['sections'];
+        }
+
         $sections = [];
+        $checks = [];
         foreach (config('navigation.sections', []) as $sectionKey => $section) {
             $groups = [];
             foreach ($section['groups'] ?? [] as $groupKey => $group) {
                 $items = [];
                 foreach ($group['items'] ?? [] as $item) {
-                    if ($this->visible($item, $user)) {
+                    if ($renderKey === null ? $this->visible($item, $user) : $this->renderVisible($item, $user, $checks)) {
                         $items[] = $this->resolve($item, (string) $sectionKey, (string) $groupKey);
                     }
                 }
                 if ($items !== []) {
-                    $groups[] = ['key' => (string) $groupKey, 'label' => __($group['label']), 'items' => $items];
+                    $groups[] = [
+                        'key' => (string) $groupKey, 'label' => __($group['label']), 'items' => $items,
+                        'url' => $this->groupDestination((string) $sectionKey, (string) $groupKey, $items),
+                        'active' => in_array(true, array_column($items, 'active'), true)
+                            || (request()->routeIs('panel.workspace') && request()->route('section') === $sectionKey && request()->route('group') === $groupKey)
+                            || (request()->routeIs('student.report') && $this->reportOwner()[0] === $sectionKey && $this->reportOwner()[1] === $groupKey),
+                    ];
                 }
             }
             if ($groups === []) {
@@ -79,19 +95,47 @@ class Navigation
             }
 
             $items = array_merge(...array_column($groups, 'items'));
-            $single = count($items) === 1 && count($groups) === 1 && $sectionKey === 'home';
+            $single = ! in_array($sectionKey, ['people', 'community'], true);
             $sections[] = [
                 'key' => (string) $sectionKey,
                 'label' => __($section['label']),
                 'icon' => $section['icon'] ?? 'circle',
-                'active' => in_array(true, array_column($items, 'active'), true),
+                'active' => in_array(true, array_column($groups, 'active'), true)
+                    || (request()->routeIs('panel.workspace') && request()->route('section') === $sectionKey),
                 'single' => $single,
-                'url' => $single ? $items[0]['url'] : null,
+                'url' => $sectionKey === 'home' ? route('home') : $this->workspaceUrl((string) $sectionKey),
                 'groups' => $groups,
             ];
         }
 
+        if ($renderKey !== null) {
+            request()->attributes->set('panel.navigation.rendered', ['key' => $renderKey, 'sections' => $sections]);
+        }
+
         return $sections;
+    }
+
+    /**
+     * Reuse one document's menu across its workspace, sidebar and breadcrumbs.
+     * This lives only on the current GET Request, never in a session or shared
+     * cache. Endpoint authority and explicit visible() checks still run fresh.
+     * Other-person previews and write requests must not reuse rendered menus.
+     */
+    private function renderKey(?User $user): ?string
+    {
+        $request = request();
+        if (! $user || ! $request->isMethod('GET') || $request->user() !== $user) {
+            return null;
+        }
+        $school = app(CurrentSchool::class)->snapshot();
+
+        return hash('sha256', serialize([
+            $user->getKey(), spl_object_id($user),
+            $school['id'], $school['across'], $school['impersonating'], $school['support'] ?? null,
+            $request->hasSession() ? $request->session()->get('session_year') : null,
+            app()->getLocale(), $request->fullUrl(), $request->query(), $request->route()?->getName(),
+            config('navigation.sections', []),
+        ]));
     }
 
     /**
@@ -113,9 +157,38 @@ class Navigation
         return $items;
     }
 
+    private function reportOwner(): array
+    {
+        return match (request()->query('tab', 'personal')) {
+            'attendance' => ['attendance', 'reports', 'Learner attendance history'],
+            'leave' => ['leave', 'reports', 'Learner leave history'],
+            default => ['people', 'learners', 'Learner report'],
+        };
+    }
+
     /** The visible item for the current page, if any. */
     public function current(?User $user): ?array
     {
+        if (request()->routeIs('student.report') && $user?->can('student-report')) {
+            [$section, $group, $label] = $this->reportOwner();
+
+            return ['key' => 'learner-report-context', 'label' => __($label), 'section' => $section, 'group' => $group,
+                'section_label' => __(config('navigation.sections.'.$section.'.label')), 'group_label' => __(config('navigation.sections.'.$section.'.groups.'.$group.'.label')),
+                'url' => request()->fullUrl(), 'active' => true];
+        }
+        if (request()->routeIs('panel.workspace')) {
+            foreach ($this->sections($user) as $section) {
+                if ($section['key'] !== request()->route('section')) {
+                    continue;
+                }
+                $group = collect($section['groups'])->firstWhere('key', request()->route('group'));
+
+                return ['key' => 'workspace', 'label' => $group['label'] ?? $section['label'],
+                    'section' => $section['key'], 'group' => $group['key'] ?? '',
+                    'section_label' => $section['label'], 'group_label' => $group['label'] ?? __('Overview'),
+                    'url' => $this->workspaceUrl($section['key'], $group['key'] ?? null), 'active' => true];
+            }
+        }
         foreach ($this->items($user) as $item) {
             if ($item['active']) {
                 return $item;
@@ -144,10 +217,84 @@ class Navigation
         return $items;
     }
 
+    /** A module/group home retains the same permission-filtered registry as search. */
+    public function workspaceUrl(string $section, ?string $group = null): string
+    {
+        return route('panel.workspace', array_filter(['section' => $section, 'group' => $group]));
+    }
+
+    /** Dropdowns open a permitted directory; group overviews retain every task. */
+    private function groupDestination(string $section, string $group, array $items): string
+    {
+        $primary = [
+            'people' => ['learners' => 'learners', 'parents' => 'parents', 'teachers' => 'teachers',
+                'facilitators' => 'facilitators', 'admin-staff' => 'staff', 'alumni' => 'alumni-directory'],
+            'community' => ['gallery' => 'gallery', 'newsletter' => 'school-messages',
+                'events' => 'events', 'voting' => 'consultations'],
+        ];
+        foreach ($items as $item) {
+            if ($item['key'] === ($primary[$section][$group] ?? null)) {
+                return $section === 'community' && $group === 'newsletter' ? route('communication-centre.index', ['view' => 'newsletter']) : $item['url'];
+            }
+        }
+
+        return $this->workspaceUrl($section, $group);
+    }
+
     /** @param array<string, mixed> $item */
     public function visible(array $item, ?User $user): bool
     {
         if (! $user || ! $this->routeExists($item) || ! $this->moduleEnabled($item['module'] ?? null)) {
+            return false;
+        }
+
+        return $this->authorityAvailable($item, $user)
+            && (($item['permissions'] ?? []) === [] || $user->canAny($item['permissions']));
+    }
+
+    /**
+     * Repeated menu links often share the exact same domain authority and
+     * module. Evaluate each combination once while building this GET menu.
+     * The local array cannot escape sections(); visible() never uses it.
+     */
+    private function renderVisible(array $item, User $user, array &$checks): bool
+    {
+        if (! $this->routeExists($item)) {
+            return false;
+        }
+        $module = $item['module'] ?? null;
+        $moduleKey = 'module:'.serialize($module);
+        if (! ($checks[$moduleKey] ??= $this->moduleEnabled($module))) {
+            return false;
+        }
+
+        // Keep all unknown keys in this signature so future authority flags
+        // cannot accidentally share a result with an unrestricted entry.
+        $authority = array_diff_key($item, array_flip([
+            'key', 'label', 'route', 'url', 'params', 'active', 'keywords',
+            'configuration', 'report_tab', 'attendance_destination', 'module', 'permissions',
+        ]));
+        ksort($authority);
+        $authorityKey = 'authority:'.serialize($authority);
+        if (! ($checks[$authorityKey] ??= $this->authorityAvailable($item, $user))) {
+            return false;
+        }
+        $permissions = $item['permissions'] ?? [];
+        $permissionKey = 'permissions:'.serialize($permissions);
+
+        return $checks[$permissionKey] ??= ($permissions === [] || $user->canAny($permissions));
+    }
+
+    /** Exact source-service authority checks, also used by uncached previews. */
+    protected function authorityAvailable(array $item, User $user): bool
+    {
+        if (($item['leave_calendar_actor'] ?? false) && ! $user->canAny(['leave-create', 'leave-approve', 'staff-leave-list', 'student-leave-approve']) && ! app(FacilitatorLeave::class)->available($user)) {
+            return false;
+        }
+        if (($item['facilitator_leave_actor'] ?? false) && ! app(FacilitatorLeave::class)->available($user)) {
+            return false;
+        }
+        if (($item['school_actor'] ?? false) && app(CurrentSchool::class)->idOrNull() === null) {
             return false;
         }
         if (($item['vendor_payment_reader_actor'] ?? false) && ! app(VendorPaymentReaderAccess::class)->available($user)) {
@@ -232,6 +379,10 @@ class Navigation
         if (($item['school_exit'] ?? false) && (! app(SchoolExit::class)->allowed($user) || app(SchoolExit::class)->current() === null)) {
             return false;
         }
+        // Only where the school offers Google or Microsoft sign-in to this person, or they have a link (Action Plan 5.9).
+        if (($item['sign_in_links'] ?? false) && ($user === null || ! app(ProviderLinks::class)->available($user))) {
+            return false;
+        }
         if (($item['ai_manager'] ?? false) && ! app(AiSchoolControls::class)->available($user)) {
             return false;
         }
@@ -265,9 +416,11 @@ class Navigation
                 return false;
             }
         }
-        $permissions = $item['permissions'] ?? [];
+        if (($item['report_actor'] ?? false) && (! $user->can('student-list') || ! $user->can('student-report'))) {
+            return false;
+        }
 
-        return $permissions === [] || $user->canAny($permissions);
+        return true;
     }
 
     /**
@@ -288,12 +441,35 @@ class Navigation
     public function isActive(array $item): bool
     {
         $request = request();
+        if (isset($item['report_tab'])) {
+            return ($request->routeIs('student.report') && $request->query('tab') === $item['report_tab'])
+                || ($request->routeIs('students.report') && $request->query('report_tab') === $item['report_tab']);
+        }
+        if ($item['key'] === 'learner-report' && $request->routeIs('students.report') && in_array($request->query('report_tab'), ['attendance', 'leave'], true)) {
+            return false;
+        }
+        $attendanceView = $request->query('view') === 'attendance'
+            || ($request->routeIs('activity-groups.*') && $request->filled('session_id'));
+        if (in_array($item['key'], ['activity-groups', 'discipline', 'activity-attendance', 'detention-attendance'], true)) {
+            if (($item['attendance_destination'] ?? false) !== $attendanceView) {
+                return false;
+            }
+        }
+        if (in_array($item['key'], ['emergency', 'emergency-attendance'], true)
+            && (($item['key'] === 'emergency-attendance') !== ($request->query('view') === 'roll-call'))) {
+            return false;
+        }
+        if ($item['key'] === 'academic-registers' && $request->routeIs('academic-registers.configuration')) {
+            return false;
+        }
         if (isset($item['recognition_module']) && $request->route('module') !== $item['recognition_module']) {
             return false;
         }
         $patterns = $item['active'] ?? null;
         if ($patterns === null) {
-            $patterns = isset($item['route']) ? [$item['route']] : [$item['url'], $item['url'].'/*'];
+            $patterns = isset($item['route'])
+                ? [$item['route'], str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route']]
+                : [$item['url'], $item['url'].'/*'];
         }
         foreach ($patterns as $pattern) {
             if ($request->routeIs($pattern) || $request->is($pattern)) {
@@ -338,6 +514,7 @@ class Navigation
             'group' => $group,
             'keywords' => $item['keywords'] ?? [],
             'module' => $item['module'] ?? null,
+            'configuration' => (bool) ($item['configuration'] ?? false),
         ];
     }
 }

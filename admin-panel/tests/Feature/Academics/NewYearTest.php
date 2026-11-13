@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Tests\Feature\Academics;
 
 use App\Models\SessionYear;
+use App\Models\Settings;
 use App\Models\User;
 use App\Services\Academics\NewYearService;
 use App\Services\Platform\Tenancy\SchoolTable;
+use App\Services\SessionYearService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Tests\TestCase;
 
 /**
@@ -78,9 +81,11 @@ class NewYearTest extends TestCase
         $response = $this->actingAs($this->superAdmin())->postJson(route('new-year.make-current'), [
             'year_id' => $next->id,
             'carry' => ['subjects', 'grading', 'teachers'],
+            'source_year_id' => $this->current->id,
         ])->assertOk();
 
-        $response->assertJson(['error' => false, 'redirect' => route('home'), 'data' => ['copied' => ['subjects', 'teachers', 'grading']]]);
+        $response->assertJson(['error' => false, 'redirect' => route('new-year.result'), 'data' => ['copied' => ['subjects', 'teachers', 'grading']]]);
+        $this->get(route('new-year.result'))->assertOk()->assertSee('School year activated')->assertSee($next->name)->assertSee('Carried forward')->assertHeader('Cache-Control', 'no-store, private');
         $this->assertSame((string) $next->id, (string) getSettings('session_year')['session_year']);
         $this->assertSame(1, (int) $next->fresh()->default);
         $this->assertSame(0, (int) $this->current->fresh()->default);
@@ -95,6 +100,43 @@ class NewYearTest extends TestCase
         // Promotions take effect: the learner moves to the homeroom recorded for next year.
         $this->assertSame($this->ids['homeroom_b'], (int) DB::table('students')->where('id', $this->ids['student'])->value('class_section_id'));
         $this->assertSame($next->id, (int) session('session_year'), 'The panel follows the new current year');
+    }
+
+    public function test_ui_preview_and_activation_refuse_a_changed_source_year_without_copying(): void
+    {
+        $next = $this->createNextYear();
+        $this->actingAs($this->superAdmin())->get(route('new-year.index'))->assertOk()
+            ->assertSee('name="source_year_id" value="'.$this->current->id.'"', false);
+        $intervening = SessionYear::create(['name' => 'Intervening year', 'start_date' => now()->toDateString(), 'end_date' => now()->addYear()->toDateString()]);
+        app(SessionYearService::class)->makeCurrent($intervening);
+        $input = ['year_id' => $next->id, 'source_year_id' => $this->current->id, 'carry' => ['grading']];
+        $this->getJson(route('new-year.preview', $input))->assertConflict()->assertJsonPath('message', 'The school current year changed. Reload the transition review before activating.');
+        $this->postJson(route('new-year.make-current'), $input)->assertConflict();
+        $this->assertSame((string) $intervening->id, (string) Settings::where('type', 'session_year')->value('message'));
+        $this->assertSame(0, DB::table('grades')->where('session_year_id', $next->id)->count());
+        $this->assertNull(session('school_year_transition'));
+    }
+
+    public function test_activation_rechecks_the_source_inside_the_school_transaction(): void
+    {
+        $next = $this->createNextYear();
+        $intervening = SessionYear::create(['name' => 'Concurrent year', 'start_date' => now()->toDateString(), 'end_date' => now()->addYear()->toDateString()]);
+        app(SessionYearService::class)->makeCurrent($intervening);
+        try {
+            app(NewYearService::class)->switchTo($this->current, $next, ['grading']);
+            $this->fail('A stale source year must not be copied after an intervening activation.');
+        } catch (HttpExceptionInterface $error) {
+            $this->assertSame(409, $error->getStatusCode());
+        }
+        $this->assertSame((string) $intervening->id, (string) Settings::where('type', 'session_year')->value('message'));
+        $this->assertSame(0, DB::table('grades')->where('session_year_id', $next->id)->count());
+    }
+
+    public function test_an_initial_activation_review_cannot_replace_a_year_activated_since_it_opened(): void
+    {
+        $next = $this->createNextYear();
+        $this->actingAs($this->superAdmin())->postJson('/session-years/'.$next->id.'/make-current', ['source_year_id' => 0])->assertConflict();
+        $this->assertSame((string) $this->current->id, (string) Settings::where('type', 'session_year')->value('message'));
     }
 
     public function test_the_switch_never_copies_what_the_new_year_already_has(): void

@@ -4,24 +4,26 @@
     {{ __('photos') }}
 @endsection
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('photos') }}
-            </h3>
-        </div>
-        <div class="row">
-            <div class="col-md-12 grid-margin stretch-card search-container">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('photos')" />
+        @php($websiteView = request('view') === 'create' ? 'create' : 'list')
+        <x-panel-view-nav :current="$websiteView" :items="[
+            'list'=>['label'=>'Public photo collections','href'=>request()->url()],
+            'create'=>['label'=>'Publish photo collection','href'=>request()->url().'?view=create'],
+        ]" />
+        <div class="panel-form-grid">
+            @if($websiteView === 'create')
+            <div class="   search-container">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
+                        <h2 class="card-title">
                             {{ __('create') . ' ' . __('photos') }}
-                        </h4>
-                        <div class="col-12">
+                        </h2>
+                        <div class="">
                             <form class="pt-3 photo-create-form" id="create-form" action="{{ route('photos.store') }}"
                                 method="POST" novalidate="novalidate" enctype="multipart/form-data">
-                                <div class="row">
-                                    <div class="col-md-6">
+                                <div class="panel-form-grid">
+                                    <div class="">
                                         <div class="form-group">
                                             <label>{{ __('name') }} <span class="text-danger">*</span></label>
                                             {!! Form::text('name', null, [
@@ -32,50 +34,52 @@
                                             ]) !!}
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="">
                                         <div class="form-group">
                                             <label>{{ __('thumbnail') }} <span class="text-danger">*</span></label>
                                             <input type="file" name="thumbnail" class="file-upload-default"
                                                 accept="image/*" />
-                                            <div class="input-group col-xs-12">
+                                            <div class="input-group ">
                                                 <input type="text" class="form-control file-upload-info"
                                                     placeholder="{{ __('thumbnail') }}" />
                                                 <span class="input-group-append">
-                                                    <button class="file-upload-browse btn btn-theme"
+                                                    <button class="file-upload-browse m3-button m3-button--filled"
                                                         type="button">{{ __('upload') }}</button>
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="">
                                         <div class="form-group">
                                             <label>{{ __('image') }} <span class="text-danger">*</span></label>
                                             <input type="file" name="image[]" class="file-upload-default" multiple
                                                 accept="image/*" />
-                                            <div class="input-group col-xs-12">
+                                            <div class="input-group ">
                                                 <input type="text" class="form-control file-upload-info" disabled=""
                                                     placeholder="{{ __('image') }}" />
                                                 <span class="input-group-append">
-                                                    <button class="file-upload-browse btn btn-theme"
+                                                    <button class="file-upload-browse m3-button m3-button--filled"
                                                         type="button">{{ __('upload') }}</button>
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <input class="btn btn-theme" id="create-btn" type="submit" value={{ __('submit') }}>
+                                <input class="m3-button m3-button--filled" id="create-btn" type="submit" value={{ __('submit') }}>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+            @endif
 
-            <div class="col-md-12 grid-margin stretch-card search-container">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">
+            @if($websiteView === 'list')
+            <div class="   search-container">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
+                        <h2 class="card-title">
                             {{ __('list') . ' ' . __('photos') }}
-                        </h4>
+                        </h2>
                         <table aria-describedby="mydesc" class='table' id='table_list' data-toggle="table"
                             data-url="{{ route('photos.show', 1) }}" data-click-to-select="true"
                             data-side-pagination="server" data-pagination="true" data-page-list="[5, 10, 20, 50, 100, 200]"
@@ -105,6 +109,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 @endsection

@@ -165,6 +165,8 @@ final readonly class ApiRoute
             'consent' => str_starts_with($this->uri, 'api/v2/family-forms/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4' : '1',
             'card', 'scan', 'device' => str_starts_with($this->uri, 'api/v2/cards/') || str_starts_with($this->uri, 'api/v2/card-device/') || str_starts_with($this->uri, 'api/v2/card-readers/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4' : '1',
             'field' => 'test_field',
+            // Google and Microsoft sign-in (Action Plan 5.9): whereIn('provider', ProviderCatalogue::ALL).
+            'provider' => 'google',
             'source' => str_starts_with($this->uri, 'api/v2/diary/') ? 'homework' : '1',
             'audience' => str_contains($this->uri, '/pastoral/support/configuration/') ? 'principal' : '1',
             'lane' => str_contains($this->uri, '/transfers/') ? 'outgoing' : '1',

@@ -74,11 +74,7 @@
 
 @section('content')
     <div class="content-wrapper idc-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('student') . ' ' . __('id') . ' ' . __('card') . ' ' . __('settings') }}
-            </h3>
-        </div>
+        <x-page.header :title="__('student') . ' ' . __('id') . ' ' . __('card') . ' ' . __('settings')" />
 
         <div class="row">
             {{-- ============ LEFT: CONFIG PANEL ============ --}}

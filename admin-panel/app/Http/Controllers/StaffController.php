@@ -19,6 +19,8 @@ use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Identity\StaffInvitations;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -262,7 +264,7 @@ class StaffController extends Controller
 
     public function index()
     {
-        if (! Auth::user()->can('staff-list')) {
+        if (! Auth::user()->can('staff-list') && ! (request('view') === 'create' && Auth::user()->can('staff-create'))) {
             $response = [
                 'message' => trans('no_permission_message'),
             ];
@@ -270,7 +272,7 @@ class StaffController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         // Every custom role can be given to staff, not just the newest few.
-        $roles = Role::where('custom_role', 1)->orderBy('id', 'DESC')->get();
+        $roles = Role::where('school_id', app(CurrentSchool::class)->id())->where(fn ($query) => $query->where('custom_role', 1)->orWhere('name', SchoolRoles::FACILITATOR))->where('name', '!=', SchoolRoles::SUPER_ADMIN)->orderBy('id', 'DESC')->get();
 
         return view('staff.index', compact('roles'));
     }
@@ -1029,8 +1031,9 @@ class StaffController extends Controller
     private function assignableRoleRule(): Exists
     {
         return Rule::exists('roles', 'id')
-            ->where('custom_role', 1)
-            ->whereNot('name', 'Super Admin');
+            ->where('school_id', app(CurrentSchool::class)->id())
+            ->where(fn ($query) => $query->where('custom_role', 1)->orWhere('name', SchoolRoles::FACILITATOR))
+            ->whereNot('name', SchoolRoles::SUPER_ADMIN);
     }
 
     /**

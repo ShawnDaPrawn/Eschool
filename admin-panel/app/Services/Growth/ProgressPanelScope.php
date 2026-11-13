@@ -21,11 +21,12 @@ class ProgressPanelScope
             abort_unless((int) $r->input('expected_account_id') === (int) $r->user()->id
                 && (int) $r->input('expected_school_id') === app(CurrentSchool::class)->id(), 403);
         }
-        if ($op === 'configure') {
+        if ($op === 'configure' || ($r->isMethodSafe() && $r->input('mode') === 'configuration')) {
             app(AcademicAuthority::class)->manage($r->user());
 
             return true;
         }
+        abort_if(! $r->isMethodSafe() && $r->input('mode') === 'configuration', 403);
         if (in_array($op, ['assign', 'revoke-assignment'], true) || $r->input('mode') === 'assignments') {
             $policy = app(LearnerNotesPolicy::class);
             $policy->principal($r->user());

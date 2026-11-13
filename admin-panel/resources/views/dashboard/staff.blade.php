@@ -2,7 +2,7 @@
      Total Students, Upcoming Events and the Noticeboard are visible to every staff member.
      Config + endpoint URLs are exposed via data-* attributes so dashboard.js stays inline-free
      (the shared script only hydrates a widget when its card is actually rendered). --}}
-<div class="content-wrapper dashboard-page" id="dashboard"
+<div class="content-wrapper m3 page-content dashboard-page" id="dashboard"
     data-session-year-id="{{ $session_year_id }}"
     data-currency="{{ $currency_symbol ?? '' }}"
     data-default-month="{{ $default_month }}"
@@ -17,42 +17,42 @@
     {{-- Summary stat strip — visible to every staff member --}}
     @include('dashboard.partials.stat-cards')
 
-    <div class="row">
+    <div class="panel-form-grid">
         @if($can_read_fee_receipts ?? false)
-            <div class="col-12 col-lg-6 mb-4">
+            <div class="panel-dashboard-cell">
                 @include('dashboard.partials.fees-collection')
             </div>
         @endif
 
         @can('attendance-report')
-            <div class="col-12 col-lg-6 mb-4">
+            <div class="panel-dashboard-cell">
                 @include('dashboard.partials.attendance')
             </div>
         @endcan
 
         {{-- Total Students — visible to every staff member --}}
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.total-students')
         </div>
 
         @can('view-exam-result')
-            <div class="col-12 col-lg-6 mb-4">
+            <div class="panel-dashboard-cell">
                 @include('dashboard.partials.assessment')
             </div>
         @endcan
 
         @can('leave-list')
-            <div class="col-12 col-lg-6 mb-4">
+            <div class="panel-dashboard-cell">
                 @include('dashboard.partials.leaves')
             </div>
         @endcan
 
         {{-- Upcoming Events & Noticeboard — visible to every staff member --}}
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.events')
         </div>
 
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.noticeboard')
         </div>
     </div>

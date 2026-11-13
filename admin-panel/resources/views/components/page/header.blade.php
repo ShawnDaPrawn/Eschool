@@ -25,13 +25,13 @@
     $navItem = $breadcrumbs ? app(\App\Services\Panel\Navigation::class)->current(auth()->user()) : null;
     $showPrimary = $primaryLabel && $primaryHref && (! $primaryPermission || auth()->user()?->can($primaryPermission));
 @endphp
-<header {{ $attributes->merge(['class' => 'm3 page-head']) }}>
+<header data-workspace-page-header {{ $attributes->merge(['class' => 'm3 page-head']) }}>
     <div class="page-head-text">
         @if ($navItem && $navItem['section'] !== 'home')
             <nav aria-label="{{ __('page_breadcrumb') }}">
                 <ol class="page-breadcrumb">
-                    <li>{{ $navItem['section_label'] }}</li>
-                    <li>{{ $navItem['group_label'] }}</li>
+                    <li><a href="{{ app(\App\Services\Panel\Navigation::class)->workspaceUrl($navItem['section']) }}">{{ $navItem['section_label'] }}</a></li>
+                    @if($navItem['group'])<li><a href="{{ app(\App\Services\Panel\Navigation::class)->workspaceUrl($navItem['section'],$navItem['group']) }}">{{ $navItem['group_label'] }}</a></li>@endif
                 </ol>
             </nav>
         @endif

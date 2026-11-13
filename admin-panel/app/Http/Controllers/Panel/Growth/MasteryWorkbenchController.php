@@ -70,10 +70,10 @@ class MasteryWorkbenchController extends Controller
                 throw $error;
             }
 
-            return redirect()->route('mastery.index')->withErrors(['model_version' => __('Mastery settings changed. Review the current model and try again.')]);
+            return redirect()->route('mastery.index', ['view' => 'graph'])->withErrors(['model_version' => __('Mastery settings changed. Review the current model and try again.')]);
         }
 
-        return redirect()->route('mastery.index')->with('success', __('Mastery model saved').': '.MasteryModels::label($result['model_version']));
+        return redirect()->route('mastery.index', ['view' => 'graph'])->with('success', __('Mastery model saved').': '.MasteryModels::label($result['model_version']));
     }
 
     public function refresh(MasteryPanelRequest $request, int $subject): Response

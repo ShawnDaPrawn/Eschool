@@ -28,7 +28,6 @@
                 "/students",
                 "/students-list",
                 "/students-report",
-                "/students/create",
                 "/students/create_bulk"
             ],
             "reason": "Legacy page: a filter or form <select> has no label and relies on its first option as a prompt. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
@@ -118,20 +117,6 @@
                 "/timetable"
             ],
             "reason": "Legacy timetable builder: a hidden dialog keeps focusable controls. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
-        },
-        {
-            "rule": "aria-input-field-name",
-            "pages": [
-                "/students/create"
-            ],
-            "reason": "Legacy admission form: a Select2 search field inside the form has no name. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
-        },
-        {
-            "rule": "image-alt",
-            "pages": [
-                "/students/create"
-            ],
-            "reason": "Legacy admission form: the photo preview <img> has no alt text. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
         }
     ],
     "console": [],

@@ -11,6 +11,7 @@ use App\Services\Academics\Transitions\ExitPackages;
 use App\Services\Academics\Transitions\TransitionFlow;
 use App\Services\Academics\Transitions\TransitionPolicies;
 use App\Services\Academics\Transitions\TransitionQueries;
+use App\Services\Panel\SessionYearContext;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\URL;
@@ -28,12 +29,13 @@ class TransitionWorkbenchController extends Controller
                 $export['download_url'] = $export['state'] === 'ready' ? URL::temporarySignedRoute('academic-transitions.export-download', now()->addMinutes(10)->min(CarbonImmutable::parse($export['expires_at'])), ['package' => $export['id'], 'school' => app(CurrentSchool::class)->id(), 'reader' => $r->user()->id]) : null;
             }
         }
-        $configuration = $q->configuration($r->user(), $r->validated('session_year_id') === null ? null : (int) $r->validated('session_year_id'));
+        $configuration = $q->configuration($r->user(), $r->validated('session_year_id') === null ? app(SessionYearContext::class)->selectedId() : (int) $r->validated('session_year_id'));
         $grade = $r->validated('grade_level_id') === null ? ($configuration['grades'][0] ?? null) : collect($configuration['grades'])->firstWhere('id', (int) $r->validated('grade_level_id'));
         abort_if($r->validated('grade_level_id') !== null && $grade === null, 404);
 
         return ['configuration' => $configuration, 'learner' => $learner, 'search' => $r->validated('search', ''), 'results' => $q->search($r->user(), (string) $r->validated('search', ''), (int) $r->validated('page', 1)),
-            'kind' => $r->validated('kind', 'join'), 'grade' => $grade, 'preview' => null, 'exitPreview' => null, 'draft' => $r->isMethodSafe() ? [] : $r->validated(), 'conflict' => null];
+            'kind' => $r->validated('kind', 'join'), 'grade' => $grade, 'preview' => null, 'exitPreview' => null, 'draft' => $r->isMethodSafe() ? [] : $r->validated(), 'conflict' => null,
+            'workspaceView' => $r->isMethodSafe() ? $r->validated('view', $r->filled('grade_level_id') ? 'configuration' : 'changes') : 'changes'];
     }
 
     public function index(TransitionPanelRequest $r): Response
@@ -65,14 +67,14 @@ class TransitionWorkbenchController extends Controller
     {
         app(TransitionPolicies::class)->save($r->user(), $grade, $r->validated());
 
-        return redirect()->route('academic-transitions.index', ['grade_level_id' => $grade])->with('success', __('Grade defaults saved'));
+        return redirect()->route('academic-transitions.index', ['view' => 'configuration', 'grade_level_id' => $grade])->with('success', __('Grade defaults saved'));
     }
 
     public function retention(TransitionPanelRequest $r): Response
     {
         app(TransitionPolicies::class)->saveRetention($r->user(), $r->validated());
 
-        return redirect()->route('academic-transitions.index')->with('success', __('Export copy retention saved'));
+        return redirect()->route('academic-transitions.index', ['view' => 'configuration'])->with('success', __('Export copy retention saved'));
     }
 
     public function exportPreview(TransitionPanelRequest $r): Response

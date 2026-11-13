@@ -1,5 +1,5 @@
-<div class="dash-card dash-widget h-100" id="fees-card" data-error-message="{{ __('Could not load current receipts. Open Fee payments to review them.') }}">
-    <div class="dash-card-head"><h4 class="dash-card-title">{{ __('Verified fee receipts') }}</h4></div>
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100" id="fees-card" data-error-message="{{ __('Could not load current receipts. Open Fee payments to review them.') }}">
+    <div class="dash-card-head"><h2 class="dash-card-title">{{ __('Verified fee receipts') }}</h2></div>
     <div class="dash-card-body">
         <div class="widget-skeleton" data-skeleton></div>
         <div data-content hidden>

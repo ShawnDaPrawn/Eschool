@@ -1,7 +1,7 @@
 {{-- Attendance: class selector + present/absent bar chart per section --}}
-<div class="dash-card dash-widget h-100" id="attendance-card">
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100" id="attendance-card">
     <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('attendance') }}</h4>
+        <h2 class="dash-card-title">{{ __('attendance') }}</h2>
         <select class="dash-select" id="attendance-class" aria-label="{{ __('select_class') }}">
             @forelse ($classes as $class)
                 <option value="{{ $class->id }}">{{ $class->full_name }}</option>

@@ -27,6 +27,14 @@ FixtureResultState _$FixtureResultStateFromJson(
       ),
       hostScore: $checkedConvert('host_score', (v) => (v as num?)?.toInt()),
       guestScore: $checkedConvert('guest_score', (v) => (v as num?)?.toInt()),
+      winner: $checkedConvert(
+        'winner',
+        (v) => $enumDecodeNullable(
+          _$FixtureResultStateWinnerEnumEnumMap,
+          v,
+          unknownValue: FixtureResultStateWinnerEnum.unknownDefaultOpenApi,
+        ),
+      ),
       myReport: $checkedConvert(
         'my_report',
         (v) => v == null
@@ -64,6 +72,7 @@ Map<String, dynamic> _$FixtureResultStateToJson(FixtureResultState instance) =>
       'state': _$FixtureResultStateStateEnumEnumMap[instance.state]!,
       'host_score': instance.hostScore,
       'guest_score': instance.guestScore,
+      'winner': ?_$FixtureResultStateWinnerEnumEnumMap[instance.winner],
       'my_report': ?instance.myReport?.toJson(),
       'their_report': ?instance.theirReport?.toJson(),
       'waiting_for':
@@ -76,6 +85,14 @@ const _$FixtureResultStateStateEnumEnumMap = {
   FixtureResultStateStateEnum.disputed: 'disputed',
   FixtureResultStateStateEnum.confirmed: 'confirmed',
   FixtureResultStateStateEnum.unknownDefaultOpenApi: 'unknown_default_open_api',
+};
+
+const _$FixtureResultStateWinnerEnumEnumMap = {
+  FixtureResultStateWinnerEnum.host: 'host',
+  FixtureResultStateWinnerEnum.guest: 'guest',
+  FixtureResultStateWinnerEnum.draw: 'draw',
+  FixtureResultStateWinnerEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
 };
 
 const _$FixtureResultStateWaitingForEnumEnumMap = {

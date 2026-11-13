@@ -21,8 +21,15 @@ class InterventionLibraryController extends Controller
 {
     public function index(InterventionLibraryRequest $request, InterventionLibrary $library): Response
     {
-        return response()->view('growth.intervention-library', $library->list($request->user()) + [
+        $data = $library->list($request->user());
+        $workspaceView = $request->validated('view', 'list');
+        abort_if($workspaceView !== 'list' && ! $data['can_manage'], 403);
+        $selectedAction = $workspaceView === 'edit' ? collect($data['actions'])->firstWhere('id', (int) $request->validated('action_id')) : null;
+        abort_if($workspaceView === 'edit' && $selectedAction === null, 404);
+
+        return response()->view('growth.intervention-library', $data + [
             'areas' => InterventionLibrary::AREAS, 'suggested' => InterventionLibrary::DEFAULTS, 'maxSteps' => InterventionLibrary::MAX_STEPS,
+            'workspaceView' => $workspaceView, 'selectedAction' => $selectedAction,
             'canWrite' => app(ModuleGate::class)->writable('early_warning'),
             'actorId' => (int) $request->user()->id, 'schoolId' => app(CurrentSchool::class)->id(),
         ])->header('Cache-Control', 'private, no-store');
@@ -30,12 +37,12 @@ class InterventionLibraryController extends Controller
 
     public function store(InterventionLibraryRequest $request, InterventionLibrary $library): RedirectResponse
     {
-        return $this->saved(fn () => $library->save($request->user(), null, $request->validated()), __('Library action added'));
+        return $this->saved(fn () => $library->save($request->user(), null, $request->validated()), __('Library action added'), ['view' => 'create']);
     }
 
     public function update(InterventionLibraryRequest $request, InterventionLibrary $library, int $action): RedirectResponse
     {
-        return $this->saved(fn () => $library->save($request->user(), $action, $request->validated()), __('Library action saved'));
+        return $this->saved(fn () => $library->save($request->user(), $action, $request->validated()), __('Library action saved'), ['view' => 'edit', 'action_id' => $action]);
     }
 
     public function adopt(InterventionLibraryRequest $request, InterventionLibrary $library): RedirectResponse
@@ -53,7 +60,7 @@ class InterventionLibraryController extends Controller
             $archived ? __('Library action archived') : __('Library action restored'));
     }
 
-    private function saved(callable $write, string $message): RedirectResponse
+    private function saved(callable $write, string $message, array $recovery = []): RedirectResponse
     {
         try {
             $write();
@@ -62,7 +69,7 @@ class InterventionLibraryController extends Controller
                 throw $e;
             }
 
-            return redirect()->route('risk-interventions.library')->withErrors(['revision' => $e->getMessage()]);
+            return redirect()->route('risk-interventions.library', $recovery)->withErrors(['revision' => $e->getMessage()])->withInput();
         }
 
         return redirect()->route('risk-interventions.library')->with('success', $message);

@@ -183,6 +183,9 @@ class InterventionLibraryTest extends TestCase
         AcademicLeadership::create(['user_id' => $this->actor('theo')->id, 'kind' => 'grade_head', 'grade_level_id' => $this->grade,
             'session_year_id' => $this->year, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic grade head']);
         $before = InterventionLibraryAction::query()->orderBy('id')->get()->toJson();
+        $this->actingAs($this->superAdmin())->get(route('risk-interventions.library'))->assertOk()->assertDontSee('name="steps_text"', false);
+        $this->get(route('risk-interventions.library', ['view' => 'create']))->assertOk()->assertSee('name="steps_text"', false)->assertDontSee('Library actions');
+        $this->get(route('risk-interventions.library', ['view' => 'edit', 'action_id' => $row->id]))->assertOk()->assertSee($row->name)->assertSee('name="steps_text"', false);
 
         // An allocated teacher and a grade head read the library but cannot change it.
         foreach (['tara', 'theo'] as $name) {
@@ -190,6 +193,8 @@ class InterventionLibraryTest extends TestCase
             $this->denied(fn () => app(InterventionLibrary::class)->archive($this->actor($name), (int) $row->id, 1, true), 403);
             $this->denied(fn () => app(InterventionLibrary::class)->adopt($this->actor($name)), 403);
             $this->actingAs($this->actor($name))->get(route('risk-interventions.library'))->assertOk()->assertSee($row->name)->assertDontSee('Add a library action');
+            $this->get(route('risk-interventions.library', ['view' => 'create']))->assertForbidden();
+            $this->get(route('risk-interventions.library', ['view' => 'edit', 'action_id' => $row->id]))->assertForbidden();
             $this->post(route('risk-interventions.library.store'), $this->identity($name) + $this->action() + ['steps_text' => 'One step'])->assertForbidden();
             $this->post(route('risk-interventions.library.update', ['action' => $row->id]), $this->identity($name) + $this->action() + ['steps_text' => 'One step', 'expected_revision' => 1])->assertForbidden();
             $this->post(route('risk-interventions.library.archive', ['action' => $row->id]), $this->identity($name) + ['expected_revision' => 1, 'archived' => 1])->assertForbidden();
@@ -248,6 +253,7 @@ class InterventionLibraryTest extends TestCase
         $this->assertNotContains((int) $foreignAction->id, array_column(app(InterventionLibrary::class)->choices(), 'id'));
 
         $this->actingAs($this->superAdmin())->get(route('risk-interventions.library'))->assertOk()->assertDontSee(self::SCHOOL_B_MARKER);
+        $this->get(route('risk-interventions.library', ['view' => 'edit', 'action_id' => $foreignAction->id]))->assertNotFound();
         $this->post(route('risk-interventions.library.archive', ['action' => $foreignAction->id]), $this->identity('principal') + ['expected_revision' => 1, 'archived' => 1])->assertNotFound();
         $this->actingAs($this->actor())->post(route('risk-interventions.progress', ['intervention' => $foreignIntervention->id]), $this->identity() + ['operation_id' => (string) Str::uuid(),
             'mode' => 'queue', 'session_year_id' => $this->year, 'recorded_on' => '2026-02-10', 'status' => 'on_track'])->assertNotFound();

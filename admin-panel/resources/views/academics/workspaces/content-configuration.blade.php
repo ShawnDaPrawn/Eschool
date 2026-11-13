@@ -1,0 +1,5 @@
+    @if($configuration['can_manage'])<section class="content-panel workspace-section"><h2>{{ __('School transcription controls') }}</h2><form method="POST" action="{{ route('academic-content.settings') }}" aria-label="{{ __('School transcription controls') }}" class="content-form">@csrf
+        <input type="hidden" name="revision" value="{{ $configuration['settings']['revision'] }}">
+        <x-page.field type="select" :restore-old-input="false" name="transcription_enabled" :label="__('Audio and video transcription')" :options="[1=>__('Enabled'),0=>__('Disabled')]" :value="(int) $configuration['settings']['transcription_enabled']" />
+        <x-page.field :restore-old-input="false" name="daily_transcription_seconds" type="number" :label="__('School daily transcription allowance in seconds')" :value="$configuration['settings']['daily_transcription_seconds']" min="600" max="28800" required />
+        <button class="m3-button m3-button--tonal" type="submit">{{ __('Save content controls') }}</button></form></section>@endif

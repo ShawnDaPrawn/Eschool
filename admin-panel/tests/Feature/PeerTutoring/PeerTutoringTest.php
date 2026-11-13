@@ -334,6 +334,8 @@ class PeerTutoringTest extends TestCase
     public function test_staff_panel_matches_and_writes_are_scoped_to_the_rendered_account(): void
     {
         $staff = $this->actor();
+        $this->actingAs($staff)->get('/peer-tutoring')->assertOk()->assertSee('id="peer-history"', false)->assertDontSee('id="peer-schedule"', false);
+        $this->get('/peer-tutoring?view=schedule')->assertOk()->assertSee('id="peer-schedule"', false)->assertDontSee('id="peer-history"', false);
         $this->actingAs($staff)->get('/peer-tutoring?group='.$this->group.'&learner='.$this->schoolA->ids['asha'])
             ->assertOk()->assertSee('Schedule peer session')->assertSee('expected_school_id', false);
         $body = $this->input() + ['expected_school_id' => 1, 'expected_account_id' => $staff->id];
@@ -374,7 +376,8 @@ class PeerTutoringTest extends TestCase
         $body = $this->input() + ['expected_school_id' => 1, 'expected_account_id' => $staff->id];
         $this->post('/peer-tutoring/sessions?venue=hidden', $body)->assertUnprocessable();
         $this->post('/peer-tutoring/sessions', $body + ['hidden_learner_id' => 999])->assertUnprocessable();
-        $this->post('/peer-tutoring/sessions', array_replace($body, ['starts_at' => 'nonsense']))->assertUnprocessable()->assertSee('Peer tutoring');
+        $this->post('/peer-tutoring/sessions', array_replace($body, ['starts_at' => 'nonsense', 'venue' => 'Retained safe venue']))->assertUnprocessable()->assertSee('Peer tutoring')
+            ->assertSee('id="peer-schedule"', false)->assertSee('Retained safe venue')->assertDontSee('id="peer-history"', false);
         $this->assertSame(0, PeerTutoringSession::count());
     }
 }

@@ -29,19 +29,28 @@ class PeerPanelController extends Controller
     public function failure(PeerPanelRequest $request, array $messages = [], int $status = 200): Response
     {
         app(PeerPanelScope::class)->authorize($request);
-        $selection = Validator::make($request->query->all(), ['group' => ['nullable', 'integer', 'min:1'], 'learner' => ['nullable', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,100000']])->validate();
+        $selection = Validator::make($request->query->all(), ['group' => ['nullable', 'integer', 'min:1'], 'learner' => ['nullable', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,100000'],
+            'view' => ['sometimes', 'in:history,schedule']])->validate();
         $queries = app(PeerQueries::class);
         $configuration = $queries->configuration($request->user(), 'staff');
         $listing = $queries->listing($request->user(), 'staff', (int) ($selection['page'] ?? 1));
         $group = (int) ($selection['group'] ?? 0);
         $learner = (int) ($selection['learner'] ?? 0);
+        $draft = [];
+        if (! $request->isMethodSafe() && in_array($request->route('action'), ['create', 'skill'], true)) {
+            $group = max(0, (int) filter_var($request->input('teaching_group_id'), FILTER_VALIDATE_INT));
+            $learner = max(0, (int) filter_var($request->input('tutee_learner_id'), FILTER_VALIDATE_INT));
+            $draft = array_filter($request->only(['tutor_learner_id', 'starts_at', 'ends_at', 'venue']), fn ($value) => is_scalar($value));
+        }
+        $workspaceView = $selection['view'] ?? ($group > 0 || (! $request->isMethodSafe() && in_array($request->route('action'), ['create', 'skill'], true)) ? 'schedule' : 'history');
+        abort_if($workspaceView === 'schedule' && ! $configuration['writable'], 403);
         $roster = $group > 0 ? $queries->roster($request->user(), $group) : [];
         $matches = $group > 0 && $learner > 0 ? app(PeerMatches::class)->ranked($request->user(), $group, $learner) : [];
         $school = app(CurrentSchool::class)->id();
         $account = (int) $request->user()->id;
         $canMeasure = app(PeerMeasure::class)->available($request->user());
 
-        return response()->view('peer-tutoring.index', compact('configuration', 'listing', 'group', 'learner', 'roster', 'matches', 'school', 'account', 'messages', 'canMeasure'), $status);
+        return response()->view('peer-tutoring.index', compact('configuration', 'listing', 'group', 'learner', 'roster', 'matches', 'school', 'account', 'messages', 'canMeasure', 'workspaceView', 'draft'), $status);
     }
 
     /** Action Plan 4.7: per grade, how many learners have tutored this term (counts only). */

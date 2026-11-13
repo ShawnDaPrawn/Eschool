@@ -6,53 +6,49 @@
 
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('language_settings') }}
-            </h3>
-        </div>
-        <div class="row grid-margin">
-            <div class="col-lg-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('language_settings')" />
+        <div class="panel-form-grid">
+            <div class="  ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <form id="formdata" class="create-form" action="{{ url('language') }}" novalidate="novalidate"
                             enctype="multipart/form-data">
                             @csrf
-                            <div class="row">
-                                <div class="form-group col-md-6 col-sm-12">
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
                                     <label>{{ __('language_name') }} <span class="text-danger">*</span></label>
                                     <input name="name" type="text" required placeholder="{{ __('language_name') }}"
-                                        class="form-control" />
+                                        class="m3-text-field__input" />
                                 </div>
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('language_code') }} <span class="text-danger">*</span></label>
                                     <input name="code" type="text" required placeholder="{{ __('language_code') }}"
-                                        class="form-control" />
+                                        class="m3-text-field__input" />
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="form-group col-md-6 col-sm-12">
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
                                     <label>{{ __('upload_file') }} <span class="text-danger">*</span></label>
                                     <input type="file" name="file" class="file-upload-default"
                                         accept="application/json" />
-                                    <div class="input-group col-xs-12">
+                                    <div class="input-group ">
                                         <input type="text" class="form-control file-upload-info"
                                             accept="application/json" disabled=""
                                             placeholder="{{ __('upload_file') }}" />
                                         <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-theme"
+                                            <button class="file-upload-browse m3-button m3-button--filled"
                                                 type="button">{{ __('upload') }}</button>
                                         </span>
                                     </div>
                                 </div>
-                                <div class="form-group col-md-6 col-sm-12 mt-1">
+                                <div class="form-group   mt-1">
                                     <br>
                                     <a class="btn btn-success"
                                         href="{{ url('language-sample') }}">{{ __('download_sample') }}</a>
 
                                 </div>
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <input type="hidden" name="rtl" value="0">
                                     <div class="form-check">
                                         <label class="form-check-label">
@@ -64,19 +60,19 @@
                                 </div>
                             </div>
 
-                            <input class="btn btn-theme" type="submit" value="{{ __('submit') }}">
+                            <input class="m3-button m3-button--filled" type="submit" value="{{ __('submit') }}">
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
+            <div class="  ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">
                             {{ __('list') . ' ' . __('language') }}
                         </h4>
-                        <div class="row">
-                            <div class="col-12">
+                        <div class="panel-form-grid">
+                            <div class="">
                                 <table aria-describedby="mydesc" class='table' id='table_list' data-toggle="table"
                                     data-url="{{ url('language-list') }}" data-click-to-select="true"
                                     data-side-pagination="server" data-pagination="true"
@@ -128,46 +124,46 @@
                     @csrf
                     <div class="modal-body">
                         <input type="hidden" name="id" id="id">
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-12">
+                        <div class="panel-form-grid">
+                            <div class="form-group  ">
                                 <label>{{ __('language_name') }} <span class="text-danger">*</span></label>
                                 {!! Form::text('name', null, [
                                     'required',
                                     'placeholder' => __('language_name'),
-                                    'class' => 'form-control',
+                                    'class' => 'm3-text-field__input',
                                     'id' => 'name',
                                 ]) !!}
 
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-12">
+                        <div class="panel-form-grid">
+                            <div class="form-group  ">
                                 <label>{{ __('language_code') }} <span class="text-danger">*</span></label>
                                 {!! Form::text('code', null, [
                                     'required',
                                     'placeholder' => __('language_code'),
-                                    'class' => 'form-control',
+                                    'class' => 'm3-text-field__input',
                                     'id' => 'code',
                                 ]) !!}
 
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-12">
+                        <div class="panel-form-grid">
+                            <div class="form-group  ">
                                 <label>{{ __('upload_file') }}</label><br>
                                 <input type="file" name="file" class="file-upload-default" />
-                                <div class="input-group col-xs-12">
+                                <div class="input-group ">
                                     <input type="text" class="form-control file-upload-info" disabled=""
                                         placeholder="{{ __('upload_file') }}" />
                                     <span class="input-group-append">
-                                        <button class="file-upload-browse btn btn-theme"
+                                        <button class="file-upload-browse m3-button m3-button--filled"
                                             type="button">{{ __('upload') }}</button>
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-12">
+                        <div class="panel-form-grid">
+                            <div class="form-group  ">
                                 <div class="form-check">
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="checkbox" value="1" name="rtl"
@@ -179,9 +175,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary"
+                        <button type="button" class="m3-button m3-button--outlined"
                             data-dismiss="modal">{{ __('cancel') }}</button>
-                        <input class="btn btn-theme" type="submit" value={{ __('submit') }}>
+                        <input class="m3-button m3-button--filled" type="submit" value={{ __('submit') }}>
                     </div>
                 </form>
             </div>

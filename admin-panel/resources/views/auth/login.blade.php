@@ -1,220 +1,27 @@
-<!DOCTYPE html>
-@php
-    $lang = Session::get('language');
-@endphp
-@if ($lang)
-    @if ($lang->is_rtl)
-        <html lang="en" dir="rtl">
-    @else
-        <html lang="en">
-    @endif
-@else
-    <html lang="en">
-@endif
-
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" href="{{ schoolSetting('favicon') ? url(Storage::url(schoolSetting('favicon'))) : asset('assets/navigateed/favicon.svg') }}">
-
-    <title>{{ __('login') }} || {{ config('app.name') }}</title>
-
-    @include('layouts.include')
-
-</head>
-
-<body class="bg-image">
-<div class="container-scroller">
-    {{-- <div class="bg-image"> --}}
-        <div class="overlay">
-            <div class="container-fluid">
-
-                    <div class="row">
-                        <div class="col-md-4 col-lg-7"></div>
-                        <div class="col-md-8 col-lg-4">
-                            <div class="auth-content-wrapper auth">
-                                <div class="auth-form-light text-left p-5">
-                                    @if(config('app.demo_mode'))
-                                        <div class="alert alert-info text-center" role="alert">
-                                            NOTE : <a target="_blank" href="{{ route('login') }}">-- Click Here --</a> If you Can't Login.
-                                        </div>
-                                    @endif
-                                    <div class="brand-logo text-center">
-                                        <img src="{{ schoolLogoUrl('logo2') }}" alt="logo">
-                                    </div>
-                                    @if (session('success'))
-                                        <div class="alert alert-success text-center" role="status">{{ session('success') }}</div>
-                                    @endif
-                                    <form action="{{ route('login') }}" id="frmLogin" method="POST" class="pt-3">
-                                        @csrf
-                                        <div class="form-group">
-                                            <label>{{ __('email') }}</label>
-                                            {{-- <input type="text" name="username" required class="form-control form-control-lg" placeholder="{{__('username')}}"> --}}
-                                            <input id="email" type="email" class="form-control form-control-lg" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="{{ __('email') }}">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>{{ __('password') }}</label>
-                                            {{-- <input type="password" name="password" required class="form-control form-control-lg" placeholder="{{__('password')}}"> --}}
-
-                                            <div class="input-group">
-                                                <input id="password" type="password" class="form-control form-control-lg" name="password" required autocomplete="current-password" placeholder="{{ __('password') }}">
-                                                <div class="input-group-append">
-                                                        <span class="input-group-text">
-                                                            <i class="fa fa-eye-slash" id="togglePassword"></i>
-                                                        </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        @if (Route::has('password.request'))
-                                            <div class="my-2 d-flex justify-content-end align-items-center">
-
-                                                <a class="auth-link text-black" href="{{ route('password.request') }}">
-                                                    {{ __('forgot_password') }}
-                                                </a>
-                                            </div>
-                                        @endif
-                                        <div class="mt-3">
-                                            <input type="submit" name="btnlogin" id="login_btn" value="{{ __('login') }}" class="btn btn-block btn-theme btn-lg font-weight-medium auth-form-btn"/>
-                                        </div>
-                                    </form>
-                                    @if(config('app.demo_mode'))
-                                        <div class="row mt-2">
-                                            <hr class="w-100">
-                                            <div class="col-12 text-center mb-2 text-black-50">Demo Credentials</div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-md-6">
-                                                <button class="btn btn-block btn-success mt-2" id="superadmin_btn">Super Admin</button>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <button class="btn btn-block btn-danger mt-2" id="teacher_btn">Teacher</button>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2 text-center">
-                                            <div class="col-md-3">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <button class="btn btn-block btn-info mt-2" id="staff_btn">Staff</button>
-                                            </div>
-                                            <div class="col-md-3">
-                                            </div>
-                                        </div>
-
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-1"></div>
-                    </div>
-
-                <!-- content-wrapper ends -->
-            </div>
-            <!-- page-body-wrapper ends -->
+@extends('layouts.school-auth')
+@section('title', __('Sign in'))
+@section('description', __('Use your school account to open your authorised workspace.'))
+@section('content')
+<form action="{{ route('login') }}" id="frmLogin" method="POST" class="school-auth__form">
+    @csrf
+    <x-page.field id="email" type="email" name="email" :label="__('email')" :value="old('email')" required autocomplete="email" autofocus />
+    <div class="school-auth__password">
+        <x-page.field id="password" type="password" name="password" :label="__('password')" :restore-old-input="false" required autocomplete="current-password" />
+        <button id="togglePassword" type="button" class="m3-button m3-button--text" data-auth-password-toggle aria-controls="password" aria-pressed="false" data-show-label="{{ __('Show') }}" data-hide-label="{{ __('Hide') }}">{{ __('Show') }}</button>
+    </div>
+    <div class="school-auth__links">
+        @if(Route::has('password.request'))<a href="{{ route('password.request') }}">{{ __('forgot_password') }}</a>@endif
+    </div>
+    <button type="submit" name="btnlogin" id="login_btn" class="m3-button m3-button--filled">{{ __('login') }}</button>
+</form>
+@include('auth.provider-buttons')
+@if(config('app.demo_mode'))
+    <details class="m3-expansion"><summary class="m3-expansion__header">{{ __('Demo accounts') }}</summary>
+        <div class="school-auth__links">
+            <button type="button" class="m3-button m3-button--outlined" id="superadmin_btn" data-demo-account data-demo-email="superadmin@gmail.com" data-demo-password="superadmin">{{ __('Super Admin') }}</button>
+            <button type="button" class="m3-button m3-button--outlined" id="teacher_btn" data-demo-account data-demo-email="teacher@gmail.com" data-demo-password="teacher123">{{ __('Teacher') }}</button>
+            <button type="button" class="m3-button m3-button--outlined" id="staff_btn" data-demo-account data-demo-email="staff@gmail.com" data-demo-password="14081980">{{ __('Staff') }}</button>
         </div>
-    {{-- </div> --}}
-</div>
-
-<script src="{{ asset('/assets/js/vendor.bundle.base.js') }}"></script>
-<script src="{{ asset('/assets/js/jquery.validate.min.js') }}"></script>
-<script src="{{ asset('/assets/jquery-toast-plugin/jquery.toast.min.js') }}"></script>
-
-<script type='text/javascript'>
-    $("#frmLogin").validate({
-        rules: {
-            username: "required",
-            password: "required",
-        },
-        success: function(label, element) {
-            $(element).parent().removeClass('has-danger')
-            $(element).removeClass('form-control-danger')
-        },
-        errorPlacement: function (label, element) {
-            if(label.text()){
-                if ($(element).attr("name") == "password"){
-                label.insertAfter(element.parent()).addClass('text-danger mt-2');
-                }else{
-                    label.addClass('mt-2 text-danger');
-                    label.insertAfter(element);
-                }
-            }
-
-        },
-        highlight: function (element, errorClass) {
-            $(element).parent().addClass('has-danger')
-            $(element).addClass('form-control-danger')
-        }
-    });
-
-    const togglePassword = document.querySelector("#togglePassword");
-    const password = document.querySelector("#password");
-
-    togglePassword.addEventListener("click", function () {
-        const type = password.getAttribute("type") === "password" ? "text" : "password";
-        password.setAttribute("type", type);
-        // this.classList.toggle("fa-eye");
-        if (password.getAttribute("type") === 'password') {
-            $('#togglePassword').addClass('fa-eye-slash');
-            $('#togglePassword').removeClass('fa-eye');
-        } else {
-            $('#togglePassword').removeClass('fa-eye-slash');
-            $('#togglePassword').addClass('fa-eye');
-        }
-    });
-
-    @if(config('app.demo_mode'))
-    $('#superadmin_btn').on('click', function (e) {
-        $('#email').val('superadmin@gmail.com');
-        $('#password').val('superadmin');
-        $('#login_btn').attr('disabled', true);
-        $(this).attr('disabled', true);
-        $('#frmLogin').submit();
-    })
-    $('#teacher_btn').on('click', function (e) {
-        $('#email').val('teacher@gmail.com');
-        $('#password').val('teacher123');
-        $('#login_btn').attr('disabled', true);
-        $(this).attr('disabled', true);
-        $('#frmLogin').submit();
-    })
-    $('#staff_btn').on('click', function (e) {
-        $('#email').val('staff@gmail.com');
-        $('#password').val('14081980');
-        $('#login_btn').attr('disabled', true);
-        $(this).attr('disabled', true);
-        $('#frmLogin').submit();
-    })
-    @endif
-
-</script>
-</body>
-
-@if (Session::has('error'))
-    <script type='text/javascript'>
-        $.toast({
-            text: $('<div>').text(@json(Session::get('error'))).html(),
-            showHideTransition: 'slide',
-            icon: 'error',
-            loaderBg: '#f2a654',
-            position: 'top-right'
-        });
-    </script>
+    </details>
 @endif
-
-@if ($errors->any())
-    @foreach ($errors->all() as $error)
-        <script type='text/javascript'>
-            $.toast({
-                text: $('<div>').text(@json($error)).html(),
-                showHideTransition: 'slide',
-                icon: 'error',
-                loaderBg: '#f2a654',
-                position: 'top-right'
-            });
-        </script>
-    @endforeach
-@endif
-
-</html>
+@endsection

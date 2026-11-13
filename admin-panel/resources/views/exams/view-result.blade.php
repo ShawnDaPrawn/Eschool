@@ -5,11 +5,9 @@
 @endsection
 
 @section('content')
-<div class="content-wrapper">
+<div class="content-wrapper m3 page-content">
 
-    <div class="page-header">
-        <h3 class="page-title">{{ __('exam_result') }}</h3>
-    </div>
+    <x-page.header :title="__('exam_result')" />
 
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card search-container">

@@ -136,10 +136,10 @@ class MasteryModelV2Test extends TestCase
     public function test_curriculum_publisher_switches_the_model_in_the_panel_with_audit_and_queued_rebuild(): void
     {
         Queue::fake();
-        $this->actingAs($this->superAdmin())->get('/growth-mastery')->assertOk()->assertSee('Mastery model for this school')
+        $this->actingAs($this->superAdmin())->get('/growth-mastery?view=graph')->assertOk()->assertSee('Mastery model for this school')
             ->assertSee('Mastery model v1: the last 20 answers, marks added up');
         $audits = AuditLog::where('action', 'growth.mastery_model_changed')->count();
-        $this->post('/growth-mastery/model', ['model_version' => 'weighted-decay-v2', 'expected_revision' => 0])->assertRedirect(route('mastery.index'))
+        $this->post('/growth-mastery/model', ['model_version' => 'weighted-decay-v2', 'expected_revision' => 0])->assertRedirect(route('mastery.index', ['view' => 'graph']))
             ->assertSessionHas('success');
         $this->assertSame('weighted-decay-v2', MasterySettings::sole()->model_version);
         $this->assertSame(1, MasterySettings::sole()->revision);
@@ -150,7 +150,7 @@ class MasteryModelV2Test extends TestCase
         $this->assertSame((int) $this->superAdmin()->id, (int) $audit->actor_id);
         Queue::assertPushed(RecomputeMastery::class, fn ($job) => $job->groupId === $this->group && $job->schoolId === 1);
         // A stale revision and an unknown model are refused without a change.
-        $this->post('/growth-mastery/model', ['model_version' => 'recent20-v1', 'expected_revision' => 0])->assertRedirect(route('mastery.index'))->assertSessionHasErrors('model_version');
+        $this->post('/growth-mastery/model', ['model_version' => 'recent20-v1', 'expected_revision' => 0])->assertRedirect(route('mastery.index', ['view' => 'graph']))->assertSessionHasErrors('model_version');
         $this->post('/growth-mastery/model', ['model_version' => 'made-up-v9', 'expected_revision' => 1])->assertSessionHasErrors('model_version');
         $this->assertSame('weighted-decay-v2', MasterySettings::sole()->model_version);
         $this->assertSame($audits + 1, AuditLog::where('action', 'growth.mastery_model_changed')->count());

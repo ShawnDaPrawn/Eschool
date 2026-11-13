@@ -1,0 +1,3903 @@
+[
+  {
+    "design_id": "EX001",
+    "module": "Extracurriculars",
+    "title": "Moderate group message",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:25",
+    "design_routes": [
+      "group-chat-panel.remove"
+    ],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX002",
+    "module": "Extracurriculars",
+    "title": "Reply in group conversation",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:35",
+    "design_routes": [
+      "group-chat-panel.write"
+    ],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX003",
+    "module": "Extracurriculars",
+    "title": "Close group conversation",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:46",
+    "design_routes": [
+      "group-chat-panel.write"
+    ],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX004",
+    "module": "Extracurriculars",
+    "title": "Create group conversation",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:58",
+    "design_routes": [
+      "group-chat-panel.create"
+    ],
+    "runtime_entry": "/group-conversations/groups/{group}?screen=create",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX005",
+    "module": "Extracurriculars",
+    "title": "Upload document",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/files.blade.php:11",
+    "design_routes": [
+      "activity-files.upload"
+    ],
+    "runtime_entry": "/activity-material-files/groups/{group}/materials/{material}?screen=upload",
+    "view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX006",
+    "module": "Extracurriculars",
+    "title": "Confirm document removal",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/activities/files.blade.php:24",
+    "design_routes": [
+      "activity-files.remove"
+    ],
+    "runtime_entry": "/activity-material-files/groups/{group}/materials/{material}",
+    "view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Scoped download, explicit removal confirmation, revision conflicts and upload eligibility retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX007",
+    "module": "Extracurriculars",
+    "title": "Accept competition invitation",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/activities/fixtures/competition.blade.php:14",
+    "design_routes": [
+      "activity-fixtures.competition-decision"
+    ],
+    "runtime_entry": "/activity-fixtures/competitions/{id}?screen=invitation",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX008",
+    "module": "Extracurriculars",
+    "title": "Invite school to competition",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/fixtures/competition.blade.php:51",
+    "design_routes": [
+      "activity-fixtures.competition-invite"
+    ],
+    "runtime_entry": "/activity-fixtures/competitions/{id}?screen=invite",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX009",
+    "module": "Extracurriculars",
+    "title": "Arrange fixture with a NavigateEd school",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/fixtures/index.blade.php:52",
+    "design_routes": [
+      "activity-fixtures.create"
+    ],
+    "runtime_entry": "/activity-fixtures?screen=fixture-create",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "School search or external opponent, team, dates/venue and optional league remain explicit fields.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX010",
+    "module": "Extracurriculars",
+    "title": "Start the competition",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/fixtures/index.blade.php:84",
+    "design_routes": [
+      "activity-fixtures.competition-create"
+    ],
+    "runtime_entry": "/activity-fixtures?screen=competition-create",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX011",
+    "module": "Extracurriculars",
+    "title": "Accept fixture invitation",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/fixtures/show.blade.php:28",
+    "design_routes": [
+      "activity-fixtures.decision"
+    ],
+    "runtime_entry": "/activity-fixtures/{id}?screen=invitation",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX012",
+    "module": "Extracurriculars",
+    "title": "Decline fixture invitation",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/activities/fixtures/show.blade.php:36",
+    "design_routes": [
+      "activity-fixtures.decision"
+    ],
+    "runtime_entry": "/activity-fixtures/{id}?screen=invitation",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX013",
+    "module": "Extracurriculars",
+    "title": "Edit the team sheet",
+    "design_kind": "builder",
+    "design_source": "admin-panel/resources/views/activities/fixtures/show.blade.php:50",
+    "design_routes": [
+      "activity-fixtures.side"
+    ],
+    "runtime_entry": "/activity-fixtures/{id}?screen=team",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Manager can load another scoped group before saving; staff cannot broaden their allocation. Selected private labels/positions/notes survive validation only in direct response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX014",
+    "module": "Extracurriculars",
+    "title": "Report the score",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/fixtures/show.blade.php:95",
+    "design_routes": [
+      "activity-fixtures.result"
+    ],
+    "runtime_entry": "/activity-fixtures/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Sports score agreement/dispute workflow; academic results use their own adjudication screen.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX015",
+    "module": "Extracurriculars",
+    "title": "Edit the fixture",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/fixtures/show.blade.php:110",
+    "design_routes": [
+      "activity-fixtures.schedule"
+    ],
+    "runtime_entry": "/activity-fixtures/{id}?screen=configuration",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Reschedule/cancel service conflict keeps editor and source revision visible.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX016",
+    "module": "Extracurriculars",
+    "title": "Start the season",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/seasons.blade.php:25",
+    "design_routes": [
+      "activity-seasons.store"
+    ],
+    "runtime_entry": "/activity-seasons",
+    "view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Season copy stays within globally selected current year and recreates empty groups; historical years are read-only; school-year activation remains global.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX017",
+    "module": "Extracurriculars",
+    "title": "Create or edit activity group",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/workbench.blade.php:24",
+    "design_routes": [
+      "activity-groups.save",
+      "activity-groups.create"
+    ],
+    "runtime_entry": "/activity-groups?view=group-edit&group_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/activities/group-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/group-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX018",
+    "module": "Extracurriculars",
+    "title": "Allocate activity staff",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/workbench.blade.php:46",
+    "design_routes": [
+      "activity-groups."
+    ],
+    "runtime_entry": "/activity-groups?group_id={id}&view=staff-edit&record_id={optional-id}&edit={optional-staff}",
+    "view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX019",
+    "module": "Extracurriculars",
+    "title": "Add returning group member",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/activities/workbench.blade.php:62",
+    "design_routes": [
+      "activity-groups.membership-save"
+    ],
+    "runtime_entry": "/activity-groups?group_id={id}&view=member-edit&record_id={optional-id}&edit={optional-membership}",
+    "view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Dated membership, captain role, returning-member suggestions, cancellation/revision and reasons retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX020",
+    "module": "Extracurriculars",
+    "title": "Create or edit session",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/workbench.blade.php:77",
+    "design_routes": [
+      "activity-groups.session-save"
+    ],
+    "runtime_entry": "/activity-groups?group_id={id}&view=session-edit&record_id={optional-id}&edit={optional-session}",
+    "view_files": [
+      "admin-panel/resources/views/activities/session-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/session-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX021",
+    "module": "Extracurriculars",
+    "title": "Create or edit group material",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/workbench.blade.php:111",
+    "design_routes": [
+      "activity-groups.material-save"
+    ],
+    "runtime_entry": "/activity-groups?group_id={id}&view=material-edit&record_id={optional-id}&edit={optional-material}",
+    "view_files": [
+      "admin-panel/resources/views/activities/material-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/material-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI001",
+    "module": "Discipline",
+    "title": "Configure conduct framework rules",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php:25",
+    "design_routes": [
+      "discipline-panel.configure"
+    ],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI002",
+    "module": "Discipline",
+    "title": "Confirm grade-reviewed occurrence",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php:52",
+    "design_routes": [
+      "discipline-panel.review"
+    ],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI003",
+    "module": "Discipline",
+    "title": "Record principal hearing sanction",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php:59",
+    "design_routes": [
+      "discipline-panel.hearing"
+    ],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI004",
+    "module": "Discipline",
+    "title": "Add this learner to the session",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php:66",
+    "design_routes": [
+      "discipline-panel.enroll"
+    ],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI005",
+    "module": "Discipline",
+    "title": "Record occurrence",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php:72",
+    "design_routes": [
+      "discipline-panel.create"
+    ],
+    "runtime_entry": "/school-discipline?view=create&learner_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/learner-search.blade.php",
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/learner-search.blade.php",
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI006",
+    "module": "Discipline",
+    "title": "Cancel retained session",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php:87",
+    "design_routes": [
+      "discipline-panel.cancel"
+    ],
+    "runtime_entry": "/school-discipline?mode=detentions&view=detention&detention={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Retained roster/history and cancellation; attendance action links into central Attendance view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI007",
+    "module": "Discipline",
+    "title": "Create supervised session",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php:96",
+    "design_routes": [
+      "discipline-panel.detention_create"
+    ],
+    "runtime_entry": "/school-discipline?mode=detentions&view=detention-create",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Grade/date supervisor chooser precedes creation; dated staff eligibility and capacity retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW001",
+    "module": "Awards",
+    "title": "Approve Golden Boot nomination",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/recognition/assembly.blade.php:6",
+    "design_routes": [
+      "recognition.change"
+    ],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW002",
+    "module": "Awards",
+    "title": "Present an approved award",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/recognition/assembly.blade.php:7",
+    "design_routes": [
+      "recognition.create"
+    ],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW003",
+    "module": "Awards",
+    "title": "Withdraw a nomination",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/recognition/assembly.blade.php:8",
+    "design_routes": [
+      "recognition.change"
+    ],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW004",
+    "module": "Awards",
+    "title": "Create activity-group award category",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:3",
+    "design_routes": [
+      "recognition.catalogue-save",
+      "recognition.catalogue-create"
+    ],
+    "runtime_entry": "/recognition/awards?view=editor&task=category&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Separate school / grade-subject / activity scope choices; existing scope is immutable; active/archive state retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW005",
+    "module": "Awards",
+    "title": "Create award: Golden Boot",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:6",
+    "design_routes": [
+      "recognition.catalogue-save",
+      "recognition.catalogue-create"
+    ],
+    "runtime_entry": "/recognition/awards?view=editor&task=definition&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW006",
+    "module": "Awards",
+    "title": "Open a nomination window",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:10",
+    "design_routes": [
+      "recognition.catalogue-create"
+    ],
+    "runtime_entry": "/recognition/awards?view=editor&task=window&edit_id={category-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "School-year label is global; year-to-group mapping, draft/open/closed window and service conflicts remain explicit.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW007",
+    "module": "Awards",
+    "title": "Edit persistence badges",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:13",
+    "design_routes": [
+      "recognition.create"
+    ],
+    "runtime_entry": "/recognition/awards?view=editor&task=badges; /recognition/awards?learner_id={id}&task=history",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Badge policy editor; earning records use the permanent award history including criteria/date/source and retained corrections. Scheduling and automatic earning remain source services.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW008",
+    "module": "Awards",
+    "title": "Appoint award category administrator",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:16",
+    "design_routes": [
+      "recognition.catalogue-create"
+    ],
+    "runtime_entry": "/recognition/awards?view=editor&task=administrator&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW009",
+    "module": "Awards",
+    "title": "Edit or revoke category administrator",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:18",
+    "design_routes": [
+      "recognition.catalogue-save"
+    ],
+    "runtime_entry": "/recognition/awards?view=editor&task=administrator&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW010",
+    "module": "Awards",
+    "title": "Correct a presented award",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/awards-learner.blade.php:3",
+    "design_routes": [
+      "recognition.change"
+    ],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}&task=correct&edit_id={presentation-id}&before={presentation-id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW011",
+    "module": "Awards",
+    "title": "Nominate a learner for Golden Boot",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/awards-learner.blade.php:6",
+    "design_routes": [
+      "recognition.create"
+    ],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}&task=nominate",
+    "view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW012",
+    "module": "Awards",
+    "title": "Assign and present an award directly",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/awards-learner.blade.php:10",
+    "design_routes": [
+      "recognition.create"
+    ],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}&task=present",
+    "view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php",
+      "admin-panel/resources/views/recognition/workbench.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Eligibility and approval requirements are service-enforced; invalid/stale changes keep escaped private drafts only in the direct response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php",
+      "admin-panel/resources/views/recognition/workbench.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW013",
+    "module": "Awards",
+    "title": "Record an external award",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/awards-learner.blade.php:15",
+    "design_routes": [
+      "recognition.create"
+    ],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}&task=outside",
+    "view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW014",
+    "module": "Awards",
+    "title": "Edit school recognition settings",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/configuration.blade.php:3",
+    "design_routes": [
+      "recognition.create"
+    ],
+    "runtime_entry": "/recognition/{awards|house_points}?view=editor&task=settings",
+    "view_files": [
+      "admin-panel/resources/views/recognition/configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW015",
+    "module": "Awards",
+    "title": "Edit house",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/configuration.blade.php:8",
+    "design_routes": [
+      "recognition.catalogue-save",
+      "recognition.catalogue-create"
+    ],
+    "runtime_entry": "/recognition/house_points?view=editor&task=house&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW016",
+    "module": "Awards",
+    "title": "Edit point category",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/configuration.blade.php:11",
+    "design_routes": [
+      "recognition.catalogue-save",
+      "recognition.catalogue-create"
+    ],
+    "runtime_entry": "/recognition/house_points?view=editor&task=point-category&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW017",
+    "module": "Awards",
+    "title": "Award points",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/workbench.blade.php:29",
+    "design_routes": [
+      "recognition.create"
+    ],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={id}&task=points",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW018",
+    "module": "Awards",
+    "title": "Append a reversal",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/workbench.blade.php:40",
+    "design_routes": [
+      "recognition.change"
+    ],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={id}&task=points&edit_id={point-id}&before={point-id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW019",
+    "module": "Awards",
+    "title": "End this dated membership",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/workbench.blade.php:43",
+    "design_routes": [
+      "recognition.catalogue-save"
+    ],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={id}&task=membership",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Ending and assigning membership remain separate reasoned dated writes; old points retain their house.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW020",
+    "module": "Awards",
+    "title": "Assign dated house membership",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/workbench.blade.php:44",
+    "design_routes": [
+      "recognition.catalogue-create"
+    ],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={id}&task=membership",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Ending and assigning membership remain separate reasoned dated writes; old points retain their house.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW021",
+    "module": "Awards",
+    "title": "Golden Boot: definition and eligibility",
+    "design_kind": "detail",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:6",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=catalogue",
+    "view_files": [
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Definition cards expose category scope, eligibility, frequency, availability and criteria.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW022",
+    "module": "Awards",
+    "title": "Nomination detail and decision history",
+    "design_kind": "detail",
+    "design_source": "admin-panel/resources/views/recognition/assembly.blade.php:6",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW023",
+    "module": "Awards",
+    "title": "Learner award profile: presentation saved",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/AwardPresentations.php:35",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW024",
+    "module": "Awards",
+    "title": "Assembly presentation view",
+    "design_kind": "assembly",
+    "design_source": "admin-panel/resources/views/recognition/assembly.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=assembly",
+    "view_files": [
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Approved/presented projection excludes nomination/review reasons and decision history; authorized staff retain presentation action.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW025",
+    "module": "Awards",
+    "title": "Edit or archive an award definition",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php:6",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=definition&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW026",
+    "module": "Awards",
+    "title": "Award cannot be presented yet",
+    "design_kind": "exception",
+    "design_source": "admin-panel/app/Services/Recognition/AwardPresentations.php:61",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}&task=present",
+    "view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php",
+      "admin-panel/resources/views/recognition/workbench.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Eligibility and approval requirements are service-enforced; invalid/stale changes keep escaped private drafts only in the direct response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php",
+      "admin-panel/resources/views/recognition/workbench.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX022",
+    "module": "Extracurriculars",
+    "title": "Activity group workspace",
+    "design_kind": "detail",
+    "design_source": "activities/; groups/",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php",
+      "admin-panel/resources/views/activities/sessions.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php",
+      "admin-panel/resources/views/activities/sessions.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX023",
+    "module": "Extracurriculars",
+    "title": "Fixture detail and shared result",
+    "design_kind": "detail",
+    "design_source": "activities/fixtures/; engineering/specs/activities/inter-school-fixtures.md",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX024",
+    "module": "Extracurriculars",
+    "title": "Competition table and invitations",
+    "design_kind": "grid",
+    "design_source": "activities/fixtures/; engineering/specs/activities/inter-school-fixtures.md",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/competitions/{id}?screen=standings",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI008",
+    "module": "Discipline",
+    "title": "Occurrence detail and grade review",
+    "design_kind": "detail",
+    "design_source": "discipline/workbench.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI009",
+    "module": "Discipline",
+    "title": "Detention session and roster",
+    "design_kind": "grid",
+    "design_source": "discipline/workbench.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?mode=detentions&view=detention&detention={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Retained roster/history and cancellation; attendance action links into central Attendance view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX025",
+    "module": "Extracurriculars",
+    "title": "Create academic competition",
+    "design_kind": "form",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:61",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions?screen=create",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Imported PR488 backend now present; kind-specific debate/quiz/speech semantics remain service-enforced.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX026",
+    "module": "Extracurriculars",
+    "title": "Draft academic adjudication result",
+    "design_kind": "builder",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:61,235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX027",
+    "module": "Extracurriculars",
+    "title": "Resolve disputed academic result",
+    "design_kind": "exception",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI010",
+    "module": "Discipline",
+    "title": "Create an infraction definition",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/discipline/framework-row.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI011",
+    "module": "Discipline",
+    "title": "Edit escalation thresholds",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/discipline/framework-row.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI012",
+    "module": "Discipline",
+    "title": "Create an approved sanction",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/discipline/framework-row.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI013",
+    "module": "Discipline",
+    "title": "Review and publish conduct framework",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX-E02",
+    "module": "Extracurriculars",
+    "title": "Activity group detail",
+    "design_kind": "workspace",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php; admin-panel/resources/views/activities/files.blade.php; admin-panel/resources/views/activities/workbench.blade.php; activities/; groups/",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php",
+      "admin-panel/resources/views/activities/sessions.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php",
+      "admin-panel/resources/views/activities/sessions.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX-E03",
+    "module": "Extracurriculars",
+    "title": "Fixtures and competitions",
+    "design_kind": "workspace",
+    "design_source": "admin-panel/resources/views/activities/fixtures/competition.blade.php; admin-panel/resources/views/activities/fixtures/index.blade.php; admin-panel/resources/views/activities/fixtures/show.blade.php; activities/fixtures/; engineering/specs/activities/inter-school-fixtures.md; PR #488 / academic competitions",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures?screen=fixtures; /activity-fixtures?screen=competitions; /academic-competitions",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php",
+      "admin-panel/resources/views/activities/academic/index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php",
+      "admin-panel/resources/views/activities/academic/index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX-E04-CFG",
+    "module": "Extracurriculars",
+    "title": "Activity configuration",
+    "design_kind": "workspace",
+    "design_source": "admin-panel/resources/views/activities/seasons.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/activity-seasons",
+    "view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Season copy stays within globally selected current year and recreates empty groups; historical years are read-only; school-year activation remains global.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI-D01-CFG",
+    "module": "Discipline",
+    "title": "Discipline configuration",
+    "design_kind": "workspace",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php; admin-panel/resources/views/discipline/framework-row.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI-D01",
+    "module": "Discipline",
+    "title": "Discipline",
+    "design_kind": "workspace",
+    "design_source": "admin-panel/resources/views/discipline/workbench.blade.php; discipline/workbench.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=list",
+    "view_files": [
+      "admin-panel/resources/views/discipline/records.blade.php",
+      "admin-panel/resources/views/discipline/workbench.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/records.blade.php",
+      "admin-panel/resources/views/discipline/workbench.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW-W01",
+    "module": "Awards",
+    "title": "Awards and houses",
+    "design_kind": "workspace",
+    "design_source": "admin-panel/resources/views/recognition/assembly.blade.php; admin-panel/resources/views/recognition/awards-learner.blade.php; admin-panel/resources/views/recognition/workbench.blade.php; admin-panel/resources/views/recognition/award-configuration.blade.php; admin-panel/app/Services/Recognition/AwardPresentations.php",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW-W01-CFG",
+    "module": "Awards",
+    "title": "Awards and houses configuration",
+    "design_kind": "workspace",
+    "design_source": "admin-panel/resources/views/recognition/award-configuration.blade.php; admin-panel/resources/views/recognition/configuration.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=configuration",
+    "view_files": [
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX-E01",
+    "module": "Extracurriculars",
+    "title": "Activities workspace",
+    "design_kind": "workspace",
+    "design_source": "activities/workbench.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups",
+    "view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX-E04",
+    "module": "Extracurriculars",
+    "title": "Activity configuration",
+    "design_kind": "workspace",
+    "design_source": "activities/seasons.blade.php; activities/workbench.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/activity-seasons",
+    "view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Season copy stays within globally selected current year and recreates empty groups; historical years are read-only; school-year activation remains global.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW-W02",
+    "module": "Awards",
+    "title": "Award and house records",
+    "design_kind": "workspace",
+    "design_source": "recognition/; engineering/specs/community/houses-and-awards.md",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW-W03",
+    "module": "Awards",
+    "title": "Awards configuration",
+    "design_kind": "workspace",
+    "design_source": "recognition/award-configuration.blade.php; recognition/configuration.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=configuration",
+    "view_files": [
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI-D02",
+    "module": "Discipline",
+    "title": "Discipline entry and detention detail",
+    "design_kind": "workspace",
+    "design_source": "discipline/",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?mode=detentions&view=detention&detention={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Retained roster/history and cancellation; attendance action links into central Attendance view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI-D03",
+    "module": "Discipline",
+    "title": "Discipline configuration",
+    "design_kind": "workspace",
+    "design_source": "discipline/framework-row.blade.php; discipline/workbench.blade.php",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "AW300",
+    "module": "Awards",
+    "title": "Create whole-school award category",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:159",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=category&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Separate school / grade-subject / activity scope choices; existing scope is immutable; active/archive state retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW301",
+    "module": "Awards",
+    "title": "Create grade and subject award category",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:159",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=category&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Separate school / grade-subject / activity scope choices; existing scope is immutable; active/archive state retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW302",
+    "module": "Awards",
+    "title": "Edit or archive an award category",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:199",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=category&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Separate school / grade-subject / activity scope choices; existing scope is immutable; active/archive state retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW304",
+    "module": "Awards",
+    "title": "Golden Boot nomination submitted",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/AwardNominations.php:107",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW305",
+    "module": "Awards",
+    "title": "Decline Golden Boot nomination",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Recognition/AwardNominations.php:145",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW306",
+    "module": "Awards",
+    "title": "Golden Boot nomination declined",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/AwardNominations.php:174",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW307",
+    "module": "Awards",
+    "title": "Golden Boot nomination withdrawn",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/AwardNominations.php:186",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=nominations&nomination_id={id}&before={id+1}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Queue item selection shows service-permitted review, withdraw and approved presentation actions; encrypted retained decision versions appear only outside assembly.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/workbench.blade.php",
+      "admin-panel/resources/views/recognition/assembly.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW308",
+    "module": "Awards",
+    "title": "Award presentation correction retained",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/AwardPresentations.php:112",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}&task=history",
+    "view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff-only retained history applies the same school, learner and category scope as the active permanent profile; void reasons never enter family API.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW309",
+    "module": "Awards",
+    "title": "External award recorded",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/AwardPresentations.php:87",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW310",
+    "module": "Awards",
+    "title": "Learner house-point history",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Recognition/HousePoints.php:137",
+    "design_routes": [],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Live scoped house counters plus year-scoped point entries and immutable reversal source.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW312",
+    "module": "Awards",
+    "title": "House-point reversal recorded",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/HousePoints.php:91",
+    "design_routes": [],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Live scoped house counters plus year-scoped point entries and immutable reversal source.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW313",
+    "module": "Awards",
+    "title": "Dated house membership saved",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:122",
+    "design_routes": [],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={id}&task=membership",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Ending and assigning membership remain separate reasoned dated writes; old points retain their house.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW320",
+    "module": "Awards",
+    "title": "House membership ended",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:122",
+    "design_routes": [],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={id}&task=membership",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Ending and assigning membership remain separate reasoned dated writes; old points retain their house.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW321",
+    "module": "Awards",
+    "title": "Move learner to the next dated house",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:122",
+    "design_routes": [],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={id}&task=membership",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Ending and assigning membership remain separate reasoned dated writes; old points retain their house.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW311",
+    "module": "Awards",
+    "title": "Houses and point totals",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Recognition/HousePoints.php:127",
+    "design_routes": [],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Live scoped house counters plus year-scoped point entries and immutable reversal source.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW314",
+    "module": "Awards",
+    "title": "Category administrator appointment saved",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:287",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=administrator&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW315",
+    "module": "Awards",
+    "title": "Category appointment revoked",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:287",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=administrator&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/configuration-index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW316",
+    "module": "Awards",
+    "title": "Nomination window saved",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:238",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=window&edit_id={category-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "School-year label is global; year-to-group mapping, draft/open/closed window and service conflicts remain explicit.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW317",
+    "module": "Awards",
+    "title": "Yearly award-group mapping is blocked",
+    "design_kind": "exception",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:267",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=window&edit_id={category-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "School-year label is global; year-to-group mapping, draft/open/closed window and service conflicts remain explicit.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW318",
+    "module": "Awards",
+    "title": "Persistence-badge policy and earning history",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionRules.php:50",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=badges; /recognition/awards?learner_id={id}&task=history",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Badge policy editor; earning records use the permanent award history including criteria/date/source and retained corrections. Scheduling and automatic earning remain source services.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW319",
+    "module": "Awards",
+    "title": "Award definition archived",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Recognition/RecognitionCatalog.php:214",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=editor&task=definition&edit_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/award-configuration.blade.php",
+      "admin-panel/resources/views/recognition/catalogue.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI300",
+    "module": "Discipline",
+    "title": "Build approved sanction catalogue",
+    "design_kind": "builder",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineFrameworks.php:30",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI301",
+    "module": "Discipline",
+    "title": "Build ordered escalation levels",
+    "design_kind": "builder",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineFrameworks.php:26",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI302",
+    "module": "Discipline",
+    "title": "Build named infraction catalogue",
+    "design_kind": "builder",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineFrameworks.php:32",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI303",
+    "module": "Discipline",
+    "title": "Configure rolling conduct window",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineFrameworks.php:25",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI304",
+    "module": "Discipline",
+    "title": "Conduct framework published",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineFrameworks.php:49",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=configuration&mode=framework",
+    "view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php",
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "One retained server form with counting rules, sanctions, escalation, infractions, review/publish steps; no-JS fallback remains complete; source framework revisions preserved.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/configuration.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/discipline/framework-row.blade.php"
+    ]
+  },
+  {
+    "design_id": "DI305",
+    "module": "Discipline",
+    "title": "First-level occurrence recorded",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:58",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI306",
+    "module": "Discipline",
+    "title": "Overturn a retained occurrence",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:133",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI307",
+    "module": "Discipline",
+    "title": "Occurrence confirmed for detention",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:157",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI308",
+    "module": "Discipline",
+    "title": "Confirm escalation to principal hearing",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:151",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI309",
+    "module": "Discipline",
+    "title": "Record hearing with no further action",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:184",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI310",
+    "module": "Discipline",
+    "title": "Occurrence history and family acknowledgement",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:122",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI311",
+    "module": "Discipline",
+    "title": "Occurrence overturned",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:147",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI312",
+    "module": "Discipline",
+    "title": "Hearing completed without sanction",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineRecords.php:204",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI313",
+    "module": "Discipline",
+    "title": "Refresh eligible detention supervisors",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:27",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?mode=detentions&view=detention-create",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Grade/date supervisor chooser precedes creation; dated staff eligibility and capacity retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI314",
+    "module": "Discipline",
+    "title": "Detention enrolment cannot proceed",
+    "design_kind": "exception",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:76",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?view=record&record={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Record detail preserves source facts, private/family reasons, permitted grade review, principal hearing, detention enrolment and immutable version history. Invalid enrolment renders the current record and conflict.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/record.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI315",
+    "module": "Discipline",
+    "title": "Detention session retained history",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:144",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?mode=detentions&view=detention&detention={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Retained roster/history and cancellation; attendance action links into central Attendance view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI316",
+    "module": "Discipline",
+    "title": "Detention session cancelled",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:151",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?mode=detentions&view=detention&detention={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Retained roster/history and cancellation; attendance action links into central Attendance view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX300",
+    "module": "Extracurriculars",
+    "title": "Activity learner roster",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:237",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=members",
+    "view_files": [
+      "admin-panel/resources/views/activities/roster.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/roster.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX301",
+    "module": "Extracurriculars",
+    "title": "Activity staff roster",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:237",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=staff",
+    "view_files": [
+      "admin-panel/resources/views/activities/roster.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/roster.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX302",
+    "module": "Extracurriculars",
+    "title": "Allocate activity learner",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:237",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=member-edit&record_id={optional-id}&edit={optional-membership}",
+    "view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Dated membership, captain role, returning-member suggestions, cancellation/revision and reasons retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX303",
+    "module": "Extracurriculars",
+    "title": "Activity session detail",
+    "design_kind": "detail",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:275",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=sessions",
+    "view_files": [
+      "admin-panel/resources/views/activities/sessions.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Session details include source status, cover assignment/revision and links to central attendance; temporary cover does not create permanent staff allocation.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/sessions.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX304",
+    "module": "Extracurriculars",
+    "title": "Cancel activity session",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:275",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=session-edit&record_id={optional-id}&edit={optional-session}",
+    "view_files": [
+      "admin-panel/resources/views/activities/session-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/session-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX320",
+    "module": "Extracurriculars",
+    "title": "Activity session cancelled",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:275",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=sessions",
+    "view_files": [
+      "admin-panel/resources/views/activities/sessions.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Session details include source status, cover assignment/revision and links to central attendance; temporary cover does not create permanent staff allocation.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/sessions.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX305",
+    "module": "Extracurriculars",
+    "title": "Activity material preview",
+    "design_kind": "detail",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:347",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=materials",
+    "view_files": [
+      "admin-panel/resources/views/activities/materials.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/materials.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX306",
+    "module": "Extracurriculars",
+    "title": "Private activity documents",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Activities/ActivityFiles.php:32",
+    "design_routes": [],
+    "runtime_entry": "/activity-material-files/groups/{group}/materials/{material}",
+    "view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Scoped download, explicit removal confirmation, revision conflicts and upload eligibility retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX307",
+    "module": "Extracurriculars",
+    "title": "Group conversation detail",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Activities/GroupChatMessages.php:41",
+    "design_routes": [],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX308",
+    "module": "Extracurriculars",
+    "title": "Group conversation closed",
+    "design_kind": "result",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:46",
+    "design_routes": [],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX309",
+    "module": "Extracurriculars",
+    "title": "Group message removed",
+    "design_kind": "result",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:25",
+    "design_routes": [],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX310",
+    "module": "Extracurriculars",
+    "title": "Private group-conversation reply",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/GroupChatMessages.php:41",
+    "design_routes": [],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX311",
+    "module": "Extracurriculars",
+    "title": "Reopen group conversation",
+    "design_kind": "review",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:46",
+    "design_routes": [],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX312",
+    "module": "Extracurriculars",
+    "title": "Group conversation access expired",
+    "design_kind": "exception",
+    "design_source": "admin-panel/resources/views/activities/chat.blade.php:68",
+    "design_routes": [],
+    "runtime_entry": "/group-conversations/groups/{group}/threads/{thread}",
+    "view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php",
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff allocation, audience/private reply, moderation, close/reopen and lease expiry preserved; private sensitive draft rules remain service-backed.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/chat.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/chat-context.blade.php",
+      "admin-panel/resources/views/activities/chat-text.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX318",
+    "module": "Extracurriculars",
+    "title": "Edit or cancel learner membership",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:237",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=member-edit&record_id={optional-id}&edit={optional-membership}",
+    "view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Dated membership, captain role, returning-member suggestions, cancellation/revision and reasons retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX319",
+    "module": "Extracurriculars",
+    "title": "Edit or cancel staff assignment",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:237",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=staff-edit&record_id={optional-id}&edit={optional-staff}",
+    "view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/allocation-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX313",
+    "module": "Extracurriculars",
+    "title": "Fixture invitation pending",
+    "design_kind": "detail",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:78",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX314",
+    "module": "Extracurriculars",
+    "title": "Arrange fixture with an external opponent",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:49",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures?screen=fixture-create",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "School search or external opponent, team, dates/venue and optional league remain explicit fields.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX315",
+    "module": "Extracurriculars",
+    "title": "Fixture invitation declined",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:178",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX316",
+    "module": "Extracurriculars",
+    "title": "Team sheet saved",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:216",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=team",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Manager can load another scoped group before saving; staff cannot broaden their allocation. Selected private labels/positions/notes survive validation only in direct response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX317",
+    "module": "Extracurriculars",
+    "title": "Score reported; awaiting opponent",
+    "design_kind": "detail",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:263",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Sports score agreement/dispute workflow; academic results use their own adjudication screen.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX322",
+    "module": "Extracurriculars",
+    "title": "Fixture result confirmed",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:263",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX323",
+    "module": "Extracurriculars",
+    "title": "Fixture score disagreement",
+    "design_kind": "exception",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:263",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Sports score agreement/dispute workflow; academic results use their own adjudication screen.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX324",
+    "module": "Extracurriculars",
+    "title": "Report external-opponent score",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:263",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Sports score agreement/dispute workflow; academic results use their own adjudication screen.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX325",
+    "module": "Extracurriculars",
+    "title": "Find an opponent school",
+    "design_kind": "form",
+    "design_source": "admin-panel/resources/views/activities/fixtures/index.blade.php:47",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures?screen=fixture-create",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "School search or external opponent, team, dates/venue and optional league remain explicit fields.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX326",
+    "module": "Extracurriculars",
+    "title": "Cancel shared fixture",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:123",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=configuration",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Reschedule/cancel service conflict keeps editor and source revision visible.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX327",
+    "module": "Extracurriculars",
+    "title": "Fixture date change is blocked",
+    "design_kind": "exception",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:123",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=configuration",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Reschedule/cancel service conflict keeps editor and source revision visible.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX328",
+    "module": "Extracurriculars",
+    "title": "Shared fixture cancelled",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:123",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX330",
+    "module": "Extracurriculars",
+    "title": "External fixture detail",
+    "design_kind": "detail",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:78",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX331",
+    "module": "Extracurriculars",
+    "title": "External fixture result recorded",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:263",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php",
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": [
+      "admin-panel/resources/views/activities/fixtures/result.blade.php"
+    ]
+  },
+  {
+    "design_id": "EX332",
+    "module": "Extracurriculars",
+    "title": "Decline competition invitation",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Competitions.php:62",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/competitions/{id}?screen=invitation",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX333",
+    "module": "Extracurriculars",
+    "title": "Competition participants and invitations",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Competitions.php:62",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/competitions/{id}?screen=members",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX334",
+    "module": "Extracurriculars",
+    "title": "Competition scoring statistics",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Competitions.php:141",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/competitions/{id}?screen=standings",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/competition.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX335",
+    "module": "Extracurriculars",
+    "title": "Season structures copied",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Activities/ActivitySeasons.php:49",
+    "design_routes": [],
+    "runtime_entry": "/activity-seasons",
+    "view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Season copy stays within globally selected current year and recreates empty groups; historical years are read-only; school-year activation remains global.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/seasons.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX340",
+    "module": "Extracurriculars",
+    "title": "Academic competition detail",
+    "design_kind": "detail",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / activities/academic/show.blade.php:15",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX341",
+    "module": "Extracurriculars",
+    "title": "Appoint own academic adjudicators",
+    "design_kind": "builder",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:174",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=adjudicators",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX342",
+    "module": "Extracurriculars",
+    "title": "Academic adjudication draft saved",
+    "design_kind": "result",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX343",
+    "module": "Extracurriculars",
+    "title": "Submit human adjudication result",
+    "design_kind": "review",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX351",
+    "module": "Extracurriculars",
+    "title": "Academic result submitted; awaiting agreement",
+    "design_kind": "detail",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX344",
+    "module": "Extracurriculars",
+    "title": "Ask for advisory reasoning feedback",
+    "design_kind": "form",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / activities/academic/show.blade.php:109",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=feedback",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Optional advisory AI feedback remains off unless configured; the source does not auto-adjudicate or publish AI output.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX345",
+    "module": "Extracurriculars",
+    "title": "Private reasoning feedback for adjudicator",
+    "design_kind": "detail",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / activities/academic/show.blade.php:126",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=history",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Completed, pending, unavailable, quarantined and shared feedback states are rendered from source status.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX346",
+    "module": "Extracurriculars",
+    "title": "Reasoning feedback unavailable or held",
+    "design_kind": "exception",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / activities/academic/show.blade.php:147",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=history",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Completed, pending, unavailable, quarantined and shared feedback states are rendered from source status.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX347",
+    "module": "Extracurriculars",
+    "title": "Share adjudicator-written feedback",
+    "design_kind": "form",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / activities/academic/show.blade.php:138",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=share&review_id={id}",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human-authored feedback requires explicit own entrant selection; authorization scoped to source review.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX352",
+    "module": "Extracurriculars",
+    "title": "Adjudicator feedback shared",
+    "design_kind": "result",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / activities/academic/show.blade.php:138",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=history",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Completed, pending, unavailable, quarantined and shared feedback states are rendered from source status.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX348",
+    "module": "Extracurriculars",
+    "title": "Present academic competition award",
+    "design_kind": "builder",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicAwards.php:33",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=awards",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Own entrant participation/placing awards use recognition authority and criteria.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX349",
+    "module": "Extracurriculars",
+    "title": "Academic result confirmed",
+    "design_kind": "result",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX350",
+    "module": "Extracurriculars",
+    "title": "Edit academic motion, format and rounds",
+    "design_kind": "form",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:139",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=configuration",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX353",
+    "module": "Extracurriculars",
+    "title": "Academic award link recorded",
+    "design_kind": "result",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicAwards.php:56",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=awards",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Own entrant participation/placing awards use recognition authority and criteria.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX354",
+    "module": "Extracurriculars",
+    "title": "Returning activity learner allocated",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:237",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=members",
+    "view_files": [
+      "admin-panel/resources/views/activities/roster.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/roster.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX357",
+    "module": "Extracurriculars",
+    "title": "Activity attachment removed",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/ActivityFiles.php:105",
+    "design_routes": [],
+    "runtime_entry": "/activity-material-files/groups/{group}/materials/{material}",
+    "view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Scoped download, explicit removal confirmation, revision conflicts and upload eligibility retained.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/files.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX355",
+    "module": "Extracurriculars",
+    "title": "Quiz and speech contest setup variants",
+    "design_kind": "choice",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / config/shared_records.php:40",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions?screen=create",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/index.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Imported PR488 backend now present; kind-specific debate/quiz/speech semantics remain service-enforced.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/index.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX356",
+    "module": "Extracurriculars",
+    "title": "Draft a quiz result with an allowed draw",
+    "design_kind": "builder",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "DI317",
+    "module": "Discipline",
+    "title": "Future detention session attendance is read-only",
+    "design_kind": "detail",
+    "design_source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:125",
+    "design_routes": [],
+    "runtime_entry": "/school-discipline?mode=detentions&view=attendance&detention={id}",
+    "view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php",
+      "admin-panel/resources/views/discipline/workbench.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Future/cancelled sessions expose read-only roster with reason; attendance capture is not rendered.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/discipline/detention.blade.php",
+      "admin-panel/resources/views/discipline/workbench.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX358",
+    "module": "Extracurriculars",
+    "title": "Private quiz adjudication draft saved",
+    "design_kind": "result",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX359",
+    "module": "Extracurriculars",
+    "title": "Submit human quiz adjudication",
+    "design_kind": "review",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX360",
+    "module": "Extracurriculars",
+    "title": "Quiz result submitted; awaiting agreement",
+    "design_kind": "result",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / AcademicContests.php:235",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=result",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Human draft/submission, entrant score/place, private reasons, agreement/dispute and permitted draw semantics preserved. Private values stay in direct validation response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX361",
+    "module": "Extracurriculars",
+    "title": "Quiz contest detail",
+    "design_kind": "detail",
+    "design_source": "PR #488 @20b97e96757ab1bc4e57bf3048c9f5ccad306ac5 / config/shared_records.php:40",
+    "design_routes": [],
+    "runtime_entry": "/academic-competitions/{id}?screen=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "PR488 source integrated",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/academic/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX364",
+    "module": "Extracurriculars",
+    "title": "Edit activity group structure and dates",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:123",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?view=group-edit&group_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/activities/group-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/group-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX365",
+    "module": "Extracurriculars",
+    "title": "Archive an activity group",
+    "design_kind": "review",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:147",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?view=group-edit&group_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/activities/group-editor.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/group-editor.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX366",
+    "module": "Extracurriculars",
+    "title": "Activity group archived",
+    "design_kind": "result",
+    "design_source": "admin-panel/app/Services/Activities/ActivityGroups.php:147",
+    "design_routes": [],
+    "runtime_entry": "/activity-groups?group_id={id}&view=overview",
+    "view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php",
+      "admin-panel/resources/views/activities/sessions.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/workbench.blade.php",
+      "admin-panel/resources/views/activities/sessions.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "EX367",
+    "module": "Extracurriculars",
+    "title": "Choose own team-sheet group as manager",
+    "design_kind": "form",
+    "design_source": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php:224",
+    "design_routes": [],
+    "runtime_entry": "/activity-fixtures/{id}?screen=team",
+    "view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Manager can load another scoped group before saving; staff cannot broaden their allocation. Selected private labels/positions/notes survive validation only in direct response.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/activities/fixtures/show.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW322",
+    "module": "Awards",
+    "title": "Thabo\u2019s permanent award profile",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Recognition/AwardPresentations.php:158",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Source fields, current role/school/record checks, validation and final outcome remain in this focused view.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php",
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW324",
+    "module": "Awards",
+    "title": "Award profile after a void correction",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Recognition/AwardPresentations.php:158",
+    "design_routes": [],
+    "runtime_entry": "/recognition/awards?view=learners&learner_id={id}&task=history",
+    "view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Staff-only retained history applies the same school, learner and category scope as the active permanent profile; void reasons never enter family API.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/awards-learner.blade.php"
+    ],
+    "inherited_view_files": []
+  },
+  {
+    "design_id": "AW325",
+    "module": "Awards",
+    "title": "House-point history after reversal",
+    "design_kind": "grid",
+    "design_source": "admin-panel/app/Services/Recognition/HousePoints.php:137",
+    "design_routes": [],
+    "runtime_entry": "/recognition/house_points?view=learners&learner_id={optional-id}",
+    "view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "ui_status": "revised focused workspace/record state",
+    "backend_status": "existing source behavior retained",
+    "state_contract": "Live scoped house counters plus year-scoped point entries and immutable reversal source.",
+    "verification": "See awards-activities-discipline.md; per-state browser qualification is not implied by this trace.",
+    "revised_view_files": [
+      "admin-panel/resources/views/recognition/learner.blade.php"
+    ],
+    "inherited_view_files": []
+  }
+]

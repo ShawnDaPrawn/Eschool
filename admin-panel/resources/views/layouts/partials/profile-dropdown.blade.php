@@ -18,6 +18,11 @@
     @endcan
     <a class="m3-menu__item" role="menuitem" href="{{ route('resetpassword') }}">
         <x-icon name="refresh" :size="24" />{{ __('change_password') }}</a>
+    @if(app(\App\Services\Platform\Tenancy\CurrentSchool::class)->idOrNull() && Route::has('panel.preferences.notifications'))
+        <a class="m3-menu__item" role="menuitem" href="{{ route('panel.inbox.index') }}">{{ __('My inbox') }}</a>
+        <a class="m3-menu__item" role="menuitem" href="{{ route('panel.preferences.notifications') }}">{{ __('Notification preferences') }}</a>
+        <a class="m3-menu__item" role="menuitem" href="{{ route('panel.preferences.quiet') }}">{{ __('Quiet hours') }}</a>
+    @endif
     <hr class="m3-menu__divider">
     {{-- A form, so another site can't sign people out with a link or image. --}}
     <form action="{{ route('logout') }}" method="POST" class="panel-menu__form" data-year-safe>

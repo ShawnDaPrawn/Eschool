@@ -5,12 +5,8 @@
 
 @section('content')
 
-<div class="content-wrapper">
-  <div class="page-header">
-    <h3 class="page-title">
-        {{__('online').' '.__('exam').' '.__('terms_condition')}}
-    </h3>
-  </div>
+<div class="content-wrapper m3 page-content">
+  <x-page.header :title="__('online').' '.__('exam').' '.__('terms_condition')" />
   <div class="row grid-margin">
     <div class="col-lg-12">
       <div class="card">

@@ -12,15 +12,15 @@ use App\Services\Learning\Library\LibraryReviewers;
 use App\Services\Learning\Library\LibrarySchools;
 
 /**
- * The /saas/library forms (Action Plan 3.3, SA.16). Reviewing needs
- * library.review; everything else needs library.manage. The services check
+ * The /saas/library forms (Action Plan 3.3, SA.16). Reviewing and
+ * unpublishing (5.4) need library.review; everything else needs library.manage. The services check
  * the ability and validate the same rules again.
  */
 class LibraryRequest extends PlatformStaffRequest
 {
     public function authorize(): bool
     {
-        $ability = $this->route()?->getName() === 'saas.library.versions.review' ? LibraryAccess::REVIEW : LibraryAccess::MANAGE;
+        $ability = in_array($this->route()?->getName(), ['saas.library.versions.review', 'saas.library.items.unpublish'], true) ? LibraryAccess::REVIEW : LibraryAccess::MANAGE;
 
         return parent::authorize() && app(LibraryAccess::class)->can($this->user(), $ability);
     }
@@ -39,6 +39,7 @@ class LibraryRequest extends PlatformStaffRequest
             'saas.library.items.redraft' => LibraryItems::stepRules(),
             'saas.library.drafts.store' => LibraryDrafting::rules(),
             'saas.library.versions.review' => LibraryItems::reviewRules(),
+            'saas.library.items.unpublish' => LibraryItems::unpublishRules(),
             'saas.library.reviewers.store' => LibraryReviewers::assignRules(),
             'saas.library.schools.switch' => LibrarySchools::switchRules(),
             default => [],

@@ -10,23 +10,20 @@
 @endsection
 
 @section('content')
-<div class="content-wrapper" id="student-report-page"
+<div class="content-wrapper m3 page-content" id="student-report-page"
     data-report-url="{{ route('student.report', $student->id) }}"
     data-loading-text="{{ __('loading') }}"
+    data-load-error="{{ __('The report could not be loaded. Your previous view is still available. Try again.') }}"
     data-resolved-session-year-id="{{ $sessionYearId ?? '' }}">
     <div class="container-fluid">
 
-        <div class="page-header">
-            <h3 class="page-title">{{ __('student_report') }}</h3>
-            <a href="{{ route('students.report') }}" class="btn btn-secondary btn-sm">
-                <x-icon name="back" :size="18" /> {{ __('back') }}
-            </a>
-        </div>
+        <x-page.header :title="__('student_report')" :subtitle="$student->user?->full_name" />
+        <a class="m3-button m3-button--text" href="{{ route('students.report', in_array($tab ?? 'personal', ['attendance', 'leave'], true) ? ['report_tab' => $tab] : []) }}">{{ __('Back to learners') }}</a>
 
         {{-- HEADER --}}
         <div class="card mb-3">
             <div class="card-body d-flex align-items-center">
-                <img src="{{ $student->user?->image }}" class="sr-profile-avatar mr-3">
+                <img src="{{ $student->user?->image }}" class="sr-profile-avatar mr-3" alt="{{ $student->user?->full_name }}">
                 <div>
                     <h4>{{ $student->user?->full_name }}</h4>
                     <x-page.learner-identifiers :identifier="$identifier ?? null" :admission-no="$student->admission_no" />
@@ -36,47 +33,13 @@
 
         {{-- TABS + CONTENT --}}
         <div class="card">
-            <div class="card-header p-0">
-                <ul class="nav nav-tabs nav-fill" id="student-tabs">
-
-                    <li class="nav-item">
-                        <a class="nav-link tab-link {{ ($tab ?? 'personal') == 'personal' ? 'active' : '' }}"
-                            data-tab="personal" href="javascript:void(0)">
-                            {{ __('personal_info') }}
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link tab-link {{ ($tab ?? '') == 'attendance' ? 'active' : '' }}"
-                            data-tab="attendance" href="javascript:void(0)">
-                            {{ __('attendance') }}
-                        </a>
-                    </li>
-
-
-                    <li class="nav-item">
-                        <a class="nav-link tab-link {{ ($tab ?? '') == 'exam' ? 'active' : '' }}"
-                            data-tab="exam" href="javascript:void(0)">
-                            {{ __('exam') }}
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link tab-link {{ ($tab ?? '') == 'leave' ? 'active' : '' }}"
-                            data-tab="leave" href="javascript:void(0)">
-                            {{ __('leave') }}
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link tab-link {{ ($tab ?? '') == 'assignment' ? 'active' : '' }}"
-                            data-tab="assignment" href="javascript:void(0)">
-                            {{ __('assignment') }}
-                        </a>
-                    </li>
-
-                </ul>
-            </div>
+            <nav class="workspace-tabs" id="student-tabs" aria-label="{{ __('Learner report sections') }}">
+                @foreach(['personal' => 'personal_info', 'attendance' => 'attendance', 'exam' => 'exam', 'leave' => 'leave', 'assignment' => 'assignment'] as $section => $label)
+                    <a class="m3-button m3-button--text tab-link {{ ($tab ?? 'personal') === $section ? 'active' : '' }}" data-tab="{{ $section }}"
+                       href="{{ route('student.report', ['id' => $student->id, 'tab' => $section]) }}" @if(($tab ?? 'personal') === $section) aria-current="page" @endif>{{ __($label) }}</a>
+                @endforeach
+            </nav>
+            <p role="status" aria-live="polite" data-report-status></p>
 
             <div class="card-body" id="tab-content">
                 @if(($tab ?? 'personal') == 'attendance')

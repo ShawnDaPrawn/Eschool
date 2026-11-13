@@ -1,0 +1,85 @@
+import { expect, test } from '@playwright/test';
+import { accounts, signIn } from '../support/accounts';
+import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+
+test.use({ storageState: { cookies: [], origins: [] } });
+
+for (const width of [375, 1280]) {
+  test(`attendance and leave task screens stay separate and accessible at ${width}px`, async ({ page, baseURL }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width, height: 850 });
+    await signIn(page, accounts.admin);
+    const errors = collectErrors(page, baseURL!);
+    for (const path of ['/attendance-monthly', '/attendance-report',
+      '/leave-request', '/student-leave-request', '/staff-leave', '/leave-master',
+      '/leave-master?view=create', '/leave-calendar', '/facilitator-leave', '/school-modules/readiness']) {
+      expect((await page.goto(path))?.status(), path).toBe(200);
+      await expect(page.locator('main h1'), path).toHaveCount(1);
+      await page.waitForLoadState('networkidle');
+      expect(await page.locator('main table[data-page-table-init]').evaluateAll(nodes => nodes.every(node => !node.closest('.bootstrap-table'))), path).toBe(true);
+      expect(await horizontalOverflow(page), path).toBeLessThanOrEqual(1);
+      expect(await seriousViolations(page), path).toEqual([]);
+    }
+    await page.goto('/leave-master');
+    await expect(page.locator('#leave-configuration-create')).toHaveCount(0);
+    const configuration = page.locator('[data-leave-record]').first();
+    await expect(configuration).toBeVisible();
+    await expect(page.locator('.bootstrap-table table[data-page-table-init]')).toHaveCount(0);
+    await configuration.click();
+    await expect(page.getByRole('dialog', { name: 'Edit leave configuration' })).toBeVisible();
+    await expect(page.locator('#leave-configuration-edit [name="total_leave"]')).not.toHaveValue('');
+    await expect(page.locator('.bootstrap-table table[data-page-table-init]')).toHaveCount(0);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(configuration).toBeFocused();
+    expect(errors).toEqual([]);
+  });
+
+  test(`a teacher loads the actual register and leave day portions at ${width}px`, async ({ page, baseURL }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width, height: 850 });
+    await signIn(page, accounts.teacher);
+    const errors = collectErrors(page, baseURL!);
+    expect((await page.goto('/view-attendance'))?.status()).toBe(200);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    expect((await page.goto('/attendance'))?.status()).toBe(200);
+    const save = page.getByRole('button', { name: 'Save attendance', exact: true });
+    await expect(save).toBeDisabled();
+    await page.locator('#capture-class').selectOption({ index: 1 });
+    const date = await page.locator('#capture-date').getAttribute('min');
+    expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    await page.locator('#capture-date').fill(date!);
+    await page.locator('#capture-date').dispatchEvent('change');
+    await expect(page.locator('#capture-roster tr').first()).toBeVisible();
+    await expect(save).toBeEnabled();
+    await expect(page.locator('#capture-date-payload')).toHaveValue(date!.split('-').reverse().join('-'));
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    await page.locator('#capture-holiday').check();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#capture-holiday')).not.toBeChecked();
+
+    expect((await page.goto('/leave?view=create'))?.status()).toBe(200);
+    await expect(page.locator('#leave-create-form')).toBeVisible();
+    const firstDate = await page.locator('#leave-from').getAttribute('min');
+    expect(firstDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const last = new Date(`${firstDate}T12:00:00Z`);
+    last.setUTCDate(last.getUTCDate() + 6);
+    const lastDate = [last.toISOString().slice(0, 10), await page.locator('#leave-to').getAttribute('max')].filter(Boolean).sort()[0]!;
+    await page.locator('#leave-from').fill(firstDate!);
+    await page.locator('#leave-to').fill(lastDate);
+    await page.locator('#leave-to').dispatchEvent('change');
+    const portions = page.locator('[data-leave-portions] select');
+    await expect(portions.first()).toBeVisible();
+    await portions.first().selectOption('First Half');
+    await page.locator('#leave-to').dispatchEvent('change');
+    await expect(portions.first()).toHaveValue('First Half');
+    await expect(page.getByRole('button', { name: 'Submit leave request', exact: true })).toBeVisible();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}

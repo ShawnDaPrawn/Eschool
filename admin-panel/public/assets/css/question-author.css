@@ -1,0 +1,6 @@
+/* Positions use the source contract's percentage coordinates. */
+.question-diagram-preview { position: relative; display: block; inline-size: 100%; max-inline-size: 48rem; padding: 0; border: 1px solid var(--md-sys-color-outline); border-radius: var(--m3-shape-medium, 10px); overflow: hidden; background: var(--md-sys-color-surface); cursor: crosshair; }
+.question-diagram-preview img { display: block; inline-size: 100%; block-size: auto; }
+.question-diagram-preview svg { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; }
+.question-diagram-preview circle { fill: var(--md-sys-color-primary); stroke: var(--md-sys-color-on-primary); stroke-width: .5; }
+.question-diagram-preview text { fill: var(--md-sys-color-primary); stroke: var(--md-sys-color-on-primary); stroke-width: .2; paint-order: stroke; font-size: 4px; text-anchor: middle; font-weight: 700; }

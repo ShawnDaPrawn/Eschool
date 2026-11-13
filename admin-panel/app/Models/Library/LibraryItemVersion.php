@@ -24,8 +24,12 @@ class LibraryItemVersion extends Model
 
     public const STEPS = ['draft' => ['in_review'], 'in_review' => ['approved', 'rejected'], 'approved' => ['published'], 'rejected' => [], 'published' => []];
 
-    /** Who wrote the content: platform staff, or an AI draft that a human reviewer must still approve (Action Plan 3.4). */
-    public const ORIGINS = ['staff' => 'Written by staff', 'ai_draft' => 'AI draft'];
+    /**
+     * Who wrote the content: platform staff, an AI draft that a human reviewer
+     * must still approve (Action Plan 3.4), or a teacher's question shared by
+     * their school (Action Plan 5.4), reviewed the same way.
+     */
+    public const ORIGINS = ['staff' => 'Written by staff', 'ai_draft' => 'AI draft', 'contributed' => 'Shared by a school'];
 
     protected $table = 'library_item_versions';
 
@@ -76,6 +80,11 @@ class LibraryItemVersion extends Model
     public function drafted(): bool
     {
         return $this->origin === 'ai_draft';
+    }
+
+    public function contributed(): bool
+    {
+        return $this->origin === 'contributed';
     }
 
     /** The practice question a learner answers (practice and past-paper questions only). */

@@ -7,13 +7,24 @@
     @include('academics.groups-status')
     @if ($conflict)<div role="alert"><p>{{ $conflict }}</p><p>{{ __('Your placement was not overwritten. Reload the week and compare the saved lesson before trying again.') }}</p></div>@endif
     <form method="GET" action="{{ route('academic-timetable.index') }}" aria-label="{{ __('Choose timetable week') }}" class="timetable-fields">
-        <x-page.field name="session_year_id" type="select" :label="__('Timetable school year')" :value="$year->id" :options="$years->pluck('name', 'id')->all()" required />
+        <input type="hidden" name="session_year_id" value="{{ $year->id }}"><input type="hidden" name="view" value="{{ $workspaceView }}">
+        <p>{{ __('School year') }}: {{ $year->name }}</p>
         <x-page.field name="week_on" type="date" :label="__('Week starts on')" :value="$weekOn" required />
         <button class="m3-button m3-button--outlined" type="submit">{{ __('View week') }}</button>
     </form>
-    <nav aria-label="{{ __('Timetable sections') }}" class="timetable-links">
-        <a href="#week">{{ __('Week') }}</a><a href="#placement">{{ __('Place a lesson') }}</a><a href="#rooms">{{ __('Rooms') }}</a><a href="#bells">{{ __('Bell schedules') }}</a><a href="#short-days">{{ __('Short days') }}</a><a href="#import">{{ __('Import timetable') }}</a>
+    <nav aria-label="{{ __('Timetable sections') }}" class="workspace-tabs">
+        @foreach(['week' => __('Week'), 'placement' => __('Place a lesson'), 'import' => __('Import timetable'), 'rooms' => __('Configuration')] as $view => $label)
+            <a class="m3-button m3-button--text" href="{{ route('academic-timetable.index', ['view' => $view, 'session_year_id' => $year->id, 'week_on' => $weekOn]) }}" @if($workspaceView === $view || ($view === 'rooms' && in_array($workspaceView, ['bells', 'short-days']))) aria-current="page" @endif>{{ $label }}</a>
+        @endforeach
     </nav>
+    @if(in_array($workspaceView, ['rooms', 'bells', 'short-days']))
+        <nav class="workspace-tabs" aria-label="{{ __('Timetable configuration') }}">
+            @foreach(['rooms' => __('Rooms'), 'bells' => __('Bell schedules'), 'short-days' => __('Short days')] as $view => $label)
+                <a class="m3-button m3-button--text" href="{{ route('academic-timetable.index', ['view' => $view, 'session_year_id' => $year->id, 'week_on' => $weekOn]) }}" @if($workspaceView === $view) aria-current="page" @endif>{{ $label }}</a>
+            @endforeach
+        </nav>
+    @endif
+    @if($workspaceView === 'week')
     <section id="week" class="page-section" aria-labelledby="week-title">
         <h2 id="week-title">{{ __('Week') }}: {{ $week['starts_on'] }} – {{ $week['ends_on'] }}</h2>
         <div class="timetable-week">
@@ -23,13 +34,14 @@
                     @foreach (collect($shortDays)->where('on_date', $date) as $shortDay)<p class="timetable-short-day">{{ __('Short day: :replacement instead of :schedule', ['replacement' => $shortDay['replacement_name'], 'schedule' => $shortDay['schedule_name']]) }}</p>@endforeach
                     @forelse ($onDay as $entry)
                         <article class="timetable-lesson"><h4>{{ $entry['title'] }}</h4><p>{{ $entry['starts_at'] }}–{{ $entry['ends_at'] }} · {{ $entry['room_name'] }}@isset($entry['day_pattern']) · {{ $entry['day_pattern'] }}@endisset</p><p>{{ $entry['teacher_name'] }}</p>
-                            <a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'edit' => $entry['id']]) }}#placement">{{ __('Edit lesson') }}: {{ $entry['title'] }}</a>
+                            <a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'edit' => $entry['id'], 'view' => 'placement']) }}">{{ __('Edit lesson') }}: {{ $entry['title'] }}</a>
                         </article>
                     @empty<p>{{ __('No lessons') }}</p>@endforelse
                 </div></section>
             @endfor
         </div>
     </section>
+    @endif
     @if ($preview)
         <section class="m3-card m3-card--outlined page-section" aria-labelledby="preview-title"><div class="m3-card__content">
             <h2 id="preview-title">{{ __('Placement preview') }}</h2>
@@ -44,6 +56,7 @@
             </form>
         </div></section>
     @endif
+    @if($workspaceView === 'placement')
     <section id="placement" class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
         <h2>{{ isset($draft['id']) ? __('Edit lesson') : __('Place a lesson') }}</h2>
         <form method="POST" action="{{ route('academic-timetable.preview') }}" aria-label="{{ __('Preview a lesson') }}">@csrf
@@ -64,7 +77,9 @@
             <button class="m3-button m3-button--filled" type="submit">{{ __('Preview placement') }}</button>
         </form>
     </div></section>
-    <details id="rooms" class="m3-card m3-card--outlined page-section" @if($room) open @endif><summary>{{ __('Rooms') }}</summary><div class="m3-card__content">
+    @endif
+    @if($workspaceView === 'rooms')
+    <details id="rooms" class="m3-card m3-card--outlined page-section" open><summary>{{ __('Rooms') }}</summary><div class="m3-card__content">
         <h2>{{ $room ? __('Edit room') : __('New room') }}</h2>
         <form method="POST" action="{{ route('academic-timetable.room') }}" aria-label="{{ __('Save a room') }}">@csrf @include('academics.timetable-context')
             <input type="hidden" name="room_id" value="{{ $room?->id }}"><input type="hidden" name="revision" value="{{ $room?->revision }}">
@@ -77,9 +92,11 @@
             <input type="hidden" name="active" value="0"><label><input type="checkbox" name="active" value="1" @checked($room?->active ?? true)> {{ __('Room active') }}</label>
             <button type="submit" class="m3-button m3-button--filled">{{ __('Save room') }}</button>
         </form>
-        <ul>@foreach ($configuration['rooms'] as $item)<li><a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'room' => $item['id']]) }}#rooms">{{ $item['name'] }}</a> · {{ $item['active'] ? __('Active') : __('Inactive') }}</li>@endforeach</ul>
+        <ul>@foreach ($configuration['rooms'] as $item)<li><a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'room' => $item['id'], 'view' => 'rooms']) }}">{{ $item['name'] }}</a> · {{ $item['active'] ? __('Active') : __('Inactive') }}</li>@endforeach</ul>
     </div></details>
-    <details id="bells" class="m3-card m3-card--outlined page-section" @if($schedule) open @endif><summary>{{ __('Bell schedules') }}</summary><div class="m3-card__content">
+    @endif
+    @if($workspaceView === 'bells')
+    <details id="bells" class="m3-card m3-card--outlined page-section" open><summary>{{ __('Bell schedules') }}</summary><div class="m3-card__content">
         <h2>{{ __('New bell schedule') }}</h2><p>{{ __('Copy a used schedule before changing its periods, so existing lessons keep their history.') }}</p>
         <form method="POST" action="{{ route('academic-timetable.bells') }}" aria-label="{{ __('Build bell schedule') }}" data-bell-form>@csrf @include('academics.timetable-context')
             <div class="timetable-fields"><x-page.field name="name" id="bells-name" :label="__('Bell schedule name')" :value="$schedule ? $schedule->name.' '.__('copy') : null" required maxlength="191" /><x-page.field name="section" id="bells-section" :label="__('School section')" :value="$schedule?->section" required maxlength="100" /></div>
@@ -91,9 +108,11 @@
             <template data-period-template>@include('academics.timetable-period', ['position' => '__INDEX__', 'period' => ['name' => '', 'starts_at' => '', 'ends_at' => '', 'is_break' => false]])</template>
             <button type="button" class="m3-button m3-button--outlined" data-add-period>{{ __('Add period') }}</button><button type="submit" class="m3-button m3-button--filled">{{ __('Save bell schedule') }}</button>
         </form>
-        <ul>@foreach ($configuration['bell_schedules'] as $item)<li>{{ $item['name'] }} · {{ $item['section'] }} <a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'schedule' => $item['id']]) }}#bells">{{ __('Copy schedule') }}</a></li>@endforeach</ul>
+        <ul>@foreach ($configuration['bell_schedules'] as $item)<li>{{ $item['name'] }} · {{ $item['section'] }} <a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'schedule' => $item['id'], 'view' => 'bells']) }}">{{ __('Copy schedule') }}</a></li>@endforeach</ul>
     </div></details>
-    <details id="short-days" class="m3-card m3-card--outlined page-section" @if($errors->hasAny(['on_date', 'reason', 'replacements', 'short_day']) || session('success') === __('Short day saved') || session('success') === __('Short day removed')) open @endif><summary>{{ __('Short days') }}</summary><div class="m3-card__content">
+    @endif
+    @if($workspaceView === 'short-days')
+    <details id="short-days" class="m3-card m3-card--outlined page-section" open><summary>{{ __('Short days') }}</summary><div class="m3-card__content">
         <h2>{{ __('Plan a short day') }}</h2>
         <p>{{ __('Lessons keep their order and follow the short-day bells. Lessons after the last short-day period do not take place that day.') }}</p>
         @foreach (['short_day', 'replacements', 'on_date'] as $key)@error($key)<p role="alert">{{ $message }}</p>@enderror @endforeach
@@ -118,7 +137,10 @@
             </li>
         @empty<li>{{ __('No short days planned') }}</li>@endforelse</ul>
     </div></details>
-    @include('academics.timetable-import')
+    @endif
+    @if($workspaceView === 'import')
+        @include('academics.timetable-import')
+    @endif
 </div>
 @endsection
 @section('script')<script src="{{ asset('assets/js/custom/timetable-workbench.js') }}" defer></script>@endsection

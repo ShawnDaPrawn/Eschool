@@ -297,7 +297,8 @@ class VendorOperatorAccessTest extends TestCase
         $before = DB::table('ledger_entries')->count();
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
         $body = ['operation_id' => (string) Str::uuid(), 'first_name' => 'Reviewed', 'last_name' => 'Operator', 'email' => 'another.vendor@example.test', 'initial_password' => 'SyntheticTemporary2026', 'confirmed_operator_identity' => true] + $bind;
-        $this->actingAs($this->admin, 'web')->get('/vendor-operators')->assertOk()->assertSee('Create dedicated vendor identity');
+        $this->actingAs($this->admin, 'web')->get('/vendor-operators')->assertOk()->assertSee('Create operator')->assertDontSee('name="initial_password"', false);
+        $this->get('/vendor-operators?section=create')->assertOk()->assertSee('Create dedicated vendor identity');
         $this->post('/vendor-operators/provision', $body)->assertRedirect('/vendor-operators')->assertSessionMissing('_old_input');
         $this->post('/vendor-operators/provision', $body)->assertRedirect('/vendor-operators');
         $operator = User::where('email', $body['email'])->sole();

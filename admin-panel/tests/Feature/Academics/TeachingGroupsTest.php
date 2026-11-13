@@ -131,7 +131,7 @@ class TeachingGroupsTest extends TestCase
     public function test_panel_structure_forms_and_mapping_use_the_same_scoped_services(): void
     {
         $admin = $this->superAdmin();
-        $this->actingAs($admin, 'web')->get(route('teaching-groups.index'))->assertOk()->assertSee('Class grade mappings');
+        $this->actingAs($admin, 'web')->get(route('teaching-groups.index', ['view' => 'configuration']))->assertOk()->assertSee('Class grade mappings');
         $this->get(route('teaching-groups.create'))->assertOk();
         $this->put(route('academic-structure.map', $this->schoolA->ids['class_a']), ['grade_level_id' => $this->grade])->assertRedirect();
         $group = $this->group();

@@ -40,6 +40,7 @@ use App\Http\Middleware\RequireSchoolPushTopics;
 use App\Http\Middleware\ResetSchoolContext;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetSchoolContext;
+use App\Http\Middleware\StartDocumentSession;
 use App\Providers\ObservabilityServiceProvider;
 use App\Services\Platform\Modules\ModuleRoutes;
 use dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider;
@@ -60,6 +61,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ValidateSignature;
 use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -139,6 +141,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // session that /sanctum/csrf-cookie started: defect D1).
         $middleware->web(replace: [
             BaseEncryptCookies::class => EncryptCookies::class,
+            StartSession::class => StartDocumentSession::class,
         ], append: [
             PreserveDocumentFeedback::class,
             LanguageManager::class,

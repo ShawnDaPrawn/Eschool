@@ -18,6 +18,7 @@ use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Ledger\Posting;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -125,6 +126,26 @@ class Giving
         abort_unless($this->auth()->holds($fresh, self::CAMPAIGNS) || $this->auth()->holds($fresh, self::DONORS), 403);
 
         return ['items' => GivingCampaign::orderByDesc('id')->limit(100)->get()->map(fn (GivingCampaign $c) => $this->describe($c) + $this->totals($c))->values()->all()];
+    }
+
+    /** A retained campaign stays directly reachable after it leaves the recent list. */
+    public function campaign(User $actor, int $id): array
+    {
+        $fresh = $this->auth()->base($actor, self::MODULE);
+        abort_unless($this->auth()->holds($fresh, self::CAMPAIGNS) || $this->auth()->holds($fresh, self::DONORS), 403);
+        $campaign = GivingCampaign::findOrFail($id);
+
+        return $this->describe($campaign) + $this->totals($campaign);
+    }
+
+    /** Paginated school workbench history; the bounded API index remains unchanged. */
+    public function campaignPage(User $actor, string $search = ''): LengthAwarePaginator
+    {
+        $fresh = $this->auth()->base($actor, self::MODULE);
+        abort_unless($this->auth()->holds($fresh, self::CAMPAIGNS) || $this->auth()->holds($fresh, self::DONORS), 403);
+
+        return GivingCampaign::query()->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))->orderByDesc('id')->paginate(50)
+            ->through(fn (GivingCampaign $campaign): array => $this->describe($campaign) + $this->totals($campaign));
     }
 
     /** What the school chose to share with its own community: totals only. */

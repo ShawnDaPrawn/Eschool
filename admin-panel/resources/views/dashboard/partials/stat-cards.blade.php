@@ -14,7 +14,7 @@
 @endphp
 <div class="dash-stat-row mb-4">
     @foreach ($stat_cards as $card)
-        <div class="dash-card dash-stat-card">
+        <div class="m3-card m3-card--outlined dash-card dash-stat-card">
             <span class="dash-stat-icon"><i class="{{ $card['icon'] }}"></i></span>
             <div class="dash-stat-text">
                 <span class="dash-stat-label">{{ $card['label'] }}</span>

@@ -4,15 +4,25 @@
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
     <x-page.header :title="__('Fee plans')" :subtitle="__('Configure annual rates and check enrolment matches before billing.')" />
+@php
+$section=request('section','plans');
+if(!in_array($section,['plans','preview'],true)) $section='plans';
+$tabs=[];
+$tabs['plans']=['label'=>__('Fee plans'),'url'=>request()->fullUrlWithQuery(['section'=>'plans','page'=>null])];
+$tabs['preview']=['label'=>__('Match preview'),'url'=>request()->fullUrlWithQuery(['section'=>'preview','page'=>null])];
+@endphp
+@include('money.billing.tabs')
+
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <div class="m3-card m3-card--outlined fee-plan-card"><div class="m3-card__content">
-        <form method="get" action="{{ route('fee-plans.index') }}">
+        <form method="get" action="{{ route('fee-plans.index') }}"><input type="hidden" name="section" value="{{ $section }}">
             <x-m3.select name="year_id" :label="__('School year')" :options="$years->pluck('name', 'id')" :value="$year?->id" required />
             <x-m3.button type="submit">{{ __('Show plans') }}</x-m3.button>
         </form>
         @if($canWrite)<x-m3.button variant="outlined" :href="route('fee-plans.new')">{{ __('New fee plan') }}</x-m3.button>
         @else<p>{{ __('Fee plans are read-only while fees are disabled.') }}</p>@endif
     </div></div>
+@if($section==='plans')
     <div class="page-table__scroll" role="region" aria-label="{{ __('Annual fee plans for the selected school year') }}" tabindex="0"><table class="page-table__table">
         <caption>{{ __('Annual fee plans for the selected school year') }}</caption>
         <thead><tr><th scope="col">{{ __('Name') }}</th><th scope="col">{{ __('Annual amount') }}</th><th scope="col">{{ __('Applies to') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col">{{ __('Actions') }}</th></tr></thead>
@@ -24,7 +34,9 @@
         </tr>@empty<tr><td colspan="5">{{ __('No fee plans for this year.') }}</td></tr>@endforelse</tbody>
     </table></div>
     {{ $plans->links() }}
-    @if($year)<div class="m3-card m3-card--outlined fee-plan-card"><div class="m3-card__content">
+
+@endif
+    @if($section==='preview' && $year)<div class="m3-card m3-card--outlined fee-plan-card"><div class="m3-card__content">
         <h2 class="m3-title-large">{{ __('Preview enrolment matches') }}</h2>
         <p>{{ __('This preview shows annual rates, not invoices. It does not charge families or create payments.') }}</p>
         <form method="get" action="{{ route('fee-plans.preview', ['year'=>$year->id]) }}">

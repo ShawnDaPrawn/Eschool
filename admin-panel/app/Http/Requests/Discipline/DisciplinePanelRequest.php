@@ -47,6 +47,8 @@ class DisciplinePanelRequest extends DisciplineRequest
     {
         $navigation = ['mode' => ['sometimes', 'in:records,framework,detentions'], 'session_year_id' => ['sometimes', 'integer', 'min:1'], 'learner_id' => ['sometimes', 'integer', 'min:1'],
             'record' => ['sometimes', 'integer', 'min:1'], 'detention' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1'], 'search' => ['sometimes', 'nullable', 'string', 'max:100']];
+        $navigation['view'] = ['sometimes', 'in:list,record,create,configuration,detentions,detention-create,detention,attendance'];
+        $navigation['history_before'] = ['sometimes', 'integer', 'min:1'];
         if ($this->isMethodSafe()) {
             return $navigation;
         }

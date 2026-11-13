@@ -30,6 +30,6 @@ class ReadingPanelController extends Controller
     {
         $school->configure($request->user(), $request->validated());
 
-        return redirect()->route('reading-library.index')->with('success', __('Reading badges saved.'));
+        return redirect()->route('reading-library.index', ['view' => 'configuration'])->with('success', __('Reading badges saved.'));
     }
 }

@@ -2,10 +2,9 @@
 @section('title', __('Group conversations'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/group-conversations.css') }}">@endsection
 @section('content')
-<div class="content-wrapper group-conversations" data-group-conversations
+<div class="content-wrapper m3 page-content group-conversations" data-group-conversations
  @if($group) data-lease-url="{{ route('group-chat-panel.lease',['group'=>$group->id,'thread'=>$conversation['thread']['id']??null,'expected_account_id'=>$accountId,'expected_school_id'=>$schoolId]) }}" @endif>
-<h1>{{ __('Group conversations') }}</h1>
-<p>{{ __('Only your current allocated groups and their permitted conversations appear here.') }}</p>
+<x-page.header :title="__('Group conversations')" :subtitle="__('Only your current allocated groups and their permitted conversations appear here.')" />
 <div data-private-chat-content>
 @if($messages)<div role="alert"><h2>{{ __('Review this change') }}</h2><ul>@foreach($messages as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 @if(!$group)
@@ -14,6 +13,7 @@
 @else
 <nav><a href="{{ route('group-chat-panel.index') }}">{{ __('All allocated groups') }}</a><a href="{{ route('group-chat-panel.group',['group'=>$group->id]) }}">{{ __('Refresh group conversations') }}</a></nav>
 <h2>{{ $group->name }}</h2>
+<nav class="panel-local-nav" aria-label="{{ __('Group conversation tasks') }}"><a href="{{ route('group-chat-panel.group',['group'=>$group->id]) }}" @if($screen==='list') aria-current="page" @endif>{{ __('Conversations') }}</a>@if($canWrite && $listing['writable'])<a href="{{ route('group-chat-panel.group',['group'=>$group->id,'screen'=>'create']) }}" @if($screen==='create') aria-current="page" @endif>{{ __('Start a conversation') }}</a>@endif</nav>
 @if($conversation)
 <section aria-label="{{ __('Selected conversation') }}">
 <h2>{{ $conversation['thread']['title'] }}</h2>
@@ -50,18 +50,20 @@
 @endif
 </section>
 @endif
+@if($screen==='list')
 <section aria-label="{{ __('Available conversations') }}"><h2>{{ __('Available conversations') }}</h2>
 @forelse($listing['items'] as $item)<article class="m3-card m3-card--outlined"><h3><a href="{{ route('group-chat-panel.show',['group'=>$group->id,'thread'=>$item['id']]) }}">{{ $item['title'] }}</a></h3><p>{{ __(ucfirst($item['audience'])) }} · {{ $item['private']?__('Private question'):__('Group announcement') }} · {{ __('Unread messages') }}: {{ $item['unread'] }}</p></article>@empty<p>{{ __('No conversations are available.') }}</p>@endforelse
 @if($listing['next_before'])<a href="{{ route('group-chat-panel.group',['group'=>$group->id,'before'=>$listing['next_before']]) }}">{{ __('Earlier conversations') }}</a>@endif
 </section>
-@if($canWrite && $listing['writable'])
-<details @if($draftOperation==='create') open @endif><summary>{{ __('Start a conversation') }}</summary><form method="post" action="{{ route('group-chat-panel.create',['group'=>$group->id]) }}">
+@endif
+@if($screen==='create' && $canWrite && $listing['writable'])
+<section class="m3-card m3-card--outlined"><h2>{{ __('Start a conversation') }}</h2><form method="post" action="{{ route('group-chat-panel.create',['group'=>$group->id]) }}">
 @csrf @include('activities.chat-context',['id'=>$draftOperation==='create'?$operationId:(string)\Illuminate\Support\Str::uuid()])
 <label for="chat-create-title">{{ __('Title') }}</label><input id="chat-create-title" name="title" value="{{ $draftOperation==='create'?($draft['title']??''):'' }}" required maxlength="191">
 <label for="chat-create-kind">{{ __('Conversation type') }}</label><select id="chat-create-kind" name="kind"><option value="announcement" @selected(($draft['kind']??'announcement')==='announcement')>{{ __('Group announcement') }}</option><option value="question" @selected(($draft['kind']??null)==='question')>{{ __('Private staff question') }}</option></select>
 <label for="chat-create-audience">{{ __('Audience') }}</label><select id="chat-create-audience" name="audience">@foreach(['learners'=>'staff_learners','guardians'=>'staff_guardians','staff'=>'staff_staff'] as $audience=>$policy)@if($listing['policy'][$policy])<option value="{{ $audience }}" @selected(($draft['audience']??null)===$audience)>{{ __(ucfirst($audience)) }}</option>@endif @endforeach</select>
 @include('activities.chat-text',['max'=>$listing['max_characters'],'prefix'=>'create','draft'=>$draftOperation==='create'?$draft:[]])
-<button class="m3-button m3-button--filled" type="submit">{{ __('Create conversation') }}</button></form></details>
+<button class="m3-button m3-button--filled" type="submit">{{ __('Create conversation') }}</button></form></section>
 @elseif(!$canWrite)<p>{{ __('This group is currently read only.') }}</p>@endif
 @endif
 </div>

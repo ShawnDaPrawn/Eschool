@@ -1,0 +1,5 @@
+
+<section class="note-card"><h2>{{ __('Retained discipline entries') }}</h2>
+@forelse($rows['records'] as $item)<article class="note-list-item"><h3>{{ $item['learner_name']??__('Learner') }}</h3><p>{{ $item['occurred_on'] }} · {{ __(['pending_review'=>'Awaiting grade review','confirmed'=>'Confirmed','hearing'=>'Principal hearing','overturned'=>'Overturned'][$item['status']]) }}</p><a href="{{ route('discipline-panel.index',['mode'=>'records','record'=>$item['id'],'session_year_id'=>$year]) }}">{{ __('View discipline entry') }}</a></article>@empty<p>{{ __('No authorized discipline entries are available for this selection.') }}</p>@endforelse
+@if($rows['last_page']>1)<nav aria-label="{{ __('Discipline entry pages') }}">@if($rows['page']>1)<a href="{{ route('discipline-panel.index',array_replace($selection,['page'=>$rows['page']-1])) }}">{{ __('Previous') }}</a>@endif @if($rows['page']<$rows['last_page'])<a href="{{ route('discipline-panel.index',array_replace($selection,['page'=>$rows['page']+1])) }}">{{ __('Next') }}</a>@endif</nav>@endif
+</section>

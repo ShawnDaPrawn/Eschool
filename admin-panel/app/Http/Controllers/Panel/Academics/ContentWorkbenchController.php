@@ -93,6 +93,6 @@ class ContentWorkbenchController extends Controller
     {
         app(ContentSettings::class)->save($r->user(), $r->validated());
 
-        return redirect()->route('academic-content.index')->with('success', __('Content controls saved'));
+        return redirect()->route('academic-content.index', ['view' => 'configuration'])->with('success', __('Content controls saved'));
     }
 }

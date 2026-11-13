@@ -30,7 +30,7 @@ for (const width of [390, 820, 1280]) {
     test.setTimeout(150_000);
     const data = fixture(); await page.setViewportSize({ width, height: 1000 }); await signIn(page, data.finance);
     const errors = collectErrors(page, baseURL!);
-    const response = await page.goto('/fee-reminders');
+    const response = await page.goto('/fee-reminders?section=settings');
     expect(response!.headers()['cache-control']).toContain('no-store');
     await expect(page.getByRole('checkbox', { name: 'Enable scheduled fee reminders', exact: true })).not.toBeChecked();
     await check(page);
@@ -39,7 +39,7 @@ for (const width of [390, 820, 1280]) {
     await submitOnceAndReplay(page, 'Save reminder schedule');
     expect(fixture('run', data.school).created).toBe(2);
     expect(fixture('run', data.school).created).toBe(0);
-    await page.reload();
+    await page.goto('/fee-reminders?section=history');
     await expect(page.getByRole('table', { name: 'Fee reminder history', exact: true })).toBeVisible();
     await expect(page.getByRole('table').getByRole('link', { name: 'Synthetic receipt family', exact: true })).toHaveCount(2);
     await check(page);
@@ -52,6 +52,6 @@ for (const width of [390, 820, 1280]) {
 }
 test('Teacher cannot configure or see Finance reminder history', async ({ page }) => {
   const data = fixture(); await signIn(page, data.teacher);
-  expect((await page.goto('/fee-reminders'))!.status()).toBe(403);
+  expect((await page.goto('/fee-reminders?section=settings'))!.status()).toBe(403);
   await expect(page.locator('body')).not.toContainText('Synthetic receipt family');
 });

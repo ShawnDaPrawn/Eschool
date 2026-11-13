@@ -6,11 +6,14 @@ namespace App\Models\Platform;
 
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use LogicException;
 
 /**
  * An EFT payment a school made to Navigate Ed (hq-billing.md). Never deleted
  * and never edited: a mistaken payment is reversed with a reason.
+ *
+ * @property Carbon $received_on
  */
 class PlatformPayment extends Model
 {

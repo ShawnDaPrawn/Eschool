@@ -172,6 +172,27 @@ class AwardPresentations
         return ['items' => $rows->map(fn ($p) => ['id' => (int) $p->id, 'session_year_id' => (int) $p->session_year_id, 'title' => $p->title, 'criteria' => $p->criteria, 'presented_on' => $p->presented_on->toDateString(), 'event' => $p->event, 'outside_organisation' => $p->outside_organisation, 'source_kind' => $p->source_kind])->all(), 'next_before' => $more ? (int) $rows->last()->id : null];
     }
 
+    /** Staff-only retained history uses exactly the permanent profile's category scope. */
+    public function staffHistory(User $actor, int $learner, int $before = 0): array
+    {
+        $authority = app(RecognitionAuthority::class);
+        $authority->retainedLearner($actor, $learner, 'awards');
+        $categories = $authority->profileCategories($actor, $learner);
+        $rows = AwardPresentation::where('learner_id', $learner)
+            ->when($categories !== null, fn ($q) => $q->whereIn('award_category_id', $categories))
+            ->when($before > 0, fn ($q) => $q->where('id', '<', $before))->orderByDesc('id')->limit(51)->get();
+        $more = $rows->count() > 50;
+        $rows = $rows->take(50);
+
+        return ['items' => $rows->map(fn ($p) => [
+            'id' => (int) $p->id, 'title' => $p->title, 'criteria' => $p->criteria,
+            'presented_on' => $p->presented_on->toDateString(), 'event' => $p->event,
+            'outside_organisation' => $p->outside_organisation, 'source_kind' => $p->source_kind,
+            'state' => $p->state, 'revision' => $p->revision, 'void_reason' => $p->void_reason,
+            'voided_at' => $p->voided_at?->toIso8601String(),
+        ])->all(), 'next_before' => $more ? (int) $rows->last()->id : null];
+    }
+
     private function audit(AwardPresentation $row): void
     {
         app(RecognitionNotices::class)->changed($row);

@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('list') . ' ' . __('teacher_timetable') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('list') . ' ' . __('teacher_timetable')" />
         <div class="row">
 
             <div class="col-md-12 grid-margin stretch-card search-container">

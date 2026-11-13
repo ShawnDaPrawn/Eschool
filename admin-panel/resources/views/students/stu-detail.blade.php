@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('students') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content" data-student-report-tab="{{ $reportTab }}">
+        <x-page.header :title="$reportTab === 'attendance' ? __('Learner attendance reports') : ($reportTab === 'leave' ? __('Learner leave reports') : __('Learner reports'))" :subtitle="__('Choose a learner to open their report in the selected school year.')" />
 
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
@@ -21,7 +17,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('class_section') }}</label>
+                                <label for="filter_class_section_id">{{ __('class_section') }}</label>
                                 <select name="filter_class_section_id" id="filter_class_section_id" class="form-control">
                                     @if (!$is_restricted_teacher && count($class_section) > 0)
                                         @foreach ($class_section as $class)

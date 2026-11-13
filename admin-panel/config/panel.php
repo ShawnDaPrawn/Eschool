@@ -35,6 +35,9 @@ return [
             'changePassword',
             'checkPassword',
 
+            // The signed-in person's notification choices are independent of year.
+            'my-school/preferences/*',
+
             // School years are managed from any year: creating, editing and
             // making a year current, and the new-year wizard.
             'session-years',
@@ -60,6 +63,10 @@ return [
             'academic-sasams/*',
             'academic-content',
             'academic-content/*',
+
+            // Revoke existing classroom access in any year; grants remain year-scoped.
+            'foundation-classrooms/authorizations/*/revoke',
+            'foundation-classrooms/devices/*/revoke',
 
             // Reusing homework from the year being viewed: the copies always go
             // into the current year (HomeworkCopies), under the usual checks.

@@ -1,7 +1,7 @@
 {{-- Assignments To Review: assignments for the teacher's subjects + submitted/total counts --}}
-<div class="dash-card dash-widget h-100" id="assignments-card">
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100" id="assignments-card">
     <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('assignments_to_review') }}</h4>
+        <h2 class="dash-card-title">{{ __('assignments_to_review') }}</h2>
         <select class="dash-select" id="assignments-class" aria-label="{{ __('select_class') }}">
             <option value="">{{ __('all') }}</option>
             @foreach ($assignment_options as $option)

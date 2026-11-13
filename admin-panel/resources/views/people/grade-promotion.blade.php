@@ -3,6 +3,7 @@
 @section('content')
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Promote by grade')" :subtitle="__('Move every learner up a grade into next year in one go. Each homeroom goes to the homeroom with the same letter in the next grade; change any learner who repeats, leaves or goes to another homeroom.')" />
+    <div class="m3-banner m3-banner--info" role="note">{{ __('Promotion records learner destinations only. The school-wide year is activated separately from the global year controls.') }}</div>
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     @foreach ($problems as $problem)<p role="alert">{{ $problem }}</p>@endforeach
 

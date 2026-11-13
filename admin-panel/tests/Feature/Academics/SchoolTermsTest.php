@@ -236,7 +236,11 @@ class SchoolTermsTest extends TestCase
     public function test_panel_renders_calendar_forms_and_checks_foreign_years(): void
     {
         $this->actingAs($this->superAdmin(), 'web')->get('/term?session_year_id='.$this->year)->assertOk()
-            ->assertSee('School terms')->assertSee('Save calendar template')->assertSee('No terms yet.');
+            ->assertSee('School terms')->assertSee('No terms yet.')->assertDontSee('name="template_id"', false);
+        $this->get('/term?session_year_id='.$this->year.'&view=templates')->assertOk()->assertSee('Save calendar template')->assertDontSee('id="new-term-name"', false);
+        $this->get('/term?session_year_id='.$this->year.'&view=create')->assertOk()->assertSee('Add term')->assertDontSee('Save calendar template');
+        $this->get('/term?session_year_id='.$this->year.'&view=configuration')->assertOk()->assertSee('Enable terms and review subjects')->assertDontSee('Save calendar template');
+        $this->get('/term?session_year_id='.$this->year.'&view=edit&term=999999')->assertNotFound();
         $this->get('/term?session_year_id='.$this->schoolB->ids['session_year'])->assertNotFound();
     }
 

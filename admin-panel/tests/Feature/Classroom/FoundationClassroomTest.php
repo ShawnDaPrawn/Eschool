@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Classroom;
 
+use App\Models\Academics\TeachingGroup;
 use App\Models\Cards\CardClassroomSession;
 use App\Models\Cards\CardOperation;
 use App\Models\Cards\CardScanLog;
@@ -21,6 +22,7 @@ use App\Services\Classroom\ClassroomSessions;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
@@ -91,6 +93,34 @@ class FoundationClassroomTest extends TestCase
         } catch (ModelNotFoundException|HttpExceptionInterface $error) {
             $this->assertContains($error instanceof HttpExceptionInterface ? $error->getStatusCode() : 404, $codes);
         }
+    }
+
+    public function test_panel_separates_lesson_eligibility_and_tablet_tasks_with_fresh_authority(): void
+    {
+        $this->actingAs($this->superAdmin())->get('/foundation-classrooms')->assertOk()
+            ->assertSee('Lesson authorizations')->assertDontSee('name="eligible"', false)->assertDontSee('name="setup_code"', false);
+        $this->get('/foundation-classrooms?view=eligibility')->assertOk()->assertDontSee('name="reason"', false);
+        $this->get('/foundation-classrooms?view=eligibility&group='.$this->group)->assertOk()
+            ->assertSee('name="eligible"', false)->assertDontSee('name="device_id"', false)->assertDontSee('name="setup_code"', false);
+        $this->get('/foundation-classrooms?view=register')->assertOk()->assertSee('name="setup_code"', false)->assertDontSee('name="eligible"', false);
+        $this->get('/foundation-classrooms?view=devices')->assertOk()->assertSee('Synthetic classroom tablet')->assertDontSee('name="setup_code"', false);
+        $this->get('/foundation-classrooms?view=authorize')->assertForbidden();
+        $this->get('/foundation-classrooms?view=unknown')->assertUnprocessable();
+
+        $this->actingAs($this->actor())->get('/foundation-classrooms?view=authorize&group='.$this->group)->assertOk()
+            ->assertSee('name="device_id"', false)->assertDontSee('name="eligible"', false)->assertDontSee('name="setup_code"', false);
+        foreach (['eligibility', 'register'] as $view) {
+            $this->get('/foundation-classrooms?view='.$view)->assertForbidden();
+        }
+        $this->get('/foundation-classrooms?view=authorize&group=999999999')->assertNotFound();
+        $grade = TeachingGroup::findOrFail($this->group)->grade_level_id;
+        $foreign = app(CurrentSchool::class)->run(2, fn () => TeachingGroup::create(['name' => 'Private Baobab classroom', 'subject_id' => $this->schoolB->ids['maths'], 'grade_level_id' => $grade, 'session_year_id' => $this->schoolB->ids['session_year'], 'active' => true]));
+        $this->get('/foundation-classrooms?view=authorize&group='.$foreign->id)->assertNotFound();
+
+        $this->actingAs($this->actor('theo'))->get('/foundation-classrooms?view=authorize&group='.$this->group)->assertNotFound();
+        $this->actingAs($this->actor('farid'))->get('/foundation-classrooms')->assertForbidden();
+        $this->assertSame(1, ClassroomLease::count());
+        $this->assertSame(1, ClassroomEligibility::count());
     }
 
     public function test_exact_selection_stores_only_hashes_and_cannot_mint_normal_login_or_gate_authority(): void

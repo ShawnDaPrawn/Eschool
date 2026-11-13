@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Panel\Academics;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Academics\RegisterPanelRequest;
+use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\Attendance\RegisterOverview;
 use App\Services\Academics\Attendance\RegisterQueries;
 use App\Services\Academics\Attendance\Registers;
@@ -30,6 +31,14 @@ class RegisterPanelController extends Controller
     public function index(RegisterPanelRequest $request): View
     {
         return view('academics.register-workbench', $this->model($request));
+    }
+
+    public function configuration(RegisterPanelRequest $request): View
+    {
+        app(AcademicAuthority::class)->manage($request->user());
+        $choices = app(RegisterQueries::class)->choices($request->user(), $request->validated('on_date'));
+
+        return view('academics.register-settings', compact('choices'));
     }
 
     public function open(RegisterPanelRequest $request): RedirectResponse
@@ -73,6 +82,6 @@ class RegisterPanelController extends Controller
     {
         app(RegisterSettings::class)->save($request->user(), $request->validated());
 
-        return redirect()->route('academic-registers.index')->with('success', __('Register settings saved'));
+        return redirect()->route('academic-registers.configuration')->with('success', __('Register settings saved'));
     }
 }

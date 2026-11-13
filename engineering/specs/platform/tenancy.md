@@ -348,6 +348,19 @@ too (Action Plan 3.4). The library's quality signals read school practice
 answers across schools only as counts with a minimum group of 20 learners in 3
 schools, and store nothing ([content pipeline](../learning/content-pipeline.md)).
 
+Teachers share questions between schools through the library (Action Plan 5.4).
+`library_contributions` (what a school offered: the question version, the
+teacher, their credit choice and licence, a leader's decision, the library item
+it became) and `library_ratings` (each teacher's rating and comment of a shared
+item) are required school-owned, so another school never reads who shared or
+rated what. A shared question enters the library only as a scanned copy through
+`ContributionGate`, the one path by which a school request may save a library
+source, item or version; every other library write from a school is still
+refused. A contributed source names the contributing school and teacher for the
+attribution they chose. Ratings are read across schools only as an average and
+a count (and unnamed comments) by `LibraryRatings`
+([shared content library](../learning/shared-content-library.md)).
+
 ### Practice question types (Action Plan 3.11)
 
 `library_diagrams` (the library's diagram pictures for labelling questions) is
@@ -623,3 +636,13 @@ its team sheet, with composite school foreign keys to its own group and
 learners. Another school's rows are read only through `SharedRecords`, and only
 the columns declared in `config/shared_records.php` once the schools accepted
 ([shared records](shared-records.md)).
+
+Academic competitions (Action Plan 5.3) are shared fixtures of an academic
+kind; the motion, format, rounds, stances and the confirmed winning side are
+on the global `shared_fixtures` row. `academic_adjudicators`,
+`academic_results`, `academic_reasoning_reviews` and `academic_award_links`
+are required school-owned: each school's own adjudicators, its adjudicators'
+result (its entrants' scores and places), the AI feedback its adjudicators
+asked for and the awards it presented, with composite school foreign keys to
+its own learners. None of them is published to the other school
+([academic competitions](../activities/academic-competitions.md)).

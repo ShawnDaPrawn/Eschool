@@ -50,6 +50,11 @@ return app(CurrentSchool::class)->run(1, function () use ($action): array {
         $cardId = (string) getenv('FOUNDATION_FIXTURE_CARD');
         abort_unless(Str::isUuid($cardId), 422);
         $card = Card::findOrFail($cardId);
+        if ($action === 'restore_inventory') {
+            SchoolModule::where('module', 'cards')->update(['read_only' => false]);
+
+            return ['read_only' => false];
+        }
         if ($action === 'readonly_inventory') {
             SchoolModule::where('module', 'cards')->update(['read_only' => true]);
 

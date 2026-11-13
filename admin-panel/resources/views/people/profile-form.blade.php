@@ -1,25 +1,17 @@
 @extends('layouts.master')
 @section('title', __('Person profile'))
 @section('content')
-<div class="content-wrapper">
+<div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Person profile')" :subtitle="$subject->full_name" />
     <x-page.learner-identifiers :identifier="$identifier ?? null" :admission-no="$admissionNo ?? null" />
-    <form method="GET" action="{{ route('people-profiles.index', $subject->id) }}">
-        <x-page.field name="profile_type" type="select" :label="__('Profile type')" :value="$form['profile_type']" :options="array_combine($form['available_profiles'], array_map(fn ($value) => __(ucfirst($value)), $form['available_profiles']))" />
-        <button class="m3-button m3-button--outlined" type="submit">{{ __('View profile') }}</button>
-    </form>
-    <a class="m3-button m3-button--outlined" href="{{ route('people-profiles.export', ['person' => $subject->id, 'profile_type' => $form['profile_type']]) }}">{{ __('Export permitted fields') }}</a>
-    @if ($canInvite)
-        <form method="POST" action="{{ route('people-profiles.invitation', $subject->id) }}" aria-label="{{ __('Send sign-in invitation') }}">
-            @csrf
-            <p>{{ __('Emails :name a private link to choose their own password. Any earlier link stops working.', ['name' => $subject->full_name]) }}</p>
-            <button class="m3-button m3-button--outlined" type="submit">{{ __('Send sign-in invitation') }}</button>
-        </form>
-    @endif
+    <div class="workspace-layout"><div class="workspace-main">
+    <nav class="panel-section-nav" aria-label="{{ __('Profile sections') }}">
+        @foreach($form['categories'] as $category)<a href="#profile-category-{{ $loop->index }}">{{ $category['label'] }}</a>@endforeach
+    </nav>
     <x-page.form-card id="person-profile" :action="route('people-profiles.update', $subject->id)" method="PUT" :title="__('Profile details')" :draft="false" :submit-label="__('Save profile')">
         <input type="hidden" name="profile_type" value="{{ $form['profile_type'] }}">
         @foreach ($form['categories'] as $category)
-            <fieldset><legend>{{ $category['label'] }}</legend>
+            <fieldset id="profile-category-{{ $loop->index }}" class="workspace-section"><legend>{{ $category['label'] }}</legend>
             @foreach ($category['fields'] as $field)
                 @php
                     $key = $field['key'];
@@ -87,10 +79,26 @@
             @endif
         @endforeach
     @endforeach
+    </div><aside class="workspace-context">
+        <section class="m3-card m3-card--outlined"><div class="m3-card__content"><h2>{{ __('Profile actions') }}</h2>
+    <form method="GET" action="{{ route('people-profiles.index', $subject->id) }}">
+        <x-page.field name="profile_type" type="select" :label="__('Profile type')" :value="$form['profile_type']" :options="array_combine($form['available_profiles'], array_map(fn ($value) => __(ucfirst($value)), $form['available_profiles']))" />
+        <button class="m3-button m3-button--outlined" type="submit">{{ __('View profile') }}</button>
+    </form>
+    <a class="m3-button m3-button--outlined" href="{{ route('people-profiles.export', ['person' => $subject->id, 'profile_type' => $form['profile_type']]) }}">{{ __('Export permitted fields') }}</a>
+    @if ($canInvite)
+        <form method="POST" action="{{ route('people-profiles.invitation', $subject->id) }}" aria-label="{{ __('Send sign-in invitation') }}">
+            @csrf
+            <p>{{ __('Emails :name a private link to choose their own password. Any earlier link stops working.', ['name' => $subject->full_name]) }}</p>
+            <button class="m3-button m3-button--outlined" type="submit">{{ __('Send sign-in invitation') }}</button>
+        </form>
+    @endif
     @php $learnerRecord = \App\Models\Students::query()->where('user_id', $subject->id)->first(); @endphp
     @if ($learnerRecord !== null && \Illuminate\Support\Facades\Gate::allows('manageGuardians', $learnerRecord))
         <p><a class="m3-button m3-button--outlined" href="{{ route('learner-guardians.index', $learnerRecord->id) }}">{{ __('Manage guardians') }}</a></p>
-    @endif
+    @endif        </div></section>
+    </aside></div>
+
 </div>
 @endsection
 @section('script')

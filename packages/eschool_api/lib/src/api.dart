@@ -43,6 +43,7 @@ import 'package:eschool_api/src/api/reenrolment_api.dart';
 import 'package:eschool_api/src/api/school_assistance_api.dart';
 import 'package:eschool_api/src/api/school_transfers_api.dart';
 import 'package:eschool_api/src/api/secure_cards_api.dart';
+import 'package:eschool_api/src/api/shared_library_api.dart';
 import 'package:eschool_api/src/api/strengths_mirror_api.dart';
 import 'package:eschool_api/src/api/subscriptions_api.dart';
 import 'package:eschool_api/src/api/teaching_assistant_api.dart';
@@ -388,6 +389,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   SecureCardsApi getSecureCardsApi() {
     return SecureCardsApi(dio);
+  }
+
+  /// Get SharedLibraryApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SharedLibraryApi getSharedLibraryApi() {
+    return SharedLibraryApi(dio);
   }
 
   /// Get StrengthsMirrorApi instance, base route and serializer can be overridden by a given but be careful,

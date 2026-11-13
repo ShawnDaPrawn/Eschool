@@ -26,6 +26,8 @@ use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\SubjectTeacher;
 use App\Models\Term;
+use App\Services\Money\FinancialYears;
+use App\Services\Panel\SessionYearContext;
 use App\Services\ResponseService;
 use App\Services\SessionYearService;
 use Illuminate\Http\Request;
@@ -42,7 +44,7 @@ class SessionYearController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (! Auth::user()->can('session-year-list')) {
             $response = [
@@ -51,18 +53,43 @@ class SessionYearController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $sessionYears = SessionYear::select('id', 'name')->orderBy('id', 'desc')->get();
-        // Offer to make a new year current straight away when the current one is over.
-        $current = SessionYear::find(getSettings('session_year')['session_year'] ?? null);
-        $currentYearEnded = ! $current || $current->end_date < date('Y-m-d');
+        $request->validate(['view' => ['nullable', Rule::in(['list', 'create', 'edit', 'calendar', 'cleanup', 'activate'])], 'year' => ['nullable', 'integer', 'min:1'], 'search' => ['nullable', 'string', 'max:100']]);
+        $view = (string) $request->query('view', 'list');
+        $current = app(SessionYearContext::class)->current();
+        $selectedYear = $request->filled('year') ? SessionYear::findOrFail($request->integer('year')) : null;
+        abort_if(! in_array($view, ['list', 'create'], true) && ! $selectedYear, 404);
+        abort_if($view === 'create' && ! $request->user()->can('session-year-create'), 403);
+        abort_if($view === 'activate' && ($current || ! $request->user()->can('session-year-edit')), 403);
+        abort_if($view === 'edit' && ! $request->user()->can('session-year-edit'), 403);
+        abort_if($view === 'cleanup' && ! $request->user()->can('session-year-delete'), 403);
+        $rows = SessionYear::query()->when($request->filled('search'), fn ($q) => $q->where('name', 'like', '%'.$request->query('search').'%'))->orderByDesc('start_date')->paginate(25)->withQueryString();
+        $terms = $selectedYear ? $selectedYear->terms()->orderBy('start_date')->get() : collect();
+        $deletionBlock = null;
+        if ($selectedYear) {
+            if ((int) $selectedYear->id === (int) $current?->id) {
+                $deletionBlock = __('The current school year cannot be removed or cleared.');
+            } else {
+                try {
+                    FinancialYears::assertDeletable((int) $selectedYear->id);
+                } catch (\DomainException $error) {
+                    $deletionBlock = $error->getMessage();
+                }
+            }
+        }
+        $related = [];
+        if ($view === 'cleanup') {
+            foreach (['terms', 'exams', 'assignments', 'attendances', 'studentSessions', 'classTeacher', 'subjectTeacher', 'classSubject', 'electiveSubjectGroup', 'grade', 'leave', 'leaveMaster', 'onlineExamQuestion', 'onlineExam', 'announcements', 'events', 'holidays', 'notifications'] as $relation) {
+                $related[$relation] = $selectedYear->{$relation}()->count();
+            }
+        }
 
-        return view('session_years.index', compact('sessionYears', 'currentYearEnded'));
+        return response()->view('session_years.index', compact('rows', 'current', 'selectedYear', 'view', 'terms', 'deletionBlock', 'related'))->header('Cache-Control', 'private, no-store');
     }
 
     /**
      * Make a session year the school's current one (what the apps show).
      */
-    public function makeCurrent(int $id, SessionYearService $service)
+    public function makeCurrent(Request $request, int $id, SessionYearService $service)
     {
         if (! Auth::user()->can('session-year-edit')) {
             return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
@@ -71,7 +98,8 @@ class SessionYearController extends Controller
         if ($sessionYear->end_date < date('Y-m-d')) {
             return response()->json(['error' => true, 'message' => trans('session_year_has_ended')]);
         }
-        $service->makeCurrent($sessionYear);
+        $request->validate(['source_year_id' => ['sometimes', 'integer', 'min:0']]);
+        $service->makeCurrent($sessionYear, $request->has('source_year_id') ? $request->integer('source_year_id') : null);
 
         return response()->json([
             'error' => false,
@@ -123,10 +151,11 @@ class SessionYearController extends Controller
 
             return response()->json($response);
         }
-        $current = SessionYear::find($request->id);
+        $current = SessionYear::findOrFail($request->id);
         // A running year's free-app date is usually already past; keeping it must not block other edits.
         $request->validate([
             'id' => 'required|exists:session_years,id',
+            'default' => ['prohibited'], 'set_as_current' => ['prohibited'],
             'name' => ['required', Rule::unique('session_years', 'name')->ignore($request->id)->whereNull('deleted_at')],
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -135,25 +164,12 @@ class SessionYearController extends Controller
         ]);
 
         try {
-            $session_year = SessionYear::find($request->id);
+            $session_year = $current;
             $session_year->name = $request->name;
             $session_year->start_date = date('Y-m-d', strtotime($request->start_date));
             $session_year->end_date = date('Y-m-d', strtotime($request->end_date));
 
-            // If request asks to set this session as default, enforce rules:
-            if ($request->has('default')) {
-                $today = date('Y-m-d');
-                // Prevent setting an already expired session as default
-                if (strtotime($session_year->end_date) < strtotime($today)) {
-                    return response()->json([
-                        'error' => true,
-                        'message' => trans('error_occurred'),
-                    ]);
-                }
-                // Unset previous default and set this one
-                SessionYear::where('default', 1)->update(['default' => 0]);
-                $session_year->default = 1;
-            }
+            // Year activation is a distinct global workflow; editing dates never changes it.
 
             $session_year->save();
 
@@ -414,6 +430,11 @@ class SessionYearController extends Controller
                     'in:class_subject,class_teachers,notifications,timetable,attendance,assignments,exams,grades,announcements,holidays,events,leaves,allowed_leave_days',
                 ],
             ]);
+
+            $year = SessionYear::findOrFail($session_year);
+            if ((int) $year->id === app(SessionYearContext::class)->currentId()) {
+                return response()->json(['error' => true, 'message' => __('The current school year cannot be removed or cleared.')], 409);
+            }
 
             $service->clearSpecificData(
                 $session_year,

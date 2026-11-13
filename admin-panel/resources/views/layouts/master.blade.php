@@ -40,6 +40,8 @@
                 @include('layouts.partials.notices')
                 @include('layouts.partials.platform-announcements')
 
+                @include('layouts.partials.workspace-nav')
+
                 @yield('content')
 
                 <div class="panel-main__footer">
@@ -76,6 +78,7 @@
     <script src="{{ asset('/assets/m3/m3.js') }}?v={{ filemtime(public_path('assets/m3/m3.js')) }}"></script>
     <script src="{{ asset('/assets/js/custom/panel.js') }}?v={{ filemtime(public_path('assets/js/custom/panel.js')) }}"></script>
     <script src="{{ asset('/assets/js/custom/page.js') }}?v={{ filemtime(public_path('assets/js/custom/page.js')) }}"></script>
+    <script src="{{ asset('/assets/js/custom/admin-design.js') }}?v={{ filemtime(public_path('assets/js/custom/admin-design.js')) }}"></script>
 
     @yield('js')
 

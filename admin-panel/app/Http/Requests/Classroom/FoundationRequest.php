@@ -35,7 +35,7 @@ class FoundationRequest extends FormRequest
     {
         $operation = ['operation_id' => ['required', 'uuid']];
         $rules = match ($this->route('foundation_action')) {
-            'configuration' => ['page' => ['sometimes', 'integer', 'between:1,100000']],
+            'configuration' => ['page' => ['sometimes', 'integer', 'between:1,100000']] + ($this->panel() ? ['view' => ['sometimes', 'in:lessons,authorize,eligibility,devices,register'], 'group' => ['sometimes', 'integer', 'min:1']] : []),
             'eligibility' => $operation + ['revision' => ['required', 'integer', 'min:0'], 'eligible' => ['required', 'boolean'], 'reason' => ['required', 'string', 'max:1000']],
             'register' => $operation + ['name' => ['required', 'string', 'max:100'], 'setup_code' => ['required', 'regex:/^NESET1\.[A-Za-z0-9_-]{43}$/D'], 'days' => ['required', 'integer', 'between:1,30']],
             'grant' => $operation + ['device_id' => ['required', 'uuid'], 'teaching_group_id' => ['required', 'integer', 'min:1'], 'minutes' => ['required', 'integer', 'between:1,60']],

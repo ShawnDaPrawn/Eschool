@@ -26,15 +26,13 @@
         $totalSteps = count($stepLabels);
     @endphp
 
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">{{ __('manage') . ' ' . __('section') }}</h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('section')" />
 
-        <div class="row">
-            <div class="col-md-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
+        <div class="panel-form-grid">
+            <div class="  ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <form id="edit-content-bulk" class="edit-content" method="POST" enctype="multipart/form-data"
                             action="{{ route('content.bulk_update') }}" novalidate="novalidate">
                             @csrf
@@ -94,8 +92,8 @@
                                 <x-wizard.step :index="10" title="{{ __('Got a Question?') }}">
                                     <input type="hidden" name="sections[question][id]"
                                         value="{{ $question->id ?? '' }}" />
-                                    <div class="row">
-                                        <div class="form-group col-sm-6 col-md-5">
+                                    <div class="panel-form-grid">
+                                        <div class="form-group  ">
                                             <label>{{ __('section_title') }} <span class="text-danger">*</span></label>
                                             {!! Form::text('sections[question][tag]', $question?->tag ?? '', [
                                                 'required',
@@ -103,7 +101,7 @@
                                                 'class' => 'form-control',
                                             ]) !!}
                                         </div>
-                                        <div class="form-group col-sm-6 col-md-5">
+                                        <div class="form-group  ">
                                             <label>{{ __('heading') }} <span class="text-danger">*</span></label>
                                             {!! Form::text('sections[question][heading]', $question?->heading ?? '', [
                                                 'required',

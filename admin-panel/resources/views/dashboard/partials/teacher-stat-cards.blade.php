@@ -8,7 +8,7 @@
 @endphp
 <div class="dash-stat-row dash-stat-row--3 mb-4">
     @foreach ($teacher_stat_cards as $card)
-        <div class="dash-card dash-stat-card">
+        <div class="m3-card m3-card--outlined dash-card dash-stat-card">
             <span class="dash-stat-icon"><i class="{{ $card['icon'] }}"></i></span>
             <div class="dash-stat-text">
                 <span class="dash-stat-label">{{ $card['label'] }}</span>

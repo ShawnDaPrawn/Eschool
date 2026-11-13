@@ -1,87 +1,25 @@
 @extends('layouts.master')
-
-@section('title')
-{{ __('add_bulk_data') }}
-@endsection
-
+@section('title', __('Import attendance'))
 @section('content')
-<div class="content-wrapper">
-    <div class="page-header">
-        <h3 class="page-title">
-            {{ __('manage') . ' ' . __('students') }}
-        </h3>
-    </div>
-    <div class="row">
-        <div class="col-lg-12 grid-margin stretch-card">
-            <div class="card">
-                <div class="card-body">
-                    <form class="pt-3 student-export" enctype="multipart/form-data" action="{{route('student-export')}}" method="POST">
-                        @csrf
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-4">
-                                <label>{{ __('class') . ' ' . __('section') }} <span class="text-danger">*</span></label>
-                                <select name="class_section_id" id="class_section" class="form-control select2">
-                                    <option value="">{{ __('select') . ' ' . __('class') . ' ' . __('section') }}
-                                    </option>
-                                    @foreach ($class_sections as $section)
-                                        <option value="{{ $section->id }}" data-class="{{ $section->class->id }}">
-                                            {{ $section->class->name }} - {{ $section->section->name }} {{ $section->class->medium->name }} {{$section->class->streams->name ?? ''}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="form-group col-sm-12 col-md-4">
-                                <label>{{ __('date') }} <span class="text-danger">*</span></label>
-                                {!! Form::text('date', null, ['required', 'placeholder' => __('date'), 'class' => 'form-control daterange', 'id' => 'date','data-date-end-date'=>"0d"]) !!}
-                                <span class="input-group-addon input-group-append"></span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-3 mt-5">
-                                <input class="btn btn-theme" type="submit" value="{{ __('download_dummy_file') }}" name="submit" id="student_export">
-                            </div>
-                            <div class="col-sm-12 col-xs-12">
-                                <span style="font-size: 14px"> <b>{{__('Note')}} :- </b>
-                                    <br>{{__('first_download_dummy_file_and_add_attendance_then_upload_it')}}
-                                    <br>{{__('add_attendance_on_type_column_0_for_(absent)_and_1_for_(present)')}}</span>
-                            </div>
-                        </div>
-                    </form>
-                    <br>
-                    <hr>
-                    <br>
-                    <form class="pt-3 student-import" id="create-form-bulk-data" enctype="multipart/form-data" action="{{ route('attendance.store-bulk-data') }}" method="POST">
-                        @csrf
-                        <div class="row">
-                            <div class="form-group col-sm-12 col-md-4">
-                                <label>{{ __('class') . ' ' . __('section') }} <span class="text-danger">*</span></label>
-                                <select name="class_section_id" id="class_section" class="form-control select2">
-                                    <option value="">{{ __('select') . ' ' . __('class') . ' ' . __('section') }}
-                                    </option>
-                                    @foreach ($class_sections as $section)
-                                        <option value="{{ $section->id }}" data-class="{{ $section->class->id }}">
-                                            {{ $section->class->name }} - {{ $section->section->name }} {{ $section->class->medium->name }} {{$section->class->streams->name ?? ''}}</option>
-                                    @endforeach
-                                </select>
-
-                            </div>
-                            <div class="form-group col-sm-12 col-md-4">
-                                <label>{{ __('file_upload') }} <span class="text-danger">*</span></label>
-                                <input type="file" name="file" class="file-upload-default" />
-                                <div class="input-group col-xs-12">
-                                    <input type="text" class="form-control file-upload-info" disabled="" placeholder="{{ __('file_upload') }}" required="required" />
-                                    <span class="input-group-append">
-                                        <button class="file-upload-browse btn btn-theme" type="button">{{ __('upload') }}</button>
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="form-group col-sm-12 col-xs-12">
-                                <input class="btn btn-theme submit_bulk_file" type="submit" value="{{ __('submit') }}" name="submit" id="submit_bulk_file">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+@php($importView = request('view') === 'upload' ? 'upload' : 'template')
+<div class="content-wrapper m3 page-content">
+<x-page.header :title="__('Import attendance')" :subtitle="__('Download the learner template for one class and date range, enter attendance, then upload the completed CSV.')" />
+<x-panel-view-nav :current="$importView" :items="['template'=>['label'=>'1. Download template','href'=>route('attendance.add-bulk-data')], 'upload'=>['label'=>'2. Upload attendance','href'=>route('attendance.add-bulk-data',['view'=>'upload'])]]" />
+@if($importView === 'template')
+<section class="m3-card m3-card--outlined"><div class="m3-card__content">
+<h2>{{ __('Download attendance template') }}</h2><p>{{ __('Use 0 for absent, 1 for present, 4 for first-half absence or 5 for second-half absence in the type column. Keep learner identifiers unchanged.') }}</p>
+<form action="{{ route('student-export') }}" method="POST">@csrf
+<x-page.field id="template-class" name="class_section_id" type="select" :label="__('Class and section')" :options="$class_sections->mapWithKeys(fn($section)=>[$section->id=>$section->class->name.' – '.$section->section->name.' '.$section->class->medium->name])->all()" :placeholder="__('Choose a class')" required />
+<x-page.field id="template-from" name="from_date" type="date" :label="__('From date')" :max="now()->toDateString()" required />
+<x-page.field id="template-to" name="to_date" type="date" :label="__('To date')" :max="now()->toDateString()" required />
+<button class="m3-button m3-button--filled" type="submit">{{ __('Download CSV template') }}</button>
+</form></div></section>
+@else
+<x-page.form-card id="attendance-import-form" :action="route('attendance.store-bulk-data')" :title="__('Upload attendance')" :submit-label="__('Import attendance')" :draft="false">
+<x-page.field id="upload-class" name="class_section_id" type="select" :label="__('Class and section')" :options="$class_sections->mapWithKeys(fn($section)=>[$section->id=>$section->class->name.' – '.$section->section->name.' '.$section->class->medium->name])->all()" :placeholder="__('Choose a class')" required />
+<x-page.field id="attendance-file" name="file" type="file" :label="__('Completed attendance CSV')" accept=".csv,.txt,text/csv,text/plain" required />
+<p>{{ __('The import validates each row and reports errors without clearing your selected class.') }}</p>
+</x-page.form-card>
+@endif
 </div>
 @endsection

@@ -60,7 +60,7 @@ test('last year is read-only until you switch back', async ({ page }) => {
   await expect(page.getByText('Kabelo Dlamini', { exact: true })).toHaveCount(0);
 
   // The banner is on every page, and write buttons are disabled.
-  await page.goto('/announcement');
+  await page.goto('/announcement?view=create');
   await expect(banner).toBeVisible();
   await expect(page.locator('form.create-form input[type="submit"]')).toBeDisabled();
 

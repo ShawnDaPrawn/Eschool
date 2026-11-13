@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('promote_students_in_next_session') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('promote_students_in_next_session')" />
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card search-container">
                 <div class="card">

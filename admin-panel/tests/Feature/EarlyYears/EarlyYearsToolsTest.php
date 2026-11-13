@@ -108,6 +108,23 @@ class EarlyYearsToolsTest extends TestCase
         return (int) app(DevelopmentAreas::class)->all()->firstWhere('name', 'Communication')->id;
     }
 
+    public function test_panel_development_configuration_and_record_editor_are_separate_and_scoped(): void
+    {
+        $this->actingAs($this->superAdmin())->get('/early-years')->assertOk()->assertDontSee('name="description"', false);
+        $this->get('/early-years?view=configuration')->assertOk()->assertSee('Development areas')->assertDontSee('name="description"', false);
+        $area = $this->area();
+        $this->get('/early-years?view=area&area_id='.$area)->assertOk()->assertSee('name="description"', false)->assertSee('Communication');
+        $this->post(route('early-years.areas.store'), ['name' => 'Synthetic independence', 'description' => 'Independent tasks', 'position' => 10, 'active' => 1])
+            ->assertRedirect(route('early-years.index', ['view' => 'configuration']));
+        $this->assertSame(1, DevelopmentArea::where('name', 'Synthetic independence')->count());
+        $foreign = app(CurrentSchool::class)->run(2, fn () => DevelopmentArea::create(['name' => 'Foreign private area', 'active' => true, 'position' => 1, 'revision' => 1]));
+        $this->get('/early-years?view=area&area_id='.$foreign->id)->assertNotFound();
+        $this->actingAs($this->tara)->get('/early-years?view=areas')->assertOk()->assertSee('Communication')->assertDontSee('name="description"', false);
+        $this->get('/early-years?view=configuration')->assertForbidden();
+        $this->get('/early-years?view=area&area_id='.$area)->assertForbidden();
+        $this->actingAs($this->parent)->get('/early-years?view=configuration')->assertForbidden();
+    }
+
     private function observe(User $actor, int $learner, array $input = [], ?UploadedFile $photo = null): Observation
     {
         return app(Observations::class)->record($actor, $learner, $input + ['operation_id' => (string) Str::uuid(), 'development_area_id' => $this->area(),

@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Panel\Activities;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Activities\ActivityPanelRequest;
 use App\Models\Activities\ActivityGroup;
+use App\Models\Leave\FacilitatorAbsence;
+use App\Models\Leave\FacilitatorSessionCover;
 use App\Models\People\Enrolment;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
@@ -14,8 +16,10 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Activities\ActivityGroups;
 use App\Services\Activities\CommunityAuthority;
+use App\Services\Leave\FacilitatorLeave;
 use App\Services\Panel\SessionYearContext;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Response;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
@@ -38,13 +42,13 @@ class ActivityWorkbenchController extends Controller
         $id = $r->route('group') ?? $r->query('group_id');
         $detail = $id === null ? null : $service->detail($r->user(), (int) $id);
         $years = SessionYear::orderByDesc('start_date')->get();
-        $yearId = $detail['group']['session_year_id'] ?? $r->input('session_year_id') ?? getSettings('session_year')['session_year'] ?? null;
+        $yearId = $detail['group']['session_year_id'] ?? $r->input('session_year_id') ?? app(SessionYearContext::class)->selectedId();
         $year = $yearId === null ? $years->first() : $years->firstWhere('id', (int) $yearId);
         abort_if($year === null, 422, __('Set up a school year first.'));
         $groups = ActivityGroup::where('session_year_id', $year->id)->orderBy('name')->limit(1001)->get();
         abort_if($groups->count() > 1000, 422, __('Narrow the activity group list before continuing.'));
         $currentYear = app(SessionYearContext::class)->currentId();
-        $readOnly = $currentYear !== null && $currentYear !== (int) $year->id;
+        $readOnly = app(SessionYearContext::class)->isReadOnly() || ($currentYear !== null && $currentYear !== (int) $year->id);
         $roster = $detail === null ? ['memberships' => [], 'staff' => [], 'attendance' => []] : $service->roster($r->user(), (int) $id);
         $staffIds = SchoolMembership::active()->where('school_id', app(CurrentSchool::class)->id())->whereIn('role', ['Teacher', 'Facilitator'])->select('user_id');
         $staffNames = User::whereIn('id', $staffIds)->where('status', 1)->orderBy('first_name')->get()->mapWithKeys(fn ($u) => [(int) $u->id => trim($u->first_name.' '.$u->last_name)])->all();
@@ -72,8 +76,35 @@ class ActivityWorkbenchController extends Controller
         }
 
         $suggestions = $detail === null || $readOnly ? [] : $service->lastYearSuggestions($r->user(), (int) $id);
+        $sessionCovers = [];
+        $canManageCover = false;
+        if ($detail !== null) {
+            $canManageCover = app(FacilitatorLeave::class)->canManage($r->user());
+            $coverRows = FacilitatorSessionCover::where('activity_group_id', (int) $id)
+                ->whereIn('facilitator_absence_id', FacilitatorAbsence::where('status', 'approved')->select('id'))->get();
+            $coverNames = User::whereIn('id', $coverRows->pluck('replacement_user_id'))->get()->mapWithKeys(fn ($u) => [(int) $u->id => $u->full_name]);
+            $coverSessions = collect($detail['sessions'])->keyBy('id');
+            foreach ($coverRows as $cover) {
+                $sessionCovers[(int) $cover->activity_session_id][] = [
+                    'name' => $coverNames[(int) $cover->replacement_user_id] ?? __('Unavailable facilitator'),
+                    'absence_id' => (int) $cover->facilitator_absence_id, 'session_revision' => (int) $cover->session_revision,
+                    'needs_review' => $cover->needsReview($coverSessions->get((int) $cover->activity_session_id)),
+                ];
+            }
+        }
 
-        return compact('readOnly', 'years', 'year', 'groups', 'detail', 'roster', 'staffNames', 'learnerNames', 'edit', 'record', 'session', 'attendance', 'suggestions') + $extra + ['restored' => null, 'failedAction' => null, 'conflict' => false];
+        $view = $r->input('view', $session !== null ? 'attendance' : ($detail === null ? 'groups' : 'overview'));
+        if ($edit !== null) {
+            $view = ['membership' => 'member-edit', 'staff' => 'staff-edit', 'session' => 'session-edit', 'material' => 'material-edit'][$edit] ?? $view;
+        }
+        if (! $r->isMethodSafe()) {
+            $view = ['create' => 'group-edit', 'save' => 'group-edit', 'membership-save' => 'member-edit', 'staff-save' => 'staff-edit', 'session-save' => 'session-edit', 'material-save' => 'material-edit', 'attendance-save' => 'attendance'][$r->action()] ?? $view;
+        }
+        if (! in_array($view, ['groups', 'overview', 'configuration', 'members', 'staff', 'sessions', 'materials', 'attendance', 'group-edit', 'member-edit', 'staff-edit', 'session-edit', 'material-edit'], true)) {
+            $view = 'groups';
+        }
+
+        return compact('sessionCovers', 'canManageCover', 'view', 'readOnly', 'years', 'year', 'groups', 'detail', 'roster', 'staffNames', 'learnerNames', 'edit', 'record', 'session', 'attendance', 'suggestions') + $extra + ['restored' => null, 'failedAction' => null, 'conflict' => false];
     }
 
     public function invalid(ActivityPanelRequest $r, array $errors, int $status): Response
@@ -105,6 +136,12 @@ class ActivityWorkbenchController extends Controller
             };
         } catch (ValidationException $e) {
             return $this->invalid($r, $e->errors(), 422);
+        } catch (ModelNotFoundException $e) {
+            if ($r->action() !== 'membership-save' || $e->getModel() !== Enrolment::class) {
+                throw $e;
+            }
+
+            return $this->invalid($r, ['starts_on' => [__('Choose allocation dates covered by the learner’s enrolment in this school year.')]], 422);
         } catch (HttpExceptionInterface $e) {
             if (! in_array($e->getStatusCode(), [409, 422], true)) {
                 throw $e;
@@ -113,6 +150,12 @@ class ActivityWorkbenchController extends Controller
             return $this->invalid($r, ['activity' => [$e->getMessage()]], $e->getStatusCode());
         }
 
-        return redirect()->route('activity-groups.index', ['group_id' => $group ?? $result['id']])->with('success', __('Activity saved'))->header('Cache-Control', 'private, no-store');
+        $view = ['membership-save' => 'members', 'staff-save' => 'staff', 'session-save' => 'sessions', 'material-save' => 'materials', 'attendance-save' => 'attendance'][$r->action()] ?? 'overview';
+        $selection = ['group_id' => $group ?? $result['id'], 'view' => $view];
+        if ($r->action() === 'attendance-save') {
+            $selection['session_id'] = (int) $r->route('session');
+        }
+
+        return redirect()->route('activity-groups.index', $selection)->with('success', __('Activity saved'))->header('Cache-Control', 'private, no-store');
     }
 }

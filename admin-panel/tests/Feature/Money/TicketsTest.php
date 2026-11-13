@@ -188,7 +188,11 @@ class TicketsTest extends TestCase
         $input = ['operation_id' => (string) Str::uuid(), 'revision' => $preview['revision'], 'recipient_id' => $recipient->id, 'receive_code' => $code['receive_code'], 'confirmed' => true];
         $before = DB::table('ledger_entries')->count();
         $ack = $s->transfer($this->parent, $ticket->id, $input);
-        $this->assertSame($ack, $s->transfer($this->parent, $ticket->id, $input));
+        $replayed = $s->transfer($this->parent, $ticket->id, $input);
+        // MySQL JSON objects may reorder keys; compare every typed value.
+        ksort($ack);
+        ksort($replayed);
+        $this->assertSame($ack, $replayed);
         $this->assertArrayNotHasKey('qr', $ack);
         $this->assertSame($before, DB::table('ledger_entries')->count());
         $this->refuses(fn () => $s->receipt($this->parent, $ticket->id), 404);
@@ -263,6 +267,73 @@ class TicketsTest extends TestCase
         $this->post('/ticket-events/events', ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'private_reason' => 'Private synthetic event reason'] + array_replace($bind, ['expected_school_id' => 2]))->assertForbidden();
         $this->post('/ticket-events/events', ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'private_reason' => 'Private synthetic event reason'] + $bind)->assertStatus(422)->assertSessionMissing('_old_input');
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']))->get('/ticket-events')->assertForbidden();
+    }
+
+    public function test_admission_catalogue_has_separate_details_issued_type_edit_conflict_and_confirmed_cancellation(): void
+    {
+        $type = $this->type();
+        $this->admission($type);
+        $event = TicketEvent::findOrFail($type->event_id);
+        $root = '/ticket-events?event_id='.$event->id;
+        $this->actingAs($this->admin)->get('/ticket-events')->assertOk()->assertDontSee('name="private_reason"', false);
+        $this->get($root)->assertOk()->assertSee('Admission event details')->assertDontSee('name="private_reason"', false);
+        $this->get($root.'&type_id='.$type->id.'&section=type')->assertOk()->assertSee('Original admission kind')->assertSee('type="hidden" name="product_id"', false)->assertSee('min="1"', false);
+        $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
+        $input = $bind + ['operation_id' => (string) Str::uuid(), 'id' => $type->id, 'revision' => 1, 'event_id' => $event->id, 'product_id' => $type->product_id, 'kind' => 'general', 'status' => 'active', 'transfer_rule' => 'families', 'capacity' => 4, 'private_reason' => 'Reviewed issued admission capacity change'];
+        $this->post('/ticket-events/types', $input)->assertRedirect();
+        $this->post('/ticket-events/types', array_replace($input, ['operation_id' => (string) Str::uuid(), 'capacity' => 5]))->assertStatus(409)->assertSee('Compare admission configuration')->assertSee('Saved version');
+        $this->assertSame(4, $type->fresh()->capacity);
+        $this->get($root.'&type_id='.$type->id)->assertOk()->assertSee('Retained admission type')->assertSee('Reviewed issued admission capacity change')->assertDontSee('name="capacity"', false);
+        $cancel = $bind + ['operation_id' => (string) Str::uuid(), 'id' => $event->id, 'revision' => 1, 'name' => $event->name, 'description' => $event->description, 'status' => 'cancelled', 'private_reason' => 'Reviewed cancellation with retained original admissions'];
+        foreach (['sales_from', 'sales_until', 'starts_at', 'ends_at'] as $field) {
+            $cancel[$field] = $event->getAttribute($field)->setTimezone('Africa/Johannesburg')->format('Y-m-d\TH:i');
+        }
+        $this->post('/ticket-events/events', $cancel)->assertStatus(422)->assertSee('Cancel admission event')->assertSee('Reviewed cancellation with retained original admissions')->assertSessionMissing('_old_input');
+        $this->assertSame('active', $event->fresh()->status);
+        $entries = DB::table('ledger_entries')->count();
+        $this->post('/ticket-events/events', $cancel + ['confirmed_cancellation' => true])->assertRedirect();
+        $this->get($root)->assertOk()->assertSee('This admission event is cancelled and cannot reopen.')->assertSee('Cancellation does not refund money automatically.');
+        $this->assertSame(1, Ticket::count());
+        $this->assertSame($entries, DB::table('ledger_entries')->count());
+    }
+
+    public function test_vendor_admission_browser_resolves_original_operation_and_refuses_wrong_context(): void
+    {
+        $type = $this->type();
+        $this->admission($type);
+        $number = app(TicketHolders::class)->receipt($this->parent, Ticket::sole()->id)['ticket_number'];
+        $operators = app(VendorOperators::class);
+        $operator = $operators->provision($this->admin, ['operation_id' => (string) Str::uuid(), 'first_name' => 'Synthetic', 'last_name' => 'Browser operator', 'email' => 'browser.admission@example.test', 'initial_password' => Str::random(40), 'confirmed_operator_identity' => true]);
+        $operator->forceFill(['password_change_required' => false])->save();
+        ParentPolicyService::acceptCurrent($operator);
+        $binding = ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'vendor_id' => $this->vendor->id, 'user_id' => $operator->id, 'status' => 'active', 'private_reason' => 'Explicit browser admission counter assignment', 'confirmed_operator_identity' => true];
+        $operators->bind($this->admin, $binding);
+        $this->actingAs($operator, 'web')->withSession(['portal_app' => AppTokens::VENDOR]);
+        $url = '/vendor-counter/counters/'.$this->vendor->id.'/tickets';
+        $bind = ['expected_school_id' => 1, 'expected_account_id' => $operator->id];
+        $this->get($url)->assertOk()->assertSee('Check original admission outcome');
+        $this->post($url.'/lookup', $bind + ['ticket_number' => 'TK-'.str_repeat('Z', 20)])->assertNotFound()->assertSee('This ticket is not available to this counter.');
+        $this->post($url.'/lookup', $bind + ['ticket_number' => $number])->assertOk()->assertSee('Confirm one actual admission');
+        $input = $bind + ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'ticket_number' => $number, 'confirmed' => true];
+        $entries = DB::table('ledger_entries')->count();
+        $this->post($url.'/redeem', $input)->assertOk()->assertSee('One admission recorded.');
+        $resolve = $bind + ['operation_id' => $input['operation_id']];
+        $this->post($url.'/resolve', $resolve)->assertOk()->assertSee('Admission was already recorded.')->assertSee('Original admission recorded at')->assertDontSee('data-ticket-confirm', false);
+        $this->post($url.'/resolve', array_replace($resolve, ['expected_school_id' => 2]))->assertForbidden();
+        $this->post($url.'/resolve', array_replace($resolve, ['expected_account_id' => $this->admin->id]))->assertForbidden();
+        $this->post($url.'/resolve', $bind + ['operation_id' => (string) Str::uuid()])->assertOk()->assertSee('did not record admission and has been closed');
+        $this->post($url.'/lookup', $bind + ['ticket_number' => $number])->assertOk()->assertSee('Original admission recorded at')->assertDontSee('data-ticket-confirm', false);
+        $this->assertSame(1, TicketAction::where('action', 'redeemed')->count());
+        $this->assertSame($entries, DB::table('ledger_entries')->count());
+        $otherOperator = $operators->provision($this->admin, ['operation_id' => (string) Str::uuid(), 'first_name' => 'Second', 'last_name' => 'Browser operator', 'email' => 'second.admission@example.test', 'initial_password' => Str::random(40), 'confirmed_operator_identity' => true]);
+        $otherOperator->forceFill(['password_change_required' => false])->save();
+        ParentPolicyService::acceptCurrent($otherOperator);
+        $operators->bind($this->admin, array_replace($binding, ['operation_id' => (string) Str::uuid(), 'user_id' => $otherOperator->id]));
+        $this->actingAs($otherOperator, 'web')->post($url.'/resolve', array_replace($resolve, ['expected_account_id' => $otherOperator->id]))->assertNotFound();
+        $this->actingAs($operator, 'web');
+        $operators->bind($this->admin, array_replace($binding, ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'status' => 'revoked']));
+        $this->post($url.'/resolve', $resolve)->assertForbidden();
+        $this->actingAs($this->parent, 'web')->post($url.'/resolve', $resolve)->assertForbidden();
     }
 
     public function test_ticket_holder_api_contracts_rotate_codes_and_cached_transfer_ack_has_no_new_owner_secrets(): void

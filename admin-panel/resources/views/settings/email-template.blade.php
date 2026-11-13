@@ -8,15 +8,13 @@
         href="{{ asset('/assets/css/email-template.css') }}?v={{ filemtime(public_path('assets/css/email-template.css')) }}">
 @endsection
 @section('content')
-<div class="content-wrapper">
-    <div class="page-header">
-        <h3 class="page-title">{{ __('email_template') }}</h3>
-    </div>
+<div class="content-wrapper m3 page-content">
+    <x-page.header :title="__('email_template')" />
 
-    <div class="row">
-        <div class="col-lg-12 grid-margin stretch-card">
-            <div class="card">
-                <div class="card-body">
+    <div class="panel-form-grid">
+        <div class="  ">
+            <div class="m3-card m3-card--outlined">
+                <div class="m3-card__content panel-record-card">
 
                     
 
@@ -50,7 +48,7 @@
                                 <input type="hidden" name="type" value="student">
 
                                 <div class="form-group mb-3">
-                                    <textarea id="student_content" name="content" rows="10" class="form-control">{{ $template->content ?? '' }}</textarea>
+                                    <textarea id="student_content" name="content" rows="10" class="m3-text-field__input">{{ $template->content ?? '' }}</textarea>
                                 </div>
 
                                 <div class="d-flex flex-wrap align-items-center bg-light p-3 border rounded mb-3">
@@ -69,7 +67,7 @@
                                     <button type="button" class="custom-tag-btn" data-tag="{username}" data-editor="student_content">{{ __('{username}') }}</button>
                                 </div>
 
-                                <button type="submit" class="btn btn-theme">{{ __('save_template') }}</button>
+                                <button type="submit" class="m3-button m3-button--filled">{{ __('save_template') }}</button>
                             </form>
                         </div>
 
@@ -80,7 +78,7 @@
                                 <input type="hidden" name="type" value="staff">
 
                                 <div class="form-group mb-3">
-                                    <textarea id="staff_content" name="content" rows="10" class="form-control">{{ $stafftemplate->content ?? '' }}</textarea>
+                                    <textarea id="staff_content" name="content" rows="10" class="m3-text-field__input">{{ $stafftemplate->content ?? '' }}</textarea>
                                 </div>
 
                                 <div class="d-flex flex-wrap align-items-center bg-light p-3 border rounded mb-3">
@@ -97,7 +95,7 @@
                                     <button type="button" class="custom-tag-btn" data-tag="{support_contact}" data-editor="staff_content">{{ __('{support_contact}') }}</button>
                                 </div>
 
-                                <button type="submit" class="btn btn-theme">{{ __('save_template') }}</button>
+                                <button type="submit" class="m3-button m3-button--filled">{{ __('save_template') }}</button>
                             </form>
                         </div>
                         {{-- ===== REJECTION TAB ===== --}}
@@ -120,7 +118,7 @@
                                     <button type="button" class="custom-tag-btn btn btn-sm btn-outline-secondary" data-tag="{class_name}" data-editor="rejection_content">{{ __('{ Class_name }') }}</button>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary mt-3">{{ __('save_template') }}</button>
+                                <button type="submit" class="m3-button m3-button--filled mt-3">{{ __('save_template') }}</button>
                             </form>
                         </div>
 

@@ -33,6 +33,7 @@
     // The old-input / error key for names like "father[email]" or "tags[]".
     $key = trim(str_replace(['[]', '[', ']'], ['', '.', ''], $name), '.');
     $current = $type === 'password' ? null : old($key, $value);
+    $current = is_scalar($current) || $current instanceof \Stringable ? $current : '';
     $message = $error ?? (isset($errors) ? $errors->first($key) : null);
     $supporting = is_string($message) && $message !== '' ? $message : $hint;
     $supportingId = $supporting ? ($id ?? 'm3-field-' . \Illuminate\Support\Str::random(8)) . '-supporting' : null;

@@ -199,9 +199,10 @@ class VendorCataloguesTest extends TestCase
         $this->get('/vendor-catalogues?vendor_id='.$v->id)->assertOk()->assertSee('School tuckshop')->assertDontSee($input['private_bank_instructions']);
         $this->post('/vendor-catalogues/product', $this->product($v->id) + $bind)->assertRedirect();
         $p = VendorProduct::sole();
-        $this->get('/vendor-catalogues?product_id='.$p->id)->assertOk()->assertSee('Units on hand')->assertSee('Sandwich');
+        $this->get('/vendor-catalogues?product_id='.$p->id)->assertOk()->assertSee('Sandwich')->assertSee('Counted stock')->assertDontSee('name="units_delta"', false);
+        $this->get('/vendor-catalogues?product_id='.$p->id.'&section=stock')->assertOk()->assertSee('Units on hand')->assertSee('name="units_delta"', false);
         $this->post('/vendor-catalogues/stock', $this->stock($p->id) + $bind)->assertRedirect();
-        $this->get('/vendor-catalogues?product_id='.$p->id)->assertOk()->assertSee('SYNTHETIC-DELIVERY-001')->assertDontSee('private supplier details');
+        $this->get('/vendor-catalogues?product_id='.$p->id.'&section=stock')->assertOk()->assertSee('SYNTHETIC-DELIVERY-001')->assertDontSee('private supplier details');
         $this->post('/vendor-catalogues/vendor', $input + ['expected_account_id' => $this->admin->id, 'expected_school_id' => 2])->assertForbidden();
         $this->post('/vendor-catalogues/vendor?unexpected=1', $input + $bind)->assertUnprocessable();
         $this->post('/vendor-catalogues/vendor', array_replace($input, ['name' => '']) + $bind)->assertUnprocessable()->assertSessionMissing('_old_input');

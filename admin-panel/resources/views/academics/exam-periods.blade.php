@@ -3,6 +3,11 @@
 @section('content')
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Exam periods')" :subtitle="__('The days each grade writes exams. On these days learners and families see an exam day in the timetable, and normal lessons are left out unless you keep them.')" />
+    @php($periodView = request('view') === 'create' ? 'create' : 'list')
+    <nav class="workspace-tabs" aria-label="{{ __('Exam periods') }}">
+        <a class="m3-button m3-button--text" href="{{ route('exam-periods.index', ['session_year_id' => $year->id]) }}" @if($periodView === 'list') aria-current="page" @endif>{{ __('Exam periods') }}</a>
+        <a class="m3-button m3-button--text" href="{{ route('exam-periods.index', ['session_year_id' => $year->id, 'view' => 'create']) }}" @if($periodView === 'create') aria-current="page" @endif>{{ __('Add an exam period') }}</a>
+    </nav>
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     @foreach (['name', 'grade_level_id', 'starts_on', 'ends_on', 'session_year_id'] as $key)@error($key)<p role="alert">{{ $message }}</p>@enderror @endforeach
 
@@ -11,12 +16,14 @@
         <button class="m3-button m3-button--outlined" type="submit">{{ __('Show') }}</button>
     </form>
 
+    @if($periodView === 'list')
     <section class="page-section" aria-labelledby="exam-period-list">
         <h2 id="exam-period-list">{{ __('Exam periods in :year', ['year' => $year->name]) }}</h2>
         @forelse ($periods as $period)
             <article class="m3-card m3-card--outlined"><div class="m3-card__content">
                 <h3>{{ $period['name'] }} · {{ $period['grade'] }}</h3>
                 <p>{{ __(':from to :to', ['from' => $period['starts_on'], 'to' => $period['ends_on']]) }} · {{ $period['lessons_continue'] ? __('Lessons continue') : __('Lessons are left out') }}</p>
+                @if((int) request('period_id') === $period['id'])
                 <form method="POST" action="{{ route('exam-periods.update', $period['id']) }}" aria-label="{{ __('Change :name', ['name' => $period['name'].' · '.$period['grade']]) }}">
                     @csrf
                     @method('PUT')
@@ -28,17 +35,21 @@
                     <label><input type="checkbox" name="lessons_continue" value="1" @checked($period['lessons_continue'])> {{ __('Normal lessons continue on exam days') }}</label>
                     <button class="m3-button m3-button--outlined" type="submit">{{ __('Save changes') }}</button>
                 </form>
+                @else
+                <a class="m3-button m3-button--outlined" href="{{ route('exam-periods.index', ['session_year_id' => $year->id, 'period_id' => $period['id']]) }}">{{ __('Edit exam period') }}</a>
+                @endif
                 <form method="POST" action="{{ route('exam-periods.destroy', $period['id']) }}" aria-label="{{ __('Remove :name', ['name' => $period['name'].' · '.$period['grade']]) }}">
                     @csrf
                     @method('DELETE')
-                    <button class="m3-button m3-button--text" type="submit">{{ __('Remove exam period') }}</button>
+                    <button class="m3-button m3-button--text" type="submit" data-confirm="{{ __('Remove this exam period?') }}">{{ __('Remove exam period') }}</button>
                 </form>
             </div></article>
         @empty
-            <x-page.empty-state :title="__('No exam periods yet')" :message="__('Add the first exam period below.')" />
+            <x-page.empty-state :title="__('No exam periods yet')" :message="__('Add the first exam period to show exam days on the timetable.')" />
         @endforelse
     </section>
 
+    @else
     <section class="m3-card m3-card--outlined page-section" aria-labelledby="add-exam-period"><div class="m3-card__content">
         <h2 id="add-exam-period">{{ __('Add an exam period') }}</h2>
         <p>{{ __('Learners and their guardians are told whenever an upcoming exam\'s date, time or venue changes on the exam timetable, in a period or not.') }}</p>
@@ -53,5 +64,6 @@
             <button class="m3-button m3-button--filled" type="submit">{{ __('Add exam period') }}</button>
         </form>
     </div></section>
+    @endif
 </div>
 @endsection

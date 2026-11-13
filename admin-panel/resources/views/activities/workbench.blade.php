@@ -2,121 +2,56 @@
 @section('title', __('Activity groups'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}">@endsection
 @section('content')
-<div class="content-wrapper m3 page-content activity-workbench">
-<x-page.header :title="__('Activity groups')" :subtitle="__('Manage seasons, dated allocations, sessions and group materials.')" />
-@include('academics.groups-status')
-@if($conflict)<p role="alert">{{ __('This record changed. Compare your draft with the saved values before trying again.') }}</p>@endif
-<form method="GET" action="{{ route('activity-groups.index') }}" class="activity-form" aria-label="{{ __('Activity form') }}">
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" type="select" :restore-old-input="false" name="session_year_id" :label="__('School year')" :options="$years->pluck('name','id')->all()" :value="$year->id" />
-<x-m3.button type="submit" variant="tonal">{{ __('Open year') }}</x-m3.button>
-</form>
-<div class="activity-columns">
-<x-m3.card :title="__('Groups and seasons')">
-<a href="{{ route('activity-groups.index',['session_year_id'=>$year->id]) }}">{{ __('New activity group') }}</a>
-<ul>@forelse($groups as $row)<li><a href="{{ route('activity-groups.index',['group_id'=>$row->id]) }}">{{ $row->name }} · {{ $row->season }} @if(!$row->active)({{ __('Archived') }})@endif</a></li>@empty<li>{{ __('No activity groups yet.') }}</li>@endforelse</ul>
-</x-m3.card>
-<fieldset class="activity-sections" @disabled($readOnly)>
-@if($readOnly)<p role="status">{{ __('This school year is read-only. Select the current school year to make changes.') }}</p>@endif
 @php($group=$detail['group'] ?? null)
-@php($formAction=$group ? 'save' : 'create')
-@php($draft=$failedAction===$formAction ? $restored : $group)
-<x-m3.card :title="$group['name'] ?? __('New activity group')">
-<form method="POST" action="{{ $group ? route('activity-groups.save',['group'=>$group['id']]) : route('activity-groups.create') }}" class="activity-form" aria-label="{{ __('Activity form') }}">@csrf
-@include('activities.operation',['action'=>$formAction,'saved'=>$group])
-<input type="hidden" name="session_year_id" value="{{ $year->id }}">
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" name="name" :label="__('Group name')" :value="$draft['name'] ?? ''" required maxlength="191" />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="parent_id" :label="__('Parent group')" :options="[''=>__('No parent group')]+$groups->where('active',true)->where('id','!=',$group['id'] ?? 0)->pluck('name','id')->all()" :value="$draft['parent_id'] ?? ''" />
-@foreach(['discipline'=>'Discipline','season'=>'Season'] as $key=>$label)<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" :name="$key" :label="__($label)" :value="$draft[$key] ?? ''" required maxlength="100" />@endforeach
-@include('activities.dates')
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="gender" :label="__('Gender eligibility')" :options="['any'=>__('Any'),'male'=>__('Male'),'female'=>__('Female')]" :value="$draft['gender'] ?? 'any'" />
-@foreach(['minimum_grade'=>'Minimum grade (R = 0)','maximum_grade'=>'Maximum grade (R = 0)','minimum_age'=>'Minimum age','maximum_age'=>'Maximum age'] as $key=>$label)<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="number" :name="$key" :label="__($label)" :value="$draft[$key] ?? ''" min="0" :max="str_contains($key,'grade') ? 12 : 25" />@endforeach
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="active" :label="__('Group availability')" :options="['1'=>__('Active'),'0'=>__('Archived')]" :value="(int) ($draft['active'] ?? true)" />
-<x-m3.button type="submit">{{ __('Save group') }}</x-m3.button>
-</form>
-@if($conflict && $failedAction===$formAction)<h3>{{ __('Current saved values') }}</h3><dl>@foreach($group ?? [] as $key=>$value)<dt>{{ __($key) }}</dt><dd>{{ is_bool($value) ? ($value ? __('Yes') : __('No')) : $value }}</dd>@endforeach</dl>@endif
-</x-m3.card>
+<div class="content-wrapper m3 page-content activity-workbench">
+<x-page.header :title="$view==='attendance' ? __('Activity attendance') : ($group['name'] ?? __('Activity groups'))" :subtitle="__('Dated groups, learner and staff allocations, sessions and materials in the selected school year.')">
+<x-slot:actions><a class="m3-button m3-button--outlined" href="{{ route('activity-groups.index',['view'=>$view==='attendance'?'attendance':'groups','session_year_id'=>$year->id]) }}">{{ __('All groups') }}</a></x-slot:actions>
+</x-page.header>
+@include('academics.groups-status')
+@if($conflict)<p role="alert" class="m3-banner m3-banner--warning">{{ __('This record changed. Compare your draft with the saved values before trying again.') }}</p>@endif
+@if($readOnly)<p role="status" class="m3-banner m3-banner--info">{{ __('This school year is read-only. Select the current school year in the global header to make changes.') }}</p>@endif
+<p class="panel-record-context">{{ __('School year') }}: {{ $year->name }}@if($group) · {{ $group['season'] }} · {{ $group['starts_on'] }} – {{ $group['ends_on'] }} · {{ $group['active'] ? __('Active') : __('Archived') }}@endif</p>
 @if($group)
-<x-m3.card :title="__('Learner and staff allocations')">
-<p>{{ __('Dates are inclusive. Cancel a future or current allocation without deleting its history.') }}</p>
-@foreach(['membership','staff'] as $kind)
-@php($action=$kind.'-save')
-@php($saved=$edit===$kind ? $record : null)
-@php($draft=$failedAction===$action ? $restored : $saved)
-<h3>{{ $kind==='staff' ? __('Allocate staff') : __('Allocate learner') }}</h3>
-<form method="POST" action="{{ route('activity-groups.'.$action,['group'=>$group['id'],'record'=>$saved['id'] ?? null]) }}" class="activity-form" aria-label="{{ __('Activity form') }}">@csrf
-@include('activities.operation',['saved'=>$saved])
-@php($personField=$kind==='staff' ? 'user_id' : 'learner_id')
-@php($personNames=$kind==='staff' ? $staffNames : $learnerNames)
-@if($saved)<p>{{ $personNames[$saved[$personField]] ?? __('Former school member') }}</p><input type="hidden" name="{{ $personField }}" value="{{ $saved[$personField] }}">@else<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" :name="$personField" :label="$kind==='staff' ? __('Staff member') : __('Learner')" :options="[''=>__('Choose a person')]+$personNames" :value="$draft[$personField] ?? ''" required />@endif
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="role" :label="__('Group role')" :options="$kind==='staff' ? ['facilitator'=>__('Facilitator'),'admin'=>__('Group administrator')] : ['member'=>__('Member'),'captain'=>__('Captain')]" :value="$draft['role'] ?? ($kind==='staff' ? 'facilitator' : 'member')" />
-@if($kind==='staff')<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="cascade" :label="__('Descendant groups')" :options="['0'=>__('This group only'),'1'=>__('Include descendant groups as administrator')]" :value="(int) ($draft['cascade'] ?? false)" />@endif
-@include('activities.dates')
-@if($saved)<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="active" :label="__('Allocation availability')" :options="['1'=>__('Active'),'0'=>__('Cancelled')]" :value="(int) ($draft['active'] ?? true)" />@endif
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" name="reason" :label="__('Reason')" :value="$draft['reason'] ?? ''" required minlength="3" maxlength="2000" />
-<x-m3.button type="submit">{{ __('Save allocation') }}</x-m3.button>
-</form>
-@if($kind==='membership' && $suggestions !== [])
-<h3>{{ __('In this group last year') }}</h3>
-<p>{{ __('These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.') }}</p>
-<ul class="activity-suggestions">@foreach($suggestions as $learnerId => $learnerName)<li>
-<form method="POST" action="{{ route('activity-groups.membership-save',['group'=>$group['id']]) }}" aria-label="{{ __('Add :name', ['name' => $learnerName]) }}">@csrf
-<input type="hidden" name="operation_id" value="{{ \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="revision" value="0">
-<input type="hidden" name="learner_id" value="{{ $learnerId }}"><input type="hidden" name="role" value="member">
-<input type="hidden" name="starts_on" value="{{ max($group['starts_on'], now()->toDateString()) }}"><input type="hidden" name="ends_on" value="{{ $group['ends_on'] }}">
-<input type="hidden" name="reason" value="{{ __('In this group last year') }}">
-{{ $learnerName }} <x-m3.button type="submit" variant="text">{{ __('Add as member') }}<span class="m3-visually-hidden">: {{ $learnerName }}</span></x-m3.button>
-</form></li>@endforeach</ul>
-@endif
-<ul>@foreach($kind==='staff' ? $roster['staff'] : $roster['memberships'] as $row)<li><a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'edit'=>$kind,'record_id'=>$row['id']]) }}">{{ $kind==='staff' ? ($staffNames[$row['user_id']] ?? __('Former school member')) : $row['learner_name'] }} · {{ __($row['role']) }} · {{ $row['starts_on'] }}–{{ $row['ends_on'] }} @if(!$row['active'])({{ __('Cancelled') }})@endif</a></li>@endforeach</ul>
+<nav class="panel-local-nav" aria-label="{{ __('Activity group workspace') }}">
+@foreach(['overview'=>'Overview','members'=>'Learners','staff'=>'Staff','sessions'=>'Sessions','materials'=>'Materials','configuration'=>'Configuration'] as $key=>$label)
+<a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'view'=>$key]) }}" @if($view===$key) aria-current="page" @endif>{{ __($label) }}</a>
 @endforeach
-</x-m3.card>
-<x-m3.card :title="__('Sessions and attendance')">
-@php($action='session-save')
-@php($saved=$edit==='session' ? $record : null)
-@php($draft=$failedAction===$action ? $restored : $saved)
-<form method="POST" action="{{ route('activity-groups.session-save',['group'=>$group['id'],'record'=>$saved['id'] ?? null]) }}" class="activity-form" aria-label="{{ __('Activity form') }}">@csrf
-@include('activities.operation',['saved'=>$saved])
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="date" name="on_date" :label="__('Session date')" :value="$draft['on_date'] ?? ''" required />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="time" name="starts_at" :label="__('Starts at (optional)')" :value="$draft['starts_at'] ?? ''" />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="time" name="ends_at" :label="__('Ends at (optional)')" :value="$draft['ends_at'] ?? ''" />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" name="name" :label="__('Session name')" :value="$draft['name'] ?? ''" required maxlength="191" />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" name="venue" :label="__('Venue')" :value="$draft['venue'] ?? ''" required maxlength="191" />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="status" :label="__('Session status')" :options="['scheduled'=>__('Scheduled'),'completed'=>__('Completed'),'cancelled'=>__('Cancelled')]" :value="$draft['status'] ?? 'scheduled'" />
-<x-m3.button type="submit">{{ __('Save session') }}</x-m3.button>
-</form>
-<ul>@foreach($detail['sessions'] as $row)<li>{{ $row['on_date'] }}@if($row['starts_at'] ?? null) {{ $row['starts_at'] }}–{{ $row['ends_at'] }}@endif · {{ $row['name'] }} · {{ $row['venue'] }} · {{ __($row['status']) }} <a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'edit'=>'session','record_id'=>$row['id']]) }}">{{ __('Edit session') }}</a> <a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'session_id'=>$row['id']]) }}">{{ __('Open attendance') }}</a></li>@endforeach</ul>
-@if($session)
-<h3>{{ $session['name'] }} · {{ $session['on_date'] }}</h3>
-<p>{{ __('Choose only the learners you are recording. Blank entries remain unrecorded.') }}</p>
-@if($session['status']!=='cancelled' && $session['on_date']<=app(\App\Services\Activities\CommunityAuthority::class)->today())
-@php($action='attendance-save')
-@php($draft=$failedAction===$action ? $restored : null)
-<form method="POST" action="{{ route('activity-groups.attendance-save',['group'=>$group['id'],'session'=>$session['id']]) }}" class="activity-form" aria-label="{{ __('Activity form') }}">@csrf
-@include('activities.operation',['saved'=>$session])
-@foreach($attendance as $learner=>$entry)
-@php($submitted=collect($draft['entries'] ?? [])->firstWhere('learner_id',$learner))
-<input type="hidden" name="entries[{{ $learner }}][learner_id]" value="{{ $learner }}"><input type="hidden" name="entries[{{ $learner }}][revision]" value="{{ $entry['revision'] }}">
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" :name="'entries['.$learner.'][status]'" :label="$entry['learner_name']" :options="[''=>__('Unrecorded'),'present'=>__('Present'),'absent'=>__('Absent'),'late'=>__('Late'),'excused'=>__('Excused')]" :value="$submitted['status'] ?? $entry['status']" />
-@endforeach
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" name="reason" :label="__('Attendance reason')" :value="$draft['reason'] ?? ''" required minlength="3" maxlength="2000" />
-<x-m3.button type="submit">{{ __('Save attendance') }}</x-m3.button>
-</form>
-@else<p>{{ __('Attendance opens on the session date. Cancelled sessions cannot record attendance.') }}</p>@endif
+<a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'view'=>'attendance']) }}" @if($view==='attendance') aria-current="page" @endif>{{ __('Attendance') }}</a>
+</nav>
 @endif
-</x-m3.card>
-<x-m3.card :title="__('Group materials')">
-@php($action='material-save')
-@php($saved=$edit==='material' ? $record : null)
-@php($draft=$failedAction===$action ? $restored : $saved)
-<form method="POST" action="{{ route('activity-groups.material-save',['group'=>$group['id'],'record'=>$saved['id'] ?? null]) }}" class="activity-form" aria-label="{{ __('Activity form') }}">@csrf
-@include('activities.operation',['saved'=>$saved])
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" name="title" :label="__('Material title')" :value="$draft['title'] ?? ''" required maxlength="191" />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="textarea" name="markdown" :label="__('Material Markdown')" :value="$draft['markdown'] ?? ''" required maxlength="20000" rows="8" />
-<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="published" :label="__('Material visibility')" :options="['0'=>__('Private draft'),'1'=>__('Published to group members')]" :value="(int) ($draft['published'] ?? false)" />
-<x-m3.button type="submit">{{ __('Save material') }}</x-m3.button>
-</form>
-@foreach($detail['materials'] as $row)<section><a href="{{ route('activity-files.listing',['group'=>$group['id'],'material'=>$row['id']]) }}">{{ __('Documents') }}</a><h3>{{ $row['title'] }}</h3><p>{{ $row['published'] ? __('Published') : __('Private draft') }}</p><div class="activity-markdown">{!! $row['html'] !!}</div><a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'edit'=>'material','record_id'=>$row['id']]) }}">{{ __('Edit material') }}</a></section>@endforeach
-</x-m3.card>
+@if(!$group && $view!=='group-edit')
+<section class="m3-card m3-card--outlined"><div class="m3-card__content">
+<div class="panel-actions"><h2>{{ $view==='attendance' ? __('Choose the activity group') : __('Groups and seasons') }}</h2>
+@if($view!=='attendance' && !$readOnly)<a class="m3-button m3-button--filled" href="{{ route('activity-groups.index',['session_year_id'=>$year->id,'view'=>'group-edit']) }}">{{ __('Create activity group') }}</a><a class="m3-button m3-button--outlined" href="{{ route('activity-seasons.index') }}">{{ __('Start a season') }}</a>@endif</div>
+<div class="activity-record-list">@forelse($groups as $row)<article class="activity-record"><h3><a href="{{ route('activity-groups.index',['group_id'=>$row->id,'view'=>$view==='attendance'?'attendance':'overview']) }}">{{ $row->name }}</a></h3><p>{{ $row->discipline }} · {{ $row->season }} · {{ $row->active ? __('Active') : __('Archived') }}</p><p>{{ $row->starts_on->toDateString() }} – {{ $row->ends_on->toDateString() }}</p></article>@empty<x-page.empty-state :title="__('No activity groups yet')" :message="__('Create a group with its dates and eligibility rules, then allocate members and staff.')" />@endforelse</div>
+</div></section>
+@elseif($view==='group-edit')
+<fieldset class="activity-sections" @disabled($readOnly)>@include('activities.group-editor')</fieldset>
+@elseif($group)
+@if($view==='overview')
+<section class="m3-card m3-card--outlined"><div class="m3-card__content"><h2>{{ __('Group overview') }}</h2>
+<dl class="activity-summary"><dt>{{ __('Activity') }}</dt><dd>{{ $group['discipline'] }}</dd><dt>{{ __('Season') }}</dt><dd>{{ $group['season'] }}</dd><dt>{{ __('Eligibility') }}</dt><dd>{{ __(ucfirst($group['gender'])) }} · {{ __('Grades') }} {{ $group['minimum_grade'] ?? '—' }} – {{ $group['maximum_grade'] ?? '—' }} · {{ __('Ages') }} {{ $group['minimum_age'] ?? '—' }} – {{ $group['maximum_age'] ?? '—' }}</dd><dt>{{ __('Learner allocations') }}</dt><dd>{{ count($roster['memberships']) }}</dd><dt>{{ __('Staff allocations') }}</dt><dd>{{ count($roster['staff']) }}</dd></dl>
+<p>{{ __('Open a local tab to manage this group. Attendance is captured in the central Attendance workspace.') }}</p>
+</div></section>
+@include('activities.sessions')
+@elseif($view==='configuration')
+<section class="m3-card m3-card--outlined"><div class="m3-card__content"><h2>{{ __('Group configuration') }}</h2><p>{{ __('Manage the name, parent group, season, dates, eligibility and availability. Archiving retains allocations, materials and history.') }}</p><div class="panel-actions"><a class="m3-button m3-button--filled" href="{{ route('activity-groups.index',['group_id'=>$group['id'],'view'=>'group-edit']) }}">{{ __('Edit group structure and dates') }}</a><a class="m3-button m3-button--outlined" href="{{ route('activity-seasons.index') }}">{{ __('Start a season') }}</a></div></div></section>
+@elseif(in_array($view,['members','staff'],true))
+@include('activities.roster')
+@elseif(in_array($view,['member-edit','staff-edit'],true))
+<fieldset class="activity-sections" @disabled($readOnly)>@include('activities.allocation-editor')</fieldset>
+@elseif($view==='session-edit')
+<fieldset class="activity-sections" @disabled($readOnly)>@include('activities.session-editor')</fieldset>
+@elseif($view==='material-edit')
+<fieldset class="activity-sections" @disabled($readOnly)>@include('activities.material-editor')</fieldset>
+@elseif($view==='materials')
+@include('activities.materials')
+@elseif($view==='attendance')
+@include('activities.sessions')
+@if($session)<fieldset class="activity-sections" @disabled($readOnly)>@include('activities.attendance')</fieldset>@endif
+@else
+@include('activities.sessions')
 @endif
-</fieldset></div></div>
+@endif
+</div>
 @endsection

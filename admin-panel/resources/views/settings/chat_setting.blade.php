@@ -6,16 +6,12 @@
 
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('chat_settings') }}
-            </h3>
-        </div>
-        <div class="row grid-margin">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('chat_settings')" />
+        <div class="panel-form-grid">
+            <div class="">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">
                             {{ __('messages') }} {{ __('configuration') }}
                         </h4>
@@ -46,36 +42,36 @@
                         <form id="frmData" class="general-setting" action="{{ route('chat_setting.update') }}"
                             novalidate="novalidate" enctype="multipart/form-data">
                             @csrf
-                            <div class="row mt-5">
-                                <div class="form-group col-md-6 col-sm-12">
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
                                     <label>{{ __('max_files_upload') }} <span
                                             class="text-info">({{ __('in_single_message') }})</span></label>
                                     <input name="max_files_or_images_in_one_message"
                                         value="{{ isset($settings['max_files_or_images_in_one_message']) ? $settings['max_files_or_images_in_one_message'] : '10' }}"
                                         type="number" required placeholder="{{ __('max_files_upload') }}"
-                                        class="form-control" min="2"
+                                        class="m3-text-field__input" min="2"
                                         max="{{ $max_files_or_images_in_one_message }}" />
                                     <p><strong>{{ __('note_max_file_uploads_allowed', ['count' => $max_files_or_images_in_one_message]) }}</strong>
                                     </p>
                                 </div>
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('max_file_size') }} <span
                                             class="text-info">({{ __('in_mb') }})</span></label>
                                     {{-- Never above what PHP accepts, or the form couldn't be saved at all. --}}
                                     <input name="max_file_size_in_bytes"
                                         value="{{ min((float) ($settings['max_file_size_in_bytes'] ?? 10), $maxFileSizeMB) }}"
                                         type="number" required placeholder="{{ __('max_file_size') }}"
-                                        class="form-control" min="0.1" step="any" max="{{ $maxFileSizeMB }}" />
+                                        class="m3-text-field__input" min="0.1" step="any" max="{{ $maxFileSizeMB }}" />
                                     <p><strong>{{ __('note_max_file_size_allowed', ['size' => $max_file_size_in_bytes]) }}</strong>
                                     </p>
                                 </div>
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('max_characters') }} <span
                                             class="text-info">({{ __('in_text_message') }})</span></label>
                                     <input name="max_characters_in_text_message"
                                         value="{{ isset($settings['max_characters_in_text_message']) ? $settings['max_characters_in_text_message'] : '500' }}"
                                         type="number" required placeholder="{{ __('max_characters') }}"
-                                        class="form-control" min="10" max="1000" />
+                                        class="m3-text-field__input" min="10" max="1000" />
                                 </div>
 
                             </div>
@@ -86,13 +82,13 @@
                             <p class="text-muted mb-0">{{ __('automatic_message_cleanup_subtitle') }}</p>
                             <hr>
 
-                            <div class="row mt-4">
-                                <div class="form-group col-md-3 col-sm-12">
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
                                     <label>{{ __('delete_messages_older_than') }}</label>
                                     <div class="input-group">
                                         <input name="automatically_messages_removed_days"
                                             value="{{ isset($settings['automatically_messages_removed_days']) ? $settings['automatically_messages_removed_days'] : '30' }}"
-                                            type="number" min="1" placeholder="30" class="form-control" required />
+                                            type="number" min="1" placeholder="30" class="m3-text-field__input" required />
                                         <span class="input-group-append">
                                             <span class="input-group-text text-dark">{{ __('days') }}</span>
                                         </span>
@@ -102,7 +98,7 @@
                                     </small>
                                 </div>
 
-                                <div class="form-group col-md-9 col-sm-12">
+                                <div class="form-group  ">
                                     <label>
                                         {{ __('one_time_server_setup') }}
                                     </label>
@@ -112,7 +108,7 @@
                                             value="0 0 * * * cd {{ base_path() }} && php artisan schedule:run >> /dev/null 2>&1"
                                             readonly aria-label="{{ __('one_time_server_setup') }}">
                                         <span class="input-group-append">
-                                            <button class="btn btn-theme" type="button" id="copy_cron_command"
+                                            <button class="m3-button m3-button--filled" type="button" id="copy_cron_command"
                                                 data-target="#scheduler_cron_command">
                                                 <i class="fa fa-copy mr-1"></i>
                                                 {{ __('copy') }}
@@ -123,7 +119,7 @@
                                 </div>
                             </div>
 
-                            <input class="btn btn-theme mt-4" type="submit" value="{{ __('submit') }}">
+                            <input class="m3-button m3-button--filled mt-4" type="submit" value="{{ __('submit') }}">
                         </form>
                     </div>
                 </div>
@@ -132,10 +128,10 @@
             </div>
 
         </div>
-        <div class="row grid-margin">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
+        <div class="panel-form-grid">
+            <div class="">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">
                             {{ __('manually') }} {{ __('delete') }} {{ __('messages') }}
                         </h4>
@@ -143,22 +139,22 @@
                         <form id="chat-delete" class="chat-delete" action="{{ route('chat_message.delete') }}"
                             method="POST" novalidate="novalidate">
                             @csrf
-                            <div class="row mt-5">
-                                <div class="form-group col-md-6">
+                            <div class="panel-form-grid">
+                                <div class="form-group ">
                                     <label>{{ __('from_date') }} <span class="text-danger">*</span></label>
                                     <input type="text" name="from_date" placeholder="{{ __('from_date') }}"
                                         class="datepicker-popup form-control" required>
                                     <span class="input-group-addon input-group-append">
                                     </span>
                                 </div>
-                                <div class="form-group col-md-5">
+                                <div class="form-group ">
                                     <label>{{ __('to_date') }} <span class="text-danger">*</span></label>
                                     <input type="text" name="to_date" placeholder="{{ __('to_date') }}"
                                         class="datepicker-popup form-control" required>
                                     <span class="input-group-addon input-group-append">
                                     </span>
                                 </div>
-                                <div class="form-group col-md-1 mt-4">
+                                <div class="form-group  mt-4">
                                     <button class="btn btn-xs btn-danger btn-icon"><i class="fa fa-trash"></i></button>
                                 </div>
                             </div>

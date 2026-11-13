@@ -1,7 +1,7 @@
 {{-- Approved Leaves: pending-leaves link + day filter + approved leave rows --}}
-<div class="dash-card dash-widget h-100" id="leaves-card">
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100" id="leaves-card">
     <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('approved_leaves') }}</h4>
+        <h2 class="dash-card-title">{{ __('approved_leaves') }}</h2>
         <div class="dash-head-actions">
             {{-- "View pending leaves" is only shown to users who can approve leaves (Super Admin
                  always; staff with the leave-approve permission). When absent, dashboard.js no-ops. --}}

@@ -140,6 +140,19 @@ class PlatformLibraryController extends Controller
         return redirect()->route('saas.library.reviews')->with('success', $review->decision === 'approved' ? __('Approved.') : __('Sent back with your reason.'));
     }
 
+    /** Teachers' ratings of shared items (Action Plan 5.4): numbers and unnamed comments, for reviewers. */
+    public function ratings(Request $request, LibraryPages $pages): View
+    {
+        return view('saas.library.ratings', $pages->ratings($request->user(), (int) $request->query('page', 1)));
+    }
+
+    public function unpublish(LibraryRequest $request, LibraryItems $items, int $item): RedirectResponse
+    {
+        $items->unpublish($request->user(), $item, $request->validated());
+
+        return redirect()->route('saas.library.ratings')->with('success', __('Unpublished. No school is offered it any more.'));
+    }
+
     public function storeReviewer(LibraryRequest $request, LibraryReviewers $reviewers): RedirectResponse
     {
         $reviewers->assign($request->user(), $request->validated());

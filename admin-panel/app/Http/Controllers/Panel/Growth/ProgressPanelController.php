@@ -27,11 +27,11 @@ class ProgressPanelController extends Controller
     {
         $queries = app(ProgressQueries::class);
         $configuration = $queries->configuration($r->user());
-        $rawMode = $r->input('mode');
-        $mode = is_string($rawMode) && in_array($rawMode, ['academic', 'counselling', 'assignments'], true) ? $rawMode
+        $rawMode = $r->operation() === 'configure' ? 'configuration' : $r->input('mode');
+        $mode = is_string($rawMode) && in_array($rawMode, ['academic', 'counselling', 'assignments', 'configuration'], true) ? $rawMode
             : ($configuration['groups'] === [] && $configuration['can_read_caseload'] ? 'counselling' : 'academic');
         $page = max(1, (int) $r->input('page', 1));
-        $groupId = $this->id($r->input('group_id')) ?: null;
+        $groupId = $mode === 'configuration' ? null : ($this->id($r->input('group_id')) ?: null);
         $group = null;
         $roster = ['learners' => [], 'current_page' => 1, 'last_page' => 1];
         if ($mode === 'counselling') {
@@ -44,14 +44,14 @@ class ProgressPanelController extends Controller
             $group = $queries->group($r->user(), $groupId);
             $roster = $queries->roster($r->user(), $groupId, $page);
         }
-        $learnerId = $this->id($r->route('learner') ?? $r->input('learner_id'));
-        $year = $this->id($r->input('session_year_id'), $configuration['session_year_id']);
+        $learnerId = $mode === 'configuration' ? 0 : $this->id($r->route('learner') ?? $r->input('learner_id'));
+        $year = $this->id($r->input('session_year_id'), app(SessionYearContext::class)->selectedId() ?? $configuration['session_year_id']);
         SessionYear::withTrashed()->findOrFail($year);
         $subject = $this->id($r->input('subject_id')) ?: null;
         $rawVisibility = $r->input('visibility');
         $visibility = $mode === 'counselling' ? 'counselling' : (is_string($rawVisibility) && in_array($rawVisibility, ['staff', 'tutor'], true) ? $rawVisibility : 'staff');
         abort_unless($mode === 'counselling' || in_array($visibility, ['staff', 'tutor'], true), 403);
-        $noteId = $mode === 'assignments' ? null : ($r->route('note') ?? $r->input('note'));
+        $noteId = in_array($mode, ['assignments', 'configuration'], true) ? null : ($r->route('note') ?? $r->input('note'));
         $record = is_scalar($noteId) && (int) $noteId > 0 ? app(LearnerNotes::class)->read($r->user(), (int) $noteId) : null;
         if ($record !== null) {
             $learnerId = $record['learner_id'];
@@ -155,6 +155,9 @@ class ProgressPanelController extends Controller
             return $this->failure($r, [$e->getMessage(), __('Compare the current note before trying again.')], $e->getStatusCode());
         }
         $selection = array_intersect_key($d, array_flip(['mode', 'group_id', 'subject_id', 'session_year_id', 'visibility', 'term_id']));
+        if ($op === 'configure') {
+            $selection = ['mode' => 'configuration'];
+        }
         $selection['learner_id'] = $learner ?: ($d['learner_id'] ?? null);
         if (in_array($op, ['create', 'update'], true)) {
             $selection = array_replace($selection, ['note' => $result['id'], 'learner_id' => $result['learner_id'], 'subject_id' => $result['subject_id'],

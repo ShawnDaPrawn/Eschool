@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Http\Middleware\PreserveDocumentFeedback;
+use App\Http\Middleware\StartDocumentSession;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Route;
 use Illuminate\Session\FileSessionHandler;
-use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Session\SessionManager;
 use Illuminate\Session\Store;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -34,6 +34,7 @@ class DocumentFeedbackTest extends TestCase
         $initial = new Store('feedback_session', new FileSessionHandler($files, $directory, 120));
         $initial->setId($id);
         $initial->start();
+        $initial->setPreviousUrl('http://localhost/original-editor');
         $initial->flash('success', 'Synthetic save completed.');
         $initial->flash('_old_input', ['private' => 'Do not extend private form input']);
         $initial->save();
@@ -42,7 +43,7 @@ class DocumentFeedbackTest extends TestCase
             $request->setRouteResolver(fn () => new Route(['GET'], '/feedback', fn () => null));
             $this->app->instance('request', $request);
             $manager = new SessionManager($this->app);
-            $start = new StartSession($manager, fn () => $this->app->make('cache'));
+            $start = new StartDocumentSession($manager, fn () => $this->app->make('cache'));
 
             return $start->handle($request, fn ($r) => (new PreserveDocumentFeedback)->handle($r, function ($r) use ($type) {
                 return new Response((string) $r->session()->get('success', ''), 200, ['Content-Type' => match ($type) {
@@ -56,9 +57,12 @@ class DocumentFeedbackTest extends TestCase
             $fresh = new Store('feedback_session', new FileSessionHandler($files, $directory, 120));
             $fresh->setId($id);
             $fresh->start();
+            $this->assertSame('http://localhost/original-editor', $fresh->previousUrl(), 'A background request must not replace the form recovery destination.');
             $this->assertFalse($fresh->has('_old_input'), 'Private input does not gain extra lifetime.');
             $this->assertSame('Synthetic save completed.', $request('html', ['HTTP_SEC_FETCH_DEST' => 'document'])->getContent());
             $this->assertSame('', $request('html', ['HTTP_SEC_FETCH_DEST' => 'document'])->getContent(), 'Feedback is consumed by the first document, not retained indefinitely.');
+            $fresh->start();
+            $this->assertSame('http://localhost/feedback', $fresh->previousUrl(), 'A document still becomes the normal back destination.');
         } finally {
             $files->deleteDirectory($directory);
         }

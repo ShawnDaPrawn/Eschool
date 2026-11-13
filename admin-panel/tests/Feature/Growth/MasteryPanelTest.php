@@ -37,7 +37,7 @@ class MasteryPanelTest extends TestCase
 
     public function test_graph_manager_can_create_empty_add_sourced_edge_and_clear_with_revision_conflict(): void
     {
-        $this->actingAs($this->superAdmin())->get('/growth-mastery')->assertOk()->assertSee('data-mastery-graph', false)->assertSee('Share mastery from released marks across this school');
+        $this->actingAs($this->superAdmin())->get('/growth-mastery?view=graph')->assertOk()->assertSee('data-mastery-graph', false)->assertSee('Share mastery from released marks across this school');
         $url = '/growth-mastery/subjects/'.$this->subject;
         $this->post($url, ['graph_present' => 1, 'expected_revision' => 0, 'family_marks_enabled' => 1])->assertRedirect();
         $edge = ['topic_id' => $this->nodes[$this->keys[1]], 'prerequisite_id' => $this->nodes[$this->keys[0]], 'source' => 'Synthetic published reference'];

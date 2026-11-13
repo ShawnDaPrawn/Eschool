@@ -17,6 +17,7 @@ use App\Services\Academics\TimetableConfiguration;
 use App\Services\Academics\TimetableEngine;
 use App\Services\Academics\TimetableImport;
 use App\Services\Academics\TimetableQueries;
+use App\Services\Panel\SessionYearContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -34,7 +35,7 @@ class TimetableWorkbenchController extends Controller
     {
         app(AcademicAuthority::class)->manage($request->user());
         $years = SessionYear::orderByDesc('start_date')->get();
-        $year = $request->validated('session_year_id') === null ? $years->firstWhere('default', 1) ?? $years->first() : SessionYear::findOrFail((int) $request->validated('session_year_id'));
+        $year = $request->validated('session_year_id') === null ? app(SessionYearContext::class)->selected() ?? $years->firstWhere('default', 1) ?? $years->first() : SessionYear::findOrFail((int) $request->validated('session_year_id'));
         abort_if($year === null, 422, __('Set up a school year first.'));
         $today = app(AcademicAuthority::class)->today();
         $weekOn = $request->validated('week_on') ?? CarbonImmutable::parse(max($year->start_date, min($today, $year->end_date)))->startOfWeek()->toDateString();
@@ -61,27 +62,28 @@ class TimetableWorkbenchController extends Controller
         $schedule = $request->validated('schedule') === null ? null : BellSchedule::with('periods')->findOrFail((int) $request->validated('schedule'));
 
         $shortDays = app(DayPatterns::class)->list($request->user(), (int) $year->id);
+        $workspaceView = $request->validated('view', $record ? 'placement' : ($room ? 'rooms' : ($schedule ? 'bells' : 'week')));
 
-        return compact('years', 'year', 'weekOn', 'configuration', 'choices', 'draft', 'room', 'schedule', 'shortDays') + ['week' => $queries->week($request->user(), (int) $year->id, $weekOn), 'preview' => null, 'conflict' => null, 'import' => null];
+        return compact('years', 'year', 'weekOn', 'configuration', 'choices', 'draft', 'room', 'schedule', 'shortDays', 'workspaceView') + ['week' => $queries->week($request->user(), (int) $year->id, $weekOn), 'preview' => null, 'conflict' => null, 'import' => null];
     }
 
     public function room(TimetableWorkbenchRequest $request): RedirectResponse
     {
         app(TimetableConfiguration::class)->room($request->user(), $request->validated(), $request->validated('room_id') === null ? null : (int) $request->validated('room_id'));
 
-        return redirect()->route('academic-timetable.index', ['session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')])->with('success', __('Room saved'));
+        return redirect()->route('academic-timetable.index', ['view' => 'rooms', 'session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')])->with('success', __('Room saved'));
     }
 
     public function bells(TimetableWorkbenchRequest $request): RedirectResponse
     {
         app(TimetableConfiguration::class)->bells($request->user(), $request->validated(), $request->validated('schedule_id') === null ? null : (int) $request->validated('schedule_id'));
 
-        return redirect()->route('academic-timetable.index', ['session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')])->with('success', __('Bell schedule saved'));
+        return redirect()->route('academic-timetable.index', ['view' => 'bells', 'session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')])->with('success', __('Bell schedule saved'));
     }
 
     public function shortDay(TimetableWorkbenchRequest $request): RedirectResponse
     {
-        $back = route('academic-timetable.index', ['session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')]).'#short-days';
+        $back = route('academic-timetable.index', ['view' => 'short-days', 'session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')]);
         try {
             app(DayPatterns::class)->save($request->user(), $request->validated());
         } catch (HttpExceptionInterface $error) {
@@ -97,7 +99,7 @@ class TimetableWorkbenchController extends Controller
 
     public function removeShortDay(TimetableWorkbenchRequest $request): RedirectResponse
     {
-        $back = route('academic-timetable.index', ['session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')]).'#short-days';
+        $back = route('academic-timetable.index', ['view' => 'short-days', 'session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')]);
         try {
             app(DayPatterns::class)->remove($request->user(), (int) $request->validated('override_id'), (int) $request->validated('revision'));
         } catch (HttpExceptionInterface $error) {
@@ -124,7 +126,7 @@ class TimetableWorkbenchController extends Controller
 
         $preview = app(TimetableEngine::class)->preview($request->user(), [$row]);
 
-        return view('academics.timetable-workbench', array_replace($this->model($request), ['preview' => $preview, 'draft' => $preview['rows'][0]]));
+        return view('academics.timetable-workbench', array_replace($this->model($request), ['workspaceView' => 'placement', 'preview' => $preview, 'draft' => $preview['rows'][0]]));
     }
 
     public function commit(TimetableWorkbenchRequest $request): RedirectResponse|Response
@@ -136,7 +138,12 @@ class TimetableWorkbenchController extends Controller
                 throw $error;
             }
 
-            return response()->view('academics.timetable-workbench', array_replace($this->model($request), ['conflict' => $error->getMessage(), 'draft' => $request->validated('rows')[0]]), 409);
+            $import = $request->validated('view') === 'import';
+
+            return response()->view('academics.timetable-workbench', array_replace($this->model($request), [
+                'workspaceView' => $import ? 'import' : 'placement', 'conflict' => $error->getMessage(), 'draft' => $request->validated('rows')[0],
+                'preview' => $import ? ['can_save' => false, 'conflicts' => [], 'rows' => $request->validated('rows'), 'fingerprint' => $request->validated('fingerprint')] : null,
+            ]), 409);
         }
 
         return redirect()->route('academic-timetable.index', ['session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')])->with('success', __('Timetable saved'));
@@ -151,13 +158,13 @@ class TimetableWorkbenchController extends Controller
         }
         $import = ['csv' => $request->validated('csv'), 'sheet' => $sheet, 'columns' => $columns, 'stage' => $request->validated('stage') === 'values' ? 'values' : 'columns'];
 
-        return view('academics.timetable-workbench', array_replace($this->model($request), ['import' => $import]));
+        return view('academics.timetable-workbench', array_replace($this->model($request), ['workspaceView' => 'import', 'import' => $import]));
     }
 
     public function previewImport(TimetableWorkbenchRequest $request): View
     {
         $preview = app(TimetableImport::class)->preview($request->user(), $request->validated() + ['defaults' => []]);
 
-        return view('academics.timetable-workbench', array_replace($this->model($request), ['preview' => $preview]));
+        return view('academics.timetable-workbench', array_replace($this->model($request), ['workspaceView' => 'import', 'preview' => $preview]));
     }
 }

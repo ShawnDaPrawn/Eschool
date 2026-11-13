@@ -1,7 +1,7 @@
 {{-- Upcoming Events: month selector + event list + month calendar grid --}}
-<div class="dash-card dash-widget h-100" id="events-card">
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100" id="events-card">
     <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('upcoming_events') }}</h4>
+        <h2 class="dash-card-title">{{ __('upcoming_events') }}</h2>
         <select class="dash-select" id="events-month" aria-label="{{ __('events') }}">
             @foreach ($months as $month)
                 <option value="{{ $month['value'] }}" @selected($month['value'] === $default_month)>{{ $month['label'] }}</option>

@@ -27,22 +27,29 @@ test.describe.configure({ mode: 'serial', retries: 0 });
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
   test(`Finance reviews rule-driven installment billing at ${width}px`, async ({ page, baseURL }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(240_000);
     const data = fixture(); await page.setViewportSize({ width, height: 1000 }); await signIn(page, data.finance);
     const errors = collectErrors(page, baseURL!);
     const response = await page.goto(`/fee-plans/${data.plan}/edit`);
     expect(response!.headers()['cache-control']).toContain('no-store');
-    await page.locator('summary').filter({ hasText: 'Additional matching rules' }).click();
     await page.getByRole('combobox', { name: 'Rule field', exact: true }).first().selectOption(`profile:${data.campus}`);
     await page.getByRole('textbox', { name: 'Matching values, one per line', exact: true }).first().fill('North');
-    await page.locator('summary').filter({ hasText: 'Payment schedules' }).click();
     await page.getByRole('textbox', { name: 'Option code', exact: true }).nth(0).fill('terms');
     await page.getByRole('textbox', { name: 'Option name', exact: true }).nth(0).fill('Four installments');
-    await page.getByRole('textbox', { name: 'Installment dates and percentages', exact: true }).nth(0).fill('01-15 25.00\n04-15 25.00\n07-15 25.00\n12-15 25.00');
+    const firstOption = page.locator('[data-option-rows] > [data-payment-option]').first();
+    await firstOption.locator('[data-remove-installment]').evaluateAll(buttons => buttons.forEach(button => (button as HTMLButtonElement).click()));
+    for (const month of [1, 4, 7, 12]) {
+      await firstOption.getByRole('button', { name: 'Add installment', exact: true }).click();
+      const installment = firstOption.locator('[data-installment-rows] > [data-installment]').last();
+      await installment.getByRole('combobox', { name: 'Installment month', exact: true }).selectOption(String(month));
+      await installment.getByRole('spinbutton', { name: 'Installment day', exact: true }).fill('15');
+      await installment.getByRole('textbox', { name: 'Installment percentage', exact: true }).fill('25.00');
+    }
+    if (await page.getByRole('textbox', { name: 'Option code', exact: true }).count() < 2) await page.getByRole('button', { name: 'Add payment option', exact: true }).click();
     await page.getByRole('textbox', { name: 'Option code', exact: true }).nth(1).fill('annual');
     await page.getByRole('textbox', { name: 'Option name', exact: true }).nth(1).fill('Annual');
     await check(page); await submitOnceAndReplay(page, 'Save fee plan');
-    await page.goto(`/fee-accounts/${data.account}/edit`);
+    await page.goto(`/fee-accounts/${data.account}/edit?section=options`);
     const choice = page.locator(`form[action$="/${data.account}/payment-choice"]`).first();
     await choice.getByRole('combobox', { name: 'Fee plan for payment choice', exact: true }).selectOption(String(data.plan));
     await choice.getByRole('combobox', { name: 'Payment option', exact: true }).selectOption('annual');

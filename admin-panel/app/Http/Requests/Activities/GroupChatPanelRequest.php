@@ -22,7 +22,7 @@ class GroupChatPanelRequest extends FormRequest
     {
         if ($this->isMethodSafe()) {
             return ['page' => ['sometimes', 'integer', 'min:1', 'max:100000'], 'before' => ['sometimes', 'nullable', 'uuid'],
-                'before_message_id' => ['sometimes', 'nullable', 'integer', 'min:1']];
+                'before_message_id' => ['sometimes', 'nullable', 'integer', 'min:1'], 'screen' => ['sometimes', 'in:list,create']];
         }
         $text = ['body' => ['required', 'string', 'max:'.app(GroupChatRules::class)->maxCharacters()],
             'language' => ['required', 'string', 'regex:/^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8}){0,2}$/D', 'max:20']];

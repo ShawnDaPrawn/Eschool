@@ -548,7 +548,8 @@ class InterSchoolFixturesTest extends TestCase
     public function test_the_panel_pages_work_for_managers_only(): void
     {
         $this->actingAs($this->adminA);
-        $this->get('/activity-fixtures')->assertOk()->assertSee('Arrange a fixture')->assertDontSee('Baobab');
+        $this->get('/activity-fixtures')->assertOk()->assertSee('Arrange fixture')->assertDontSee('id="fixture-new"', false)->assertDontSee('Baobab');
+        $this->get('/activity-fixtures?screen=fixture-create')->assertOk()->assertSee('Arrange a fixture')->assertSee('id="fixture-new"', false);
         $this->get('/activity-fixtures?school_search=Baobab')->assertOk()->assertSee('Baobab High');
         $this->post('/activity-fixtures', $this->op(['activity_group_id' => $this->groupA, 'team_label' => 'Jacaranda U14 A', 'discipline' => 'Hockey', 'on_date' => self::TODAY,
             'starts_at' => '', 'venue' => 'Jacaranda fields', 'field' => '', 'host_is_home' => '1', 'guest_school_id' => '2', 'external_opponent' => '', 'shared_competition_id' => '']))
@@ -556,14 +557,15 @@ class InterSchoolFixturesTest extends TestCase
         $id = (int) SharedFixture::query()->latest('id')->value('id');
         $this->get("/activity-fixtures/$id")->assertOk()->assertSee('Jacaranda U14 A')->assertSee('has not answered yet');
         $this->post('/activity-fixtures', $this->op(['activity_group_id' => $this->groupA, 'team_label' => 'X', 'discipline' => 'Hockey', 'on_date' => self::TODAY, 'venue' => 'Jacaranda fields', 'host_is_home' => '1']))
-            ->assertRedirect('/activity-fixtures')->assertSessionHasErrors();
+            ->assertUnprocessable()->assertSee('Arrange a fixture')->assertSessionMissing('_old_input');
 
         $this->accept($id);
         $this->actingAs($this->adminA);
         $this->post("/activity-fixtures/$id/side", $this->op(['revision' => 1, 'team_label' => 'Jacaranda U14 A', 'pick' => [$this->asha], 'label' => [$this->asha => 'No. 4'], 'position' => [$this->asha => ''], 'sheet_shared' => '1', 'notes' => '']))
-            ->assertRedirect("/activity-fixtures/$id")->assertSessionHasNoErrors();
-        $this->post("/activity-fixtures/$id/result", $this->op(['host_score' => '2', 'guest_score' => '0']))->assertRedirect("/activity-fixtures/$id")->assertSessionHasNoErrors();
-        $this->get("/activity-fixtures/$id")->assertOk()->assertSee('No. 4')->assertSee('Waiting for the other school to report the score.');
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $this->post("/activity-fixtures/$id/result", $this->op(['host_score' => '2', 'guest_score' => '0']))->assertRedirect()->assertSessionHasNoErrors();
+        $this->get("/activity-fixtures/$id?screen=team")->assertOk()->assertSee('No. 4')->assertDontSee('id="result-host"', false);
+        $this->get("/activity-fixtures/$id?screen=result")->assertOk()->assertSee('Waiting for the other school to report the score.');
         $this->post('/activity-fixtures/competitions', $this->op(['name' => 'Highveld Hockey League', 'kind' => 'sport', 'discipline' => 'Hockey', 'season' => '2026', 'points_win' => '3', 'points_draw' => '1', 'points_loss' => '0']))
             ->assertRedirect()->assertSessionHasNoErrors();
         $competition = (int) DB::table('shared_competitions')->latest('id')->value('id');

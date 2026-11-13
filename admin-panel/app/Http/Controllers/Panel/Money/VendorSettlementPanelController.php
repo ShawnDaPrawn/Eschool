@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Panel\Money;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Commerce\VendorSettlementPanelRequest;
 use App\Models\Commerce\Vendor;
+use App\Models\Commerce\VendorOrder;
+use App\Models\Commerce\VendorOrderAction;
 use App\Models\Commerce\VendorSettlement;
 use App\Models\Commerce\VendorSettlementApproval;
 use App\Models\Commerce\VendorSettlementLine;
@@ -29,10 +31,16 @@ class VendorSettlementPanelController extends Controller
             $selected = $request->filled('vendor_id') ? Vendor::findOrFail($request->integer('vendor_id')) : null;
             $options = Vendor::orderBy('name')->pluck('name', 'id')->all();
             $orders = $selected ? app(VendorSettlements::class)->eligible($request->user(), $selected->id, $period) : [];
-            $rows = VendorSettlement::whereNotNull('sealed_at')->when($selected, fn ($q) => $q->where('vendor_id', $selected->id))->orderByDesc('id')->paginate(30);
+            $rows = VendorSettlement::whereNotNull('sealed_at')->when($selected, fn ($q) => $q->where('vendor_id', $selected->id))
+                ->when($request->filled('period_from'), fn ($q) => $q->where('period_from', '>=', $request->input('period_from')))
+                ->when($request->filled('period_to'), fn ($q) => $q->where('period_to', '<=', $request->input('period_to')))
+                ->orderByDesc('id')->paginate(30);
+            $collections = VendorOrderAction::whereIn('order_id', array_map(fn ($order) => $order->id, $orders))->where('action', 'collected')->get()->keyBy('order_id');
+            $approved = VendorSettlementApproval::whereIn('settlement_id', $rows->pluck('id'))->pluck('settlement_id')->all();
+            $settled = VendorSettlementOutcome::whereIn('settlement_id', $rows->pluck('id'))->pluck('settlement_id')->all();
             $canWrite = app(ModuleGate::class)->writable('vendors');
 
-            return response()->view('money.vendors.settlements', compact('selected', 'period', 'options', 'orders', 'rows', 'canWrite'));
+            return response()->view('money.vendors.settlements', compact('selected', 'period', 'options', 'orders', 'rows', 'collections', 'approved', 'settled', 'canWrite'));
         });
     }
 
@@ -44,9 +52,10 @@ class VendorSettlementPanelController extends Controller
             $lines = VendorSettlementLine::where('settlement_id', $row->id)->orderBy('order_id')->get();
             $approval = VendorSettlementApproval::where('settlement_id', $row->id)->first();
             $outcome = VendorSettlementOutcome::where('settlement_id', $row->id)->first();
+            $orderNumbers = VendorOrder::whereIn('id', $lines->pluck('order_id'))->pluck('order_number', 'id');
             $canWrite = app(ModuleGate::class)->writable('vendors');
 
-            return response()->view('money.vendors.settlement', compact('row', 'lines', 'approval', 'outcome', 'canWrite'));
+            return response()->view('money.vendors.settlement', compact('row', 'lines', 'approval', 'outcome', 'orderNumbers', 'canWrite'));
         });
     }
 

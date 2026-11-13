@@ -11,6 +11,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -32,6 +33,25 @@ class SponsoredPlaces
         $learners = Students::query()->with('user')->whereIn('id', $members->flatten()->pluck('learner_id')->all())->get()->keyBy('id');
 
         return ['school_id' => $this->currentSchool->id(), 'reader_id' => (int) $fresh->id, 'sponsorships' => $rows->map(fn (LearnerSubscription $s): array => $this->present($s, $members->get($s->id, collect()), $learners))->values()->all()];
+    }
+
+    /** Full retained browser history, with the same school authority as the API. */
+    public function page(User $actor): LengthAwarePaginator
+    {
+        $this->actor($actor);
+        $page = LearnerSubscription::query()->where('plan', LearnerSubscription::SPONSORED)->orderByDesc('id')->paginate(50);
+        $members = LearnerSubscriptionMember::query()->whereIn('subscription_id', $page->pluck('id'))->whereNull('removed_at')->orderBy('id')->get()->groupBy('subscription_id');
+        $learners = Students::query()->with('user')->whereIn('id', $members->flatten()->pluck('learner_id')->all())->get()->keyBy('id');
+
+        return $page->through(fn (LearnerSubscription $subscription): array => $this->present($subscription, $members->get($subscription->id, collect()), $learners));
+    }
+
+    public function show(User $actor, int $id): array
+    {
+        $fresh = $this->actor($actor);
+        $subscription = LearnerSubscription::query()->where('plan', LearnerSubscription::SPONSORED)->findOrFail($id);
+
+        return $this->one($fresh, $subscription)['sponsorship'];
     }
 
     public function add(User $actor, int $subscriptionId, int $learnerId): array

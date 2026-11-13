@@ -48,7 +48,11 @@ class VisitPanelController extends Controller
                 'rules' => app(VisitQueries::class)->changeRules($request->user(), $input),
             };
 
-            return redirect()->route('family-visits-panel.index');
+            $view = match ($request->route('operation')) {
+                'pass-approve', 'pass-cancel' => 'collections', 'rules' => 'configuration', default => 'meetings',
+            };
+
+            return redirect()->route('family-visits-panel.index', ['view' => $view])->with('success', __('Saved.'));
         } catch (ValidationException $error) {
             return $this->failure($request, $error->validator->errors()->all(), 422);
         } catch (HttpExceptionInterface $error) {

@@ -87,5 +87,5 @@ return app(CurrentSchool::class)->run(1, function (): array {
         app(AwardNominations::class)->withdraw($admin, (int) $n->id, $op(['revision' => $n->revision, 'reason' => 'Reset synthetic browser nomination']));
     }
 
-    return ['learner' => (int) $learner->id, 'name' => $learner->user->full_name, 'house' => (int) $house->id, 'point_category' => (int) $category->id, 'grade' => $grade, 'definition' => (int) $award->id];
+    return ['learner' => (int) $learner->id, 'name' => $learner->user->full_name, 'house' => (int) $house->id, 'point_category' => (int) $category->id, 'grade' => $grade, 'definition' => (int) $award->id, 'award_category' => (int) $award->award_category_id];
 });

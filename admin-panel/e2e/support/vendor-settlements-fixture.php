@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-if (! in_array(config('database.connections.mysql.database'), ['eschool_pastoral_test', 'eschool_e2e', 'eschool_test'], true)) {
+$database = (string) config('database.connections.mysql.database');
+if (! str_ends_with($database, '_test') && $database !== 'eschool_e2e') {
     throw new RuntimeException('Isolated synthetic schema only');
 }
 $action = getenv('BILLING_FIXTURE_ACTION');

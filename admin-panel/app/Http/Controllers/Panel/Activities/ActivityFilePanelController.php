@@ -24,8 +24,9 @@ class ActivityFilePanelController extends Controller
         $group = (int) $request->route('group');
         $material = (int) $request->route('material');
         $files = app(ActivityFiles::class)->listing($request->user(), $group, $material);
+        $screen = $request->query('screen') === 'upload' || (! $request->isMethodSafe() && $request->action() === 'upload') ? 'upload' : 'list';
 
-        return response()->view('activities.files', compact('group', 'material', 'files', 'fileErrors'), $status);
+        return response()->view('activities.files', compact('screen', 'group', 'material', 'files', 'fileErrors'), $status);
     }
 
     public function write(ActivityFilePanelRequest $request, int $group, int $material, ?string $file = null): BaseResponse

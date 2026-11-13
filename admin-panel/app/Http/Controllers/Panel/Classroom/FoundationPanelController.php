@@ -18,7 +18,18 @@ class FoundationPanelController extends Controller
         $data = app(FoundationController::class)->configurationData($request->user(), (int) $request->validated('page', 1));
         $data['writable'] = $data['writable'] && ! app(SessionYearContext::class)->isReadOnly();
 
-        return response()->view('classroom.management', compact('data'));
+        $view = (string) $request->validated('view', 'lessons');
+        abort_if(in_array($view, ['eligibility', 'register'], true) && ! $data['can_manage'], 403);
+        abort_if($view === 'authorize' && ! $data['can_grant'], 403);
+        $selectedGroup = null;
+        if ($request->filled('group')) {
+            abort_unless(in_array($view, ['eligibility', 'authorize'], true), 422);
+            $selectedGroup = collect($data['groups'])->firstWhere('id', (int) $request->validated('group'));
+            abort_unless($selectedGroup, 404);
+            abort_if($view === 'authorize' && (! $selectedGroup['eligible'] || ! $selectedGroup['can_authorize']), 404);
+        }
+
+        return response()->view('classroom.management', compact('data', 'view', 'selectedGroup'));
     }
 
     public function write(FoundationRequest $request): Response|RedirectResponse
@@ -30,6 +41,8 @@ class FoundationPanelController extends Controller
             return response()->view('classroom.authorization', ['result' => $result, 'registration' => $action === 'register']);
         }
 
-        return redirect()->route('foundation-panel.index');
+        return redirect()->route('foundation-panel.index', ['view' => match ($action) {
+            'eligibility' => 'eligibility', 'device-revoke' => 'devices', default => 'lessons',
+        }]);
     }
 }

@@ -4,13 +4,23 @@
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
     <x-page.header :title="$account?__('Review family account'):__('New family account')" />
+@php
+$section=request('section','account');
+if(!in_array($section,['account','options'],true)) $section='account';
+$tabs=[];
+$tabs['account']=['label'=>__('Account and payer shares'),'url'=>request()->fullUrlWithQuery(['section'=>'account','page'=>null])];
+if($account) $tabs['options']=['label'=>__('Learner payment options'),'url'=>request()->fullUrlWithQuery(['section'=>'options','page'=>null])];
+@endphp
+@include('money.billing.tabs')
+
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <x-m3.button variant="text" :href="route('fee-accounts.index')">{{ __('Back to family accounts') }}</x-m3.button>
-    <form method="get">
+    <form method="get"><input type="hidden" name="section" value="{{ $section }}">
         <x-m3.select name="year_id" :label="__('School year for payer assignments')" :options="$years->pluck('name','id')" :value="$year?->id" required />
         <x-m3.button type="submit" variant="outlined">{{ __('Load this school year') }}</x-m3.button>
     </form>
     @if(!$canWrite)<p>{{ __('Set up a school year and enable fees before changing family accounts.') }}</p>@endif
+@if($section==='account')
     <form method="post" action="{{ $account?route('fee-accounts.save',['account'=>$account->id]):route('fee-accounts.create') }}" data-year-safe data-family-account-form data-holder-error="{{ __('Choose a guardian and a positive share for every holder. Shares must total 100%.') }}">
         @include('money.fee-plans.hidden',['revision'=>$account?->revision??0])
         <input type="hidden" name="session_year_id" value="{{ $year?->id }}">
@@ -23,11 +33,11 @@
             <x-m3.select name="learner_ids[]" :label="__('Learners on this account')" :options="$learners" :value="$selected" multiple size="6" id="billing-learners" :required="$account===null" :hint="__('Choose all learners who share these guardians and payer shares.')" />
             @if($account)<p>{{ __('An existing account may be left empty to release unbilled learners. Posted charges keep their payer account.') }}</p>@endif
             <p>{{ __('Each guardian must currently be allowed to see fees for every selected learner.') }}</p>
-            <div id="billing-holders" data-next-index="{{ max(2,$holders->count()) }}">
+            <div class="page-table__scroll" role="region" aria-label="{{ __('Family payer shares') }}" tabindex="0"><table class="page-table__table"><caption>{{ __('Family payer shares') }}</caption><thead><tr><th scope="col">{{ __('Guardian') }}</th><th scope="col">{{ __('Share percentage') }}</th><th scope="col">{{ __('Fee visibility') }}</th><th scope="col">{{ __('Action') }}</th></tr></thead><tbody id="billing-holders" data-next-index="{{ max(2,$holders->count()) }}">
                 @for($i=0;$i<max(2,$holders->count());$i++)
                     @include('money.accounts.holder',['index'=>$i,'number'=>$i+1,'holder'=>$holders->get($i)])
                 @endfor
-            </div>
+            </tbody></table></div>
             <x-m3.button type="button" variant="outlined" data-add-holder>{{ __('Add account holder') }}</x-m3.button>
             <p>{{ __('Shares must total exactly 100%. Saving activates this family account.') }}</p>
             <x-m3.button type="submit">{{ __('Save active family account') }}</x-m3.button>
@@ -35,7 +45,9 @@
     </form>
     <template id="billing-holder-template">@include('money.accounts.holder',['index'=>'__index__','number'=>'__number__','holder'=>null])</template>
 
-@if($account && $year && count($selected)>0)
+
+@endif
+@if($section==='options' && $account && $year && count($selected)>0)
 <section aria-labelledby="payment-options-title"><h2 id="payment-options-title">{{ __('Learner payment options') }}</h2>
 <p>{{ __('Choose a payment option before tuition is posted. The matched plan and reviewed bill preview must agree. Posted invoices keep their original schedule.') }}</p>
 @foreach($selected as $learnerId)

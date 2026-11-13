@@ -11,23 +11,13 @@
         @method('PUT')
         <input type="hidden" name="operation_id" value="{{ $operationId }}">
         <input type="hidden" name="revision" value="{{ $settings['revision'] }}">
-        <label for="guardian-nudge-enabled">{{ __('Remind guardians') }}
-            <select id="guardian-nudge-enabled" name="guardian_nudge_enabled" required>
-                <option value="0" @selected(! $settings['guardian_nudge_enabled'])>{{ __('Off') }}</option>
-                <option value="1" @selected($settings['guardian_nudge_enabled'])>{{ __('On') }}</option>
-            </select>
-        </label>
-        <label for="learner-nudge-enabled">{{ __('Remind learners') }}
-            <select id="learner-nudge-enabled" name="learner_nudge_enabled" required>
-                <option value="0" @selected(! $settings['learner_nudge_enabled'])>{{ __('Off') }}</option>
-                <option value="1" @selected($settings['learner_nudge_enabled'])>{{ __('On') }}</option>
-            </select>
-        </label>
-        <label for="nudge-after-school-days">{{ __('School days without practice before a reminder') }}
-            <input id="nudge-after-school-days" type="number" name="nudge_after_school_days" min="{{ $minDays }}" max="{{ $maxDays }}" required value="{{ $settings['nudge_after_school_days'] }}">
-        </label>
+        <div class="m3-card__content panel-form-grid">
+        <x-page.field name="guardian_nudge_enabled" id="guardian-nudge-enabled" type="select" :label="__('Remind guardians')" :options="[0 => __('Off'), 1 => __('On')]" :value="(int) $settings['guardian_nudge_enabled']" required />
+        <x-page.field name="learner_nudge_enabled" id="learner-nudge-enabled" type="select" :label="__('Remind learners')" :options="[0 => __('Off'), 1 => __('On')]" :value="(int) $settings['learner_nudge_enabled']" required />
+        <x-page.field name="nudge_after_school_days" id="nudge-after-school-days" type="number" :label="__('School days without practice before a reminder')" :value="$settings['nudge_after_school_days']" :min="$minDays" :max="$maxDays" required />
         <p>{{ __('Reminders go out on school-day afternoons, only to learners who have practised before and who are in a stage with daily practice. Early years learners never get one.') }}</p>
         <button class="m3-button m3-button--filled" type="submit">{{ __('Save practice reminders') }}</button>
+        </div>
     </form>
 </div>
 @endsection

@@ -51,7 +51,7 @@ class InterventionLibraryRequest extends FormRequest
     public function rules(): array
     {
         if ($this->isMethodSafe()) {
-            return [];
+            return ['view' => ['sometimes', 'in:list,create,edit'], 'action_id' => ['sometimes', 'integer', 'min:1']];
         }
         $identity = ['expected_account_id' => ['required', 'integer', 'min:1'], 'expected_school_id' => ['required', 'integer', 'min:1']];
         $op = $this->operation();
@@ -66,6 +66,15 @@ class InterventionLibraryRequest extends FormRequest
             'steps' => ['required', 'array', 'min:1', 'max:'.InterventionLibrary::MAX_STEPS], 'steps.*' => ['required', 'string', 'min:3', 'max:300'],
             'suggested_weeks' => ['required', 'integer', 'between:1,26'], 'progress_measure' => ['required', 'string', 'min:3', 'max:500']]
             + ($op === '.update' ? ['expected_revision' => ['required', 'integer', 'min:1']] : []);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return match ($this->operation()) {
+            '.store' => route('risk-interventions.library', ['view' => 'create']),
+            '.update' => route('risk-interventions.library', ['view' => 'edit', 'action_id' => $this->route('action')]),
+            default => parent::getRedirectUrl(),
+        };
     }
 
     public function messages(): array

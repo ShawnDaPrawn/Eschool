@@ -1,7 +1,18 @@
 "use strict";
 
-var $table = $("#table_list"); // "table" accordingly
+// Material PageTable owns its rendering, filtering and selection. A legacy
+// Bootstrap initializer must never take over the same element.
+var $table = $("#table_list").not("[data-page-table-init]");
 var electiveSubjectGroupCounter = 1;
+
+function refreshPanelTable() {
+    var table = document.getElementById("table_list");
+    if (table && table.hasAttribute("data-page-table-init")) {
+        if (window.PageTable) window.PageTable.refresh("table_list");
+        return;
+    }
+    $table.bootstrapTable("refresh");
+}
 
 /* =========================================================================
  * Flatpickr date-picker helpers — replaces the legacy bootstrap-datepicker.
@@ -275,17 +286,19 @@ $(function () {
                 .remove();
         });
     });
-    $table.bootstrapTable("destroy").bootstrapTable({
-        exportTypes: ["csv", "excel", "pdf", "txt", "json"],
-    });
-
-    $("#toolbar")
-        .find("select")
-        .change(function () {
-            $table.bootstrapTable("refreshOptions", {
-                exportDataType: $(this).val(),
-            });
+    if ($table.length) {
+        $table.bootstrapTable("destroy").bootstrapTable({
+            exportTypes: ["csv", "excel", "pdf", "txt", "json"],
         });
+
+        $("#toolbar")
+            .find("select")
+            .change(function () {
+                $table.bootstrapTable("refreshOptions", {
+                    exportDataType: $(this).val(),
+                });
+            });
+    }
 
     //File Upload Custom Component
     $(".file-upload-browse").on("click", function () {
@@ -504,7 +517,7 @@ $("#create-form,.create-form").on("submit", function (e) {
 
     function successCallback() {
         formElement[0].reset();
-        $("#table_list").bootstrapTable("refresh");
+        refreshPanelTable();
         setTimeout(function () {
             window.location.reload();
         }, 1000);
@@ -544,7 +557,7 @@ $("#create-form-with-redirect,.create-form-with-redirect").on(
         }
         function successCallback() {
             formElement[0].reset();
-            $("#table_list").bootstrapTable("refresh");
+            refreshPanelTable();
             setTimeout(function () {
                 window.location.href = redirectUrl;
             }, 1000);
@@ -574,7 +587,7 @@ $("#edit-form,.editform").on("submit", function (e) {
         $(this).attr("action") + "/" + (data.get("edit_id") || data.get("id"));
 
     function successCallback(response) {
-        $("#table_list").bootstrapTable("refresh");
+        refreshPanelTable();
         setTimeout(function () {
             $("#editModal").modal("hide");
         }, 1000);
@@ -601,7 +614,7 @@ $(".edit-announcement-form").on("submit", function (e) {
     url = url.replace(/\/\d+$/, "");
 
     function successCallback(response) {
-        $("#table_list").bootstrapTable("refresh");
+        refreshPanelTable();
         setTimeout(function () {
             $("#editModal").modal("hide");
         }, 1000);
@@ -650,7 +663,7 @@ $(document).on("click", ".delete-form", function (e) {
             let data = null;
 
             function successCallback(response) {
-                $("#table_list").bootstrapTable("refresh");
+                refreshPanelTable();
                 showSuccessToast(response.message);
             }
 
@@ -678,7 +691,7 @@ $(".edit-class-teacher-form").on("submit", function (e) {
     let url = $(this).attr("action");
 
     function successCallback(response) {
-        $("#table_list").bootstrapTable("refresh");
+        refreshPanelTable();
 
         //Reset input file field
         $(".file-upload-default").val("");
@@ -735,7 +748,7 @@ $(document).on("click", ".remove-core-subject", function (e) {
                 let id = $this.data("id");
                 let url = baseUrl + "/class/subject/" + id;
                 function successCallback() {
-                    $("#table_list").bootstrapTable("refresh");
+                    refreshPanelTable();
                     $this.parent().parent().remove();
                 }
                 function errorCallback(response) {
@@ -810,7 +823,7 @@ $(document).on("click", ".remove-elective-subject", function (e) {
                     $(total_selectable_subject).rules("add", {
                         max: max,
                     });
-                    $("#table_list").bootstrapTable("refresh");
+                    refreshPanelTable();
                     $this.parent().prev("span").remove();
                     $this.parent().remove();
                 }
@@ -871,7 +884,7 @@ $(document).on("click", ".remove-elective-subject-group", function (e) {
                 let url = baseUrl + "/class/subject-group/" + id;
 
                 function successCallback() {
-                    $("#table_list").bootstrapTable("refresh");
+                    refreshPanelTable();
                     $this.parent().parent().remove();
                 }
 
@@ -1072,7 +1085,7 @@ $(document).on("click", ".remove-lesson-file", function (e) {
                     setTimeout(function () {
                         $("#editModal").modal("hide");
                     }, 1000);
-                    $("#table_list").bootstrapTable("refresh");
+                    refreshPanelTable();
 
                     showSuccessToast(response.message);
                 }
@@ -1278,7 +1291,7 @@ $(document).on("click", ".remove-assignment-file", function (e) {
 
             function successCallback(response) {
                 $this.parent().remove();
-                $("#table_list").bootstrapTable("refresh");
+                refreshPanelTable();
                 showSuccessToast(response.message);
             }
 
@@ -1362,7 +1375,7 @@ $(document).on("click", ".remove-exam-timetable", function (e) {
 
                 function successCallback(response) {
                     $this.parent().parent().remove();
-                    $("#table_list").bootstrapTable("refresh");
+                    refreshPanelTable();
                     showSuccessToast(response.message);
                 }
 
@@ -2063,11 +2076,11 @@ $("#filter_class_section_id").on("change", function () {
             '<option value="">' + trans("all") + "</option>",
         );
     }
-    $("#table_list").bootstrapTable("refresh");
+    refreshPanelTable();
 });
 
 $("#filter_subject_id").on("change", function () {
-    $("#table_list").bootstrapTable("refresh");
+    refreshPanelTable();
 });
 
 // Trigger initial load for both create form and filter
@@ -2571,7 +2584,7 @@ function loadExamsForTimetableFilter(session_year_id) {
             },
         });
     }
-    $("#table_list").bootstrapTable("refresh");
+    refreshPanelTable();
 }
 
 $("#filter_session_year_global").on("change", function () {
@@ -2801,7 +2814,7 @@ $(".assign_subject_teacher").on("submit", function (e) {
     function successCallback() {
         formElement[0].reset();
         $(".select2-selection__rendered").html("");
-        $("#table_list").bootstrapTable("refresh");
+        refreshPanelTable();
     }
 
     formAjaxRequest(
@@ -2890,7 +2903,7 @@ $(".edit_exam_result_marks_form").on("submit", function (e) {
 
     function successCallback() {
         $("#editModal").modal("hide");
-        $("#table_list").bootstrapTable("refresh");
+        refreshPanelTable();
     }
 
     formAjaxRequest(
@@ -2962,7 +2975,7 @@ $(".edit-form-timetable").on("submit", function (e) {
 
     function successCallback() {
         $("#editModal").modal("hide");
-        $("#table_list").bootstrapTable("refresh");
+        refreshPanelTable();
     }
 
     formAjaxRequest(
@@ -3519,7 +3532,7 @@ $("#assign-roll-no-form").on("submit", function (e) {
             let data = new FormData(this);
 
             function successCallback() {
-                $("#table_list").bootstrapTable("refresh");
+                refreshPanelTable();
             }
 
             formAjaxRequest(
@@ -4607,7 +4620,7 @@ $(document).on("click", ".edit-remove-multiple-event-group", function (e) {
                 let url = baseUrl + "/multiple-event/" + id;
 
                 function successCallback() {
-                    $("#table_list").bootstrapTable("refresh");
+                    refreshPanelTable();
                     $this.parent().parent().remove();
                 }
 
@@ -4733,7 +4746,7 @@ $("#change-order-form-field").click(async function () {
         },
         dataType: "json",
         success: function (data) {
-            $("#table_list").bootstrapTable("refresh");
+            refreshPanelTable();
             if (!data.error) {
                 showSuccessToast(data.message);
                 setTimeout(() => {
@@ -5938,7 +5951,7 @@ document.addEventListener("DOMContentLoaded", function () {
             $(
                 "#filter_class_section_id, #filter_status, #filter_term, #filter_elective_subject",
             ).on("change", function () {
-                $("#table_list").bootstrapTable("refresh");
+                refreshPanelTable();
             });
         }
     });
@@ -6427,7 +6440,7 @@ $(document).ready(function () {
             },
             success: (response) => {
                 showSuccessToast(response.message || "Assignment saved!");
-                $("#table_list").bootstrapTable("refresh");
+                refreshPanelTable();
                 $("#table_list").bootstrapTable("uncheckAll");
             },
             error: (jqXHR) => {
@@ -7147,6 +7160,10 @@ $("#filter_session_year_global").on("change", function (event) {
     // A prior class-list response may still run its callback while this write
     // is pending. Keep both DOM and storage on the confirmed year until the
     // server accepts the new one, so that callback cannot issue new-year reads.
+    if (typeof window.panelSwitchYear === "function") {
+        window.panelSwitchYear(value);
+        return;
+    }
     const previous = this.getAttribute("data-selected");
     window.panelYearSwitchPending = true;
     this.value = previous;
@@ -7662,7 +7679,7 @@ $(document).ready(function () {
             success: function (response) {
                 $("#deleteSessionModal").modal("hide");
                 showSuccessToast(trans("selected_data_cleared_successfully"));
-                $("#table_list").bootstrapTable("refresh");
+                refreshPanelTable();
             },
             error: function (xhr) {
                 var message = trans("failed_to_clear_data");

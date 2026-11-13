@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventReadinessLink;
 use App\Models\MultipleEvent;
 use App\Models\SessionYear;
 use App\Services\Platform\Files\FileNames;
@@ -12,7 +13,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class EventController extends Controller
 {
@@ -21,7 +25,7 @@ class EventController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (! Auth::user()->canAny(['event-list', 'event-create', 'event-edit', 'event-delete'])) {
             $response = [
@@ -32,7 +36,14 @@ class EventController extends Controller
         }
         $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
-        return response(view('events.index', compact('session_years')));
+        $editingEvent = null;
+        if ($request->filled('event_id')) {
+            abort_unless($request->user()->can('event-edit'), 403);
+            $request->validate(['event_id' => 'required|integer|min:1']);
+            $editingEvent = Event::with('multipleEvent')->findOrFail((int) $request->input('event_id'));
+        }
+
+        return response(view('events.index', compact('session_years', 'editingEvent')));
     }
 
     /**
@@ -52,165 +63,9 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
-        if (! Auth::user()->can('event-create')) {
-            $response = [
-                'message' => trans('no_permission_message'),
-            ];
+        abort_unless($request->user()->can('event-create'), 403);
 
-            return redirect(route('home'))->withErrors($response);
-        }
-        $validator = Validator::make($request->all(), [
-            'title' => 'required',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg',
-            'event_type' => 'required|in:single,multiple',
-            'date' => 'nullable|required_if:event_type,single',
-            'time' => ['nullable', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
-            'session_year_id' => 'required|integer',
-
-            'date_range' => 'nullable|required_if:event_type,multiple',
-            'events' => 'nullable|array',
-            'events.*.title' => 'nullable|required_if:event_type,multiple',
-            'events.*.date' => 'nullable|required_if:event_type,multiple',
-            'events.*.timerange' => ['nullable', 'required_if:event_type,multiple', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
-        ], [
-            'date.required_if' => trans('date_required_when_event_type_is_single'),
-            'date_range.required_if' => trans('date_range_required_when_event_type_is_multiple'),
-            'events.*.title.required_if' => trans('events_title_required_when_event_type_is_multiple'),
-            'events.*.date.required_if' => trans('events_date_required_when_event_type_is_multiple'),
-            'events.*.timerange.required_if' => trans('events_timerange_required_when_event_type_is_multiple'),
-        ]);
-        if ($validator->fails()) {
-            $response = [
-                'error' => true,
-                'message' => $validator->errors()->first(),
-            ];
-
-            return response()->json($response);
-        }
-        try {
-            $event = new Event;
-            $event->session_year_id = $request->session_year_id;
-            if ($request->event_type == 'multiple') {
-                $dateRange = explode(' - ', $request->date_range);
-                $startDate = $dateRange[0];
-                $endDate = $dateRange[1];
-
-                foreach ($request->events as $key => $value) {
-                    if (isset($value['date']) && $value['date']) {
-
-                        $date = Carbon::parse($value['date']);
-                        $startDate = Carbon::parse($startDate); // Convert string date to Carbon instance
-                        $endDate = Carbon::parse($endDate);
-
-                        if (! $date->between($startDate, $endDate)) {
-
-                            $response = [
-                                'error' => true,
-                                'message' => trans('date_must_be_within_specified_date_range'),
-                            ];
-
-                            return response()->json($response);
-                        }
-                    }
-                }
-                $event->title = $request->title;
-                $event->start_date = $startDate instanceof Carbon
-                    ? $startDate->format('Y-m-d')
-                    : date('Y-m-d', strtotime($startDate));
-
-                $event->end_date = $endDate instanceof Carbon
-                    ? $endDate->format('Y-m-d')
-                    : date('Y-m-d', strtotime($endDate));
-
-                if ($request->hasFile('image')) {
-                    $image = $request->file('image');
-                    // made file name with combination of current time
-                    $file_name = time().'-'.FileNames::forUpload($image);
-                    // made file path to store in database
-                    $file_path = 'events/'.$file_name;
-                    // resized image
-                    // resizeImage($image);
-                    // stored image to storage/public/events folder
-                    $destinationPath = storage_path('app/public/events');
-                    $image->move($destinationPath, $file_name);
-
-                    $event->image = $file_path;
-                }
-
-                $event->type = $request->event_type;
-
-                $event->description = $request->description;
-                $event->save();
-
-                foreach ($request->events as $key => $value) {
-                    $timeRange = explode(' - ', $value['timerange']);
-                    if ($timeRange[0] && $timeRange[1]) {
-                        $startTime = $timeRange[0];
-                        $endTime = $timeRange[1];
-                    }
-
-                    $multiEvent = new MultipleEvent;
-                    $multiEvent->event_id = $event->id;
-                    $multiEvent->title = $value['title'];
-                    $multiEvent->date = date('Y-m-d', strtotime($value['date']));
-                    $multiEvent->start_time = $startTime;
-                    $multiEvent->end_time = $endTime;
-                    $multiEvent->description = $value['description'];
-                    $multiEvent->save();
-                }
-            } else {
-
-                $event->title = $request->title;
-                $event->start_date = date('Y-m-d', strtotime($request->date));
-
-                if ($request->hasFile('image')) {
-                    $image = $request->file('image');
-                    // made file name with combination of current time
-                    $file_name = time().'-'.FileNames::forUpload($image);
-                    // made file path to store in database
-                    $file_path = 'events/'.$file_name;
-                    // resized image
-                    // resizeImage($image);
-                    // stored image to storage/public/events folder
-                    $destinationPath = storage_path('app/public/events');
-                    $image->move($destinationPath, $file_name);
-
-                    $event->image = $file_path;
-                }
-
-                $event->type = $request->event_type;
-                $event->description = $request->description;
-
-                if ($request->time) {
-                    $timeRange = explode(' - ', $request->time);
-                    $startTime = $timeRange[0];
-                    $endTime = $timeRange[1];
-
-                    $event->start_time = $startTime;
-                    $event->end_time = $endTime;
-                }
-                $event->save();
-            }
-
-            $response = [
-                'error' => false,
-                'message' => trans('data_store_successfully'),
-            ];
-        } catch (\Throwable $e) {
-            report($e);
-            $message = trans('error_occurred');
-            $exceptionMessage = strtolower((string) $e->getMessage());
-            if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
-                $message = trans('please_select_valid_image');
-            }
-            $response = [
-                'error' => true,
-                'message' => $message,
-            ];
-        }
-
-        return response()->json($response);
+        return $this->saveEvent($request);
     }
 
     /**
@@ -262,12 +117,16 @@ class EventController extends Controller
         $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href='.url('events-update', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-
-            if ($row->type == 'multiple') {
-                $operate .= '<a href='.url('view-schedule', $row->id).' class="btn btn-xs btn-gradient-success btn-rounded btn-icon" data-id='.$row->id.' title="Edit Schedule"><i class="fa fa-list-alt"></i></a>&nbsp;&nbsp;';
+            $operate = '<a class="m3-button m3-button--text" href="'.e(route('event-readiness.show', $row->id)).'">'.e(__('Readiness')).'</a>';
+            if (Auth::user()->can('event-edit')) {
+                $operate .= '<a class="m3-button m3-button--text" href="'.e(route('events.index', ['event_id' => $row->id])).'">'.e(__('Edit event')).'</a>';
             }
-            $operate .= '<a href='.route('events.destroy', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
+            if ($row->type === 'multiple' && Auth::user()->can('event-list')) {
+                $operate .= '<a class="m3-button m3-button--text" href="'.e(route('view_schedule.index', $row->id)).'">'.e(__('Programme')).'</a>';
+            }
+            if (Auth::user()->can('event-delete')) {
+                $operate .= '<a class="m3-button m3-button--text" data-event-delete data-error-message="'.e(__('The event could not be deleted.')).'" data-confirm-message="'.e(__('Delete this event and its programme?')).'" href="'.e(route('events.destroy', $row->id)).'">'.e(__('Delete event')).'</a>';
+            }
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -349,222 +208,91 @@ class EventController extends Controller
      */
     public function update(Request $request)
     {
-        if (! Auth::user()->can('event-edit')) {
-            $response = [
-                'message' => trans('no_permission_message'),
-            ];
+        abort_unless($request->user()->can('event-edit'), 403);
+        $request->validate(['edit_id' => ['required', 'integer', 'min:1']]);
+        $routeId = $request->route('event');
+        abort_if($routeId !== null && (int) $routeId !== (int) $request->input('edit_id'), 404);
 
-            return redirect(route('home'))->withErrors($response);
-        }
-        $validator = Validator::make($request->all(), [
-            'title' => 'required',
-            'image' => 'nullable|image|mimes:png,jpg,jpeg',
-            'edit_event_type' => 'required|in:single,multiple',
-            'edit_date' => 'nullable|required_if:edit_event_type,single',
-            'edit_time' => ['nullable', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
+        return $this->saveEvent($request, (int) $request->input('edit_id'));
+    }
 
-            'edit_events' => 'nullable|array',
-            'edit_events.*.title' => 'nullable|required_if:edit_event_type,multiple',
-            'edit_events.*.date' => 'nullable|required_if:edit_event_type,multiple',
-            'edit_events.*.timerange' => ['nullable', 'required_if:edit_event_type,multiple', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
-
-            'events' => 'nullable|array',
-            'events.*.title' => 'nullable|required_if:edit_event_type,multiple',
-            'events.*.date' => 'nullable|required_if:edit_event_type,multiple',
-            'events.*.timerange' => ['nullable', 'required_if:edit_event_type,multiple', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
-
-        ], [
-            'edit_date.required_if' => trans('date_required_when_event_type_is_single'),
-            'edit_events.*.title.required_if' => trans('events_title_required_when_event_type_is_multiple'),
-            'edit_events.*.date.required_if' => trans('events_date_required_when_event_type_is_multiple'),
-            'edit_events.*.timerange.required_if' => trans('events_timerange_required_when_event_type_is_multiple'),
-            'events.*.title.required_if' => trans('events_title_required_when_event_type_is_multiple'),
-            'events.*.date.required_if' => trans('events_date_required_when_event_type_is_multiple'),
-            'events.*.timerange.required_if' => trans('events_timerange_required_when_event_type_is_multiple'),
+    /** Validate the entire programme before changing its parent or any item. */
+    private function saveEvent(Request $request, ?int $id = null)
+    {
+        $editing = $id !== null;
+        $typeField = $editing ? 'edit_event_type' : 'event_type';
+        $dateField = $editing ? 'edit_date' : 'date';
+        $timeField = $editing ? 'edit_time' : 'time';
+        $timeRule = 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/';
+        $request->validate([
+            'title' => ['required', 'string', 'max:255'], 'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:png,jpg,jpeg'],
+            $typeField => ['required', 'in:single,multiple'],
+            $dateField => ['nullable', 'required_if:'.$typeField.',single', 'date_format:Y-m-d'],
+            $timeField => ['nullable', $timeRule],
+            'session_year_id' => [$editing ? 'sometimes' : 'required', 'integer', 'min:1'],
+            'date_range' => ['nullable', 'required_if:'.$typeField.',multiple', 'regex:/^\d{4}-\d{2}-\d{2} - \d{4}-\d{2}-\d{2}$/'],
+            'edit_events' => ['nullable', 'array'], 'events' => ['nullable', 'array'],
+            'edit_events.*.id' => ['required', 'integer', 'min:1', 'distinct'],
+            'edit_events.*.title' => ['required', 'string', 'max:255'], 'events.*.title' => ['required', 'string', 'max:255'],
+            'edit_events.*.date' => ['required', 'date_format:Y-m-d'], 'events.*.date' => ['required', 'date_format:Y-m-d'],
+            'edit_events.*.timerange' => ['required', $timeRule], 'events.*.timerange' => ['required', $timeRule],
+            'edit_events.*.description' => ['nullable', 'string'], 'events.*.description' => ['nullable', 'string'],
         ]);
-        if ($validator->fails()) {
-            $response = [
-                'error' => true,
-                'message' => $validator->errors()->first(),
-            ];
-
-            return response()->json($response);
+        $type = $request->input($typeField);
+        $existing = $editing ? (array) $request->input('edit_events', []) : [];
+        $new = (array) $request->input('events', []);
+        if ($type === 'multiple') {
+            abort_if(count($existing) + count($new) === 0, 422, __('Add at least one programme item.'));
+            [$start, $end] = explode(' - ', $request->input('date_range'));
+            Validator::make(['start' => $start, 'end' => $end], ['start' => 'required|date_format:Y-m-d', 'end' => 'required|date_format:Y-m-d|after_or_equal:start'])->validate();
+            foreach (array_merge($existing, $new) as $item) {
+                abort_unless($item['date'] >= $start && $item['date'] <= $end, 422, __('date_must_be_within_specified_date_range'));
+                [$from, $to] = explode(' - ', $item['timerange']);
+                abort_unless($from < $to, 422, __('The end time must be after the start time.'));
+            }
+        } else {
+            $start = $request->input($dateField);
+            $end = null;
+            if ($request->filled($timeField)) {
+                [$from, $to] = explode(' - ', $request->input($timeField));
+                abort_unless($from < $to, 422, __('The end time must be after the start time.'));
+            }
         }
-        try {
-            $event = Event::findOrFail($request->edit_id);
 
-            if ($request->edit_event_type == 'multiple') {
-                $dateRange = explode(' - ', $request->date_range);
-                $startDate = $dateRange[0];
-                $endDate = $dateRange[1];
-
-                if ($request->edit_events) {
-
-                    foreach ($request->edit_events as $key => $value) {
-                        if (isset($value['date']) && $value['date']) {
-
-                            $date = Carbon::parse($value['date']);
-                            $startDate = Carbon::parse($startDate); // Convert string date to Carbon instance
-                            $endDate = Carbon::parse($endDate);
-
-                            if (! $date->between($startDate, $endDate)) {
-
-                                $response = [
-                                    'error' => true,
-                                    'message' => trans('date_must_be_within_specified_date_range'),
-                                ];
-
-                                return response()->json($response);
-                            }
-                        }
-                        if ($value['id']) {
-                            $multiEvent = MultipleEvent::findOrFail($value['id']);
-                            if ($multiEvent) {
-                                $timeRange = explode(' - ', $value['timerange']);
-                                if ($timeRange[0] && $timeRange[1]) {
-                                    $startTime = $timeRange[0];
-                                    $endTime = $timeRange[1];
-                                }
-                                $multiEvent->event_id = $event->id;
-                                $multiEvent->title = $value['title'];
-                                $multiEvent->date = date('Y-m-d', strtotime($value['date']));
-                                $multiEvent->start_time = $startTime;
-                                $multiEvent->end_time = $endTime;
-                                $multiEvent->description = $value['description'];
-                                $multiEvent->save();
-                            }
-                        } else {
-                            $timeRange = explode(' - ', $value['timerange']);
-                            if ($timeRange[0] && $timeRange[1]) {
-                                $startTime = $timeRange[0];
-                                $endTime = $timeRange[1];
-                            }
-
-                            $multiEvent = new MultipleEvent;
-                            $multiEvent->event_id = $event->id;
-                            $multiEvent->title = $value['title'];
-                            $multiEvent->date = date('Y-m-d', strtotime($value['date']));
-                            $multiEvent->start_time = $startTime;
-                            $multiEvent->end_time = $endTime;
-                            $multiEvent->description = $value['description'];
-                            $multiEvent->save();
-                        }
-                    }
-                }
-
-                if ($request->events) {
-                    foreach ($request->events as $key => $value) {
-
-                        if (isset($value['date']) && $value['date']) {
-
-                            $date = Carbon::parse($value['date']);
-                            $startDate = Carbon::parse($startDate); // Convert string date to Carbon instance
-                            $endDate = Carbon::parse($endDate);
-
-                            if (! $date->between($startDate, $endDate)) {
-
-                                $response = [
-                                    'error' => true,
-                                    'message' => trans('date_must_be_within_specified_date_range'),
-                                ];
-
-                                return response()->json($response);
-                            }
-                        }
-
-                        $timeRange = explode(' - ', $value['timerange']);
-                        if ($timeRange[0] && $timeRange[1]) {
-                            $startTime = $timeRange[0];
-                            $endTime = $timeRange[1];
-                        }
-
-                        $multiEvent = new MultipleEvent;
-                        $multiEvent->event_id = $event->id;
-                        $multiEvent->title = $value['title'];
-                        $multiEvent->date = date('Y-m-d', strtotime($value['date']));
-                        $multiEvent->start_time = $startTime;
-                        $multiEvent->end_time = $endTime;
-                        $multiEvent->description = $value['description'];
-                        $multiEvent->save();
-                    }
-                }
-
-                $event->title = $request->title;
-                $event->start_date = date('Y-m-d', strtotime($startDate));
-                $event->end_date = date('Y-m-d', strtotime($endDate));
-
-                if ($request->hasFile('image')) {
-                    $image = $request->file('image');
-                    // made file name with combination of current time
-                    $file_name = time().'-'.FileNames::forUpload($image);
-                    // made file path to store in database
-                    $file_path = 'events/'.$file_name;
-                    // resized image
-                    resizeImage($image);
-                    // stored image to storage/public/teachers folder
-                    $destinationPath = storage_path('app/public/events');
-                    $image->move($destinationPath, $file_name);
-
-                    $event->image = $file_path;
-                }
-
-                $event->type = $request->edit_event_type;
-                $event->description = $request->description;
-                $event->save();
+        return DB::transaction(function () use ($request, $id, $editing, $type, $start, $end, $existing, $new, $timeField) {
+            $event = $editing ? Event::lockForUpdate()->findOrFail($id) : new Event;
+            if (! $editing) {
+                $event->session_year_id = SessionYear::findOrFail((int) $request->input('session_year_id'))->id;
+            }
+            // Children must belong to this exact parent, even within the same school.
+            $children = $event->exists ? $event->multipleEvent()->lockForUpdate()->get()->keyBy('id') : collect();
+            foreach ($existing as $item) {
+                abort_unless($children->has((int) $item['id']), 404);
+            }
+            $event->title = $request->input('title');
+            $event->description = $request->input('description');
+            $event->type = $type;
+            $event->start_date = $start;
+            $event->end_date = $end;
+            [$event->start_time, $event->end_time] = $type === 'single' && $request->filled($timeField) ? explode(' - ', $request->input($timeField)) : [null, null];
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $event->image = $file->storeAs('events', (string) Str::uuid().'-'.FileNames::forUpload($file), 'public');
+            }
+            $event->save();
+            if ($type === 'single') {
+                $event->multipleEvent()->delete();
             } else {
-                if ($request->edit_time) {
-                    $timeRange = explode(' - ', $request->edit_time);
-                    $startTime = $timeRange[0];
-                    $endTime = $timeRange[1];
-
-                    $event->start_time = $startTime;
-                    $event->end_time = $endTime;
-                } else {
-                    $event->start_time = null;
-                    $event->end_time = null;
-                }
-                $event->title = $request->title;
-                $event->start_date = date('Y-m-d', strtotime($request->edit_date));
-                $event->end_date = null;
-
-                if ($request->hasFile('image')) {
-                    $image = $request->file('image');
-                    // made file name with combination of current time
-                    $file_name = time().'-'.FileNames::forUpload($image);
-                    // made file path to store in database
-                    $file_path = 'events/'.$file_name;
-                    // resized image
-                    resizeImage($image);
-                    // stored image to storage/public/teachers folder
-                    $destinationPath = storage_path('app/public/events');
-                    $image->move($destinationPath, $file_name);
-
-                    $event->image = $file_path;
-                }
-
-                $event->type = $request->edit_event_type;
-                $event->description = $request->description;
-
-                $event->save();
-                $multiEvents = MultipleEvent::where('event_id', $event->id)->get();
-                if ($multiEvents) {
-                    foreach ($multiEvents as $multiEvent) {
-                        $multiEvent->delete();
-                    }
+                foreach (array_merge($existing, $new) as $item) {
+                    $row = isset($item['id']) ? $children->get((int) $item['id']) : new MultipleEvent;
+                    [$from, $to] = explode(' - ', $item['timerange']);
+                    $row->fill(['event_id' => $event->id, 'title' => $item['title'], 'date' => $item['date'], 'start_time' => $from, 'end_time' => $to, 'description' => $item['description'] ?? null])->save();
                 }
             }
-            $response = [
-                'error' => false,
-                'message' => trans('data_update_successfully'),
-            ];
-        } catch (\Throwable $e) {
-            $response = [
-                'error' => true,
-                'message' => trans('error_occurred'),
-            ];
-        }
 
-        return response()->json($response);
+            return response()->json(['error' => false, 'message' => __($editing ? 'data_update_successfully' : 'data_store_successfully')]);
+        });
     }
 
     /**
@@ -575,29 +303,17 @@ class EventController extends Controller
      */
     public function destroy($id)
     {
-        if (! Auth::user()->can('event-delete')) {
-            $response = [
-                'error' => true,
-                'message' => trans('no_permission_message'),
-            ];
-
-            return response()->json($response);
-        }
-        try {
-            $event = Event::find($id);
+        abort_unless(Auth::user()->can('event-delete'), 403);
+        DB::transaction(function () use ($id): void {
+            $event = Event::lockForUpdate()->findOrFail($id);
+            $readiness = EventReadinessLink::where('event_id', $id)->lockForUpdate()->first();
+            abort_if($readiness && ($readiness->consent_request_id || $readiness->ticket_event_id || trim((string) $readiness->transport_notes) !== ''), 409,
+                __('Review and remove this event’s linked records and transport notes before deleting it. Their source records are retained.'));
+            $readiness?->delete();
             $event->delete();
-            $response = [
-                'error' => false,
-                'message' => trans('data_delete_successfully'),
-            ];
-        } catch (\Throwable $e) {
-            $response = [
-                'error' => true,
-                'message' => trans('error_occurred'),
-            ];
-        }
+        });
 
-        return response()->json($response);
+        return response()->json(['error' => false, 'message' => trans('data_delete_successfully')]);
     }
 
     public function deleteMultipleEvent($id)
@@ -637,116 +353,59 @@ class EventController extends Controller
             return response()->json($response);
         }
         $multievents = MultipleEvent::where('event_id', $id)->get();
-        $event = Event::where('id', $id)->first();
+        $event = Event::where('id', $id)->firstOrFail();
 
         return view('events.view_schedule', compact('multievents', 'event'));
     }
 
     public function updateEvents(Request $request)
     {
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
-
-        if (! Auth::user()->can('event-edit')) {
-            $response = [
-                'message' => trans('no_permission_message'),
-            ];
-
-            return redirect(route('home'))->withErrors($response);
-        }
-        $validator = Validator::make($request->all(), [
-            'edit_events' => 'required|array',
-            'edit_events.*.title' => 'required',
-            'edit_events.*.date' => 'required',
+        abort_unless($request->user()->can('event-edit'), 403);
+        $data = $request->validate([
+            'event_id' => 'required|integer|min:1',
+            'edit_events' => 'required_without:events|array|min:1',
+            'edit_events.*.id' => 'required|integer|min:1|distinct',
+            'edit_events.*.title' => 'required|string|max:255',
+            'edit_events.*.date' => 'required|date',
+            'edit_events.*.description' => 'nullable|string',
             'edit_events.*.timerange' => ['required', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
-
-            'events' => 'nullable|array',
-            'events.*.title' => 'nullable|',
-            'events.*.date' => 'nullable|',
-            'events.*.timerange' => ['nullable', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
-
+            'events' => 'required_without:edit_events|array|min:1',
+            'events.*.title' => 'required|string|max:255',
+            'events.*.date' => 'required|date',
+            'events.*.description' => 'nullable|string',
+            'events.*.timerange' => ['required', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
         ]);
-        if ($validator->fails()) {
-            $response = [
-                'error' => true,
-                'message' => $validator->errors()->first(),
-            ];
-
-            return response()->json($response);
-        }
-        try {
-            $startdate = date('d-m-Y', strtotime($request->start_date));
-            $enddate = date('d-m-Y', strtotime($request->end_date));
-
-            $edit_events = $request->input('edit_events');
-            $new_events = $request->input('events');
-
-            foreach ($request->edit_events as $key => $event) {
-                $event_date = date('Y-m-d', strtotime($event['date']));
-                if ($event_date < $start_date || $event_date > $end_date) {
-                    $response = [
-                        'error' => true,
-                        'message' => "The date for event must be between {$startdate} and {$enddate}.",
-                    ];
-
-                    return response()->json($response);
+        DB::transaction(function () use ($data): void {
+            $parent = Event::query()->lockForUpdate()->findOrFail($data['event_id']);
+            abort_unless($parent->type === 'multiple', 422, __('This event does not have a multiple-item programme.'));
+            $existing = $parent->multipleEvent()->lockForUpdate()->get()->keyBy('id');
+            foreach ($data['edit_events'] ?? [] as $item) {
+                abort_unless($existing->has($item['id']), 404);
+            }
+            // Dates are bounded by the saved school event, never by hidden browser fields.
+            foreach (array_merge($data['edit_events'] ?? [], $data['events'] ?? []) as $item) {
+                [$from, $to] = array_map('trim', explode('-', $item['timerange']));
+                abort_unless($from < $to, 422, __('The end time must be after the start time.'));
+                $date = Carbon::parse($item['date'])->format('Y-m-d');
+                if ($date < $parent->start_date || $date > $parent->end_date) {
+                    throw ValidationException::withMessages(['events' => __('Programme dates must fall within the saved event dates.')]);
                 }
             }
-
-            if (isset($request->events)) {
-                foreach ($request->events as $key => $event) {
-                    if (! empty($event['date'])) {
-                        $event_date = date('Y-m-d', strtotime($event['date']));
-                        if ($event_date < $start_date || $event_date > $end_date) {
-                            $response = [
-                                'error' => true,
-                                'message' => "The date for event must be between {$request->start_date} and {$request->end_date}.",
-                            ];
-
-                            return response()->json($response);
-                        }
-                    }
+            foreach (['edit_events', 'events'] as $collection) {
+                foreach ($data[$collection] ?? [] as $item) {
+                    [$start, $end] = array_map('trim', explode('-', $item['timerange']));
+                    $record = $collection === 'edit_events' ? $existing->get($item['id']) : new MultipleEvent;
+                    $record->event_id = $parent->id;
+                    $record->title = $item['title'];
+                    $record->date = Carbon::parse($item['date'])->format('Y-m-d');
+                    $record->start_time = $start;
+                    $record->end_time = $end;
+                    $record->description = $item['description'] ?? null;
+                    $record->save();
                 }
             }
+        });
 
-            foreach ($edit_events as $event) {
-                if (isset($event['id']) && ! empty($event['id'])) {
-                    $multipleEvent = MultipleEvent::find($event['id']);
-                    if ($multipleEvent) {
-                        $multipleEvent->title = $event['title'];
-                        $multipleEvent->date = date('Y-m-d', strtotime($event['date']));
-                        $multipleEvent->start_time = explode('-', $event['timerange'])[0];
-                        $multipleEvent->end_time = explode('-', $event['timerange'])[1];
-                        $multipleEvent->description = $event['description'];
-                        $multipleEvent->save();
-                    }
-                }
-            }
-
-            if ($new_events) {
-                foreach ($new_events as $event) {
-                    MultipleEvent::create([
-                        'event_id' => $request->event_id,
-                        'title' => $event['title'],
-                        'date' => date('Y-m-d', strtotime($event['date'])),
-                        'start_time' => explode('-', $event['timerange'])[0],
-                        'end_time' => explode('-', $event['timerange'])[1],
-                        'description' => $event['description'],
-                    ]);
-                }
-            }
-
-            $response = [
-                'error' => false,
-                'message' => trans('data_update_successfully'),
-            ];
-        } catch (\Throwable $th) {
-            $response = [
-                'error' => true,
-                'message' => trans('error_occurred'),
-            ];
-        }
-
-        return response()->json($response);
+        return response()->json(['error' => false, 'message' => trans('data_update_successfully')]);
     }
 }

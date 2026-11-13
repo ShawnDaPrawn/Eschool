@@ -7,8 +7,7 @@
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <p>{{ __('Status') }}: <strong>{{ __($run->state) }}</strong> · {{ __('Revision') }} {{ $run->revision }}</p>
     <p>{{ __('Preview date') }}: {{ $snapshot['as_of'] }} · {{ __('Invoice due date') }}: {{ $snapshot['due_on'] }}</p><p>{{ __('Configured payment schedules replace the fallback due date for their installment lines.') }}</p>
-    <p>{{ __('Billable learners') }}: {{ $snapshot['billable'] }} · {{ __('Excluded learners') }}: {{ $snapshot['skipped'] }}</p>
-    @foreach($snapshot['totals'] as $currency=>$total)<p><strong>{{ \App\Services\Platform\Ledger\Money::ofCents($total,$currency)->format() }}</strong></p>@endforeach
+    <dl class="money-summary"><div><dt>{{ __('Billable learners') }}</dt><dd>{{ $snapshot['billable'] }}</dd></div><div><dt>{{ __('Excluded learners') }}</dt><dd>{{ $snapshot['skipped'] }}</dd></div>@foreach($snapshot['totals'] as $currency=>$total)<div><dt>{{ __('Reviewed charges') }} · {{ $currency }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($total,$currency)->format() }}</dd></div>@endforeach</dl>
     <x-m3.button variant="text" :href="route('fee-bill-runs.index')">{{ __('Back to bill runs') }}</x-m3.button>
     @if(!$canWrite)<p>{{ __('Billing history is read-only while fees are disabled.') }}</p>@endif
     @if($snapshot['exceptions'])<section aria-label="{{ __('Bill-run exceptions') }}">

@@ -263,7 +263,10 @@ class NoChildUnseenTest extends TestCase
         $this->assertSame(0, UnseenAssignment::count());
         $this->assertSame(15, app(PositiveContacts::class)->schoolDays());
 
-        $this->actingAs($this->superAdmin())->post('/risk-interventions/unseen/settings', $this->form($this->superAdmin(), ['school_days' => 10]))->assertRedirect();
+        $this->actingAs($this->superAdmin())->get('/risk-interventions/unseen')->assertOk()->assertDontSee('name="school_days"', false);
+        $this->get('/risk-interventions/unseen?view=configuration')->assertOk()->assertSee('name="school_days"', false)->assertDontSee('Choose the learners to review');
+        $this->actingAs($this->actor())->get('/risk-interventions/unseen?view=configuration')->assertForbidden();
+        $this->actingAs($this->superAdmin())->post('/risk-interventions/unseen/settings', $this->form($this->superAdmin(), ['school_days' => 10]))->assertRedirect(route('risk-interventions.unseen', ['view' => 'configuration']));
         $this->assertSame(10, app(PositiveContacts::class)->schoolDays());
         $this->assertTrue(OutboxEvent::where('type', 'growth.risk_rules_configured')->exists());
     }

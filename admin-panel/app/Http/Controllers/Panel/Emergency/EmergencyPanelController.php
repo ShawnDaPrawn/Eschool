@@ -62,7 +62,14 @@ class EmergencyPanelController extends Controller
                 default => __('Saved.'),
             };
 
-            return redirect()->route('emergency-panel.index')->with('success', $notice);
+            $view = match ($request->route('operation')) {
+                'roll-call-mark' => 'roll-call', 'release' => 'reunification',
+                'visitor-sign-in', 'visitor-sign-out' => 'visitors',
+                'drill-plan', 'drill-record', 'drill-cancel' => 'drills',
+                'retention' => 'configuration', default => 'alerts',
+            };
+
+            return redirect()->route('emergency-panel.index', ['view' => $view])->with('success', $notice);
         } catch (ValidationException $error) {
             return $this->failure($request, $error->validator->errors()->all(), 422);
         } catch (HttpExceptionInterface $error) {

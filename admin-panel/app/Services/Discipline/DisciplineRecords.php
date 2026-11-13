@@ -109,13 +109,25 @@ class DisciplineRecords
             'family_reason' => $row->family_reason, 'basis' => $row->basis];
     }
 
-    public function versions(User $actor, int $id): array
+    public function versions(User $actor, int $id, int $before = 0): array
     {
         $this->authorize($actor, $id);
-        $versions = DisciplineRecordVersion::where('record_id', $id)->orderByDesc('revision')->limit(100)->get()->map(fn ($v) => ['revision' => $v->revision, 'actor_id' => (int) $v->actor_id, 'created_at' => $v->created_at->toISOString(), 'record' => $v->payload])->all();
+        $versions = DisciplineRecordVersion::where('record_id', $id)->when($before > 0, fn ($q) => $q->where('revision', '<', $before))->orderByDesc('revision')->limit(100)->get()->map(fn ($v) => ['revision' => $v->revision, 'actor_id' => (int) $v->actor_id, 'created_at' => $v->created_at->toISOString(), 'record' => $v->payload])->all();
         $this->authorize($actor, $id);
 
         return $versions;
+    }
+
+    /** Retained acknowledgements belong to a published record revision. */
+    public function acknowledgements(User $actor, int $id): array
+    {
+        $this->authorize($actor, $id);
+        $rows = DisciplineAcknowledgement::where('record_id', $id)->orderByDesc('record_revision')->orderByDesc('acknowledged_at')->get();
+        $names = User::whereIn('id', $rows->pluck('guardian_id'))->get()->mapWithKeys(fn ($user) => [(int) $user->id => $user->full_name]);
+        $this->authorize($actor, $id);
+
+        return $rows->map(fn ($row) => ['revision' => (int) $row->record_revision,
+            'name' => $names[(int) $row->guardian_id] ?? __('Former guardian'), 'at' => $row->acknowledged_at->toIso8601String()])->all();
     }
 
     public function review(User $actor, int $id, array $input): array
