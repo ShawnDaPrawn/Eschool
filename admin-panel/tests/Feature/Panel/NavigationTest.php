@@ -134,6 +134,22 @@ class NavigationTest extends TestCase
         }
     }
 
+    public function test_facilitator_creation_uses_the_facilitators_group_without_moving_other_staff_pages(): void
+    {
+        $user = $this->superAdmin();
+        $user->givePermissionTo(['staff-list', 'staff-create']);
+        request()->setRouteResolver(fn () => Route::getRoutes()->getByName('staff.index'));
+        foreach ([['create', 'Facilitator', 'facilitators'], ['create', 'Admin', 'admin-staff'], ['', 'Facilitator', 'admin-staff']] as [$view, $role, $group]) {
+            request()->query->set('view', $view);
+            request()->query->set('role', $role);
+            $current = app(Navigation::class)->current($user);
+            $this->assertSame('people', $current['section']);
+            $this->assertSame($group, $current['group']);
+            $people = collect(app(Navigation::class)->sections($user))->firstWhere('key', 'people');
+            $this->assertSame([$group], collect($people['groups'])->where('active', true)->pluck('key')->all());
+        }
+    }
+
     public function test_every_navigation_label_is_in_every_panel_language_file(): void
     {
         $labels = [];

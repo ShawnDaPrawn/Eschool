@@ -274,6 +274,7 @@ class WeeklyDigestTest extends TestCase
     {
         $admin = $this->superAdmin();
         $this->actingAs($admin)->get('/weekly-digest-templates')->assertOk()->assertSee('Weekly digest templates')->assertHeader('Cache-Control', 'no-store, private');
+        $this->get('/weekly-digest-templates?view=create')->assertOk()->assertSee('action="'.route('digest-panel.create').'"', false);
         $data = $this->operation(['language' => 'en', 'expected_school_id' => 1, 'expected_account_id' => $admin->id] + config('weekly_digests.starting_templates.en'));
         $this->post('/weekly-digest-templates/versions', $data)->assertRedirect();
         $template = DigestLanguageTemplate::firstOrFail();

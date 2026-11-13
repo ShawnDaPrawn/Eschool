@@ -10,12 +10,14 @@ import { accounts, signIn } from '../support/accounts';
 const test = base.extend<{}, { isolatedAdminState: Awaited<ReturnType<BrowserContext['storageState']>> }>({
   isolatedAdminState: [async ({ browser }, use, workerInfo) => {
     const context = await browser.newContext({ baseURL: workerInfo.project.use.baseURL });
+    let state: Awaited<ReturnType<BrowserContext['storageState']>>;
     try {
       await signIn(await context.newPage(), accounts.admin);
-      await use(await context.storageState());
+      state = await context.storageState();
     } finally {
       await context.close();
     }
+    await use(state);
   }, { scope: 'worker' }],
   storageState: async ({ isolatedAdminState }, use) => use(isolatedAdminState),
 });

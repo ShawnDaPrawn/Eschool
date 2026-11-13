@@ -92,7 +92,7 @@
             <input type="hidden" name="active" value="0"><label><input type="checkbox" name="active" value="1" @checked($room?->active ?? true)> {{ __('Room active') }}</label>
             <button type="submit" class="m3-button m3-button--filled">{{ __('Save room') }}</button>
         </form>
-        <ul>@foreach ($configuration['rooms'] as $item)<li><a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'room' => $item['id'], 'view' => 'rooms']) }}">{{ $item['name'] }}</a> · {{ $item['active'] ? __('Active') : __('Inactive') }}</li>@endforeach</ul>
+        <ul>@foreach ($configuration['rooms'] as $item)<li><a class="m3-button m3-button--outlined" href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'room' => $item['id'], 'view' => 'rooms']) }}">{{ $item['name'] }}</a> · {{ $item['active'] ? __('Active') : __('Inactive') }}</li>@endforeach</ul>
     </div></details>
     @endif
     @if($workspaceView === 'bells')
@@ -108,7 +108,7 @@
             <template data-period-template>@include('academics.timetable-period', ['position' => '__INDEX__', 'period' => ['name' => '', 'starts_at' => '', 'ends_at' => '', 'is_break' => false]])</template>
             <button type="button" class="m3-button m3-button--outlined" data-add-period>{{ __('Add period') }}</button><button type="submit" class="m3-button m3-button--filled">{{ __('Save bell schedule') }}</button>
         </form>
-        <ul>@foreach ($configuration['bell_schedules'] as $item)<li>{{ $item['name'] }} · {{ $item['section'] }} <a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'schedule' => $item['id'], 'view' => 'bells']) }}">{{ __('Copy schedule') }}</a></li>@endforeach</ul>
+        <ul>@foreach ($configuration['bell_schedules'] as $item)<li>{{ $item['name'] }} · {{ $item['section'] }} <a class="m3-button m3-button--outlined" href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'schedule' => $item['id'], 'view' => 'bells']) }}">{{ __('Copy schedule') }}</a></li>@endforeach</ul>
     </div></details>
     @endif
     @if($workspaceView === 'short-days')

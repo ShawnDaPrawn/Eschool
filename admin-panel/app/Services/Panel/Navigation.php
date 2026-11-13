@@ -441,6 +441,13 @@ class Navigation
     public function isActive(array $item): bool
     {
         $request = request();
+        $facilitatorCreate = $request->routeIs('staff.index') && $request->query('view') === 'create' && $request->query('role') === 'Facilitator';
+        if ($item['key'] === 'facilitator-create') {
+            return $facilitatorCreate;
+        }
+        if ($item['key'] === 'staff' && $facilitatorCreate) {
+            return false;
+        }
         if (isset($item['report_tab'])) {
             return ($request->routeIs('student.report') && $request->query('tab') === $item['report_tab'])
                 || ($request->routeIs('students.report') && $request->query('report_tab') === $item['report_tab']);

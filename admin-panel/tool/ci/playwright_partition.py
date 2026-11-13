@@ -31,13 +31,17 @@ def inventory(cmd):
     report = json.loads(result.stdout)
     found = []
 
-    def visit(suite):
+    def visit(suite, ancestors=()):
+        # Parameterized describe blocks can contain tests at the same source
+        # line with the same leaf title. Their full suite ancestry is part of
+        # Playwright's identity (for example, the 320px and 375px workspaces).
+        ancestry = ancestors + (suite.get("title", ""),)
         for spec in suite.get("specs", []):
             for test in spec.get("tests", []):
                 found.append((test["projectName"], spec["file"], spec["line"],
-                              spec["column"], spec["title"]))
+                              spec["column"], ancestry + (spec["title"],)))
         for child in suite.get("suites", []):
-            visit(child)
+            visit(child, ancestry)
 
     for suite in report.get("suites", []):
         visit(suite)

@@ -6,7 +6,7 @@
     @if($messages)<div role="alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</div>@endif
     <p>{{ __('Unapproved languages wait for review. Other approved languages continue normally.') }}</p>
     @unless($canWrite)<p role="status">{{ __('Switch to the current school year and check module access before making changes.') }}</p>@endunless
-    @php($digestView = request('view') === 'create' && $canWrite ? 'create' : 'versions')
+    @php($digestView = (request()->isMethodSafe() ? request('view') === 'create' : request()->route('operation') === 'createTemplate') && $canWrite ? 'create' : 'versions')
     <x-panel-view-nav :current="$digestView" label="Newsletter digest workspace" :items="[
         'versions'=>['label'=>'Language versions','href'=>route('digest-panel.index')],
         'create'=>['label'=>'Create language version','href'=>route('digest-panel.index',['view'=>'create']),'visible'=>$canWrite],
@@ -34,7 +34,7 @@
         <p>{{ __('Starting text is English. Translate and review the title, summary, notification and all home instructions for the selected language before approving it.') }}</p>
         <p>{{ __('Keep the summary short enough to read in one minute. Use the supported placeholders exactly as shown.') }}</p>
         <p>{{ implode(', ', array_map(fn ($key) => '{'.$key.'}', config('weekly_digests.tokens'))) }}</p>
-        <form method="POST" action="{{ route('digest-panel.create',['view'=>'create']) }}" aria-label="{{ __('Create a language version') }}">
+        <form method="POST" action="{{ route('digest-panel.create') }}" aria-label="{{ __('Create a language version') }}">
             @include('digests.hidden')
             <x-page.field name="language" type="select" :label="__('Language')" :options="array_combine(config('weekly_digests.languages'), config('weekly_digests.languages'))" :value="$draft['language']" :restore-old-input="false" required />
             <x-page.field name="title" :label="__('Digest title')" :value="$draft['title']" :restore-old-input="false" maxlength="120" dir="auto" required />

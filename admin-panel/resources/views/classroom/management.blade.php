@@ -81,7 +81,7 @@
 @if($view==='lessons')
     <section class="page-section" aria-labelledby="foundation-authorizations-heading"><h2 id="foundation-authorizations-heading">{{ __('Lesson authorizations') }}</h2>
     <div class="panel-workspace__grid">
-    @forelse($data['leases'] as $lease)<article class="m3-card m3-card--outlined"><div class="m3-card__content"><h3>{{ __('Classroom lesson') }} · {{ substr($lease['id'],-8) }}</h3><p>{{ $lease['active'] ? __('Active') : __('Inactive') }} · {{ __('Expires') }} {{ $lease['expires_at'] }}</p>
+    @forelse($data['leases'] as $lease)<article class="m3-card m3-card--outlined"><div class="m3-card__content"><h3>{{ __('Classroom lesson') }} · {{ substr($lease['id'],-8) }}</h3><p>{{ $lease['active'] ? __('Active') : __('Inactive') }} · {{ __('Expires') }} {{ $lease['expires_at'] }}</p><p>{{ __('Classroom group') }}: {{ collect($data['groups'])->firstWhere('id',$lease['teaching_group_id'])['name'] ?? '#'.$lease['teaching_group_id'] }}<br>{{ __('Classroom tablet') }}: {{ collect($data['devices'])->firstWhere('id',$lease['device_id'])['name'] ?? $lease['device_id'] }}</p>
         @if($lease['active'])<form method="POST" action="{{ route('foundation-panel.revoke',['lease'=>$lease['id']]) }}" data-confirm="{{ __('Revoke lesson :lesson? Its restricted classroom authorization will stop working.',['lesson'=>substr($lease['id'],-8)]) }}" data-confirm-danger data-year-safe>@include('classroom.hidden', ['operationRequired'=>false])<button class="m3-button m3-button--outlined" type="submit">{{ __('Revoke lesson authorization') }}</button></form>@endif
     </div></article>@empty<p>{{ __('No lesson authorizations are available.') }}</p>@endforelse
     </div></section>

@@ -4,11 +4,10 @@ import { expect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
-test.describe.configure({ mode: 'serial' });
 test.setTimeout(420_000);
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
-  test(`house reversal and private award assembly workflow at ${width}px`, async ({ page, baseURL }) => {
+  test(`house points and retained reversal at ${width}px`, async ({ page, baseURL }) => {
     const raw=execFileSync('php',['artisan','tinker','--execute',"echo json_encode(require base_path('e2e/support/competition-panel-fixture.php'));"],{cwd:path.resolve(process.cwd(),'..'),encoding:'utf8'});
     const fixture=JSON.parse(raw.trim());
     await page.setViewportSize({width,height:1000});await signIn(page,accounts.admin);
@@ -35,11 +34,23 @@ for (const width of [390, 820, 1280]) {
     await reversal.locator('[name="reason"]').fill('Recognition browser retained reversal');await reversal.getByRole('button',{name:'Append a reversal',exact:true}).click();
     await expect(page.locator(`[data-house="${fixture.house}"]`)).toHaveText(String(baseline));
     expect(await seriousViolations(page)).toEqual([]);expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
-    await page.goto(`/recognition/awards?learner_id=${fixture.learner}`);
+    expect(errors).toEqual([]);
+  });
+  test(`Golden Boot category, nomination, assembly and correction at ${width}px`, async ({ page, baseURL }) => {
+    const raw=execFileSync('php',['artisan','tinker','--execute',"echo json_encode(require base_path('e2e/support/competition-panel-fixture.php'));"],{cwd:path.resolve(process.cwd(),'..'),encoding:'utf8'});
+    const fixture=JSON.parse(raw.trim());
+    await page.setViewportSize({width,height:1000});await signIn(page,accounts.admin);
+    const errors=collectErrors(page,baseURL!);
     // Configure a real group-scoped award and its year window before nominating.
     const awardName=`U14 soccer boys Golden Boot ${width}-${Date.now()}`;
     const categoryName=`U14 soccer boys awards ${width}-${Date.now()}`;
     await page.goto('/recognition/awards?view=configuration');
+    if (width === 390) {
+      await expect.poll(() => page.locator('.panel-local-nav').evaluate(nav => {
+        const active=nav.querySelector('[aria-current="page"]')!;const item=active.getBoundingClientRect(), viewport=nav.getBoundingClientRect();
+        return item.left >= viewport.left - 1 && item.right <= viewport.right + 1;
+      })).toBe(true);
+    }
     expect(await seriousViolations(page)).toEqual([]);
     const linkColors=await page.locator('.recognition a.m3-button, .recognition .panel-local-nav a').evaluateAll(links=>links.map(link=>{
       const style=getComputedStyle(link);return {label:link.textContent?.trim(),variant:link.className,active:link.getAttribute('aria-current'),color:style.color,background:style.backgroundColor};

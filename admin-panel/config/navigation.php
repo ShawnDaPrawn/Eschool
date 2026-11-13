@@ -636,6 +636,11 @@ $sections['people']['groups']['facilitators'] = ['label' => 'Facilitators', 'ite
         'permissions' => ['staff-list', 'activity-groups-manage'], 'module' => 'groups',
         'active' => ['people.facilitators.*'], 'keywords' => ['coaches', 'facilitators', 'activity leaders'], 'configuration' => false],
 ]];
+$sections['people']['groups']['facilitators']['items'][] = [
+    'key' => 'facilitator-create', 'label' => 'Add facilitator', 'route' => 'staff.index',
+    'params' => ['view' => 'create', 'role' => 'Facilitator'], 'permissions' => ['staff-create'], 'module' => null,
+    'active' => [], 'keywords' => ['new facilitator', 'create coach'], 'configuration' => false,
+];
 $sections['people']['groups']['alumni']['items'][] = [
     'key' => 'alumni-directory', 'label' => 'Alumni and volunteers', 'route' => 'people-pool-panel.index',
     'permissions' => ['people-pool-manage'], 'module' => 'people_pool', 'active' => ['people-pool-panel.*'],

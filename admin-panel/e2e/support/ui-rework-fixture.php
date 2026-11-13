@@ -16,7 +16,7 @@ if (! str_ends_with($database, '_test') && $database !== 'eschool_e2e') {
 // Source package, permission and role checks remain authoritative.
 return app(CurrentSchool::class)->run(1, function (): bool {
     $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();
-    $admin->givePermissionTo(['activity-groups-manage', 'people-pool-manage', 'vendors-manage']);
+    $admin->givePermissionTo(['activity-groups-manage', 'people-pool-manage', 'vendors-manage', 'staff-leave-list']);
     $gate = app(ModuleGate::class);
     $definitions = config('modules', []);
     $visited = [];

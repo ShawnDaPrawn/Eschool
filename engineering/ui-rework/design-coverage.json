@@ -1558,7 +1558,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-import.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.import-map"
@@ -1591,7 +1591,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-import.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.import-map"
@@ -1626,7 +1626,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-import.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.import-preview"
@@ -1663,7 +1663,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.commit"
@@ -1707,7 +1707,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.preview"
@@ -1753,7 +1753,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.room"
@@ -1791,7 +1791,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.bells"
@@ -1826,7 +1826,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.short-day"
@@ -1858,7 +1858,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.short-day-remove"
@@ -1896,7 +1896,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.preview"
@@ -1934,7 +1934,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.commit"
@@ -1966,7 +1966,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.policy"
@@ -2000,7 +2000,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.retention"
@@ -5621,7 +5621,7 @@
       "implementation": [
         "admin-panel/resources/views/early-years/index.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "classes, development-area configuration/reference and single-record editor separated into authorized URL states; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "early-years.areas.update"
@@ -5658,7 +5658,7 @@
       "implementation": [
         "admin-panel/resources/views/early-years/index.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "classes, development-area configuration/reference and single-record editor separated into authorized URL states; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "early-years.areas.store"
@@ -7250,7 +7250,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.adopt"
@@ -7289,7 +7289,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.update"
@@ -7324,7 +7324,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.archive"
@@ -7359,7 +7359,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.store"
@@ -7527,7 +7527,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.update",
@@ -7560,7 +7560,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.revoke-assignment"
@@ -7593,7 +7593,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.assign"
@@ -7630,7 +7630,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.configure"
@@ -7885,7 +7885,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/unseen-learners.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "principal-only configuration separated from learner review and named-adult actions; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.unseen.assign"
@@ -7918,7 +7918,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/unseen-learners.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "principal-only configuration separated from learner review and named-adult actions; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.unseen.configure"
@@ -8297,7 +8297,7 @@
       "implementation": [
         "admin-panel/resources/views/learning/practice-tests/index.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "cycle-test directory and new test form separated into URL states; source topic limits, weighting and recovery retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "practice-tests.create"
@@ -10405,7 +10405,7 @@
       ],
       "destination": "ticket-events.index?new_event=1 → ticket-events.event",
       "visible_state": "Explicit school-time windows, status, private reason; validation redisplays only within private response, no session draft.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event_name",
         "description",
@@ -10421,7 +10421,7 @@
         "private_revision_reason"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -10460,7 +10460,7 @@
       ],
       "destination": "ticket-events.index?event_id={event}&section=type → ticket-events.type",
       "visible_state": "Only eligible current products; explicit kind/capacity/transfer rule; source capacity and immutable identity checks.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "admission_event",
         "original_admission_product",
@@ -10471,7 +10471,7 @@
         "private_revision_reason"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -12373,7 +12373,7 @@
       "implementation": [
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": [
@@ -12408,7 +12408,7 @@
       "implementation": [
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "peer-tutoring-panel.change"
@@ -12443,7 +12443,7 @@
       "implementation": [
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [
         "peer-tutoring-panel.change"
@@ -19784,7 +19784,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": [
@@ -21915,7 +21915,7 @@
       ],
       "destination": "ticket-events.index?event_id={event}&section=event",
       "visible_state": "Prefilled original fields, explicit Cancel, server revision check and saved-versus-attempted comparison.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "admission_event",
         "sales_start_date",
@@ -21929,7 +21929,7 @@
         "private_revision_reason"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -21964,7 +21964,7 @@
       ],
       "destination": "vendor.tickets.lookup → vendor.tickets.redeem",
       "visible_state": "Separate matched original event/type/current state/window and named learner, accepted confirmation, original revision and operation UUID.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "ticket",
@@ -21974,7 +21974,7 @@
         "i_verified_the_ticket_and_will_admit_this_holder_once"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -23367,7 +23367,7 @@
         "admin-panel/resources/views/timetable/tab_footer.blade.php",
         "admin-panel/resources/views/timetable/teacher_timetable.blade.php"
       ],
-      "status": "source view updated; domain fields and actions retained",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": []
@@ -23395,7 +23395,7 @@
         "admin-panel/resources/views/transfers/workbench.blade.php",
         "admin-panel/app/Http/Controllers/Student/StudentController.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": []
@@ -24137,7 +24137,7 @@
         "admin-panel/resources/views/wellbeing/check-ins.blade.php",
         "admin-panel/resources/views/wellbeing/panel.blade.php"
       ],
-      "status": "source view updated; domain fields and actions retained",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; principal-only configuration separated from learner review and named-adult actions; action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": []
@@ -24214,7 +24214,7 @@
         "admin-panel/resources/views/growth/risk-interventions.blade.php",
         "admin-panel/resources/views/growth/unseen-learners.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; principal-only configuration separated from learner review and named-adult actions; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": []
@@ -24305,7 +24305,7 @@
         "admin-panel/resources/views/learning/question-banks.blade.php",
         "admin-panel/resources/views/learning/question-write.blade.php"
       ],
-      "status": "source view updated with structured controls; exact domain payload and checks retained",
+      "status": "cycle-test directory and new test form separated into URL states; source topic limits, weighting and recovery retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": []
@@ -24739,7 +24739,7 @@
         "admin-panel/resources/views/pathways/form.blade.php",
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "existing source workflow retained; shared responsive shell",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": []
@@ -30104,7 +30104,7 @@
       ],
       "destination": "ticket-events.index?event_id={event}",
       "visible_state": "Retained event details with actual windows/status/revision, admission types and private revision history; configuration is separate from sales.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "state",
@@ -30113,7 +30113,7 @@
         "next_setup"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -30151,7 +30151,7 @@
       ],
       "destination": "ticket-events.index?event_id={event}&type_id={type}&section=type",
       "visible_state": "Original event/product/kind readonly, issued count, capacity bound, transfer/status/reason; stale revision shows source saved comparison.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "original_product",
@@ -30163,7 +30163,7 @@
         "private_revision_reason"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -30198,7 +30198,7 @@
       ],
       "destination": "ticket-events.index?event_id={event}&type_id={type}",
       "visible_state": "Retained type detail, actual capacity/issued/state and revision history; edit is a separate section.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "product",
@@ -30207,7 +30207,7 @@
         "current_status"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -30240,14 +30240,14 @@
       ],
       "destination": "ticket-events.index?event_id={event}&section=cancel → ticket-events.event",
       "visible_state": "Separate cancellation reason and required irreversible-event acknowledgement. Retains original tickets/redemptions and makes no refund.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "effect",
         "private_revision_reason"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -30280,7 +30280,7 @@
       ],
       "destination": "vendor.tickets.index → vendor.tickets.lookup",
       "visible_state": "Either current number or QR/camera; lookup never admits; assigned counter and current credential checked before projection.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "admission_counter",
         "lookup_method",
@@ -30288,7 +30288,7 @@
         "ticket_number"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -30322,7 +30322,7 @@
       ],
       "destination": "vendor.tickets.redeem / vendor.tickets.resolve",
       "visible_state": "Original single-use redemption timestamp/operator; replay explicitly refuses second admission; no ledger mutation.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "learner",
@@ -30331,7 +30331,7 @@
         "next_action"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -30364,7 +30364,7 @@
       ],
       "destination": "vendor.tickets.lookup",
       "visible_state": "Matched-record refusal explains cancelled/inactive event or type, window, holder and paused module. Unknown/foreign/rotated credentials share a private not-available message; original redeemed record has timestamp. No override.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "ticket_state",
@@ -30372,7 +30372,7 @@
         "next_action"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -30405,7 +30405,7 @@
       ],
       "destination": "vendor.tickets.index → vendor.tickets.resolve",
       "visible_state": "Session storage contains only actor/school/vendor-scoped UUID. New lookup/admission blocked until explicit original-operation resolution; committed shows original receipt, unseen operation is abandoned atomically. No automatic replay.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "attempt",
@@ -30413,7 +30413,7 @@
         "recovery"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -31369,7 +31369,7 @@
       ],
       "destination": "ticket-events.index?event_id={event}&type_id={type}",
       "visible_state": "Saved issued-type revision shows original product/kind, actual issued count/capacity/status and retained change reason.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "product",
@@ -31379,7 +31379,7 @@
         "current_status"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {
@@ -31414,7 +31414,7 @@
       ],
       "destination": "ticket-events.index?event_id={event}",
       "visible_state": "Cancelled event remains readable, cannot reopen, original history and separate refund requirement explicitly shown.",
-      "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+      "status": "implemented and source/API/mobile/desktop verified",
       "design_field_names": [
         "event",
         "state",
@@ -31423,7 +31423,7 @@
         "refunds"
       ],
       "source_files_present": true,
-      "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+      "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
     }
   },
   {

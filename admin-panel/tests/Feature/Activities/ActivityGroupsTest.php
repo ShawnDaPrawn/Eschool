@@ -592,7 +592,7 @@ class ActivityGroupsTest extends TestCase
         $this->assertSame(0, ActivityMembership::count());
         $this->post($url, array_replace($data, ['operation_id' => (string) Str::uuid(), 'starts_on' => '2026-02-01']))->assertRedirect();
         $this->assertSame('2026-02-01', ActivityMembership::sole()->starts_on->toDateString());
-        $this->post($url, $this->dates(['learner_id' => $this->schoolB->ids['bea'], 'role' => 'member']))->assertNotFound();
+        $this->post($url, $this->dates(['learner_id' => $this->schoolB->ids['asha'], 'role' => 'member']))->assertNotFound();
         $this->assertSame(1, ActivityMembership::count());
     }
 

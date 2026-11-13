@@ -84,7 +84,7 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Check | Result |
 |---|---|
 | Final integrated Unit suite | 331 tests, 15,714 assertions; one existing skip |
-| Full Pint | 3,360 files passed |
+| Full Pint | 3,364 files passed after integration |
 | Shared HTTP and workspace boundaries | 15 tests, 38,582 assertions passed; covers 48 new route boundaries |
 | Personal notification endpoints | 6 tests, 39 assertions passed |
 | Blade compile and PHP token parsing | 694 templates, zero syntax errors |
@@ -92,9 +92,16 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Standard PHPStan; Finance level 5 | Zero findings |
 | Shared form recovery, confirmation and CSRF refresh browser regressions | 20 passed in 28.1 seconds |
 | Shared table recovery and stale selection browser regressions | 2 passed (parent verification) |
+| Material/page components; compiled Blade acceptance | 12 tests/70 assertions; 5/40; 1/32,726 passed (parent verification) |
+| Final shared component, Blade, navigation freshness, route boundary and translation batch | 26 tests, 72,336 assertions passed in 108 seconds (parent verification) |
 | Academic competitions API/domain/panel regression | 13 tests, 268 assertions passed |
+| People/Academics feature batch | 55 tests, 701 assertions passed; additional workspace-mode checks tracked by domain |
+| Awards/activities/discipline feature batch | 36 tests, 479 assertions passed |
+| Finance and ticket feature batch | 23 tests, 305 assertions passed |
+| Finance family billing, receipts, giving/bursaries and settlement browser workflows | 8 passed at 390/1280 px; ticket workflow checks tracked separately |
 | Real native context cancellation and populated responsive tables | Earlier 5 passed; final context rerun pending |
 | TypeScript compilation | Passed after final shared form tests |
+| CI Playwright partition inventory | Full suite ancestry retained; 1,139 tests complete/disjoint before final expanded page manifest |
 | Generated Dart API contracts | 193 tests passed; analyzer zero errors/warnings (parent verification logs) |
 | Final complete page/mobile manifest and module workflows | In progress; do not treat this row as passed |
 

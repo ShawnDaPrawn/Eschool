@@ -20,8 +20,22 @@
             region.appendChild(table);
         });
     }
+    function revealCurrentSection() {
+        document.querySelectorAll(".panel-section-nav, .panel-local-nav, .workspace-tabs").forEach(function (nav) {
+            var current = nav.querySelector('[aria-current="page"]');
+            if (!current || nav.scrollWidth <= nav.clientWidth) return;
+            var viewport = nav.getBoundingClientRect();
+            var item = current.getBoundingClientRect();
+            var left = viewport.left + nav.clientLeft;
+            var right = left + nav.clientWidth;
+            var offset = item.left < left ? item.left - left : (item.right > right ? item.right - right : 0);
+            if (offset) nav.scrollBy({ left: offset });
+        });
+    }
     function ready() {
         enhanceTables(document);
+        revealCurrentSection();
+        window.addEventListener("load", revealCurrentSection);
         document.addEventListener("page-table:loaded", function () { enhanceTables(document); });
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready);

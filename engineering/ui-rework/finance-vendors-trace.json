@@ -15,7 +15,7 @@
     ],
     "destination": "ticket-events.index?new_event=1 → ticket-events.event",
     "visible_state": "Explicit school-time windows, status, private reason; validation redisplays only within private response, no session draft.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event_name",
       "description",
@@ -31,7 +31,7 @@
       "private_revision_reason"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO023",
@@ -49,7 +49,7 @@
     ],
     "destination": "ticket-events.index?event_id={event}&section=type → ticket-events.type",
     "visible_state": "Only eligible current products; explicit kind/capacity/transfer rule; source capacity and immutable identity checks.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "admission_event",
       "original_admission_product",
@@ -60,7 +60,7 @@
       "private_revision_reason"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO033",
@@ -78,7 +78,7 @@
     ],
     "destination": "ticket-events.index?event_id={event}&section=event",
     "visible_state": "Prefilled original fields, explicit Cancel, server revision check and saved-versus-attempted comparison.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "admission_event",
       "sales_start_date",
@@ -92,7 +92,7 @@
       "private_revision_reason"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO034",
@@ -109,7 +109,7 @@
     ],
     "destination": "vendor.tickets.lookup → vendor.tickets.redeem",
     "visible_state": "Separate matched original event/type/current state/window and named learner, accepted confirmation, original revision and operation UUID.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "ticket",
@@ -119,7 +119,7 @@
       "i_verified_the_ticket_and_will_admit_this_holder_once"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO336",
@@ -136,7 +136,7 @@
     ],
     "destination": "vendor.tickets.index → vendor.tickets.lookup",
     "visible_state": "Either current number or QR/camera; lookup never admits; assigned counter and current credential checked before projection.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "admission_counter",
       "lookup_method",
@@ -144,7 +144,7 @@
       "ticket_number"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO337",
@@ -161,7 +161,7 @@
     ],
     "destination": "vendor.tickets.redeem / vendor.tickets.resolve",
     "visible_state": "Original single-use redemption timestamp/operator; replay explicitly refuses second admission; no ledger mutation.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "learner",
@@ -170,7 +170,7 @@
       "next_action"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO338",
@@ -187,7 +187,7 @@
     ],
     "destination": "vendor.tickets.lookup",
     "visible_state": "Matched-record refusal explains cancelled/inactive event or type, window, holder and paused module. Unknown/foreign/rotated credentials share a private not-available message; original redeemed record has timestamp. No override.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "ticket_state",
@@ -195,7 +195,7 @@
       "next_action"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO339",
@@ -212,7 +212,7 @@
     ],
     "destination": "vendor.tickets.index → vendor.tickets.resolve",
     "visible_state": "Session storage contains only actor/school/vendor-scoped UUID. New lookup/admission blocked until explicit original-operation resolution; committed shows original receipt, unseen operation is abandoned atomically. No automatic replay.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "attempt",
@@ -220,7 +220,7 @@
       "recovery"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO340",
@@ -238,7 +238,7 @@
     ],
     "destination": "ticket-events.index?event_id={event}",
     "visible_state": "Retained event details with actual windows/status/revision, admission types and private revision history; configuration is separate from sales.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "state",
@@ -247,7 +247,7 @@
       "next_setup"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO341",
@@ -265,7 +265,7 @@
     ],
     "destination": "ticket-events.index?event_id={event}&type_id={type}&section=type",
     "visible_state": "Original event/product/kind readonly, issued count, capacity bound, transfer/status/reason; stale revision shows source saved comparison.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "original_product",
@@ -277,7 +277,7 @@
       "private_revision_reason"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO342",
@@ -295,7 +295,7 @@
     ],
     "destination": "ticket-events.index?event_id={event}&type_id={type}",
     "visible_state": "Retained type detail, actual capacity/issued/state and revision history; edit is a separate section.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "product",
@@ -304,7 +304,7 @@
       "current_status"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO343",
@@ -322,14 +322,14 @@
     ],
     "destination": "ticket-events.index?event_id={event}&section=cancel → ticket-events.event",
     "visible_state": "Separate cancellation reason and required irreversible-event acknowledgement. Retains original tickets/redemptions and makes no refund.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "effect",
       "private_revision_reason"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO367",
@@ -347,7 +347,7 @@
     ],
     "destination": "ticket-events.index?event_id={event}&type_id={type}",
     "visible_state": "Saved issued-type revision shows original product/kind, actual issued count/capacity/status and retained change reason.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "product",
@@ -357,7 +357,7 @@
       "current_status"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   },
   {
     "id": "CO368",
@@ -375,7 +375,7 @@
     ],
     "destination": "ticket-events.index?event_id={event}",
     "visible_state": "Cancelled event remains readable, cannot reopen, original history and separate refund requirement explicitly shown.",
-    "status": "implemented; source/API regression verified; mobile/desktop browser qualification in progress",
+    "status": "implemented and source/API/mobile/desktop verified",
     "design_field_names": [
       "event",
       "state",
@@ -384,6 +384,6 @@
       "refunds"
     ],
     "source_files_present": true,
-    "verification": "admin-panel/tests/Feature/Money/TicketsTest.php passes within final Finance/Tickets23-test305-assertion suite; final admission browser run recorded in finance-vendors.md."
+    "verification": "Finance/Tickets PHP 23 tests / 305 assertions pass; ticket browser 5/5 pass at 390/1280 plus read-only; final result-first presentation admission 390/1280 both pass again. Durable logs and screenshots are recorded in finance-vendors.md."
   }
 ]

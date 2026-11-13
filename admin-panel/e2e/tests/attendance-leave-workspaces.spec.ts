@@ -14,8 +14,9 @@ for (const width of [375, 1280]) {
       '/leave-request', '/student-leave-request', '/staff-leave', '/leave-master',
       '/leave-master?view=create', '/leave-calendar', '/facilitator-leave', '/school-modules/readiness']) {
       expect((await page.goto(path))?.status(), path).toBe(200);
+      expect(new URL(page.url()).pathname, path).toBe(new URL(path, baseURL!).pathname);
       await expect(page.locator('main h1'), path).toHaveCount(1);
-      await page.waitForLoadState('networkidle');
+      for (const table of await page.locator('main table[data-page-table-init]').all()) await expect(table, path).toHaveAttribute('aria-busy', 'false');
       expect(await page.locator('main table[data-page-table-init]').evaluateAll(nodes => nodes.every(node => !node.closest('.bootstrap-table'))), path).toBe(true);
       expect(await horizontalOverflow(page), path).toBeLessThanOrEqual(1);
       expect(await seriousViolations(page), path).toEqual([]);

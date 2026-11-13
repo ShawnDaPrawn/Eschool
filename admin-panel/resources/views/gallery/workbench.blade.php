@@ -7,7 +7,8 @@
     @if($messages)<div role="alert" tabindex="-1" data-gallery-error>@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</div>@endif
     @if(!$canWrite)<p role="status">{{ __('Changes are unavailable. Check the current school year and module access.') }}</p>@endif
     @php
-        $galleryView = in_array(request('view'), ['photos','upload','configuration'], true) ? request('view') : (($messages && request()->isMethod('post')) ? 'upload' : 'photos');
+        $failureView = request()->route('operation') === 'settings' ? 'configuration' : (request()->route('operation') === 'upload' ? 'upload' : 'photos');
+        $galleryView = request()->isMethodSafe() && in_array(request('view'), ['photos','upload','configuration'], true) ? request('view') : $failureView;
         $galleryViews = [
             'photos'=>['label'=>'Group photographs','href'=>route('gallery-panel.index',['group_id'=>$groupId,'view'=>'photos'])],
             'upload'=>['label'=>'Add photograph','href'=>route('gallery-panel.index',['group_id'=>$groupId,'view'=>'upload']), 'visible'=>$canWrite && ($group['can_upload'] ?? false)],
@@ -58,7 +59,7 @@
     @endif
     @if($galleryView === 'upload' && $canWrite && $group['can_upload'])
     <section class="page-section" aria-labelledby="gallery-upload-heading"><h2 id="gallery-upload-heading">{{ __('Add a group photograph') }}</h2>
-        <form method="POST" action="{{ route('gallery-panel.upload', ['view'=>'upload']) }}" enctype="multipart/form-data" class="gallery-fields" aria-label="{{ __('Add a group photograph') }}">
+        <form method="POST" action="{{ route('gallery-panel.upload') }}" enctype="multipart/form-data" class="gallery-fields" aria-label="{{ __('Add a group photograph') }}">
             @include('gallery.hidden', ['intent' => $operationId])
             <input type="hidden" name="scope" value="group"><input type="hidden" name="activity_group_id" value="{{ $groupId }}"><input type="hidden" name="session_year_id" value="{{ $group['session_year_id'] }}">
             <x-page.field id="gallery-photo" name="photo" type="file" :label="__('Photograph')" accept="image/jpeg,image/png" :restore-old-input="false" required :help="__('Choose a JPEG or PNG up to 4 MB. Location and device metadata are removed.')" />
@@ -75,7 +76,7 @@
     <section class="page-section" aria-labelledby="gallery-consent-heading"><h2 id="gallery-consent-heading">{{ __('Photo tag consent') }}</h2>
         <p>{{ __('Guardian approval is required by default. Tightening this rule hides self-approved tags until a guardian approves them.') }}</p>
         @if($canWrite)
-        <form method="POST" action="{{ route('gallery-panel.settings', ['view'=>'configuration']) }}" aria-label="{{ __('Photo tag consent') }}" class="gallery-fields">
+        <form method="POST" action="{{ route('gallery-panel.settings') }}" aria-label="{{ __('Photo tag consent') }}" class="gallery-fields">
             @include('gallery.hidden')<input type="hidden" name="revision" value="{{ $configuration['settings_revision'] }}"><input type="hidden" name="guardian_required" value="0">
             <label for="gallery-guardian"><input id="gallery-guardian" type="checkbox" name="guardian_required" value="1" @checked($configuration['guardian_required'])> {{ __('Require a verified guardian to approve photo tags') }}</label>
             <button type="submit" class="m3-button m3-button--filled">{{ __('Save consent rule') }}</button>

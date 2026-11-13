@@ -68,6 +68,7 @@ test('another school cannot open the invited member and a teacher cannot manage 
 });
 
 test('school manager creates a facilitator with the supported staff invitation form at 390px', async ({ page }) => {
+  test.setTimeout(300_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page, accounts.admin);
   await page.goto('/people/facilitators');

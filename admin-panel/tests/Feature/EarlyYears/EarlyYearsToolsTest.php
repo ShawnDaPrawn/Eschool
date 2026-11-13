@@ -122,7 +122,7 @@ class EarlyYearsToolsTest extends TestCase
         $this->actingAs($this->tara)->get('/early-years?view=areas')->assertOk()->assertSee('Communication')->assertDontSee('name="description"', false);
         $this->get('/early-years?view=configuration')->assertForbidden();
         $this->get('/early-years?view=area&area_id='.$area)->assertForbidden();
-        $this->actingAs($this->parent)->get('/early-years?view=configuration')->assertForbidden();
+        $this->actingAs($this->parent)->get('/early-years?view=configuration')->assertRedirect(route('home'))->assertSessionHasErrors()->assertDontSee('name="description"', false);
     }
 
     private function observe(User $actor, int $learner, array $input = [], ?UploadedFile $photo = null): Observation

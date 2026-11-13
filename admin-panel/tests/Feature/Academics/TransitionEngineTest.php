@@ -107,7 +107,9 @@ class TransitionEngineTest extends TestCase
         $past = SessionYear::create(['name' => 'Historical transition review', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
         $this->withSession(['session_year' => $past->id])->get('/academic-transitions?learner_id='.$this->schoolA->ids['asha'])->assertOk()
             ->assertViewHas('configuration', fn ($value) => $value['session_year_id'] === (int) $past->id)->assertDontSee('name="session_year_id" type="select"', false);
-        $this->withSession(['session_year' => $this->year])->get('/academic-transitions?view=configuration&grade_level_id='.app(CurrentSchool::class)->run(2, fn () => GradeLevel::value('id')))->assertNotFound();
+        // Grade levels are shared platform reference data; school years are tenant records.
+        $this->withSession(['session_year' => $this->year])->get('/academic-transitions?view=configuration&session_year_id='.$this->schoolB->ids['session_year'])->assertNotFound();
+        $this->get('/academic-transitions?view=configuration&grade_level_id=999999')->assertNotFound();
         $this->actingAs($this->teacher())->get('/academic-transitions?view=configuration')->assertForbidden();
     }
 
