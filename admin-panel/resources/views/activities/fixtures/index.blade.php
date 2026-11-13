@@ -1,7 +1,7 @@
 @extends('layouts.master')
 @section('title', __('Fixtures between schools'))
 @section('content')
-<div class="content-wrapper m3 page-content">
+<div class="content-wrapper m3 page-content fixture-workbench">
     <x-page.header :title="__('Fixtures between schools')" :subtitle="__('Arrange matches with other schools and keep a running table for a league. Each school keeps its own team sheet and notes. The other school sees your team name, and your team sheet only if you choose to share it, once both schools have accepted.')" />
     @include('activities.fixtures.messages')
     <nav class="panel-local-nav" aria-label="{{ __('Fixtures and competitions') }}">
@@ -112,3 +112,4 @@
 @endif
 </div>
 @endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}?v={{ filemtime(public_path('assets/css/activity-workbench.css')) }}">@endsection

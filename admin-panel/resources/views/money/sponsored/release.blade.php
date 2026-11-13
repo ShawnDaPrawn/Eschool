@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Release sponsored place'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content fee-plan-workbench"><x-page.header :title="__('Release sponsored place')" :subtitle="$record['sponsor_name'].' · '.$record['reference']" />
 <x-m3.button variant="text" :href="route('sponsored-places.show',['subscription'=>$record['id']])">{{ __('Keep current assignment') }}</x-m3.button>

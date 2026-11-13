@@ -9132,5 +9132,9 @@
     "Your current teaching groups appear here once daily practice is switched on and you teach a group.": "Your current teaching groups appear here once daily practice is switched on and you teach a group.",
     "the Navigate Ed library": "the Navigate Ed library",
     "your question bank": "your question bank",
-    "Classroom group": "Classroom group"
+    "Classroom group": "Classroom group",
+    "Delete :role": "Delete :role",
+    "Edit :role": "Edit :role",
+    "Remove default value": "Remove default value",
+    "View :role": "View :role"
 }

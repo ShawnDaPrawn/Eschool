@@ -17,7 +17,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('class') }}</label>
+                                <label for="filter_class_section_id">{{ __('class') }}</label>
                                 <select name="filter_class_section_id" id="filter_class_section_id" class="form-control">
                                     @if ($classSchools->isEmpty())
                                         <option value="">{{ __('select_class') }}</option>

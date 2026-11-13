@@ -90,6 +90,13 @@
       if (button.dataset.discGo === stages[current].dataset.discStage) button.setAttribute('aria-current', 'step');
       else button.removeAttribute('aria-current');
     });
+    const activeStep = tabs.querySelector('[aria-current="step"]');
+    if (activeStep && tabs.scrollWidth > tabs.clientWidth) {
+      const viewport = tabs.getBoundingClientRect(), item = activeStep.getBoundingClientRect();
+      const left = viewport.left + tabs.clientLeft, right = left + tabs.clientWidth;
+      const offset = item.left < left ? item.left - left : (item.right > right ? item.right - right : 0);
+      if (offset) tabs.scrollBy({left: offset});
+    }
     controls.querySelector('[data-disc-prev]').disabled = current === 0;
     controls.querySelector('[data-disc-next]').hidden = current === stages.length - 1;
     if (stages[current].dataset.discStage === 'review') preview();

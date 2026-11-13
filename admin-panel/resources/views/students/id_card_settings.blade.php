@@ -330,10 +330,10 @@
 
             {{-- ============ RIGHT: LIVE PREVIEW ============ --}}
             <div class="col-lg-7 col-xl-8 grid-margin idc-preview-col">
-                <div class="card">
+                <div class="card" role="region" aria-labelledby="idc-preview-label" tabindex="0">
                     <div class="card-body">
                         <div class="idc-preview-head">
-                            <span class="idc-preview-badge">
+                            <span class="idc-preview-badge" id="idc-preview-label">
                                 <span class="idc-live-dot"></span>{{ __('live_preview') }}
                             </span>
                             <span class="idc-dim-chip">

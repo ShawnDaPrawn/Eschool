@@ -80,3 +80,63 @@ for (const width of [320, 1280]) {
     await check();
   });
 }
+
+for (const width of [375, 1280]) {
+  test(`exam timetable rows retain accessible actions and independent drafts at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await signIn(page, accounts.admin);
+    await page.goto('/exam-timetable');
+    const form = page.locator('.create_exam_timetable_form');
+    await form.locator('[name="timetable[0][total_marks]"]').fill('40');
+    await form.getByRole('button', { name: 'Add row', exact: true }).click();
+    await form.getByRole('button', { name: 'Add row', exact: true }).click();
+    await expect(form.getByRole('button', { name: 'Add row', exact: true })).toHaveCount(1);
+    await expect(form.getByRole('button', { name: 'Remove row', exact: true })).toHaveCount(2);
+    await form.locator('[name="timetable[1][total_marks]"]').fill('60');
+    await form.locator('[name="timetable[2][total_marks]"]').fill('80');
+    await form.getByRole('button', { name: 'Remove row', exact: true }).first().click();
+    await expect(form.locator('.exam_timetable_content')).toHaveCount(2);
+    await expect(form.locator('[name="timetable[1][total_marks]"]')).toHaveCount(0);
+    await expect(form.locator('[name="timetable[0][total_marks]"]')).toHaveValue('40');
+    await expect(form.locator('[name="timetable[2][total_marks]"]')).toHaveValue('80');
+    await form.getByRole('button', { name: 'Add row', exact: true }).click();
+    await expect(form.getByRole('combobox', { name: 'Subject', exact: true })).toHaveCount(3);
+    await expect(form.locator('[name="timetable[3][total_marks]"]')).toHaveValue('');
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+  });
+}
+
+for (const width of [375, 1280]) {
+  test(`grade rows retain labels, saved identities and removable new drafts at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await signIn(page, accounts.admin);
+    await page.goto('/grades');
+    const form = page.locator('#create-grades');
+    const rows = form.locator('.grade_content');
+    await expect(rows).not.toHaveCount(0);
+    const existingCount = await rows.count();
+    const savedRow = rows.last();
+    const savedId = await savedRow.locator('input[type=hidden]').inputValue();
+    const savedGrade = await savedRow.getByRole('textbox', { name: 'Grade', exact: true }).inputValue();
+    await savedRow.getByRole('spinbutton', { name: 'Ending Range', exact: true }).fill('95');
+    await form.getByRole('button', { name: 'Add New Data', exact: true }).click();
+    await expect(rows).toHaveCount(existingCount + 1);
+    const newRow = rows.last();
+    await expect(newRow.locator('input[type=hidden]')).toHaveCount(0);
+    await expect(newRow.getByRole('spinbutton', { name: 'Starting Range', exact: true })).toHaveValue('96');
+    await newRow.getByRole('spinbutton', { name: 'Ending Range', exact: true }).fill('100');
+    await newRow.getByRole('textbox', { name: 'Grade', exact: true }).fill('Synthetic draft');
+    await expect(rows.nth(existingCount - 1).locator('input[type=hidden]')).toHaveValue(savedId);
+    await expect(rows.nth(existingCount - 1).getByRole('textbox', { name: 'Grade', exact: true })).toHaveValue(savedGrade);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    const persistedDeletes: string[] = [];
+    page.on('request', request => { if (request.method() === 'DELETE') persistedDeletes.push(request.url()); });
+    await newRow.getByRole('button', { name: 'Remove row', exact: true }).click();
+    await expect(rows).toHaveCount(existingCount);
+    await expect(rows.last().locator('input[type=hidden]')).toHaveValue(savedId);
+    await expect(rows.last().getByRole('spinbutton', { name: 'Ending Range', exact: true })).toHaveValue('95');
+    expect(persistedDeletes).toEqual([]);
+  });
+}

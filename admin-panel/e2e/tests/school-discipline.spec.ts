@@ -60,6 +60,11 @@ for (const width of [390, 1280]) {
     await clean(page);
     await page.locator('[data-disc-next]').click();
     await expect(page.locator('[data-disc-preview]')).toContainText('Supervised school detention');
+    await expect.poll(() => page.locator('[data-disc-steps]').evaluate(nav => {
+      const active=nav.querySelector('[aria-current="step"]')!;const item=active.getBoundingClientRect(), viewport=nav.getBoundingClientRect();
+      return item.left >= viewport.left - 1 && item.right <= viewport.right + 1;
+    })).toBe(true);
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path: test.info().outputPath(`discipline-framework-review-${width}.png`), fullPage: true});
     await page.getByRole('button', { name: 'Publish framework', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: /^Saved\.$/ })).toHaveText('Saved.');
@@ -107,6 +112,7 @@ for (const width of [390, 1280]) {
     await page.locator('#disc-cancel-reason').fill('Retained cancelled session with captured register');
     await page.getByRole('button', { name: 'Cancel retained session', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Save attendance', exact: true })).toHaveCount(0);
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path: test.info().outputPath(`discipline-retained-session-${width}.png`), fullPage: true});
     await clean(page);
     expect(errors).toEqual([]);

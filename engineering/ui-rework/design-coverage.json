@@ -1558,14 +1558,15 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-import.blade.php"
       ],
-      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
+      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.import-map"
       ],
       "design_field_names": [
         "csv"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine import cases and the actual mapped-import browser flow at 1024px passed; import-state Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -1591,14 +1592,15 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-import.blade.php"
       ],
-      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
+      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.import-map"
       ],
       "design_field_names": [
         "imported_sheet"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine import cases and the actual mapped-import browser flow at 1024px passed; import-state Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -1626,7 +1628,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-import.blade.php"
       ],
-      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
+      "status": "import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.import-preview"
@@ -1635,7 +1637,8 @@
         "default_start_date",
         "default_end_date",
         "default_weeks"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine import cases and the actual mapped-import browser flow at 1024px passed; import-state Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -1663,7 +1666,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.commit"
@@ -1672,7 +1675,8 @@
         "week",
         "proposed_lessons",
         "clashes"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
     }
   },
   {
@@ -1707,7 +1711,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.preview"
@@ -1723,7 +1727,8 @@
         "specific_date_optional",
         "week_pattern",
         "active_placement"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
     }
   },
   {
@@ -1753,7 +1758,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.room"
@@ -1764,7 +1769,8 @@
         "capacity",
         "type",
         "active"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
     }
   },
   {
@@ -1791,7 +1797,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.bells"
@@ -1799,7 +1805,8 @@
       "design_field_names": [
         "bell_schedule_name",
         "school_section"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
     }
   },
   {
@@ -1826,7 +1833,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.short-day"
@@ -1834,7 +1841,8 @@
       "design_field_names": [
         "short_day_date",
         "reason"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
     }
   },
   {
@@ -1858,12 +1866,13 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained",
       "source_files_present": true,
       "design_routes": [
         "academic-timetable.short-day-remove"
       ],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
     }
   },
   {
@@ -1896,7 +1905,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.preview"
@@ -1910,7 +1919,8 @@
         "target_group_id",
         "mark_rule_override",
         "reason"
-      ]
+      ],
+      "qualification": "TransitionEngine selected configuration/global-year/scope case passed; the configuration state passed browser Axe/overflow checks at 320/1280px."
     }
   },
   {
@@ -1934,12 +1944,13 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.commit"
       ],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "TransitionEngine selected configuration/global-year/scope case passed; the configuration state passed browser Axe/overflow checks at 320/1280px."
     }
   },
   {
@@ -1966,7 +1977,7 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.policy"
@@ -1974,7 +1985,8 @@
       "design_field_names": [
         "join_mark_rule",
         "change_mark_rule"
-      ]
+      ],
+      "qualification": "TransitionEngine selected configuration/global-year/scope case passed; the configuration state passed browser Axe/overflow checks at 320/1280px."
     }
   },
   {
@@ -2000,14 +2012,15 @@
       "implementation": [
         "admin-panel/resources/views/academics/transition-workbench.blade.php"
       ],
-      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained",
       "source_files_present": true,
       "design_routes": [
         "academic-transitions.retention"
       ],
       "design_field_names": [
         "days"
-      ]
+      ],
+      "qualification": "TransitionEngine selected configuration/global-year/scope case passed; the configuration state passed browser Axe/overflow checks at 320/1280px."
     }
   },
   {
@@ -5621,7 +5634,7 @@
       "implementation": [
         "admin-panel/resources/views/early-years/index.blade.php"
       ],
-      "status": "classes, development-area configuration/reference and single-record editor separated into authorized URL states; final targeted qualification pending",
+      "status": "classes, development-area configuration/reference and single-record editor separated into authorized URL states",
       "source_files_present": true,
       "design_routes": [
         "early-years.areas.update"
@@ -5631,7 +5644,8 @@
         "description",
         "position",
         "active"
-      ]
+      ],
+      "qualification": "EarlyYearsTools selected configuration/editor create and role/tenant case passed; development-area creation and separated workspaces passed at 320/1280px."
     }
   },
   {
@@ -5658,7 +5672,7 @@
       "implementation": [
         "admin-panel/resources/views/early-years/index.blade.php"
       ],
-      "status": "classes, development-area configuration/reference and single-record editor separated into authorized URL states; final targeted qualification pending",
+      "status": "classes, development-area configuration/reference and single-record editor separated into authorized URL states",
       "source_files_present": true,
       "design_routes": [
         "early-years.areas.store"
@@ -5666,7 +5680,8 @@
       "design_field_names": [
         "name",
         "description"
-      ]
+      ],
+      "qualification": "EarlyYearsTools selected configuration/editor create and role/tenant case passed; development-area creation and separated workspaces passed at 320/1280px."
     }
   },
   {
@@ -7250,7 +7265,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.adopt"
@@ -7259,7 +7274,8 @@
         "suggested_actions",
         "effect",
         "learner_effect"
-      ]
+      ],
+      "qualification": "Selected InterventionLibrary manager/role/tenant cases passed; create-state structured controls and browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7289,7 +7305,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.update"
@@ -7300,7 +7316,8 @@
         "steps_text",
         "suggested_weeks",
         "progress_measure"
-      ]
+      ],
+      "qualification": "Selected InterventionLibrary manager/role/tenant cases passed; create-state structured controls and browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7324,12 +7341,13 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.archive"
       ],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "Selected InterventionLibrary manager/role/tenant cases passed; create-state structured controls and browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7359,7 +7377,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/intervention-library.blade.php"
       ],
-      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
+      "status": "action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.library.store"
@@ -7370,7 +7388,8 @@
         "steps_text",
         "suggested_weeks",
         "progress_measure"
-      ]
+      ],
+      "qualification": "Selected InterventionLibrary manager/role/tenant cases passed; create-state structured controls and browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7527,7 +7546,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.update",
@@ -7536,7 +7555,8 @@
       "design_field_names": [
         "body",
         "archive"
-      ]
+      ],
+      "qualification": "ProgressNotesPanel cases including private-target/configuration boundaries passed; configuration-state browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7560,12 +7580,13 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.revoke-assignment"
       ],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "ProgressNotesPanel cases including private-target/configuration boundaries passed; configuration-state browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7593,7 +7614,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.assign"
@@ -7602,7 +7623,8 @@
         "staff_user_id",
         "starts_on",
         "ends_on"
-      ]
+      ],
+      "qualification": "ProgressNotesPanel cases including private-target/configuration boundaries passed; configuration-state browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7630,7 +7652,7 @@
       "implementation": [
         "admin-panel/resources/views/growth/progress-notes.blade.php"
       ],
-      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; final targeted qualification pending",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained",
       "source_files_present": true,
       "design_routes": [
         "learner-notes.configure"
@@ -7639,7 +7661,8 @@
         "high_band_threshold",
         "secure_band_threshold",
         "minimum_assessed_share"
-      ]
+      ],
+      "qualification": "ProgressNotesPanel cases including private-target/configuration boundaries passed; configuration-state browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7885,14 +7908,15 @@
       "implementation": [
         "admin-panel/resources/views/growth/unseen-learners.blade.php"
       ],
-      "status": "principal-only configuration separated from learner review and named-adult actions; final targeted qualification pending",
+      "status": "principal-only configuration separated from learner review and named-adult actions",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.unseen.assign"
       ],
       "design_field_names": [
         "adult_user_id"
-      ]
+      ],
+      "qualification": "Selected NoChildUnseen authority/configuration case passed; configuration-state browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -7918,14 +7942,15 @@
       "implementation": [
         "admin-panel/resources/views/growth/unseen-learners.blade.php"
       ],
-      "status": "principal-only configuration separated from learner review and named-adult actions; final targeted qualification pending",
+      "status": "principal-only configuration separated from learner review and named-adult actions",
       "source_files_present": true,
       "design_routes": [
         "risk-interventions.unseen.configure"
       ],
       "design_field_names": [
         "school_days"
-      ]
+      ],
+      "qualification": "Selected NoChildUnseen authority/configuration case passed; configuration-state browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -8297,7 +8322,7 @@
       "implementation": [
         "admin-panel/resources/views/learning/practice-tests/index.blade.php"
       ],
-      "status": "cycle-test directory and new test form separated into URL states; source topic limits, weighting and recovery retained; final targeted qualification pending",
+      "status": "cycle-test directory and new test form separated into URL states; source topic limits, weighting and recovery retained",
       "source_files_present": true,
       "design_routes": [
         "practice-tests.create"
@@ -8311,7 +8336,8 @@
         "closes_at",
         "weighting",
         "paper_version_ids"
-      ]
+      ],
+      "qualification": "PracticeTests selected panel create/list/results/validation/withdrawal, wrong-role and tenant case passed. This final directory/create split was not separately exercised in the browser."
     }
   },
   {
@@ -8718,7 +8744,8 @@
         "admin-panel/resources/views/leave/leave_setting.blade.php",
         "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
         "admin-panel/public/assets/js/custom/leave-workspace.js",
-        "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+        "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
       "status": "Implemented with the existing authority and source-backed result/error states",
@@ -8759,7 +8786,8 @@
         "admin-panel/resources/views/leave/leave_setting.blade.php",
         "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
         "admin-panel/public/assets/js/custom/leave-workspace.js",
-        "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+        "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
       "status": "Implemented with the existing authority and source-backed result/error states",
@@ -12373,14 +12401,15 @@
       "implementation": [
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": [
         "starts_at",
         "ends_at",
         "venue"
-      ]
+      ],
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
     }
   },
   {
@@ -12408,7 +12437,7 @@
       "implementation": [
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained",
       "source_files_present": true,
       "design_routes": [
         "peer-tutoring-panel.change"
@@ -12417,7 +12446,8 @@
         "minutes",
         "point_category_id",
         "points"
-      ]
+      ],
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
     }
   },
   {
@@ -12443,14 +12473,15 @@
       "implementation": [
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained",
       "source_files_present": true,
       "design_routes": [
         "peer-tutoring-panel.change"
       ],
       "design_field_names": [
         "reason"
-      ]
+      ],
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
     }
   },
   {
@@ -19784,13 +19815,14 @@
       "implementation": [
         "admin-panel/resources/views/academics/timetable-workbench.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": [
         "proposed_lesson",
         "save_status"
-      ]
+      ],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
     }
   },
   {
@@ -23367,10 +23399,11 @@
         "admin-panel/resources/views/timetable/tab_footer.blade.php",
         "admin-panel/resources/views/timetable/teacher_timetable.blade.php"
       ],
-      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained; final targeted qualification pending",
+      "status": "week, lesson placement, import and room/bell/short-day configuration separated into URL states; source preview/commit retained; import wizard shown in its own URL state; column/value mapping, preview and exact save payload retained",
       "source_files_present": true,
       "design_routes": [],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px. Selected TimetableEngine import cases and the actual mapped-import browser flow at 1024px passed; import-state Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -23395,10 +23428,11 @@
         "admin-panel/resources/views/transfers/workbench.blade.php",
         "admin-panel/app/Http/Controllers/Student/StudentController.php"
       ],
-      "status": "learner changes and configuration separated into URL states; selected global school year retained; final targeted qualification pending",
+      "status": "learner changes and configuration separated into URL states; selected global school year retained",
       "source_files_present": true,
       "design_routes": [],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "TransitionEngine selected configuration/global-year/scope case passed; the configuration state passed browser Axe/overflow checks at 320/1280px."
     }
   },
   {
@@ -24137,10 +24171,11 @@
         "admin-panel/resources/views/wellbeing/check-ins.blade.php",
         "admin-panel/resources/views/wellbeing/panel.blade.php"
       ],
-      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; principal-only configuration separated from learner review and named-adult actions; action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained; final targeted qualification pending",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; principal-only configuration separated from learner review and named-adult actions; action directory, add and individual edit separated into authorized URL states; source archive and suggested-action adoption retained",
       "source_files_present": true,
       "design_routes": [],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "ProgressNotesPanel cases including private-target/configuration boundaries passed; configuration-state browser Axe/overflow checks passed at 320/1280px. Selected NoChildUnseen authority/configuration case passed; configuration-state browser Axe/overflow checks passed at 320/1280px. Selected InterventionLibrary manager/role/tenant cases passed; create-state structured controls and browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -24214,10 +24249,11 @@
         "admin-panel/resources/views/growth/risk-interventions.blade.php",
         "admin-panel/resources/views/growth/unseen-learners.blade.php"
       ],
-      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; principal-only configuration separated from learner review and named-adult actions; final targeted qualification pending",
+      "status": "school band configuration separated from academic/counselling/assignment records; private author response rules retained; principal-only configuration separated from learner review and named-adult actions",
       "source_files_present": true,
       "design_routes": [],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "ProgressNotesPanel cases including private-target/configuration boundaries passed; configuration-state browser Axe/overflow checks passed at 320/1280px. Selected NoChildUnseen authority/configuration case passed; configuration-state browser Axe/overflow checks passed at 320/1280px."
     }
   },
   {
@@ -24305,10 +24341,11 @@
         "admin-panel/resources/views/learning/question-banks.blade.php",
         "admin-panel/resources/views/learning/question-write.blade.php"
       ],
-      "status": "cycle-test directory and new test form separated into URL states; source topic limits, weighting and recovery retained; final targeted qualification pending",
+      "status": "cycle-test directory and new test form separated into URL states; source topic limits, weighting and recovery retained",
       "source_files_present": true,
       "design_routes": [],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "PracticeTests selected panel create/list/results/validation/withdrawal, wrong-role and tenant case passed. This final directory/create split was not separately exercised in the browser."
     }
   },
   {
@@ -24384,7 +24421,8 @@
         "admin-panel/resources/views/leave/leave_setting.blade.php",
         "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
         "admin-panel/public/assets/js/custom/leave-workspace.js",
-        "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+        "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
       "status": "Implemented with the existing authority and source-backed result/error states",
@@ -24739,10 +24777,11 @@
         "admin-panel/resources/views/pathways/form.blade.php",
         "admin-panel/resources/views/peer-tutoring/index.blade.php"
       ],
-      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained; final targeted qualification pending",
+      "status": "scheduling and session history separated into URL states; source role/owner/account checks and draft recovery retained",
       "source_files_present": true,
       "design_routes": [],
-      "design_field_names": []
+      "design_field_names": [],
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
     }
   },
   {
@@ -26430,7 +26469,8 @@
         "admin-panel/resources/views/leave/leave_setting.blade.php",
         "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
         "admin-panel/public/assets/js/custom/leave-workspace.js",
-        "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+        "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
       "status": "Implemented with the existing authority and source-backed result/error states",
@@ -27060,7 +27100,8 @@
       "implementation": [
         "admin-panel/resources/views/leave/partials/create-form.blade.php",
         "admin-panel/resources/views/leave/leave_setting.blade.php",
-        "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+        "admin-panel/app/Http/Controllers/Leave/RequestController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave?view=create or /leave-request?view=create; missing settings blocks submission with configuration next step",
       "status": "Implemented with the existing authority and source-backed result/error states",
@@ -28333,7 +28374,8 @@
         "admin-panel/resources/views/leave/leave_setting.blade.php",
         "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
         "admin-panel/public/assets/js/custom/leave-workspace.js",
-        "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+        "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
       "status": "Implemented with the existing authority and source-backed result/error states",
@@ -28369,7 +28411,8 @@
         "admin-panel/resources/views/leave/leave_setting.blade.php",
         "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
         "admin-panel/public/assets/js/custom/leave-workspace.js",
-        "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+        "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
       "status": "Implemented with the existing authority and source-backed result/error states",
@@ -28407,7 +28450,8 @@
         "admin-panel/resources/views/leave/leave_setting.blade.php",
         "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
         "admin-panel/public/assets/js/custom/leave-workspace.js",
-        "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+        "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+        "admin-panel/public/assets/css/leave-configuration.css"
       ],
       "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
       "status": "Implemented with the existing authority and source-backed result/error states",

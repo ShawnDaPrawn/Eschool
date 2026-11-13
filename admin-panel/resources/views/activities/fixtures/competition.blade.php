@@ -2,7 +2,7 @@
 @php($c = $competition)
 @section('title', $c['name'])
 @section('content')
-<div class="content-wrapper m3 page-content">
+<div class="content-wrapper m3 page-content fixture-workbench">
     <x-page.header :title="$c['name']" :subtitle="$c['discipline'].' · '.$c['season'].' · '.__('Organised by :school', ['school' => $c['organiser']])" />
     @include('activities.fixtures.messages')
     <nav class="panel-local-nav" aria-label="{{ __('Competition tasks') }}">
@@ -72,3 +72,4 @@
     @endif
 </div>
 @endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}?v={{ filemtime(public_path('assets/css/activity-workbench.css')) }}">@endsection

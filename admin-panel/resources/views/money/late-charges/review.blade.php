@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Review configured one-off late charge'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench late-charge-workbench">
 <x-page.header :title="__('Review configured one-off late charge')" :subtitle="__('This creates one invoice under the explicit school rule. It moves no paid receipt credit and does not affect academic access.')" />

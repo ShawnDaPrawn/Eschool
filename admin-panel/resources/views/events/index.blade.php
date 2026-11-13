@@ -31,5 +31,5 @@
 </div>
 @endsection
 @section('script')
-<script src="{{ asset('assets/js/events-workspace.js') }}" defer></script>
+<script src="{{ asset('assets/js/events-workspace.js') }}?v={{ filemtime(public_path('assets/js/events-workspace.js')) }}" defer></script>
 @endsection

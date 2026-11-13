@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Bursary applications'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content fee-plan-workbench">
 <x-page.header :title="__('Bursary applications')" :subtitle="__('Review applications, retain committee decisions and pass awarded support to Finance for independent approval.')" />

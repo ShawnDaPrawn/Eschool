@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Vendor payment readers'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
 <x-page.header :title="__('Vendor payment readers')" :subtitle="__('Pair a short-lived reader with one Vendor counter. Gate and classroom credentials cannot approve wallet payments.')" />

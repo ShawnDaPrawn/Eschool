@@ -94,13 +94,14 @@ test('another teacher and another school cannot open a private message',async ({
   expect((await page.goto(`/communication-centre?message_id=${id}`))?.status()).toBe(404);
 });
 
-test('newsletter sections persist their order and reopen from the message directory', async ({page})=>{
+test('newsletter sections persist their order and reopen from the message directory', async ({page,baseURL})=>{
   await signIn(page,author);
+  const errors=collectErrors(page,baseURL!);
   await page.setViewportSize({width:320,height:740});
   await page.goto('/communication-centre?view=newsletter');
   const title=`Newsletter sections ${run}`;
-  await page.getByLabel('Message subject',{exact:true}).fill(title);
-  await page.getByLabel('Audience scope',{exact:true}).selectOption({label:'Group · Message rehearsal group'});
+  await page.getByRole('textbox',{name:'Message subject',exact:true}).fill(title);
+  await page.getByRole('combobox',{name:'Audience scope',exact:true}).selectOption({label:'Group · Message rehearsal group'});
   const rows=page.locator('[data-newsletter-section]');
   await rows.first().getByLabel('Section heading (optional)',{exact:true}).fill('School news');
   await rows.first().getByLabel('Section content',{exact:true}).fill('Synthetic school news.');
@@ -110,6 +111,9 @@ test('newsletter sections persist their order and reopen from the message direct
   await rows.last().getByRole('button',{name:'Move up',exact:true}).click();
   await page.getByRole('button',{name:'Save private message',exact:true}).click();
   await expect(page.getByRole('status').filter({hasText:'Message draft saved'})).toBeVisible();
+  // The source sanitizes and canonicalizes Markdown, including escaped punctuation.
+  const savedMarkdown=await page.getByRole('textbox',{name:'Message Markdown',exact:true}).inputValue();
+  await expect(page.getByRole('link',{name:'Preview saved message',exact:true})).not.toHaveAttribute('aria-disabled','true');
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
   expect(await seriousViolations(page)).toEqual([]);
   await page.getByRole('link',{name:'Messages and reviews',exact:true}).click();
@@ -117,7 +121,14 @@ test('newsletter sections persist their order and reopen from the message direct
   await page.getByRole('link',{name:'Edit newsletter sections',exact:true}).click();
   await expect(rows).toHaveCount(2);
   await expect(rows.first().getByLabel('Section heading (optional)',{exact:true})).toHaveValue('Dates to remember');
-  await expect(page.getByLabel('Message Markdown',{exact:true})).toHaveValue('## Dates to remember\n\nSynthetic school dates.\n\n## School news\n\nSynthetic school news.');
+  await expect(page.getByRole('textbox',{name:'Message Markdown',exact:true})).toHaveValue(savedMarkdown);
+  await expect(page.getByRole('link',{name:'Preview saved message',exact:true})).not.toHaveAttribute('aria-disabled','true');
+  await page.getByRole('link',{name:'Preview saved message',exact:true}).click();
+  const preview=page.locator('.message-rendered');
+  await expect(preview.getByRole('heading')).toHaveText(['Saved message preview','Dates to remember','School news']);
+  await expect(preview.getByText('Synthetic school dates.',{exact:true})).toBeVisible();
+  await expect(preview.getByText('Synthetic school news.',{exact:true})).toBeVisible();
+  expect(errors).toEqual([]);
 });
 
 test('an audience owner can archive an empty list after its contact leaves scope',async ({page})=>{

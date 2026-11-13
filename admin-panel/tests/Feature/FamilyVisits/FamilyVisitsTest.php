@@ -315,12 +315,13 @@ class FamilyVisitsTest extends TestCase
         $this->actingAs($this->parent)->get('/family-visits')->assertForbidden();
         $this->actingAs($this->teacher)->get('/family-visits')->assertOk()->assertDontSee('Approve this collection request')->assertDontSee('Publish meeting slot');
         $this->actingAs($this->admin)->get('/family-visits')->assertOk()->assertSee('Publish meeting slot')->assertHeader('Cache-Control', 'no-store, private');
+        $this->get('/family-visits?view=create')->assertOk()->assertSee('Publish a parent meeting slot')->assertSee('name="host_id"', false);
         $body = ['operation_id' => (string) Str::uuid(), 'expected_account_id' => $this->teacher->id, 'expected_school_id' => 1, 'host_id' => $this->teacher->id,
             'title' => 'Synthetic confidential panel title', 'venue' => 'Synthetic room', 'starts_at' => '2026-02-20T17:00', 'ends_at' => '2026-02-20T17:15', 'booking_closes_at' => '2026-02-19T12:00'];
         $this->post('/family-visits/meeting-create', $body)->assertForbidden()->assertSessionMissing('_old_input');
         $body['expected_account_id'] = $this->admin->id;
         $body = array_map(fn ($value) => is_int($value) ? (string) $value : $value, $body);
-        $this->post('/family-visits/meeting-create', $body)->assertRedirect('/family-visits');
+        $this->post('/family-visits/meeting-create', $body)->assertRedirect('/family-visits?view=meetings');
         $this->assertSame(1, MeetingSlot::count());
         $this->post('/family-visits/meeting-create', array_merge($body, ['title' => str_repeat('x', 192)]))->assertUnprocessable()->assertSessionMissing('_old_input');
     }

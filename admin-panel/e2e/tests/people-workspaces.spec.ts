@@ -73,11 +73,16 @@ test('school manager creates a facilitator with the supported staff invitation f
   await signIn(page, accounts.admin);
   await page.goto('/people/facilitators');
   await page.getByRole('link', { name: 'Add facilitator', exact: true }).click();
+  const workspace = page.getByRole('navigation', { name: 'Staff workspace', exact: true });
+  await expect(workspace.getByRole('link', { name: 'Facilitators', exact: true })).toHaveAttribute('href', /\/people\/facilitators$/);
+  await expect(workspace.getByRole('link', { name: 'Add facilitator', exact: true })).toHaveAttribute('href', /view=create&role=Facilitator$/);
   const form = page.locator('#staff-form');
   await expect(form.getByRole('combobox', { name: 'Role', exact: true })).toHaveValue(/\d+/);
-  const email = `facilitator-${Date.now()}@example.test`;
+  const identity = Date.now();
+  const lastName = `Facilitator ${identity}`;
+  const email = `facilitator-${identity}@example.test`;
   await form.getByRole('textbox', { name: 'First name', exact: true }).fill('Synthetic');
-  await form.getByRole('textbox', { name: 'Last name', exact: true }).fill('Facilitator');
+  await form.getByRole('textbox', { name: 'Last name', exact: true }).fill(lastName);
   await form.getByRole('textbox', { name: 'Email address', exact: true }).fill(email);
   await form.getByRole('textbox', { name: 'Mobile number', exact: true }).fill('0821234567');
   await form.getByRole('radio', { name: 'Female', exact: true }).check();
@@ -87,11 +92,15 @@ test('school manager creates a facilitator with the supported staff invitation f
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
   expect(await seriousViolations(page)).toEqual([]);
   const saved = page.waitForResponse(response => response.request().method() === 'POST' && new URL(response.url()).pathname === '/staff');
-  const reloaded = page.waitForResponse(response => response.request().isNavigationRequest() && new URL(response.url()).pathname === '/staff');
+  // The source form reloads the same URL after a successful AJAX save. Waiting
+  // for response headers is too early: the old document can still report loaded.
+  const reloaded = page.waitForNavigation({ waitUntil: 'load' });
   await form.getByRole('button', { name: 'Create staff invitation', exact: true }).click();
   expect((await (await saved).json()).error).toBe(false);
   await reloaded;
-  await page.waitForLoadState('load');
-  await page.goto('/people/facilitators?search=Synthetic');
-  await expect(page.getByText('Synthetic Facilitator', { exact: true }).first()).toBeVisible();
+  await expect(page.locator('form[data-unsaved="true"]')).toHaveCount(0);
+  await workspace.getByRole('link', { name: 'Facilitators', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Search facilitators', exact: true }).fill(lastName);
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await expect(page.getByRole('heading', { name: `Synthetic ${lastName}`, exact: true })).toBeVisible();
 });

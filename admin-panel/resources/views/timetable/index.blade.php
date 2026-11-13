@@ -42,10 +42,9 @@
                             </div>
 
                             <div class="form-group col-sm-12 col-md-4 col-lg-3">
-                                <label class="form-label">{{ __('class') }} {{ __('section') }} <span
+                                <label for="timetable_class_section" class="form-label">{{ __('class') }} {{ __('section') }} <span
                                         class="text-danger">*</span></label>
-                                <select required name="class_section_id" id="timetable_class_section" class="form-control"
-                                    aria-hidden="true">
+                                <select required name="class_section_id" id="timetable_class_section" class="form-control">
                                     <option value="">{{ __('select') }}</option>
                                 </select>
                                 <div class="select_error text-danger d-none">{{ __('This field is required') }}.</div>

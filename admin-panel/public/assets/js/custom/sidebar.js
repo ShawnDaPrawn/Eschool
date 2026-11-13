@@ -22,6 +22,15 @@
     var minimize = document.querySelector('[data-panel-nav-minimize]');
     var opener = document.querySelector('[data-panel-nav-open]');
 
+    // Mobile uses the same language destinations as the header menu.
+    var language = sidebar.querySelector('[data-panel-language-switch]');
+    if (language) {
+        language.addEventListener('change', function () {
+            var destination = new URL(language.value, window.location.origin);
+            if (destination.origin === window.location.origin) window.location.assign(destination.href);
+        });
+    }
+
     /* ---- Sections ------------------------------------------- */
     function setSection(toggle, open) {
         var panel = document.getElementById(toggle.getAttribute('aria-controls'));

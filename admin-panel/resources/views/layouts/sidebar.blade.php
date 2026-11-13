@@ -31,6 +31,22 @@
         @canany(['session-year-create','session-year-edit'])
             <a class="m3-button m3-button--text panel-nav__year-management" href="{{ route('new-year.index') }}">{{ __('Prepare school year') }}</a>
         @endcanany
+        <div class="panel-nav__utilities">
+            @if(Route::has('search'))
+                <a class="m3-navigation-drawer__item panel-nav__search" href="{{ route('search') }}" data-panel-nav-search>
+                    <x-icon name="search" :size="24" />
+                    <span>{{ __('search_title') }}</span>
+                </a>
+            @endif
+            <label class="m3-text-field m3-text-field--select panel-field--compact panel-nav__language" for="panel-nav-language">
+                <select id="panel-nav-language" class="m3-text-field__input" data-panel-language-switch>
+                    @foreach(get_language() as $language)
+                        <option value="{{ url('set-language').'/'.$language->code }}" lang="{{ $language->code }}" @selected(app()->getLocale() === $language->code)>{{ $language->name }}</option>
+                    @endforeach
+                </select>
+                <span class="m3-text-field__label">{{ __('nav_change_language') }}</span>
+            </label>
+        </div>
         <button type="button" id="sidebar-close" class="m3-icon-button panel-nav__close" aria-label="{{ __('close') }}">
             <x-icon name="close" :size="24" />
         </button>

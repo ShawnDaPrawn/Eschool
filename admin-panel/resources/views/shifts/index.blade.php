@@ -17,18 +17,18 @@
                         <form class="pt-3 section-create-form" id="create-form" action="{{route('shifts.store')}}" method="POST" novalidate="novalidate">
                             <div class="row">
                                 <div class="form-group col-sm-6 col-md-6">
-                                    <label>{{ __('shift_name') }} <span class="text-danger">*</span></label>
-                                    <input name="name" type="text" placeholder="{{ __('name') }}" class="form-control" required/>
+                                    <label for="create-shift-name">{{ __('shift_name') }} <span class="text-danger">*</span></label>
+                                    <input name="name" id="create-shift-name" type="text" placeholder="{{ __('name') }}" class="form-control" required/>
                                 </div>
                                 <div class="form-group col-sm-6 col-md-6">
-                                    <label>{{ __('start_time') }} <span class="text-danger">*</span></label>
-                                    <input name="start_time" type="text" class="form-control timepicker-popup" required/>
+                                    <label for="create-shift-start-time">{{ __('start_time') }} <span class="text-danger">*</span></label>
+                                    <input name="start_time" id="create-shift-start-time" type="text" class="form-control timepicker-popup" required/>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="form-group col-sm-6 col-md-6">
-                                    <label>{{ __('end_time') }} <span class="text-danger">*</span></label>
-                                    <input name="end_time" type="text" class="form-control timepicker-popup" required/>
+                                    <label for="create-shift-end-time">{{ __('end_time') }} <span class="text-danger">*</span></label>
+                                    <input name="end_time" id="create-shift-end-time" type="text" class="form-control timepicker-popup" required/>
                                 </div>
                                 <div class="form-group col-sm-6 col-md-6">
                                     <label>{{ __('status') }} <span class="text-danger">*</span></label><br>
@@ -95,17 +95,17 @@
                             <div class="modal-body">
                                 <div class="row">
                                     <div class="form-group col-sm-6 col-md-6">
-                                        <label>{{ __('shift_name') }} <span class="text-danger">*</span></label>
+                                        <label for="edit_name">{{ __('shift_name') }} <span class="text-danger">*</span></label>
                                         <input name="edit_name" id="edit_name" type="text" placeholder="{{ __('name') }}" class="form-control" required/>
                                     </div>
                                     <div class="form-group col-sm-6 col-md-6">
-                                        <label>{{ __('start_time') }} <span class="text-danger">*</span></label>
+                                        <label for="edit_start_time">{{ __('start_time') }} <span class="text-danger">*</span></label>
                                         <input name="edit_start_time" id="edit_start_time" type="text" class="form-control timepicker-popup" required/>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="form-group col-sm-6 col-md-6">
-                                        <label>{{ __('end_time') }} <span class="text-danger">*</span></label>
+                                        <label for="edit_end_time">{{ __('end_time') }} <span class="text-danger">*</span></label>
                                         <input name="edit_end_time" id="edit_end_time" type="text" class="form-control timepicker-popup" required/>
                                     </div>
                                     <div class="form-group col-sm-6 col-md-6">

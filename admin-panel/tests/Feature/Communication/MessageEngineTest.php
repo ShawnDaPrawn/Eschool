@@ -336,7 +336,8 @@ class MessageEngineTest extends TestCase
 
     public function test_panel_supports_private_draft_preview_submit_and_preserves_conflicting_text(): void
     {
-        $this->actingAs($this->teacher(), 'web')->get('/communication-centre')->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertSee('Edit private message')->assertSee('Message fractions group');
+        $this->actingAs($this->teacher(), 'web')->get('/communication-centre')->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertDontSee('aria-label="Edit private message"', false);
+        $this->get('/communication-centre?view=compose')->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertSee('Edit private message')->assertSee('Message fractions group');
         $m = $this->draft();
         $this->get('/communication-centre?message_id='.$m->id.'&preview_message=1')->assertOk()->assertSee('Audience and delivery preview')->assertSee('Submit previewed message');
         $m->update(['revision' => $m->revision + 1]);

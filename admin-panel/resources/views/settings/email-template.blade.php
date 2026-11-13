@@ -21,19 +21,19 @@
                     {{-- Toast notification (replaces full-page alert) --}}
                     <div id="toast-msg"></div>
 
-                    <ul class="nav nav-tabs" id="emailTab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="student-tab" data-toggle="tab" href="#student-registration" role="tab">
+                    <ul class="nav nav-tabs" id="emailTab" role="tablist" aria-label="{{ __('email_template') }}">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="student-tab" data-toggle="tab" href="#student-registration" role="tab" aria-controls="student-registration" aria-selected="true">
                                {{ __('student_email_template') }}
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="staff-tab" data-toggle="tab" href="#staff" role="tab">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="staff-tab" data-toggle="tab" href="#staff" role="tab" aria-controls="staff" aria-selected="false" tabindex="-1">
                                 {{ __('staff_email_template') }}
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="rejection-tab" data-toggle="tab" href="#rejection" role="tab">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="rejection-tab" data-toggle="tab" href="#rejection" role="tab" aria-controls="rejection" aria-selected="false" tabindex="-1">
                                {{ __('application_rejection') }}
                             </a>
                         </li>
@@ -42,8 +42,8 @@
                     <div class="tab-content mt-3" id="emailTabContent">
 
                         {{-- ===== STUDENT TAB ===== --}}
-                        <div class="tab-pane fade show active" id="student-registration" role="tabpanel">
-                            <form id="studentForm">
+                        <div class="tab-pane fade show active" id="student-registration" role="tabpanel" aria-labelledby="student-tab">
+                            <form id="studentForm" data-email-template action="{{ route('email.store') }}" method="post">
                                 @csrf
                                 <input type="hidden" name="type" value="student">
 
@@ -72,8 +72,8 @@
                         </div>
 
                         {{-- ===== STAFF TAB ===== --}}
-                        <div class="tab-pane fade" id="staff" role="tabpanel">
-                            <form id="staffForm">
+                        <div class="tab-pane fade" id="staff" role="tabpanel" aria-labelledby="staff-tab">
+                            <form id="staffForm" data-email-template action="{{ route('email.store') }}" method="post">
                                 @csrf
                                 <input type="hidden" name="type" value="staff">
 
@@ -99,8 +99,8 @@
                             </form>
                         </div>
                         {{-- ===== REJECTION TAB ===== --}}
-                        <div class="tab-pane fade" id="rejection" role="tabpanel" aria-labelledby="rejection-link">
-                            <form action="{{ route('email.store') }}" method="post">
+                        <div class="tab-pane fade" id="rejection" role="tabpanel" aria-labelledby="rejection-tab">
+                            <form data-email-template action="{{ route('email.store') }}" method="post">
                                 @csrf
                                 <input type="hidden" name="type" value="rejection">
 
@@ -146,8 +146,9 @@
         editors[id] = createRichTextEditor(document.getElementById(id), 450);
     }
 
-    $(document).on('submit', 'form', function(e) {
+    $(document).on('submit', 'form[data-email-template]', function(e) {
         e.preventDefault();
+        var form = this;
         var $btn         = $(this).find('button[type="submit"]');
         var originalText = $btn.text();
 
@@ -164,6 +165,7 @@
             contentType: false,
             headers: { 'X-CSRF-TOKEN': csrfToken },
             success: function(response) {
+                form.dispatchEvent(new CustomEvent('page-form:saved', {bubbles: true}));
                 $btn.html('<span>✓ Saved!</span>');
                 setTimeout(function() {
                     $btn.prop('disabled', false).text(originalText);
@@ -187,7 +189,20 @@
     $(function() {
         initEditor('student_content');
 
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+        $('#emailTab [role="tab"]').on('keydown', function(e) {
+            var tabs = Array.from(document.querySelectorAll('#emailTab [role="tab"]'));
+            var index = tabs.indexOf(this);
+            if (e.key === 'ArrowRight') index = (index + 1) % tabs.length;
+            else if (e.key === 'ArrowLeft') index = (index + tabs.length - 1) % tabs.length;
+            else if (e.key === 'Home') index = 0;
+            else if (e.key === 'End') index = tabs.length - 1;
+            else return;
+            e.preventDefault();
+            $(tabs[index]).tab('show');
+            tabs[index].focus();
+        }).on('shown.bs.tab', function(e) {
+            $('#emailTab [role="tab"]').attr('tabindex', '-1');
+            $(e.target).attr('tabindex', '0');
             var target = $(e.target).attr('href');
             localStorage.setItem('activeEmailTab', target);
 

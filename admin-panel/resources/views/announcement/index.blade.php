@@ -52,4 +52,4 @@
     @endif
 </div>
 @endsection
-@section('script')<script src="{{ asset('assets/js/announcement-workspace.js') }}" defer></script>@endsection
+@section('script')<script src="{{ asset('assets/js/announcement-workspace.js') }}?v={{ filemtime(public_path('assets/js/announcement-workspace.js')) }}" defer></script>@endsection

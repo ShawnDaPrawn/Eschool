@@ -1,7 +1,6 @@
 # Files that still use Bootstrap. See tests/Unit/BootstrapFreeTest.php.
 # This list only shrinks: build new and rewritten views with the Material 3
 # library (public/assets/m3) and remove them from here.
-app/Http/Controllers/AnnouncementController.php
 app/Http/Controllers/AssignmentController.php
 app/Http/Controllers/AttendanceController.php
 app/Http/Controllers/CategoryController.php
@@ -53,7 +52,6 @@ public/assets/js/custom/function.js
 public/assets/js/custom/staff-attendance.js
 public/assets/js/custom/timetable.js
 resources/views/after-update-note-modal.blade.php
-resources/views/announcement/index.blade.php
 resources/views/assignment/index.blade.php
 resources/views/assignment/submission.blade.php
 resources/views/category/index.blade.php

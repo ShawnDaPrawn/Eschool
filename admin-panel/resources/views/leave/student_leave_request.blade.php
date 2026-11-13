@@ -18,4 +18,4 @@
     @include('leave.partials.record-dialog', ['leaveMode' => 'learner'])
 </div>
 @endsection
-@section('script')<script src="{{ asset('assets/js/custom/leave-workspace.js') }}" defer></script>@endsection
+@section('script')<script src="{{ asset('assets/js/custom/leave-workspace.js') }}?v={{ filemtime(public_path('assets/js/custom/leave-workspace.js')) }}" defer></script>@endsection

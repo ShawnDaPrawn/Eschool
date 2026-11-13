@@ -26,7 +26,8 @@ const test = base.extend<{}, { isolatedAdminState: Awaited<ReturnType<BrowserCon
  * Every panel page, for the Super Admin, at the project's width (1280,
  * 1024 and 375 px): it loads, logs no JavaScript or console errors and requests nothing
  * that fails, has no horizontal scroll, and has no serious or critical axe
- * violation. Known legacy problems are in allowlist.json, each with a reason.
+ * violation. Any future exception must be recorded in allowlist.json with a
+ * reason; the completed revision has no accessibility, console or scroll exceptions.
  */
 const pages = panelPages();
 

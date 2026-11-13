@@ -74,7 +74,7 @@
                             </div>
                             <div class="row">
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('class') . ' ' . __('section') }} <span
+                                    <label for="class_section">{{ __('class') . ' ' . __('section') }} <span
                                             class="text-danger">*</span></label>
                                     <select name="class_section_id" id="class_section" class="form-control select2">
                                         <option value="">{{ __('select') . ' ' . __('class') . ' ' . __('section') }}

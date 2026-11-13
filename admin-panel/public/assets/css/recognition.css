@@ -11,3 +11,8 @@
 .recognition .panel-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem}
 .recognition .panel-actions>h2{margin-inline-end:auto}
 @media(max-width:600px){.recognition-editor>.recognition-fields{grid-template-columns:minmax(0,1fr)}.recognition .panel-actions>a{inline-size:100%;justify-content:center}.recognition .m3-card__content{padding:1rem}.recognition-fields>button{inline-size:100%}}
+
+/* Section and record headings follow the Material type hierarchy. */
+.recognition h2:where(:not(.m3-card__headline)){font-size:var(--md-sys-typescale-title-large-size);line-height:var(--md-sys-typescale-title-large-line-height);font-weight:var(--md-sys-typescale-title-large-weight)}
+.recognition h3{font-size:var(--md-sys-typescale-title-medium-size);line-height:var(--md-sys-typescale-title-medium-line-height);font-weight:var(--md-sys-typescale-title-medium-weight)}
+.recognition h4{font-size:var(--md-sys-typescale-title-small-size);line-height:var(--md-sys-typescale-title-small-line-height);font-weight:var(--md-sys-typescale-title-small-weight)}

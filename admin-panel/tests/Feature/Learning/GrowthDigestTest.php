@@ -336,7 +336,9 @@ class GrowthDigestTest extends TestCase
     public function test_panel_manager_saves_badges_and_teacher_or_other_school_cannot(): void
     {
         $admin = $this->superAdmin();
-        $this->actingAs($admin)->get('/recognition/awards')->assertOk()->assertSee('Persistence badges')->assertSee('Different practice days needed in a week');
+        $this->actingAs($admin)->get('/recognition/awards?view=configuration')->assertOk()->assertSee('Persistence badges');
+        $this->get('/recognition/awards?view=editor&task=badges')->assertOk()
+            ->assertSee('Persistence badges')->assertSee('Different practice days needed in a week');
         $form = $this->operation(['expected_account_id' => $admin->id, 'expected_school_id' => 1, 'revision' => 0, 'practice_days_enabled' => 1, 'practice_days_required' => 5, 'comeback_enabled' => 1, 'comeback_below_percent' => 40]);
         $this->post('/recognition/awards/actions/badges', array_replace($form, ['expected_school_id' => 2]))->assertForbidden();
         $this->assertSame(0, RecognitionBadgeSettings::count());

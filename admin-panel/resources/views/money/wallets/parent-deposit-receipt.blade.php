@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Parent wallet deposit receipt'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')<div class="content-wrapper m3 fee-plan-workbench"><x-page.header :title="__('Parent wallet deposit receipt')" />
 <p>{{ app(\App\Services\Platform\Tenancy\CurrentSchool::class)->school()->name }}</p>
 <dl><dt>{{ __('Receipt') }}</dt><dd>{{ $receipt['verified_receipt']['reference'] }}</dd><dt>{{ __('Original parent holder') }}</dt><dd>{{ $owner->first_name }} {{ $owner->last_name }}</dd><dt>{{ __('Actual verified amount') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($receipt['verified_receipt']['amount_cents'],$receipt['currency'])->format() }}</dd><dt>{{ __('Date funding received') }}</dt><dd>{{ $receipt['verified_receipt']['received_on'] }}</dd><dt>{{ __('Reference') }}</dt><dd>{{ $receipt['verified_receipt']['source_reference'] }}</dd><dt>{{ __('Funding method') }}</dt><dd>{{ $receipt['verified_receipt']['method']==='cash'?__('Cash'):__('EFT') }}</dd></dl>

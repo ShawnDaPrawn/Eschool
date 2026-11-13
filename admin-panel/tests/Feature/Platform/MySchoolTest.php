@@ -36,7 +36,9 @@ class MySchoolTest extends TestCase
     {
         $this->actingAs($this->superAdmin(), 'web')->withSession(['locale' => 'ar', 'language' => (object) ['code' => 'ar', 'is_rtl' => 1]])
             ->get('/school-information')->assertOk()->assertSee('بيانات الاتصال وهوية المدرسة')
-            ->assertSee('نشر المستند')->assertSee('مواعيد الفصول الدراسية');
+            ->assertDontSee('name="document"', false);
+        $this->get('/school-information?view=publish')->assertOk()->assertSee('نشر المستند')->assertSee('name="document"', false);
+        $this->get('/school-information?view=terms')->assertOk()->assertSee('مواعيد الفصول الدراسية');
     }
 
     public function test_admin_edits_contacts_and_branding_using_the_existing_scoped_settings(): void
@@ -59,7 +61,7 @@ class MySchoolTest extends TestCase
 
     public function test_school_documents_appear_for_all_school_profiles_and_can_be_unlisted(): void
     {
-        $this->actingAs($this->superAdmin(), 'web')->post('/school-information/documents', ['title' => 'Fee schedule', 'kind' => 'fee_schedule', 'document' => $this->pdf()])->assertRedirect('/school-information');
+        $this->actingAs($this->superAdmin(), 'web')->post('/school-information/documents', ['title' => 'Fee schedule', 'kind' => 'fee_schedule', 'document' => $this->pdf()])->assertRedirect('/school-information?view=documents');
         foreach (['asha_user', 'farid_user', 'tara_user'] as $key) {
             $reply = $this->actingAs(User::findOrFail($this->schoolA->ids[$key]))->getJson('/api/v2/schools/1/my-school')->assertOk();
             $this->assertSame('Fee schedule', $reply->json('data.documents.0.title'));

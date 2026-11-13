@@ -155,7 +155,9 @@
                                     </span>
                                 </div>
                                 <div class="form-group  mt-4">
-                                    <button class="btn btn-xs btn-danger btn-icon"><i class="fa fa-trash"></i></button>
+                                    <x-m3.button type="submit" variant="error" icon="delete">
+                                        {{ __('delete') }} {{ __('messages') }}
+                                    </x-m3.button>
                                 </div>
                             </div>
                         </form>

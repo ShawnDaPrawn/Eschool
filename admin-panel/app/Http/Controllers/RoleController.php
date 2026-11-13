@@ -137,10 +137,14 @@ class RoleController extends Controller
         $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href='.route('roles-list', $row->id).' class="btn btn-xs btn-gradient-info btn-rounded btn-icon"><i class="fa fa-eye"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href='.route('roles.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon" data-id='.$row->id.' title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href='.route('role-access.edit', $row->id).' class="btn btn-xs btn-gradient-success btn-rounded btn-icon" title="'.e(__('Access by module')).'" aria-label="'.e(__('Access by module')).'"><i class="fa fa-th-list"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href='.route('roles.destroy', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
+            $viewLabel = e(__('View :role', ['role' => $row->name]));
+            $editLabel = e(__('Edit :role', ['role' => $row->name]));
+            $accessLabel = e(__('Access by module').': '.$row->name);
+            $deleteLabel = e(__('Delete :role', ['role' => $row->name]));
+            $operate = '<a href="'.e(route('roles-list', $row->id)).'" class="btn btn-xs btn-gradient-info btn-rounded btn-icon" aria-label="'.$viewLabel.'"><i class="fa fa-eye" aria-hidden="true"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href="'.e(route('roles.edit', $row->id)).'" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon" data-id="'.(int) $row->id.'" title="'.$editLabel.'" aria-label="'.$editLabel.'"><i class="fa fa-edit" aria-hidden="true"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href="'.e(route('role-access.edit', $row->id)).'" class="btn btn-xs btn-gradient-success btn-rounded btn-icon" title="'.$accessLabel.'" aria-label="'.$accessLabel.'"><i class="fa fa-th-list" aria-hidden="true"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href="'.e(route('roles.destroy', $row->id)).'" class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id="'.(int) $row->id.'" aria-label="'.$deleteLabel.'"><i class="fa fa-trash" aria-hidden="true"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;

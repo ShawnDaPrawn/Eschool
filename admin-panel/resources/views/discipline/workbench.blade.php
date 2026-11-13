@@ -2,7 +2,7 @@
 @section('title', __('School discipline'))
 @section('css')
 <link rel="stylesheet" href="{{ asset('assets/css/progress-notes.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/css/discipline.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/discipline.css') }}?v={{ filemtime(public_path('assets/css/discipline.css')) }}">
 @endsection
 @section('content')
 <div class="content-wrapper m3 page-content progress-notes discipline-workbench" @if($hasDraft) data-unsaved-draft @endif>
@@ -41,4 +41,4 @@
 @endif
 </div>
 @endsection
-@section('script')<script src="{{ asset('assets/js/discipline-workbench.js') }}" defer></script>@endsection
+@section('script')<script src="{{ asset('assets/js/discipline-workbench.js') }}?v={{ filemtime(public_path('assets/js/discipline-workbench.js')) }}" defer></script>@endsection

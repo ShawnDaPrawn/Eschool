@@ -447,15 +447,18 @@ class ClassController extends Controller
                 $relatedData[] = 'fees';
             }
 
-            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $editLabel = e(__('edit').' '.__('class').': '.$row->name);
+            $deleteLabel = e(__('delete').' '.__('class').': '.$row->name);
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="'.$editLabel.'" aria-label="'.$editLabel.'" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit" aria-hidden="true"></i></a>&nbsp;&nbsp;';
             $operate .= '
                 <a
                     href="'.route('class.destroy', $row->id).'"
                     class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form"
+                    aria-label="'.$deleteLabel.'" title="'.$deleteLabel.'"
                     data-id="'.$row->id.'"'
                 .(! empty($relatedData) ? " data-related='".json_encode($relatedData)."'" : '').
                 '>
-                    <i class="fa fa-trash"></i>
+                    <i class="fa fa-trash" aria-hidden="true"></i>
                 </a>';
 
             $tempRow['id'] = $row->id;

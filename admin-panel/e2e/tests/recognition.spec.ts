@@ -56,6 +56,7 @@ for (const width of [390, 820, 1280]) {
       const style=getComputedStyle(link);return {label:link.textContent?.trim(),variant:link.className,active:link.getAttribute('aria-current'),color:style.color,background:style.backgroundColor};
     }));
     await test.info().attach(`recognition-link-colors-${width}`,{body:JSON.stringify(linkColors,null,2),contentType:'application/json'});
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path:test.info().outputPath(`award-configuration-${width}.png`),fullPage:true});
     await page.getByRole('link',{name:'Create award category',exact:true}).click();
     const category=page.getByRole('form',{name:/^Award category configuration/});
@@ -77,6 +78,7 @@ for (const width of [390, 820, 1280]) {
     await definition.locator('[name="award_category_id"]').selectOption({label:categoryName});
     await definition.locator('[name="name"]').fill(awardName);
     await definition.locator('[name="criteria"]').fill('Recognise the leading goal scorer in the U14 boys soccer team.');
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path:test.info().outputPath(`award-definition-${width}.png`),fullPage:true});
     await definition.getByRole('button',{name:'Save reusable definition',exact:true}).click();
     await expect(page.getByRole('heading',{name:awardName,exact:true})).toBeVisible();
@@ -98,6 +100,7 @@ for (const width of [390, 820, 1280]) {
     await page.goto(`/recognition/awards?learner_id=${fixture.learner}`);
     await expect(page.getByRole('heading',{name:'Permanent awards',exact:true})).toBeVisible();
     await expect(page.getByRole('heading',{name:awardName,exact:true})).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path:test.info().outputPath(`award-profile-${width}.png`),fullPage:true});
     await page.locator('.recognition-entry').filter({has:page.getByRole('heading',{name:awardName,exact:true})}).getByRole('link',{name:'Correct presentation',exact:true}).click();
     const correction=page.getByRole('form',{name:/^Correct permanent award/}).first();await correction.locator('[name="reason"]').fill('Recognition browser certificate correction');await correction.getByRole('button',{name:'Retain a correction and remove from active profile',exact:true}).click();

@@ -135,7 +135,7 @@
 [data-panel-layout] textarea.m3-text-field__input { min-block-size: 6rem; resize: vertical; }
 [data-panel-layout] select[multiple].m3-text-field__input { min-block-size: 9rem; }
 [data-panel-layout] input[type="file"].m3-text-field__input { overflow: hidden; padding-block: .75rem; }
-[data-panel-layout] .content-wrapper input[type="file"] { inline-size: 100%; min-inline-size: 0; max-inline-size: 100%; }
+[data-panel-layout] .content-wrapper input[type="file"]:not(.m3-visually-hidden) { inline-size: 100%; min-inline-size: 0; max-inline-size: 100%; }
 [data-panel-layout] input[type="file"]::file-selector-button {
     border: 1px solid var(--md-sys-color-outline);
     border-radius: var(--app-radius);

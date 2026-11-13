@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Group material documents'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}?v={{ filemtime(public_path('assets/css/activity-workbench.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content activity-workbench">
 <x-page.header :title="__('Group material documents')" :subtitle="__('Documents are available only to current authorized group members.')" />

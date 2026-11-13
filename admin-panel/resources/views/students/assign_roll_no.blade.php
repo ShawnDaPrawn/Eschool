@@ -17,7 +17,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('class_section') }} </label>
+                                <label for="filter_roll_number_class_section_id">{{ __('class_section') }} </label>
                                 <select name="filter_roll_number_class_section_id" id="filter_roll_number_class_section_id"
                                     class="form-control">
                                     <option value="">{{ __('select_class_section') }}</option>
@@ -31,7 +31,7 @@
                             </div>
 
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('sort_by') }} </label>
+                                <label for="sort_by">{{ __('sort_by') }} </label>
                                 <select name="sort_by" id="sort_by" class="form-control">
                                     <option value="first_name">{{ __('first_name') }}</option>
                                     <option value="last_name">{{ __('last_name') }}</option>

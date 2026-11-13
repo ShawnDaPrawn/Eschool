@@ -5,7 +5,7 @@
 @endsection
 
 @section('css')
-    <link rel="stylesheet" href="{{ asset('assets/css/wizard.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/wizard.css') }}?v={{ filemtime(public_path('assets/css/wizard.css')) }}">
 @endsection
 
 @section('content')

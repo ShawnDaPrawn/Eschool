@@ -382,7 +382,8 @@
       "admin-panel/resources/views/leave/leave_setting.blade.php",
       "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
       "admin-panel/public/assets/js/custom/leave-workspace.js",
-      "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
     "status": "Implemented with the existing authority and source-backed result/error states",
@@ -406,7 +407,8 @@
       "admin-panel/resources/views/leave/leave_setting.blade.php",
       "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
       "admin-panel/public/assets/js/custom/leave-workspace.js",
-      "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
     "status": "Implemented with the existing authority and source-backed result/error states",
@@ -1176,7 +1178,8 @@
       "admin-panel/resources/views/leave/leave_setting.blade.php",
       "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
       "admin-panel/public/assets/js/custom/leave-workspace.js",
-      "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
     "status": "Implemented with the existing authority and source-backed result/error states",
@@ -1673,7 +1676,8 @@
       "admin-panel/resources/views/leave/leave_setting.blade.php",
       "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
       "admin-panel/public/assets/js/custom/leave-workspace.js",
-      "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
     "status": "Implemented with the existing authority and source-backed result/error states",
@@ -2040,7 +2044,8 @@
     "implementation": [
       "admin-panel/resources/views/leave/partials/create-form.blade.php",
       "admin-panel/resources/views/leave/leave_setting.blade.php",
-      "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave?view=create or /leave-request?view=create; missing settings blocks submission with configuration next step",
     "status": "Implemented with the existing authority and source-backed result/error states",
@@ -2791,7 +2796,8 @@
       "admin-panel/resources/views/leave/leave_setting.blade.php",
       "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
       "admin-panel/public/assets/js/custom/leave-workspace.js",
-      "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
     "status": "Implemented with the existing authority and source-backed result/error states",
@@ -2811,7 +2817,8 @@
       "admin-panel/resources/views/leave/leave_setting.blade.php",
       "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
       "admin-panel/public/assets/js/custom/leave-workspace.js",
-      "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
     "status": "Implemented with the existing authority and source-backed result/error states",
@@ -2834,7 +2841,8 @@
       "admin-panel/resources/views/leave/leave_setting.blade.php",
       "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
       "admin-panel/public/assets/js/custom/leave-workspace.js",
-      "admin-panel/app/Http/Controllers/LeaveMasterController.php"
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
     ],
     "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
     "status": "Implemented with the existing authority and source-backed result/error states",

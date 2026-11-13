@@ -18,7 +18,7 @@
                             <form class="create_exam_timetable_form" action="{{ url('exam-timetable') }}" method="POST">
                                 <div class="row">
                                     <div class="form-group col-md-4">
-                                        <label>{{ __('session_years') }} <span class="text-danger">*</span></label>
+                                        <label for="select_session_year">{{ __('session_years') }} <span class="text-danger">*</span></label>
                                         <select required name="select_session_year" id="select_session_year"
                                             class="form-control select2" style="width:100%;" tabindex="-1"
                                             aria-hidden="true">
@@ -30,7 +30,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4">
-                                        <label>{{ __('exam') }} </label>
+                                        <label for="exam_options">{{ __('exam') }} </label>
                                         <select name="exam_id" id="exam_options" class="form-control" required>
                                             <option value="">--{{ __('select') }}--</option>
                                             @foreach ($exams as $exam)
@@ -41,7 +41,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4">
-                                        <label>{{ __('class') }} </label>
+                                        <label for="exam_classes_options">{{ __('class') }} </label>
                                         <select name="class_id" id="exam_classes_options" class="form-control" required>
                                             <option value="">--{{ __('select') }}--</option>
                                             @foreach ($class_name as $class)
@@ -60,7 +60,7 @@
                                         <div class="form-group col-md-4">
                                             <label>{{ __('subject') }} </label>
                                             <select name="timetable[0][subject_id]"
-                                                class="form-control exam_subjects_options" required>
+                                                class="form-control exam_subjects_options" aria-label="{{ __('subject') }}" required>
                                                 <option value="">--{{ __('select') }}--</option>
                                             </select>
                                         </div>
@@ -103,9 +103,9 @@
                                                 class="venue form-control" placeholder="{{ __('Venue') }}" maxlength="120" autocomplete="off">
                                         </div>
                                         <div class="form-group col-md-1 pl-0 mt-4">
-                                            <button type="button"
+                                            <button type="button" aria-label="{{ __('Add row') }}"
                                                 class="btn btn-inverse-success btn-icon add-exam-timetable-content">
-                                                <i class="fa fa-plus"></i></button>
+                                                <i class="fa fa-plus" aria-hidden="true"></i></button>
                                         </div>
                                         <div class="col-12">
                                             <hr>
@@ -213,9 +213,9 @@
                                     <input type="hidden" name="edit_timetable[0][timetable_id]"
                                         class="edit_timetable_id form-control" required>
                                     <div class="form-group col-md-4">
-                                        <label>{{ __('subject') }} </label> <span class="text-danger">*</span></label>
+                                        <label>{{ __('subject') }} <span class="text-danger">*</span></label>
                                         <select name="edit_timetable[0][subject_id]"
-                                            class="form-control edit_exam_subjects_options" required></select>
+                                            class="form-control edit_exam_subjects_options" aria-label="{{ __('subject') }}" required></select>
                                     </div>
                                     <div class="form-group col-md-4">
                                         <label>{{ __('total_marks') }} <span class="text-danger">*</span></label>
@@ -256,9 +256,9 @@
                                             class="edit_venue form-control" placeholder="{{ __('Venue') }}" maxlength="120" autocomplete="off">
                                     </div>
                                     <div class="form-group col-md-1 pl-0 mt-4">
-                                        <button type="button"
+                                        <button type="button" aria-label="{{ __('Remove row') }}"
                                             class="btn btn-inverse-danger btn-icon remove-edit-exam-timetable-content">
-                                            <i class="fa fa-times"></i></button>
+                                            <i class="fa fa-times" aria-hidden="true"></i></button>
                                     </div>
                                     <div class="col-12">
                                         <hr>

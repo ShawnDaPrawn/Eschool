@@ -9943,5 +9943,9 @@
     "progress_band_": "progress_band_",
     "Choose allocation dates covered by the learner’s enrolment in this school year.": "Choose allocation dates covered by the learner’s enrolment in this school year.",
     "Current saved action": "Current saved action",
-    "Classroom group": "Classroom group"
+    "Classroom group": "Classroom group",
+    "Delete :role": "Delete :role",
+    "Edit :role": "Edit :role",
+    "Remove default value": "Remove default value",
+    "View :role": "View :role"
 }

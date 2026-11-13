@@ -330,15 +330,17 @@ class SubjectController extends Controller
                 $relatedData[] = 'subject teachers';
             }
 
-            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $editLabel = e(__('edit').' '.__('subject').': '.$row->name);
+            $deleteLabel = e(__('delete').' '.__('subject').': '.$row->name);
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="'.$editLabel.'" aria-label="'.$editLabel.'" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit" aria-hidden="true"></i></a>&nbsp;&nbsp;';
             $operate .= '
             <a
                 href="'.route('subject.destroy', $row->id).'"
-                class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form"
+                class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" aria-label="'.$deleteLabel.'" title="'.$deleteLabel.'"
                 data-id="'.$row->id.'"'
                 .(! empty($relatedData) ? " data-related='".json_encode($relatedData)."'" : '').
                 '>
-                <i class="fa fa-trash"></i>
+                <i class="fa fa-trash" aria-hidden="true"></i>
             </a>';
 
             $tempRow['id'] = $row->id;
@@ -347,7 +349,7 @@ class SubjectController extends Controller
             $tempRow['code'] = $row->code;
             $tempRow['bg_color'] = $row->bg_color;
 
-            $tempRow['image'] = $row->image;
+            $tempRow['image'] = $row->getRawOriginal('image') ? $row->image : asset('assets/no-image.svg');
 
             $tempRow['medium_id'] = $row->medium_id;
             $tempRow['medium_name'] = $row->medium->name;

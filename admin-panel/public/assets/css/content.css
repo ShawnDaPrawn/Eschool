@@ -453,7 +453,7 @@ a.badge:focus {
 .badge-secondary,
 .badge-soft-secondary {
     background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 14%, var(--md-sys-color-surface-container-lowest));
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-surface);
     border-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 32%, transparent);
 }
 

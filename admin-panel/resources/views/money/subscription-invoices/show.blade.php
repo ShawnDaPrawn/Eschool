@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', $record['reference'])
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
 <x-page.header :title="$record['reference']" :subtitle="__('Issued subscription record for :school',['school'=>$record['school_name']])" />

@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Desk wallet top-ups'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')<div class="content-wrapper m3 fee-plan-workbench"><x-page.header :title="__('Desk wallet top-ups')" />
 @php
 $section=request('section','history');

@@ -118,4 +118,4 @@
 </div>
 @endsection
 
-@section('script')<script src="{{ asset('assets/js/custom/term-workspace.js') }}" defer></script>@endsection
+@section('script')<script src="{{ asset('assets/js/custom/term-workspace.js') }}?v={{ filemtime(public_path('assets/js/custom/term-workspace.js')) }}" defer></script>@endsection

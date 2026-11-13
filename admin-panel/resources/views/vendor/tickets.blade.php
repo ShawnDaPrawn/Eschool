@@ -48,5 +48,5 @@
 @endif
 <p><a href="{{ route('vendor.tickets.index',['vendor'=>$vendor]) }}">{{ __('Look up another ticket') }}</a></p>
 </div>
-<script src="{{ asset('assets/js/vendor-ticket-admission.js') }}" defer></script>
+<script src="{{ asset('assets/js/vendor-ticket-admission.js') }}?v={{ filemtime(public_path('assets/js/vendor-ticket-admission.js')) }}" defer></script>
 @endsection

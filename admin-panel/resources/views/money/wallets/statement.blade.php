@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Wallets'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')<div class="content-wrapper m3 fee-plan-workbench"><x-page.header :title="__('Wallets')" />
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 <x-m3.button variant="text" :href="route('wallet-finance.index')">{{ __('Back to wallet balances') }}</x-m3.button><h2>{{ $statement['owner_name'] }}</h2><p>{{ __('Wallet balance') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($statement['balance_cents'],$statement['currency'])->format() }}</p>

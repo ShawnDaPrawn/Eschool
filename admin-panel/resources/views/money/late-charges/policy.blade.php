@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('School late-charge rule'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench late-charge-workbench">
 <x-page.header :title="__('School late-charge rule')" :subtitle="__('Late charges start disabled. Set an explicit gross flat amount or rate, cap, grace period, due days and VAT treatment for one original learner debt share per payer.')" />

@@ -26,7 +26,7 @@ for (const width of [390, 820, 1280]) {
     await page.getByLabel('Caption', { exact: true }).fill(caption);
     let releaseViewer!: () => void;
     const viewerReady = new Promise<void>(resolve => { releaseViewer = resolve; });
-    await page.route('**/assets/js/private-gallery.js', async route => { await viewerReady; await route.continue(); }, { times: 1 });
+    await page.route(/\/assets\/js\/private-gallery\.js(?:\?|$)/, async route => { await viewerReady; await route.continue(); }, { times: 1 });
     await page.getByRole('button', { name: 'Save private photograph', exact: true }).click();
     const card = page.locator('article').filter({ hasText: caption });
     await expect(card).toBeVisible();

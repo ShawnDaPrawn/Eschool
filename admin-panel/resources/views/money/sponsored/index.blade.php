@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Sponsored learning places'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content fee-plan-workbench"><x-page.header :title="__('Sponsored learning places')" :subtitle="__('Assign this school’s sponsored places to learners and review available capacity.')" />
 @if($records->isEmpty())<x-page.empty-state :title="__('No sponsored places recorded')" :message="__('Sponsorship funding and capacity are recorded by the platform. Current school administrators assign the available places here.')" />

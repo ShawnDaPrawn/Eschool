@@ -9,9 +9,9 @@
     <link rel="icon" href="{{ asset('assets/navigateed/favicon.svg') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/m3-tokens.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/m3-base.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/m3/m3.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/m3/m3.css') }}?v={{ filemtime(public_path('assets/m3/m3.css')) }}">
     <link rel="stylesheet" href="{{ asset('assets/css/panel.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/school-auth.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/school-auth.css') }}?v={{ filemtime(public_path('assets/css/school-auth.css')) }}">
 </head>
 <body class="m3 school-auth">
     <a class="m3-skip-link" href="#auth-main">{{ __('skip_to_content') }}</a>
@@ -39,6 +39,6 @@
             </div>
         </main>
     </div>
-    <script src="{{ asset('assets/js/school-auth.js') }}" defer></script>
+    <script src="{{ asset('assets/js/school-auth.js') }}?v={{ filemtime(public_path('assets/js/school-auth.js')) }}" defer></script>
 </body>
 </html>

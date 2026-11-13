@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Vendor orders'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}"><link rel="stylesheet" href="{{ asset('assets/css/vendor-catalogues.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}"><link rel="stylesheet" href="{{ asset('assets/css/vendor-catalogues.css') }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench vendor-catalogues">
     <x-page.header :title="__('Vendor orders')" :subtitle="__('Review paid orders and validate collection once at the correct counter.')" />

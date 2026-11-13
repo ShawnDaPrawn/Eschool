@@ -23,6 +23,7 @@ for (const width of [390, 820, 1280]) {
     await form.getByRole('textbox', {name: 'Season', exact: true}).fill('Browser rehearsal');
     await form.locator('[name="starts_on"]').fill(setup.starts_on);
     await form.locator('[name="ends_on"]').fill(setup.ends_on);
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path: test.info().outputPath(`activity-group-editor-${width}.png`), fullPage: true});
     await form.getByRole('button', {name: 'Save group', exact: true}).click();
     await expect(page.getByRole('status').filter({hasText: 'Activity saved'})).toBeVisible();
@@ -48,6 +49,7 @@ for (const width of [390, 820, 1280]) {
     await expect(form.getByRole('combobox').first()).toHaveValue('');
     await form.getByRole('combobox').first().selectOption('late');
     await form.getByRole('textbox', {name: 'Attendance reason', exact: true}).fill('Observed in browser rehearsal');
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path: test.info().outputPath(`activity-attendance-${width}.png`), fullPage: true});
     await form.getByRole('button', {name: 'Save attendance', exact: true}).click();
     await page.getByRole('link', {name:'Materials', exact:true}).click();

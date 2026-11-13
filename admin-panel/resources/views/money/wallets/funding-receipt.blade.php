@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('School wallet funding receipt'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')<div class="content-wrapper m3 fee-plan-workbench"><x-page.header :title="__('School wallet funding receipt')" />
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 <p>{{ app(\App\Services\Platform\Tenancy\CurrentSchool::class)->school()->name }}</p>

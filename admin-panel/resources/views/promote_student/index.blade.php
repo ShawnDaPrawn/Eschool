@@ -56,7 +56,7 @@
                                 </div>
 
                                 <div class="form-group col-sm-12 col-md-2">
-                                    <label>
+                                    <label for="filter_status">
                                         {{ __('status') }}
                                     </label>
                                     <select name="status" id="filter_status" class="form-control">

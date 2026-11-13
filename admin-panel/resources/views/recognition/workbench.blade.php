@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __($module === 'house_points' ? 'Houses and points' : 'Awards'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/recognition.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/recognition.css') }}?v={{ filemtime(public_path('assets/css/recognition.css')) }}">@endsection
 @section('content')
 <div data-recognition-root class="content-wrapper m3 page-content recognition @if($assembly) recognition--assembly @endif">
 <x-page.header :title="__($module === 'house_points' ? 'Houses and points' : 'Awards')" :subtitle="$module === 'house_points' ? __('Manage house membership, award points and retain reasoned corrections.') : __('Define achievements, nominate learners, record presentations and retain their history.')">

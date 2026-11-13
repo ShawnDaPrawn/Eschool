@@ -2530,7 +2530,8 @@ $(document).on("click", ".add-exam-timetable-content", function (e) {
         .removeClass("fa-plus");
     html.find(".add-exam-timetable-content")
         .addClass("btn-inverse-danger remove-exam-timetable-content")
-        .removeClass("btn-inverse-success add-exam-timetable");
+        .removeClass("btn-inverse-success add-exam-timetable-content")
+        .attr("aria-label", trans("Remove row"));
     $(this)
         .parent()
         .parent()
@@ -2630,13 +2631,13 @@ $("#edit_class_id").on("change", function () {
 // According to Conditions Show the Button of Adding new row
 function checkAddNewRowBtn() {
     if ($(".grade_content").find(".ending_range").length) {
-        let chk_max = $(this).val();
+        let chk_max = $("#create-grades .ending_range:last").val();
         if (chk_max < 100 && chk_max != "") {
             $(".add-grade-content").prop("disabled", false);
         } else {
             $(".add-grade-content").prop("disabled", true);
         }
-        $(".ending_range:last").keyup(function (e) {
+        $("#create-grades .ending_range:last").off("input.grade-range change.grade-range keyup.grade-range").on("input.grade-range change.grade-range keyup.grade-range", function () {
             let chk_max = $(this).val();
             if (chk_max < 100 && chk_max != "") {
                 $(".add-grade-content").prop("disabled", false);

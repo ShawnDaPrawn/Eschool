@@ -119,17 +119,19 @@ class CategoryController extends Controller
         $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' data-url='.url('category').' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $editLabel = e(__('edit').' '.__('category').': '.$row->name);
+            $deleteLabel = e(__('delete').' '.__('category').': '.$row->name);
+            $operate = '<button type="button" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' data-url='.url('category').' title="'.$editLabel.'" aria-label="'.$editLabel.'" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit" aria-hidden="true"></i></button>&nbsp;&nbsp;';
             $operate .= '
-                <a
+                <button type="button"
                     class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletedata"
                     data-id="'.$row->id.'"
                     data-url="'.url('category', $row->id).'"
                     data-related=\'["students"]\'
-                    title="Delete"
+                    title="'.$deleteLabel.'" aria-label="'.$deleteLabel.'"
                 >
-                    <i class="fa fa-trash"></i>
-                </a>';
+                    <i class="fa fa-trash" aria-hidden="true"></i>
+                </button>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;

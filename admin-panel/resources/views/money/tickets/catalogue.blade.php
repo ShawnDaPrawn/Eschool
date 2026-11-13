@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Events and admission tickets'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench ticket-workbench">
 @if(isset($validationErrors))<div role="alert"><h2>{{ __('Review the highlighted information') }}</h2><ul>@foreach($validationErrors as $message)<li>{{ $message }}</li>@endforeach</ul></div>@endif

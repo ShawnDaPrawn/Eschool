@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('School subscription invoices'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
 <x-page.header :title="__('School subscription invoices')" :subtitle="__('Issued Navigate Ed invoices and credit notes for this school, with payment allocations as recorded by billing.')" />

@@ -110,7 +110,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label for="" class="filter-menu">{{ __('medium') }}</label>
+                                <label for="filter_medium_id" class="filter-menu">{{ __('medium') }}</label>
                                 <select name="medium_id" id="filter_medium_id" class="form-control">
                                     <option value="">{{ __('all') }}</option>
                                     @foreach ($mediums as $medium)
@@ -120,7 +120,7 @@
                             </div>
 
                             <div class="form-group col-sm-12 col-md-2">
-                                <label for="" class="filter-menu">{{ __('shift') }}</label>
+                                <label for="filter_shift_id" class="filter-menu">{{ __('shift') }}</label>
                                 <select name="shift_id" id="filter_shift_id" class="form-control">
                                     <option value="">{{ __('all') }}</option>
                                     @foreach ($shifts as $shift)
@@ -130,7 +130,7 @@
                             </div>
 
                             <div class="form-group col-sm-12 col-md-2">
-                                <label for="" class="filter-menu">{{ __('educational_program') }}</label>
+                                <label for="filter_educational_program_id" class="filter-menu">{{ __('educational_program') }}</label>
                                 <select name="educational_program_id" id="filter_educational_program_id"
                                     class="form-control">
                                     <option value="">{{ __('all') }}</option>

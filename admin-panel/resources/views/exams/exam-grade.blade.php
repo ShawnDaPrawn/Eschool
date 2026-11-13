@@ -22,24 +22,24 @@
                                         <div class="form-group col-md-4">
                                             <label>{{ __('starting_range') }} </label>
                                             <input type="number" name="grade[0][starting_range]"
-                                                class="temp_starting_range form-control"
+                                                class="temp_starting_range form-control" aria-label="{{ __('starting_range') }}"
                                                 placeholder="{{ __('starting_range') }}" required />
                                         </div>
                                         <div class="form-group col-md-4">
                                             <label>{{ __('ending_range') }} </label>
                                             <input type="number" name="grade[0][ending_range]"
-                                                class="temp_ending_range form-control"
+                                                class="temp_ending_range form-control" aria-label="{{ __('ending_range') }}"
                                                 placeholder="{{ __('ending_range') }}" required />
                                         </div>
                                         <div class="form-group col-md-3">
                                             <label>{{ __('grade') }} </label>
-                                            <input type="text" name="grade[0][grades]" class="temp_grade form-control"
+                                            <input type="text" name="grade[0][grades]" class="temp_grade form-control" aria-label="{{ __('grade') }}"
                                                 placeholder="{{ __('grade') }}" required />
                                         </div>
                                         <div class="form-group col-md-1 pl-0 mt-4">
                                             <button type="button" class="btn btn-icon btn-inverse-danger remove-grades"
-                                                title="Remove Grade">
-                                                <i class="fa fa-times"></i>
+                                                title="{{ __('Remove row') }}" aria-label="{{ __('Remove row') }}">
+                                                <i class="fa fa-times" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -62,13 +62,13 @@
                                                         @endphp
                                                         <input type="number" min="{{ $min }}"
                                                             name="grade[{{ $i }}][starting_range]"
-                                                            class="starting_range form-control"
+                                                            class="starting_range form-control" aria-label="{{ __('starting_range') }}"
                                                             placeholder="{{ __('starting_range') }}"
                                                             value="{{ $grades[$i]['starting_range'] }}" />
                                                     @else
                                                         <input type="number" min="0"
                                                             name="grade[{{ $i }}][starting_range]"
-                                                            class="starting_range form-control"
+                                                            class="starting_range form-control" aria-label="{{ __('starting_range') }}"
                                                             placeholder="{{ __('starting_range') }}"
                                                             value="{{ $grades[$i]['starting_range'] }}" />
                                                     @endif
@@ -82,13 +82,13 @@
                                                         @endphp
                                                         <input type="number"
                                                             name="grade[{{ $i }}][ending_range]"
-                                                            max="{{ $max }}" class="ending_range form-control"
+                                                            max="{{ $max }}" class="ending_range form-control" aria-label="{{ __('ending_range') }}"
                                                             placeholder="{{ __('ending_range') }}"
                                                             value="{{ $grades[$i]['ending_range'] }}" />
                                                     @else
                                                         <input type="number"
                                                             name="grade[{{ $i }}][ending_range]" max=100
-                                                            class="ending_range form-control"
+                                                            class="ending_range form-control" aria-label="{{ __('ending_range') }}"
                                                             placeholder="{{ __('ending_range') }}"
                                                             value="{{ $grades[$i]['ending_range'] }}" />
                                                     @endif
@@ -96,14 +96,14 @@
                                                 <div class="form-group col-md-3">
                                                     <label>{{ __('grade') }} </label>
                                                     <input type="text" name="grade[{{ $i }}][grades]"
-                                                        class="grade form-control" placeholder="{{ __('grade') }}"
+                                                        class="grade form-control" aria-label="{{ __('grade') }}" placeholder="{{ __('grade') }}"
                                                         value="{{ $grades[$i]['grade'] }}" />
                                                 </div>
                                                 <div class="form-group col-md-1 pl-0 mt-4">
                                                     <button type="button"
                                                         class="btn btn-icon btn-inverse-danger remove-grades"
-                                                        data-id="{{ $grades[$i]['id'] }}" title="Remove Grade">
-                                                        <i class="fa fa-times"></i>
+                                                        data-id="{{ $grades[$i]['id'] }}" title="{{ __('Remove row') }}" aria-label="{{ __('Remove row') }}">
+                                                        <i class="fa fa-times" aria-hidden="true"></i>
                                                     </button>
                                                 </div>
                                             </div>
@@ -152,52 +152,22 @@
             const container = $('.extra_content');
             container.empty();
 
+            const template = $('.grade_content_div .grade_content').first();
             grades.forEach((grade, index) => {
-                let min = index > 0 ? grades[index - 1].ending_range + 1 : 0;
-                let max = grades[index + 1] ? grades[index + 1].starting_range - 1 : 100;
-
-                container.append(`
-                <div class="grade_content">
-                    <div class="row">
-                        <input type="hidden" name="grade[${index}][id]" value="${grade.id}" />
-
-                        <div class="form-group col-md-4">
-                            <label>{{ __('starting_range') }}</label>
-                            <input type="number"
-                                   name="grade[${index}][starting_range]"
-                                   class="starting_range form-control"
-                                   min="${min}"
-                                   value="${grade.starting_range}">
-                        </div>
-
-                        <div class="form-group col-md-4">
-                            <label>{{ __('ending_range') }}</label>
-                            <input type="number"
-                                   name="grade[${index}][ending_range]"
-                                   class="ending_range form-control"
-                                   max="${max}"
-                                   value="${grade.ending_range}">
-                        </div>
-
-                        <div class="form-group col-md-3">
-                            <label>{{ __('grade') }}</label>
-                            <input type="text"
-                                   name="grade[${index}][grades]"
-                                   class="grade form-control"
-                                   value="${grade.grade}">
-                        </div>
-
-                        <div class="form-group col-md-1 pl-0 mt-4">
-                            <button type="button"
-                                    class="btn btn-icon btn-inverse-danger remove-grades"
-                                    data-id="${grade.id}">
-                                <i class="fa fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `);
+                const min = index > 0 ? Number(grades[index - 1].ending_range) + 1 : 0;
+                const max = grades[index + 1] ? Number(grades[index + 1].starting_range) - 1 : 100;
+                const row = template.clone().show();
+                row.find('input[name]').each(function () {
+                    this.name = this.name.replace(/\[\d+\]/, '[' + index + ']');
+                });
+                row.find('.temp_starting_range').removeClass('temp_starting_range').addClass('starting_range').attr('min', min).val(grade.starting_range);
+                row.find('.temp_ending_range').removeClass('temp_ending_range').addClass('ending_range').attr('max', max).val(grade.ending_range);
+                row.find('.temp_grade').removeClass('temp_grade').addClass('grade').val(grade.grade);
+                $('<input>', { type: 'hidden', name: 'grade[' + index + '][id]', class: 'form-control hidden' }).val(grade.id).prependTo(row.find('.row').first());
+                row.find('.remove-grades').attr('data-id', grade.id);
+                container.append(row);
             });
+            checkAddNewRowBtn();
         }
     </script>
 @endsection

@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Giving receipt'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content fee-plan-workbench"><x-page.header :title="$record['receipt']" :subtitle="__('Verified donation receipt')" />
 <x-m3.button variant="text" :href="route('giving-panel.index')">{{ __('Back to giving campaigns') }}</x-m3.button>

@@ -17,7 +17,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('class_section') }}</label>
+                                <label for="filter_class_section_id">{{ __('class_section') }}</label>
                                 <select name="filter_class_section_id" id="filter_class_section_id" class="form-control">
                                     @if (!$is_restricted_teacher && count($class_section) > 0)
                                         @foreach ($class_section as $class)

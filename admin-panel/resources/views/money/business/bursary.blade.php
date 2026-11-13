@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Review bursary application'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content fee-plan-workbench">
 <x-page.header :title="$record['learner_name']" :subtitle="__('Bursary application').' · '.$record['session_year'].' · '.__($record['state'])" />

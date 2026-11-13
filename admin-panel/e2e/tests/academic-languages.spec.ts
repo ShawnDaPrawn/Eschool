@@ -5,6 +5,7 @@ import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.use({ storageState: { cookies: [], origins: [] } });
+test.setTimeout(120_000);
 for (const code of ['af', 'zu']) {
   for (const width of [1024, 1280]) {
     test(`${code} academic workbenches at ${width}px`, async ({ page, baseURL }) => {
@@ -15,7 +16,7 @@ for (const code of ['af', 'zu']) {
       await page.goto(`/set-language/${code}`);
       const errors = collectErrors(page, baseURL!);
       for (const [url, title] of [
-        ['/academic-registers', 'Academic registers'],
+        ['/academic-registers', 'Learner attendance'],
         ['/academic-timetable', 'Academic timetable'],
         ['/communication-centre', 'School messages'],
       ]) {

@@ -24,8 +24,9 @@
                             @csrf
                             <div class="row">
                                 <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('name') }} <span class="text-danger">*</span></label>
+                                    <label for="name">{{ __('name') }} <span class="text-danger">*</span></label>
                                     {!! Form::text('name', null, [
+                                        'id' => 'name',
                                         'required',
                                         'placeholder' => __('name'),
                                         'class' => 'form-control',
@@ -34,7 +35,7 @@
                                     ]) !!}
                                 </div>
                                 <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('for') }} <span class="text-danger">*</span></label>
+                                    <label for="for">{{ __('for') }} <span class="text-danger">*</span></label>
                                     <select name="for" id="for" class="form-control">
                                         <option value="">{{ __('Please Select') }}</option>
                                         <option value="1">{{ __('student') }}</option>
@@ -44,7 +45,7 @@
                                     </select>
                                 </div>
                                 <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('Type') }} <span class="text-danger">*</span></label>
+                                    <label for="type">{{ __('Type') }} <span class="text-danger">*</span></label>
                                     <select name="type" id="type" class="form-control type">
                                         <option value="">{{ __('Please Select') }}</option>
                                         <option value="text">{{ __('Text') }}</option>
@@ -78,25 +79,25 @@
                                     <div class="row">
                                         <div class="form-group col-sm-12 col-md-4">
                                             <label>{{ __('Default Values') }} <span class="text-danger">*</span></label>
-                                            <input type="text" name="default_values[]"
+                                            <input type="text" name="default_values[]" aria-label="{{ __('Default Values') }}"
                                                 class="form-control default_values"
                                                 placeholder="{{ __('Default Values') }}" disabled />
                                         </div>
                                         <div class="form-group col-sm-12 col-md-2 mt-4">
                                             <button type="button"
-                                                class="remove-default-values btn btn-inverse-danger btn-icon ml-3"
+                                                aria-label="{{ __('Remove default value') }}" class="remove-default-values btn btn-inverse-danger btn-icon ml-3"
                                                 disabled><span class="fa fa-times"></span></button>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="form-group col-sm-12 col-md-4">
                                             <label>{{ __('Default Values') }} <span class="text-danger">*</span></label>
-                                            <input type="text" name="default_values[]"
+                                            <input type="text" name="default_values[]" aria-label="{{ __('Default Values') }}"
                                                 class="form-control default_values" placeholder="Default Values" disabled />
                                         </div>
                                         <div class="form-group col-sm-12 col-md-2 mt-4">
                                             <button type="button"
-                                                class="remove-default-values btn btn-inverse-danger btn-icon ml-3"
+                                                aria-label="{{ __('Remove default value') }}" class="remove-default-values btn btn-inverse-danger btn-icon ml-3"
                                                 disabled><span class="fa fa-times"></span></button>
                                         </div>
                                     </div>
@@ -204,12 +205,12 @@
 
                     <div class="modal-body">
                         <div class="form-group col-sm-12">
-                            <label>{{ __('name') }} <span class="text-danger">*</span></label>
+                            <label for="edit-name">{{ __('name') }} <span class="text-danger">*</span></label>
                             <input type="text" name="edit_name" id="edit-name" placeholder="{{ __('name') }}"
                                 class="form-control" required>
                         </div>
                         <div class="form-group col-sm-12">
-                            <label>{{ __('type') }} <span class="text-danger">*</span></label>
+                            <label for="edit-type">{{ __('type') }} <span class="text-danger">*</span></label>
                             <select id="edit-type" name="edit_type" class="form-control edit_type">
                                 <option value="">{{ __('Please Select') }}</option>
                                 <option value="text" selected>{{ __('Text') }}</option>
@@ -224,7 +225,7 @@
                             {!! Form::hidden('edit_type', '', ['id' => 'edit-type-value']) !!}
                         </div>
                         <div class="form-group col-sm-12">
-                            <label>{{ __('for') }} <span class="text-danger">*</span></label>
+                            <label for="edit-for">{{ __('for') }} <span class="text-danger">*</span></label>
                             <select id="edit-for" name="edit_for" class="form-control edit_for">
                                 <option value="">{{ __('Please Select') }}</option>
                                 <option value="1">{{ __('student') }}</option>
@@ -257,26 +258,26 @@
                                 <div class="row">
                                     <div class="form-group col-md-10">
                                         <label>{{ __('Default Values') }} <span class="text-danger">*</span></label>
-                                        <input type="text" name="default_values[]"
+                                        <input type="text" name="default_values[]" aria-label="{{ __('Default Values') }}"
                                             class="form-control edit_default_values" placeholder="Default Values" disabled
                                             readonly />
                                     </div>
                                     <div class="form-group col-md-2 mt-4">
                                         <button type="button"
-                                            class="btn btn-icon btn-inverse-danger edit-remove-default-values"
+                                            aria-label="{{ __('Remove default value') }}" class="btn btn-icon btn-inverse-danger edit-remove-default-values"
                                             disabled><span class="fa fa-times"></span></button>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="form-group col-md-10">
                                         <label>{{ __('Default Values') }} <span class="text-danger">*</span></label>
-                                        <input type="text" name="default_values[]"
+                                        <input type="text" name="default_values[]" aria-label="{{ __('Default Values') }}"
                                             class="form-control edit_default_values" placeholder="Default Values"
                                             disabled />
                                     </div>
                                     <div class="form-group col-md-2 mt-4">
                                         <button type="button"
-                                            class="btn btn-icon btn-inverse-danger edit-remove-default-values"
+                                            aria-label="{{ __('Remove default value') }}" class="btn btn-icon btn-inverse-danger edit-remove-default-values"
                                             disabled><span class="fa fa-times"></span></button>
                                     </div>
                                 </div>

@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Activity groups'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}?v={{ filemtime(public_path('assets/css/activity-workbench.css')) }}">@endsection
 @section('content')
 @php($group=$detail['group'] ?? null)
 <div class="content-wrapper m3 page-content activity-workbench">

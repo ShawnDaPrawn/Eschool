@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { expect as baseExpect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
-import { horizontalOverflow, seriousViolations } from '../support/checks';
+import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 // The shared local PHP runtime may finish a native POST redirect after the default 10s.
 const expect = baseExpect.configure({ timeout: 60000 });
@@ -101,22 +101,30 @@ test('class notice audience and attachments remain usable through create, edit a
   await expect(row).toHaveCount(0);
 });
 
-test('event readiness searches, links and clears the actual admission record at 320px', async ({ page }) => {
+test('event readiness searches, links and clears the actual admission record at 320px', async ({ page, baseURL }) => {
   const setup = JSON.parse(execFileSync('php',['artisan','tinker','--execute',"echo json_encode(require base_path('e2e/support/event-readiness-fixture.php'));"],{cwd:path.resolve(process.cwd(),'..'),encoding:'utf8'}).trim());
   await signIn(page,accounts.admin);
+  const errors=collectErrors(page,baseURL!);
   await page.setViewportSize({width:320,height:740});
   await page.goto(`/events/${setup.event}/readiness?view=links`);
-  await page.getByLabel('Admission event name',{exact:true}).fill(setup.ticket_name);
+  await page.getByRole('searchbox',{name:'Admission event name',exact:true}).fill(setup.ticket_name);
   await page.getByRole('button',{name:'Find admission events',exact:true}).click();
-  await page.getByLabel('Admission event',{exact:true}).selectOption(String(setup.ticket));
+  await page.getByRole('combobox',{name:'Admission event',exact:true}).selectOption(String(setup.ticket));
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
   expect(await seriousViolations(page)).toEqual([]);
   await page.getByRole('button',{name:'Save event links',exact:true}).click();
   await expect(page.getByText(setup.ticket_name,{exact:false})).toBeVisible();
   await expect(page.getByText('0 tickets issued',{exact:false})).toBeVisible();
+  await page.getByRole('link',{name:'Open linked admission event',exact:true}).click();
+  expect(new URL(page.url()).searchParams.get('event_id')).toBe(String(setup.ticket));
+  await expect(page.getByRole('heading',{name:setup.ticket_name,exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Admission event details',exact:true})).toBeVisible();
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+  await page.goBack();
   await page.getByRole('link',{name:'Linked records and transport',exact:true}).click();
-  await expect(page.getByLabel('Admission event',{exact:true})).toHaveValue(String(setup.ticket));
-  await page.getByLabel('Admission event',{exact:true}).selectOption('');
+  await expect(page.getByRole('combobox',{name:'Admission event',exact:true})).toHaveValue(String(setup.ticket));
+  await page.getByRole('combobox',{name:'Admission event',exact:true}).selectOption('');
   await page.getByRole('button',{name:'Save event links',exact:true}).click();
   await expect(page.getByText('No admission event linked.',{exact:true})).toBeVisible();
   await page.getByRole('link',{name:'All school events',exact:true}).click();
@@ -124,4 +132,5 @@ test('event readiness searches, links and clears the actual admission record at 
   await row.getByRole('link',{name:'Delete event',exact:true}).click();
   await page.locator('[data-confirm-ok]').click();
   await expect(row).toHaveCount(0);
+  expect(errors).toEqual([]);
 });

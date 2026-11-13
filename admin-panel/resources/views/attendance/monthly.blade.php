@@ -26,4 +26,4 @@
 <div class="page-table__scroll" tabindex="0" role="region" aria-label="{{ __('Monthly learner attendance') }}"><table class="page-table__table" id="monthly-attendance-table"><thead></thead><tbody></tbody></table></div>
 </div>
 @endsection
-@section('script')<script src="{{ asset('assets/js/custom/attendance-monthly.js') }}" defer></script>@endsection
+@section('script')<script src="{{ asset('assets/js/custom/attendance-monthly.js') }}?v={{ filemtime(public_path('assets/js/custom/attendance-monthly.js')) }}" defer></script>@endsection

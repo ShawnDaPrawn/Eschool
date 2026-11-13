@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Start a new season'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}?v={{ filemtime(public_path('assets/css/activity-workbench.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content academic-workbench">
     <x-page.header :title="__('Start a new season')" :subtitle="__('Copy one season\'s teams and groups into the next season, for example summer to winter. The new groups keep their place, their sport or activity and their eligibility rules, but nobody is in them: members, captains and staff are chosen again. The old season\'s groups stay as they are.')" />

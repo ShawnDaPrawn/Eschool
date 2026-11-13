@@ -22,8 +22,15 @@
   };
   const add = (heading = '', body = '') => {
     const row = template.content.firstElementChild.cloneNode(true);
-    row.querySelector('[data-section-heading]').value = heading;
-    row.querySelector('[data-section-body]').value = body;
+    const headingField = row.querySelector('[data-section-heading]');
+    const bodyField = row.querySelector('[data-section-body]');
+    // These controls are rebuilt from the saved Markdown. Set their baseline as
+    // well as their value so the shared dirty guard does not treat reconstruction
+    // as a user edit and block preview/navigation after a successful save.
+    headingField.defaultValue = heading;
+    headingField.value = heading;
+    bodyField.defaultValue = body;
+    bodyField.value = body;
     rows.append(row); renumber(); return row;
   };
   const rebuild = () => {

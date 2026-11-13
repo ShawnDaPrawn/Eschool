@@ -67,5 +67,5 @@
 </div>
 @endsection
 @section('script')
-<script src="{{ asset('assets/js/custom/curriculum.js') }}" defer></script>
+<script src="{{ asset('assets/js/custom/curriculum.js') }}?v={{ filemtime(public_path('assets/js/custom/curriculum.js')) }}" defer></script>
 @endsection

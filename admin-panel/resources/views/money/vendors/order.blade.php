@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Original vendor order'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}"><link rel="stylesheet" href="{{ asset('assets/css/vendor-catalogues.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}"><link rel="stylesheet" href="{{ asset('assets/css/vendor-catalogues.css') }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench vendor-catalogues">
     <x-page.header :title="$order->order_number" :subtitle="__('Original vendor order')" />

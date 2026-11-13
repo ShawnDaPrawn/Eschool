@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Fee plans'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
     <x-page.header :title="$plan?__('Review fee plan'):__('New fee plan')" />
@@ -76,4 +76,4 @@ if($plan && $canWrite) $tabs['copy']=['label'=>__('Copy to another year'),'url'=
 </div>
 @endsection
 
-@section('script')<script src="{{ asset('assets/js/custom/fee-plan-editor.js') }}" defer></script>@endsection
+@section('script')<script src="{{ asset('assets/js/custom/fee-plan-editor.js') }}?v={{ filemtime(public_path('assets/js/custom/fee-plan-editor.js')) }}" defer></script>@endsection

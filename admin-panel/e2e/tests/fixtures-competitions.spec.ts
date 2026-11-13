@@ -59,6 +59,7 @@ for (const width of [390, 1280]) {
     await page.getByRole('link', {name: 'Overview', exact: true}).last().click();
     await expect(page.getByText('3–1', {exact: true})).toBeVisible();
     await accessible(page);
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path: test.info().outputPath(`sports-fixture-${width}.png`), fullPage: true});
     expect(errors).toEqual([]);
     await page.context().clearCookies();
@@ -108,6 +109,7 @@ for (const width of [390, 1280]) {
     await expect(page.locator('#result-state')).toHaveValue('final');
     await expect(page.getByText('Submitted', {exact: true})).toBeVisible();
     await accessible(page);
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({path: test.info().outputPath(`academic-result-${width}.png`), fullPage: true});
     expect(errors).toEqual([]);
     await page.context().clearCookies();

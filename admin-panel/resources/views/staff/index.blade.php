@@ -10,6 +10,7 @@
         $staffNavigation = app(\App\Services\Panel\Navigation::class);
         $facilitatorDestination = collect($staffNavigation->definitions())->firstWhere('key', 'facilitators');
         $canReturnToFacilitators = $facilitatorContext && $facilitatorDestination && $staffNavigation->visible($facilitatorDestination, auth()->user());
+        $needsStaffRole = $facilitatorContext ? $roles->isEmpty() : $roles->where('custom_role', 1)->isEmpty();
     @endphp
     <div class="content-wrapper m3 page-content">
         <x-page.header :title="request('view') === 'create' ? (request('role') === 'Facilitator' ? __('Add facilitator') : __('Add admin staff')) : __('Admin staff')" :subtitle="__('School staff accounts, role assignments and contact details.')" :primary-label="request('view') === 'create' ? null : __('Add staff member')" :primary-href="route('staff.index', ['view' => 'create'])" primary-permission="staff-create" />
@@ -30,7 +31,7 @@
                             <h4 class="card-title">
                                 {{ __('create') . ' ' . __('staff') }}
                             </h4>
-                            <x-setup-needed :missing="['role' => $roles->isEmpty() ? url('roles/create') : null]" />
+                            <x-setup-needed :missing="['role' => $needsStaffRole ? url('roles/create') : null]" />
                             <form class="pt-3 staff-form" id="staff-form" enctype="multipart/form-data"
                                 action="{{ route('staff.store') }}" method="POST" novalidate="novalidate">
                                 @csrf

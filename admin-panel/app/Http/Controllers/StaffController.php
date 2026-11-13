@@ -937,7 +937,7 @@ class StaffController extends Controller
             $teachers = $teacherQuery->get()->filter(fn ($r) => $r->user)->map(fn ($r) => [
                 'id' => $r->user_id,
                 'name' => $r->user->first_name.' '.$r->user->last_name,
-                'image' => $r->user->image,
+                'image' => $r->user->getRawOriginal('image') ? $r->user->image : asset('assets/no-image.svg'),
                 'designation' => trans('teacher'),
                 'email' => $r->user->email,
                 'mobile' => $r->user->mobile,
@@ -949,7 +949,7 @@ class StaffController extends Controller
             $staffs = $staffQuery->get()->filter(fn ($r) => $r->user)->map(fn ($r) => [
                 'id' => $r->user_id,
                 'name' => $r->user->first_name.' '.$r->user->last_name,
-                'image' => $r->user->image,
+                'image' => $r->user->getRawOriginal('image') ? $r->user->image : asset('assets/no-image.svg'),
                 'designation' => $r->user->roles->pluck('name')->implode(', '),
                 'email' => $r->user->email,
                 'mobile' => $r->user->mobile,
@@ -991,7 +991,7 @@ class StaffController extends Controller
                 'id' => $row->user_id,
                 'no' => $no++,
                 'name' => $row->user->first_name.' '.$row->user->last_name,
-                'image' => $row->user->image,
+                'image' => $row->user->getRawOriginal('image') ? $row->user->image : asset('assets/no-image.svg'),
                 'designation' => $type === 'teacher'
                     ? trans('teacher')
                     : $row->user->roles->pluck('name')->implode(', '),

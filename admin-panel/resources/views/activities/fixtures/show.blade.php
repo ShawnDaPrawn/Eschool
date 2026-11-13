@@ -4,7 +4,7 @@
 @php($away = $f['host_is_home'] ? $f['guest'] : $f['host'])
 @section('title', __('Fixture'))
 @section('content')
-<div class="content-wrapper m3 page-content">
+<div class="content-wrapper m3 page-content fixture-workbench">
     <x-page.header :title="$home['name'].' '.__('vs').' '.$away['name']" :subtitle="$f['discipline'].' · '.$f['on_date'].($f['starts_at'] ? ' '.$f['starts_at'] : '').' · '.$f['venue'].($f['field'] ? ', '.$f['field'] : '')" />
     @include('activities.fixtures.messages')
     <nav class="panel-local-nav" aria-label="{{ __('Fixture tasks') }}">
@@ -149,3 +149,4 @@
     @endif
 </div>
 @endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/activity-workbench.css') }}?v={{ filemtime(public_path('assets/css/activity-workbench.css')) }}">@endsection

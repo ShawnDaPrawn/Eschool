@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Group conversations'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/group-conversations.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/group-conversations.css') }}?v={{ filemtime(public_path('assets/css/group-conversations.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 page-content group-conversations" data-group-conversations
  @if($group) data-lease-url="{{ route('group-chat-panel.lease',['group'=>$group->id,'thread'=>$conversation['thread']['id']??null,'expected_account_id'=>$accountId,'expected_school_id'=>$schoolId]) }}" @endif>

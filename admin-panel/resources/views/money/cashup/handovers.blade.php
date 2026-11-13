@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Cash custody handovers'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
 <x-page.header :title="__('Cash custody handovers')" :subtitle="__('Hand over existing school cash to another operator. The recipient must confirm the actual notes and coins received.')" />

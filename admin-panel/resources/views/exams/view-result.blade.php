@@ -20,7 +20,7 @@
                         <div class="row">
                             <!-- Class -->
                             <div class="form-group col-md-2">
-                                <label>{{ __('class') }}</label>
+                                <label for="class_section_id">{{ __('class') }}</label>
                                 <select required name="class_section_id_select" id="class_section_id"
                                     class="form-control select2">
                                     <option value="">{{ __('select_class') }}</option>
@@ -31,7 +31,7 @@
 
                             <!-- Exam -->
                             <div class="form-group col-md-2">
-                                <label>{{ __('exam') }}</label>
+                                <label for="exam_id">{{ __('exam') }}</label>
                                 <select required name="exam_id" id="exam_id" class="form-control select2">
                                     <option value="">{{ __('select_exam') }}</option>
                                 </select>
