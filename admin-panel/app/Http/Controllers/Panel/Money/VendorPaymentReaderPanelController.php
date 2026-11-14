@@ -29,8 +29,9 @@ class VendorPaymentReaderPanelController extends Controller
         $vendors = Vendor::orderBy('name')->pluck('name', 'id')->all();
         $bindings = VendorCardReader::orderByDesc('id')->paginate(30);
         $devices = CardReaderDevice::whereIn('id', $bindings->pluck('device_id'))->get()->keyBy('id');
+        $selectedReader = $devices->get($request->validated('reader_id', ''));
         $canWrite = app(ModuleGate::class)->writable('wallet_payments') && app(ModuleGate::class)->writable('cards');
 
-        return response()->view('money.vendors.payment-readers', compact('pairing', 'vendors', 'bindings', 'devices', 'canWrite'));
+        return response()->view('money.vendors.payment-readers', compact('pairing', 'vendors', 'bindings', 'devices', 'selectedReader', 'canWrite'));
     }
 }

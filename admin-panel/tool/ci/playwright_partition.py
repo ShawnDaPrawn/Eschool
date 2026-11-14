@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Run complete Playwright groups on independent seeded databases.
 
-Four bulk shards retain serial groups; the year-changing wizard gets its own
-schema and therefore does not need to rerun every dependency project.
+Distribute the slower workflows across all four independent schemas, alongside
+one complete page viewport per part. Playwright keeps serial groups together;
+the year-changing wizard has its own schema and does not rerun dependencies.
 """
 import argparse
 import collections
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -15,14 +17,32 @@ PANEL = Path(__file__).resolve().parents[2]
 E2E = PANEL / "e2e"
 CLI = E2E / "node_modules/.bin/playwright"
 PREPARED = "--config=playwright.partition.config.ts"
-BULK = ("pages-1280", "pages-1024", "pages-375", "flows", "teacher", "removed")
+PAGE_PROJECTS = {"1": "pages-1280", "2": "pages-1024", "3": "pages-375"}
 PARTS = ("1", "2", "3", "4", "wizard")
 
 
-def command(part):
+def commands(part):
+    base = [str(CLI), "test", PREPARED]
     if part == "wizard":
-        return [str(CLI), "test", PREPARED, "--project=wizard", "--no-deps"]
-    return [str(CLI), "test", PREPARED, *["--project=" + p for p in BULK], "--shard=" + part + "/4"]
+        return [base + ["--project=wizard", "--no-deps"]]
+    pages_or_roles = (["--project=" + PAGE_PROJECTS[part]] if part in PAGE_PROJECTS
+                      else ["--project=teacher", "--project=removed"])
+    return [base + pages_or_roles,
+            base + ["--project=flows", "--shard=" + part + "/4"]]
+
+
+def run_part(part):
+    failed = False
+    assigned = commands(part)
+    for index, cmd in enumerate(assigned, start=1):
+        # Playwright clears each invocation's output directory. Keep earlier
+        # failures and traces when the next assigned command still runs.
+        artifact = f"part-{part}-{index}"
+        env = dict(os.environ, PLAYWRIGHT_HTML_OUTPUT_DIR=str(E2E / "playwright-report" / artifact))
+        print(f"Part {part}: command {index}/{len(assigned)}", flush=True)
+        result = subprocess.run(cmd + ["--output=test-results/" + artifact], cwd=E2E, env=env)
+        failed = result.returncode != 0 or failed
+    return int(failed)
 
 
 def inventory(cmd):
@@ -64,18 +84,26 @@ def verify():
     expected = inventory([str(CLI), "test", PREPARED])
     seen = set()
     sizes = {}
+    projects = {}
     for part in PARTS:
-        selected = inventory(command(part))
+        selected = set()
+        for cmd in commands(part):
+            group = inventory(cmd)
+            if selected & group:
+                raise RuntimeError("Playwright commands overlap within part: " + part)
+            selected |= group
         if seen & selected:
             raise RuntimeError("Playwright parts overlap: " + part)
         seen |= selected
         sizes[part] = len(selected)
+        projects[part] = dict(collections.Counter(identity[0] for identity in selected))
     if expected != seen:
         raise RuntimeError("Playwright partition differs from full discovery: "
                            + str(len(expected - seen)) + " missing, "
                            + str(len(seen - expected)) + " extra")
     print(json.dumps({"complete": True, "disjoint": True,
-                      "tests": len(expected), "parts": sizes}, sort_keys=True))
+                      "tests": len(expected), "parts": sizes,
+                      "projects": projects}, sort_keys=True))
 
 
 def main():
@@ -93,7 +121,7 @@ def main():
         verify()
     if args.part:
         require_prepared()
-        return subprocess.run(command(args.part), cwd=E2E).returncode
+        return run_part(args.part)
     return 0
 
 

@@ -109,13 +109,20 @@ Each part runs from `admin-panel/` with database `eschool_e2e` and
    builds the real seeded page manifest. Verification and execution reuse that
    exact manifest without rerunning global setup. Then
    `python3 ../tool/ci/playwright_partition.py --part 1` (or `2`, `3`, `4`,
-   `wizard`). Bulk jobs select all non-wizard projects with Playwright's native
-   sharding; serial groups are preserved. The isolated wizard selects only its
+   `wizard`). Parts 1–3 each run one complete page viewport (1280, 1024 and
+   375 pixels), while part 4 runs the teacher and retired-route checks. Each
+   part then runs its quarter of the workflows using Playwright's native
+   sharding; serial groups and the workflow project's single worker are
+   preserved. Commands run sequentially, and a failed command does not prevent
+   the remaining assigned checks from running or make the part pass.
+   The isolated wizard selects only its
    own project with `--no-deps`, avoiding a duplicate run of the entire suite.
 6. Part 1 also runs `--verify`: full discovery must exactly equal the disjoint
-   union of all five selections. New tests or projects cannot silently disappear.
+   union of every command in all five parts, with no overlaps within a part.
+   New tests or projects cannot silently disappear.
    On failure, each job uploads its own `playwright-report-PART` artifact,
-   including HTML, traces and server logs (kept 14 days).
+   including HTML, traces and server logs (kept 14 days). Each command writes
+   its own report/result subfolder so later checks cannot erase earlier failures.
 
 The full local `npx playwright test` command and its project dependencies remain
 available. Initial discovery without a prepared page manifest found only 255 cases; that

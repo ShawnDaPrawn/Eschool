@@ -27,7 +27,7 @@
 .fee-plan-workbench fieldset > label:has(input[type="checkbox"]) { grid-column: 1 / -1; display: flex; align-items: start; gap: var(--m3-space-3); padding-block: var(--m3-space-3); }
 .fee-plan-workbench label:has(input[type="checkbox"]) input { flex: 0 0 auto; min-inline-size: 1.25rem; min-block-size: 1.25rem; }
 .fee-plan-workbench dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--m3-space-3) var(--m3-space-5); margin: 0; padding-block: var(--m3-space-4); }
-.fee-plan-workbench dt { color: var(--md-sys-color-on-surface-variant); }
+.fee-plan-workbench dt { color: var(--md-sys-color-on-surface); }
 .fee-plan-workbench dd { margin: 0; overflow-wrap: anywhere; }
 .fee-plan-workbench .page-table__scroll { max-inline-size: 100%; overscroll-behavior-inline: contain; }
 .fee-plan-workbench .page-table__table { min-inline-size: 40rem; }

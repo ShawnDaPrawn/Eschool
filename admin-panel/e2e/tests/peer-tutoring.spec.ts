@@ -1,14 +1,11 @@
-import { execFileSync } from 'node:child_process';
-import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+import { artisanFixture } from '../support/artisan-fixture';
 
 type Fixture = { group: number; tutee: number; topic: number; prepared: string; starts: string; ends: string };
 function fixture(): Fixture {
-  return JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/peer-tutoring-fixture.php'));"], {
-    cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8',
-  }).trim());
+  return JSON.parse(artisanFixture("echo json_encode(require base_path('e2e/support/peer-tutoring-fixture.php'));"));
 }
 async function check(page: Page) {
   expect(await seriousViolations(page)).toEqual([]);
@@ -20,6 +17,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
   test(`allocated staff matches, schedules, confirms and corrects service at ${width}px`, async ({ page, baseURL }) => {
     const data = fixture();
+    if (width === 390) expect(fixture().prepared).toBe(data.prepared);
     await page.setViewportSize({ width, height: 1000 });
     const errors = collectErrors(page, baseURL!);
     await signIn(page, accounts.teacher);
@@ -27,6 +25,9 @@ for (const width of [390, 820, 1280]) {
     expect(response!.status()).toBe(200);
     expect(response!.headers()['cache-control']).toContain('no-store');
     expect(response!.headers()['referrer-policy']).toBe('no-referrer');
+    await expect(page.getByLabel('Teaching group', { exact: true })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Schedule supervised peer tutoring', exact: true }).click();
+    await expect(page).toHaveURL(/\/peer-tutoring\?view=schedule$/);
     await page.getByLabel('Teaching group', { exact: true }).selectOption(String(data.group));
     await page.getByRole('button', { name: 'Load current learners', exact: true }).click();
     await page.getByLabel('Learner needing support', { exact: true }).selectOption(String(data.tutee));

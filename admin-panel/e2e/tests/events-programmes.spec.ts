@@ -37,11 +37,54 @@ test('school event programme creates real repeated items and edits at mobile wid
   await row.getByRole('link',{name:'Programme',exact:true}).click();
   await expect(page.locator('[data-programme-row]')).toHaveCount(2);
   await page.locator('[data-programme-row]').first().getByLabel('Programme title',{exact:false}).fill('Updated programme title');
+  const deletions: string[] = [];
+  page.on('request', request => {
+    if (request.method() === 'DELETE' && /\/multiple-event\/\d+$/.test(request.url())) deletions.push(request.url());
+  });
+  let releaseSave!: () => void;
+  let savingStarted!: () => void;
+  const heldSave = new Promise<void>(resolve => { releaseSave = resolve; });
+  const saving = new Promise<void>(resolve => { savingStarted = resolve; });
+  await page.route('**/events-update', async route => {
+    savingStarted();
+    await heldSave;
+    await route.continue();
+  });
+  // The AJAX save returns to this same URL. Wait for the new document before
+  // using another action; the current input already contains the edited title.
+  const saved = page.waitForResponse(response => response.url().endsWith('/events-update') && response.request().method() === 'POST');
+  const saveNavigation = page.waitForNavigation({ waitUntil:'domcontentloaded' });
   await page.getByRole('button',{name:'Save programme',exact:true}).click();
+  await saving;
+  try {
+    const add = page.getByRole('button',{name:'Add programme item',exact:true});
+    const remove = page.getByRole('button',{name:'Delete saved programme item',exact:true});
+    await expect(add).toBeDisabled();
+    await expect(remove.first()).toBeDisabled();
+    await expect(remove.last()).toBeDisabled();
+    // Even a delegated event cannot start a conflicting action during the save.
+    await add.dispatchEvent('click');
+    await remove.last().dispatchEvent('click');
+    await expect(page.locator('[data-programme-row]')).toHaveCount(2);
+    await expect(page.locator('#page-confirm')).not.toBeVisible();
+    expect(deletions).toHaveLength(0);
+  } finally {
+    releaseSave();
+  }
+  await saveNavigation;
+  expect((await saved).ok()).toBe(true);
   await expect(page.getByLabel('Programme title',{exact:false}).first()).toHaveValue('Updated programme title');
   await page.locator('[data-programme-row]').last().getByRole('button',{name:'Delete saved programme item',exact:true}).click();
+  await page.locator('[data-confirm-cancel]').click();
+  await expect(page.locator('#page-confirm')).not.toBeVisible();
+  await expect(page.locator('[data-programme-row]')).toHaveCount(2);
+  expect(deletions).toHaveLength(0);
+  await page.locator('[data-programme-row]').last().getByRole('button',{name:'Delete saved programme item',exact:true}).click();
+  const deleted = page.waitForResponse(response => /\/multiple-event\/\d+$/.test(response.url()) && response.request().method() === 'DELETE');
   await page.locator('[data-confirm-ok]').click();
+  expect((await deleted).ok()).toBe(true);
   await expect(page.locator('[data-programme-row]')).toHaveCount(1);
+  expect(deletions).toHaveLength(1);
   await page.reload();
   await expect(page.locator('[data-programme-row]')).toHaveCount(1);
   await page.getByRole('link',{name:'Back to events',exact:true}).click();

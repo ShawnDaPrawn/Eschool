@@ -8,8 +8,8 @@
 $section=request('section','readers');
 if(!in_array($section,['readers','register','reader'],true)) $section='readers';
 $tabs=[];
-$tabs['readers']=['label'=>__('Registered readers'),'url'=>request()->fullUrlWithQuery(['section'=>'readers','page'=>null])];
-$tabs['register']=['label'=>__('Register reader'),'url'=>request()->fullUrlWithQuery(['section'=>'register','page'=>null])];
+$tabs['readers']=['label'=>__('Registered readers'),'url'=>route('vendor-payment-readers.index',['section'=>'readers','page'=>$bindings->currentPage()])];
+$tabs['register']=['label'=>__('Register reader'),'url'=>route('vendor-payment-readers.index',['section'=>'register'])];
 @endphp
 @include('money.billing.tabs')
 
@@ -36,11 +36,11 @@ $tabs['register']=['label'=>__('Register reader'),'url'=>request()->fullUrlWithQ
 <div class="page-table__scroll" role="region" aria-label="{{ __('Registered payment readers') }}" tabindex="0"><table class="page-table__table"><caption>{{ __('Registered payment readers') }}</caption><thead><tr><th scope="col">{{ __('Reader') }}</th><th scope="col">{{ __('Vendor counter') }}</th><th scope="col">{{ __('State') }}</th><th scope="col">{{ __('Expires at') }}</th><th scope="col">{{ __('Action') }}</th></tr></thead><tbody>
 @foreach($bindings as $binding)
 @php($device=$devices->get($binding->device_id))
-@if($device)<tr><td>{{ $device->name }}</td><td>{{ $vendors[$binding->vendor_id]??$binding->vendor_id }}</td><td>{{ __($device->status) }}</td><td>{{ $device->expires_at }}</td><td>@if($device->revoked_at===null)<x-m3.button variant="text" :href="request()->fullUrlWithQuery(['section'=>'reader','reader_id'=>$device->id])">{{ __('Review reader access') }}</x-m3.button>@endif</td></tr>@endif
+@if($device)<tr><td>{{ $device->name }}</td><td>{{ $vendors[$binding->vendor_id]??$binding->vendor_id }}</td><td>{{ __($device->status) }}</td><td>{{ $device->expires_at }}</td><td>@if($device->revoked_at===null)<x-m3.button variant="text" :href="route('vendor-payment-readers.index',['section'=>'reader','reader_id'=>$device->id,'page'=>$bindings->currentPage()])">{{ __('Review reader access') }}</x-m3.button>@endif</td></tr>@endif
 @endforeach
-</tbody></table></div>{{ $bindings->withQueryString()->links() }}
+</tbody></table></div>{{ $bindings->withPath(route('vendor-payment-readers.index'))->withQueryString()->links() }}
 @elseif($section==='reader')
-@php($device=$devices->get((int)request('reader_id')))
+@php($device=$selectedReader)
 @if($device && $device->revoked_at===null)
 <section class="workspace-section"><h2>{{ $device->name }}</h2><p>{{ __('Revoking stops this reader from approving wallet payments. Existing payment history remains available.') }}</p>
 <form method="post" action="{{ route('vendor-payment-readers.revoke',['reader'=>$device->id]) }}" data-year-safe>@csrf

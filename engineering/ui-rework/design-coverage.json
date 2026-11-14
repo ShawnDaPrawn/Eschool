@@ -12413,7 +12413,8 @@
         "ends_at",
         "venue"
       ],
-      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px.",
+      "peer_browser_qualification": "Full allocated-staff schedule/cancel/complete/exact-retry/reverse journey passed at 390/820/1280px with strict Axe/overflow and retries disabled. Test follows the real Schedule task; repeated fixture setup reuses only its exact pending synthetic session."
     }
   },
   {
@@ -12451,7 +12452,8 @@
         "point_category_id",
         "points"
       ],
-      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px.",
+      "peer_browser_qualification": "Full allocated-staff schedule/cancel/complete/exact-retry/reverse journey passed at 390/820/1280px with strict Axe/overflow and retries disabled. Test follows the real Schedule task; repeated fixture setup reuses only its exact pending synthetic session."
     }
   },
   {
@@ -12485,7 +12487,8 @@
       "design_field_names": [
         "reason"
       ],
-      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px.",
+      "peer_browser_qualification": "Full allocated-staff schedule/cancel/complete/exact-retry/reverse journey passed at 390/820/1280px with strict Axe/overflow and retries disabled. Test follows the real Schedule task; repeated fixture setup reuses only its exact pending synthetic session."
     }
   },
   {
@@ -24785,7 +24788,8 @@
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": [],
-      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px."
+      "qualification": "Selected PeerTutoring panel and PeerMatchingFairness skill cases passed; separate schedule/history browser states passed at 320/1280px.",
+      "peer_browser_qualification": "Full allocated-staff schedule/cancel/complete/exact-retry/reverse journey passed at 390/820/1280px with strict Axe/overflow and retries disabled. Test follows the real Schedule task; repeated fixture setup reuses only its exact pending synthetic session."
     }
   },
   {

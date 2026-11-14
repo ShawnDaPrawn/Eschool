@@ -36,6 +36,8 @@ for (const width of [390, 820, 1280]) {
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     await page.goto('/school-card-readers');
+    await expect(page.getByRole('textbox', { name: 'Reader name', exact: true })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Register reader', exact: true }).click();
     await page.getByRole('textbox', { name: 'Reader name', exact: true }).fill(`Synthetic gate ${width}`);
     await page.getByRole('textbox', { name: 'Device public encryption key', exact: true }).fill(String(setup.public_key));
     await page.getByRole('button', { name: 'Register reader', exact: true }).click();
@@ -44,6 +46,9 @@ for (const width of [390, 820, 1280]) {
     expect(credential).toMatch(/^NED1\./);
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.getByRole('link', { name: 'Return to card readers', exact: true }).click();
+    await expect(page.getByRole('heading', { name: `Synthetic gate ${width}`, exact: true }).last()).toBeVisible();
+    await expect(page.locator('body')).not.toContainText(credential);
     // Admin cookies deliberately remain in this context: device transport must omit them.
     await page.goto('/card-reader');
     await page.getByLabel('Private reader credential', { exact: true }).fill(credential);

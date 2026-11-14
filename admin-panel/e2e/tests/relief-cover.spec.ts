@@ -43,6 +43,9 @@ for (const width of [1024, 1280]) {
     await page.setViewportSize({ width, height: 1000 });
     const errors = collectErrors(page, baseURL!);
     await page.goto(`/relief-cover?from=${coverDate}&to=${coverDate}`);
+    await expect(page.getByRole('form', { name: 'Request cover', exact: true })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Request cover', exact: true }).click();
+    expect(new URL(page.url()).searchParams.get('view')).toBe('request');
     const request = page.getByRole('form', { name: 'Request cover', exact: true });
     await request.getByRole('combobox', { name: 'Absent teacher', exact: true }).selectOption({ label: 'Thandi Mokoena' });
     await request.getByRole('textbox', { name: 'First absence date', exact: true }).fill(coverDate);
@@ -61,6 +64,8 @@ for (const width of [1024, 1280]) {
     expect(new Set(ids).size).toBe(ids.length);
     const substitutePage = await teacherContext.newPage();
     await substitutePage.goto(`/relief-cover?from=${coverDate}&to=${coverDate}`);
+    await substitutePage.getByRole('link', { name: 'My assigned lessons', exact: true }).click();
+    expect(new URL(substitutePage.url()).searchParams.get('view')).toBe('mine');
     await expect(substitutePage.getByText('Browser cover group', { exact: true })).toBeVisible();
     await expect(substitutePage.getByText(`Private browser cover ${width}`, { exact: false })).toHaveCount(0);
     expect(await seriousViolations(substitutePage)).toEqual([]);

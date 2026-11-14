@@ -1,14 +1,15 @@
-import { execFileSync } from 'node:child_process';
-import path from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { horizontalOverflow, seriousViolations } from '../support/checks';
+import { artisanFixture } from '../support/artisan-fixture';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 test.setTimeout(180_000);
 let group: string;
 test.beforeAll(() => {
-  group = execFileSync('php', ['artisan', 'tinker', '--execute', "require base_path('e2e/support/question-author-fixture.php');"], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' }).trim();
+  // Every worker, including a retry, must create all prerequisites successfully.
+  group = artisanFixture("require base_path('e2e/support/question-author-fixture.php');", { QUESTION_AUTHOR_FIXTURE_RUN: randomBytes(8).toString('hex') });
   expect(group).toMatch(/^\d+$/);
 });
 

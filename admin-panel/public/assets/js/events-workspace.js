@@ -29,6 +29,21 @@ document.querySelectorAll('[data-event-editor]').forEach((container) => {
     const multiple = form.querySelector('[data-event-multiple]');
     const rows = form.querySelector('[data-programme-rows]');
     let sequence = rows?.children.length || 0;
+    const pendingControls = new Map();
+    const programmeSaving = () => form.getAttribute('aria-busy') === 'true';
+    const syncProgrammeControls = () => {
+        if (programmeSaving()) {
+            form.querySelectorAll('[data-programme-add], [data-programme-remove]').forEach((button) => {
+                if (!pendingControls.has(button)) pendingControls.set(button, button.disabled);
+                button.disabled = true;
+            });
+        } else {
+            pendingControls.forEach((disabled, button) => { button.disabled = disabled; });
+            pendingControls.clear();
+        }
+    };
+    new MutationObserver(syncProgrammeControls).observe(form, { attributes: true, attributeFilter: ['aria-busy'] });
+    syncProgrammeControls();
     const update = () => {
         if (type && single && multiple) {
             single.hidden = single.disabled = type.value !== 'single';
@@ -59,6 +74,7 @@ document.querySelectorAll('[data-event-editor]').forEach((container) => {
         if (!form.reportValidity()) { event.preventDefault(); event.stopImmediatePropagation(); }
     }, true);
     form.querySelector('[data-programme-add]')?.addEventListener('click', () => {
+        if (programmeSaving()) return;
         const template = form.querySelector('[data-programme-template]');
         const copy = document.createElement('template');
         copy.innerHTML = template.innerHTML.replaceAll('__ROW__', String(++sequence));
@@ -70,6 +86,7 @@ document.querySelectorAll('[data-event-editor]').forEach((container) => {
     form.addEventListener('click', async (event) => {
         const button = event.target.closest('[data-programme-remove]');
         if (!button) return;
+        if (programmeSaving()) return;
         const row = button.closest('[data-programme-row]');
         const status = row.querySelector('[data-programme-status]');
         if (rows.children.length === 1) {

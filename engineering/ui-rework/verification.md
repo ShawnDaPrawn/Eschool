@@ -112,7 +112,7 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Notification list/chooser and default-value form controls | 2 notification workflows; 2 strict field pages and both mobile/desktop option add/remove proofs passed |
 | Role and staff-attendance page corrections | 4 strict phone/desktop page checks passed; source record actions and filters retained |
 | TypeScript compilation | Passed after final mobile utility tests |
-| CI Playwright partition inventory | Full suite ancestry retained; 1,241 tests complete/disjoint (310 per bulk shard and one wizard) |
+| CI Playwright partition inventory | 1,242 tests complete/disjoint after balancing: flows 114/114/112/112, one full viewport in parts 1–3, role/retired checks in part 4, isolated wizard |
 | Generated Dart API contracts | 193 tests passed; analyzer zero errors/warnings (parent verification logs) |
 | Expanded source/authorized-task discovery | 434 URLs, 255 panel screens; zero server/network failures after explicit retries |
 | Complete 375/1280 px page sweeps, first pass | 232/258 and 233/258 passed; 26/25 source defects retained in the initial reports, zero skipped/flaky |
@@ -176,6 +176,25 @@ input without posting or persisting private field values. The permanent
 as the existing desktop widths. Optional modules are explicitly
 enabled only by a guarded test fixture; production defaults remain unchanged.
 
+## Balanced CI execution
+
+The four isolated browser parts now each receive a native shard of the slower
+workflow project. Parts 1–3 first run the complete 1280/1024/375 page project;
+part 4 first runs teacher and retired-route checks. Each part's commands run
+sequentially, retain the workflow project's single worker and preserve native
+serial groups. A failure in either command makes the part fail while allowing
+its remaining checks to run. Separate report/result subdirectories keep earlier
+failure evidence intact. The wizard retains its separate schema and no-dependency
+command.
+
+Real prepared Playwright discovery verified 1,242 tests with no missing or
+repeated identities, both within each part and across all five parts. The four
+workflow shards contain 114, 114, 112 and 112 tests. Tool orchestration tests cover
+failure aggregation, continued execution, artifact separation, overlap rejection
+and complete coverage; all five CI-tool unit tests pass. Python syntax,
+TypeScript and diff checks pass. This change qualifies distribution and coverage;
+its actual hosted elapsed-time improvement remains a CI measurement.
+
 ## Request performance and final visual evidence
 
 A real authenticated document profile initially recorded 6,023 SQL queries and
@@ -231,3 +250,39 @@ responses unchanged.
 Exact source changes and logs are recorded in each owner ledger. The successful
 page sweep remains the complete layout/accessibility evidence; these additional
 checks qualify the affected write-to-destination interactions.
+
+## Final full-suite browser corrections
+
+The completed final browser shard exposed deeper task interactions beyond the
+read-only page sweep. The corrected chains were executed locally with their
+original write, authorization, privacy, accessibility and persisted-result
+assertions intact:
+
+- Events, family visits and school-card reader setup: all nine serial cases
+  passed. Programme save waits for the new document; a held-save regression
+  additionally proves competing row actions are disabled, cancelling never
+  deletes, and confirmation deletes exactly once. Only the programme domain
+  script changed; shared form behavior was preserved.
+- Peer tutoring and question authoring: five cases passed with retries disabled.
+  The peer fixture reuses only its exact pending rehearsal, preventing an
+  interrupted prior attempt from generating a legitimate scheduling collision.
+  Question setup is atomic and uses a fresh worker namespace; captured Artisan
+  output now survives any failure. The historical first-attempt exception was
+  absent from the CI artifact and is not assigned a speculative cause.
+- Relief cover: both complete serial cases passed; the full eleven-case Teacher
+  suite passed. Tests follow the actual Request cover/My assigned lessons and
+  workspace links, preserving every direct-route refusal and private substitute
+  assertion.
+- Wallet readers and fee lifecycle: eighteen backend tests/229 assertions and all
+  nine lifecycle/reader browser cases passed. The panel retains UUID reader IDs,
+  refuses malformed/foreign selections, and uses canonical GET links after
+  revocation without exposing credentials. Calculation-definition labels use
+  the on-surface token on shaded detail rows. Money services and permissions
+  remain unchanged.
+
+The original full CI logs are retained separately from these passing corrective
+runs. CI allocation now pairs a complete viewport sweep with a serial workflow
+shard, preserves independent schemas and per-command failure artifacts, and
+verifies all 1,242 tests exactly once. The obsolete separate leadership preflight
+was removed because that test remains in its verified workflow partition; this
+also prevents a second global setup from changing discovery midway through CI.
