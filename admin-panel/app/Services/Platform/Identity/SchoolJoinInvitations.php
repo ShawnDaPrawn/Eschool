@@ -105,7 +105,7 @@ class SchoolJoinInvitations
         if ($fresh === null || (int) $role->school_id !== $school || in_array($role->name, [...self::NOT_STAFF, SchoolRoles::SUPER_ADMIN], true)) {
             return false;
         }
-        if ($role->name !== SchoolRoles::TEACHER && (int) $role->custom_role !== 1) {
+        if (! in_array($role->name, [SchoolRoles::TEACHER, SchoolRoles::FACILITATOR], true) && (int) $role->custom_role !== 1) {
             return false;
         }
         $isStaff = SchoolMembership::query()->active()->where('school_id', $school)->where('user_id', $fresh->id)->whereNotIn('role', self::NOT_STAFF)->exists();

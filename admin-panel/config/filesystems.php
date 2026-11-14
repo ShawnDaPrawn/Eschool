@@ -29,6 +29,7 @@ return [
     */
 
     'disks' => [
+        'leave_private' => ['driver' => 'local', 'root' => storage_path('app/private/facilitator-leave'), 'visibility' => 'private', 'directory_visibility' => 'private', 'throw' => true],
         'activity_private' => ['driver' => 'local', 'root' => storage_path('app/private/activity-materials'), 'visibility' => 'private', 'directory_visibility' => 'private', 'throw' => true],
         'cards_private' => ['driver' => 'local', 'root' => storage_path('app/private/cards'), 'visibility' => 'private', 'throw' => true],
         'business_private' => ['driver' => 'local', 'root' => storage_path('app/private/school-business'), 'visibility' => 'private', 'directory_visibility' => 'private', 'throw' => true],

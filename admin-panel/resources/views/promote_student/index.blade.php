@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('promote_students_in_next_session') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('promote_students_in_next_session')" />
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card search-container">
                 <div class="card">
@@ -60,7 +56,7 @@
                                 </div>
 
                                 <div class="form-group col-sm-12 col-md-2">
-                                    <label>
+                                    <label for="filter_status">
                                         {{ __('status') }}
                                     </label>
                                     <select name="status" id="filter_status" class="form-control">

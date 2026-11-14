@@ -1,0 +1,504 @@
+{
+  "base": "64477bd50b935bdf047b983c7cba1fa83e92948b",
+  "integration_commit": "a545c857ed88d1392ea77deb3ca4cd25d9cc7130",
+  "pull_requests": {
+    "488": "20b97e96757ab1bc4e57bf3048c9f5ccad306ac5",
+    "489": "badcf20e85f1c343c714cc67a9ee0b0c63eaeefe",
+    "490": "6c2a17d8a1e82414c0187088bfebe22323e75cdc"
+  },
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/.env.example",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Api/V2/Activities/AcademicContestController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Api/V2/Learning/SharedLibraryController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Api/V2/Platform/ProviderSignInController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Api/V2/Platform/SignInLinkController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Auth/ProviderSignInController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Panel/Activities/AcademicContestPanelController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Panel/Learning/SharedLibraryController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Panel/SignIn/SignInLinksController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Panel/SignIn/SignInProviderSettingsController.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Controllers/Platform/PlatformLibraryController.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Http/Middleware/SetSchoolContext.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/Activities/AcademicContestRequest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/Learning/SharedLibraryRequest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/Saas/LibraryRequest.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/SignIn/ProviderAppLinkRequest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/SignIn/ProviderAppSignInRequest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/SignIn/ProviderLinkStartRequest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/SignIn/ProviderNonceRequest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Http/Requests/SignIn/ProviderSettingsRequest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Activities/AcademicAdjudicator.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Activities/AcademicAwardLink.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Activities/AcademicReasoningReview.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Activities/AcademicResult.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Learning/PracticeItem.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/ContributionGate.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/LibraryContribution.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/LibraryItem.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/LibraryItemVersion.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/LibraryRating.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/LibrarySchoolSetting.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/LibrarySource.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Models/Library/PlatformLibraryRow.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Models/SignIn/SignInProviderChallenge.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/SignIn/SignInProviderLink.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Models/SignIn/SignInProviderSetting.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Providers/PlatformServiceProvider.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Providers/RouteServiceProvider.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/AcademicAwards.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/AcademicContests.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/Competitions.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/FixtureNotices.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/Fixtures.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/ReasoningFeedbackModeration.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/ReasoningFeedbackPolicy.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/ReasoningFeedbackQuarantine.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Activities/Fixtures/ReasoningReviews.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/Library/LibraryItems.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/Library/LibraryPages.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/Library/LibraryRatings.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/Library/SharedLibrary.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/Library/SharedLibraryAccess.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/Library/SharedLibraryBrowse.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/Library/SharedLibraryScan.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Learning/PracticeBank.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Panel/Navigation.php",
+      "method": "three-way merge preserving UI changes"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/Identity/AppTokens.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/Identity/PortalSession.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/HttpProviderCodes.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/HttpProviderKeys.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/IdTokenVerifier.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderCatalogue.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderChallenges.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderCodes.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderIdentity.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderKeys.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderLinks.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderSessionScope.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderSettings.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderSignIn.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/SignIn/ProviderSignInRefused.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/app/Services/Platform/Tenancy/SchoolOwnedTables.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/config/ai.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/config/modules.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/config/navigation.php",
+      "method": "three-way merge preserving UI changes"
+    },
+    {
+      "path": "admin-panel/config/product_modules.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/config/school_packages.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/config/shared_library.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/config/shared_records.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/config/sign_in_providers.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/database/migrations/2026_11_12_530000_create_academic_competitions.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/database/migrations/2026_11_12_540000_create_shared_content_library.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/database/migrations/2026_11_12_590000_create_sign_in_providers.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/openapi.yaml",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/ai/evals/reasoning_feedback.jsonl",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/ai/evals/redteam.jsonl",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/ai/prompts/reasoning-feedback.json",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/lang/af.json",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/lang/ar.json",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/lang/en.json",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/lang/zu.json",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/views/activities/academic/index.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/activities/academic/kind.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/activities/academic/show.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/auth/provider-buttons.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/learning/question-banks.blade.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/views/learning/shared-library/contribution.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/learning/shared-library/contributions.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/learning/shared-library/index.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/learning/shared-library/item.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/learning/shared-library/share.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/saas/library/item.blade.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/views/saas/library/ratings.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/saas/library/reviews.blade.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/resources/views/sign-in/links.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/resources/views/sign-in/settings.blade.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/routes/api_v2.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/routes/web.php",
+      "method": "three-way merge preserving UI changes"
+    },
+    {
+      "path": "admin-panel/tests/Feature/Activities/AcademicCompetitionsTest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/tests/Feature/Contracts/OpenApiContractTest.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/tests/Feature/Learning/SharedContentLibraryTest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/tests/Feature/Platform/ProviderSignInTest.php",
+      "method": "new dependency"
+    },
+    {
+      "path": "admin-panel/tests/Feature/Platform/SaasPanelTest.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/tests/Feature/Tenancy/ApiRouteTenancyTest.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "admin-panel/tests/Support/ApiRoute.php",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "engineering/specs/activities/academic-competitions.md",
+      "method": "new dependency"
+    },
+    {
+      "path": "engineering/specs/activities/inter-school-fixtures.md",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "engineering/specs/learning/content-library.md",
+      "method": "unchanged baseline updated"
+    },
+    {
+      "path": "engineering/specs/learning/shared-content-library.md",
+      "method": "new dependency"
+    },
+    {
+      "path": "engineering/specs/platform/google-microsoft-sign-in.md",
+      "method": "new dependency"
+    },
+    {
+      "path": "engineering/specs/platform/tenancy.md",
+      "method": "unchanged baseline updated"
+    }
+  ],
+  "manual_resolution": "Fixture detail merged with revised record view; school login includes provider buttons in the revised Material authentication layout. Both temporary conflict files removed.",
+  "resolved_manual_merges": [
+    "admin-panel/resources/views/activities/fixtures/show.blade.php",
+    "admin-panel/resources/views/auth/login.blade.php"
+  ]
+}

@@ -150,7 +150,7 @@ class SchoolSetupTest extends TestCase
         }
 
         // Only the five newest were offered.
-        $page = $this->actingAs($this->superAdmin())->get('/staff')->assertOk();
+        $page = $this->actingAs($this->superAdmin())->get('/staff?view=create')->assertOk()->assertSee('id="new-staff-role"', false);
         foreach (range(1, 7) as $i) {
             $page->assertSee("Office role $i");
         }
@@ -179,7 +179,8 @@ class SchoolSetupTest extends TestCase
 
         $this->get('/subject')->assertSee(trans('before_using_this_form_create'))->assertSee(url('medium'));
         $this->get('/class')->assertSee(url('medium'))->assertSee(url('section'));
-        $this->get('/staff')->assertSee(url('roles/create'));
+        $this->get('/staff')->assertOk()->assertSee(route('staff.index', ['view' => 'create']), false)->assertDontSee('id="staff-form"', false);
+        $this->get('/staff?view=create')->assertOk()->assertSee(trans('before_using_this_form_create'))->assertSee(url('roles/create'))->assertSee('id="staff-form"', false);
     }
 
     /** Form fields for a new session year, as the create modal sends them. */

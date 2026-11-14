@@ -60,9 +60,9 @@ test('last year is read-only until you switch back', async ({ page }) => {
   await expect(page.getByText('Kabelo Dlamini', { exact: true })).toHaveCount(0);
 
   // The banner is on every page, and write buttons are disabled.
-  await page.goto('/announcement');
+  await page.goto('/announcement?view=create');
   await expect(banner).toBeVisible();
-  await expect(page.locator('form.create-form input[type="submit"]')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Publish notice', exact: true })).toBeDisabled();
 
   // The server refuses a write with a clear message.
   const response = await page.request.post('/announcement', {
@@ -75,5 +75,5 @@ test('last year is read-only until you switch back', async ({ page }) => {
   // Back to this year from the banner.
   await page.getByRole('button', { name: `Back to ${year}` }).click();
   await expect(page.locator('.year-banner')).toHaveCount(0);
-  await expect(page.locator('form.create-form input[type="submit"]')).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Publish notice', exact: true })).toBeEnabled();
 });

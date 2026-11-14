@@ -54,7 +54,7 @@ class MessageWorkbenchController extends Controller
 
     private function done(array $receipt, string $text): Response
     {
-        return redirect()->route('communication-centre.index', ['message_id' => $receipt['id']])->with('success', __($text));
+        return redirect()->route('communication-centre.index', ['message_id' => $receipt['id'], 'view' => request('view') === 'newsletter' ? 'newsletter' : 'compose'])->with('success', __($text));
     }
 
     public function create(MessagePanelRequest $r): Response
@@ -123,6 +123,6 @@ class MessageWorkbenchController extends Controller
     {
         app(CommunicationOperations::class)->once($r->user(), 'rule', ['role' => $role] + $r->validated(), fn () => abort_unless(app(CommunicationRules::class)->manages($r->user()), 403), fn () => app(CommunicationRules::class)->save($r->user(), $role, $r->validated()));
 
-        return redirect()->route('communication-centre.index')->with('success', __('Message author rule saved'));
+        return redirect()->route('communication-centre.index', ['view' => 'configuration'])->with('success', __('Message author rule saved'));
     }
 }

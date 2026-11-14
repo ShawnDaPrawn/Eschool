@@ -406,11 +406,22 @@ class WalletCounterPaymentsTest extends TestCase
         $this->post($url, $input)->assertOk()->assertSee('Private reader pairing credential')->assertSee('NED1.1.')->assertHeader('Cache-Control', 'no-store, private');
         $new = CardReaderDevice::where('name', 'Synthetic new paired counter')->sole();
         $this->assertSame('vendor', $new->kind);
+        $reviewUrl = route('vendor-payment-readers.index', ['section' => 'reader', 'reader_id' => $new->id, 'page' => 1]);
+        $this->get($reviewUrl)->assertOk()->assertSee('Synthetic new paired counter')->assertSee('Revoke this payment reader')->assertSee(route('vendor-payment-readers.revoke', ['reader' => $new->id]), false)->assertDontSee('NED1.');
+        foreach (['not-a-uuid', ['invalid']] as $invalid) {
+            $this->get($url.'?'.http_build_query(['section' => 'reader', 'reader_id' => $invalid]))->assertUnprocessable()->assertSessionMissing('_old_input');
+        }
+        $foreignReader = app(CurrentSchool::class)->run(2, fn () => CardReaderDevice::create(['issued_by' => $this->schoolB->ids['tara_user'], 'name' => 'Baobab private counter reader', 'kind' => 'vendor', 'public_key' => $new->public_key, 'secret_hash' => hash('sha256', 'synthetic-foreign-reader'), 'expires_at' => now()->utc()->addDay()]));
+        $this->get($url.'?'.http_build_query(['section' => 'reader', 'reader_id' => $foreignReader->id]))->assertOk()->assertSee('This reader is no longer available')->assertDontSee('Baobab')->assertDontSee('Revoke this payment reader');
+        $this->post($url.'/'.$foreignReader->id.'/revoke', ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id])->assertNotFound();
+        $this->get($url.'?'.http_build_query(['section' => 'reader', 'reader_id' => CardReaderDevice::where('kind', 'encoder')->sole()->id]))->assertOk()->assertSee('This reader is no longer available')->assertDontSee('Revoke this payment reader');
         app(ModuleGate::class)->change('wallet_payments', false, $this->admin);
         $this->get($url)->assertOk()->assertSee('Existing readers can still be revoked.');
-        $this->post($url.'/'.$new->id.'/revoke', ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id])->assertOk();
+        $this->get($reviewUrl)->assertOk()->assertSee('Revoke this payment reader');
+        $this->post($url.'/'.$new->id.'/revoke', ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id])->assertOk()->assertSee(e(route('vendor-payment-readers.index', ['section' => 'readers', 'page' => 1])), false)->assertSee(e(route('vendor-payment-readers.index', ['section' => 'register'])), false)->assertDontSee('/revoke?', false)->assertDontSee('NED1.');
         $this->assertSame('revoked', $new->fresh()->status);
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']))->get($url)->assertForbidden();
+        $this->get($reviewUrl)->assertForbidden()->assertDontSee('Synthetic new paired counter');
     }
 
     public function test_reader_navigation_and_destination_require_both_current_permissions(): void

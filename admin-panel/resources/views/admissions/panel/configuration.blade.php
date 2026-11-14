@@ -2,7 +2,7 @@
 @section('title',__('Configure intake'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/admissions.css') }}">@endsection
 @section('content')
-<div class="content-wrapper admissions-workbench"><x-page.header :title="__('Configure intake')" /><x-m3.button variant="text" :href="route('admissions-panel.index')">{{ __('Back to admissions') }}</x-m3.button>
+<div class="content-wrapper m3 page-content admissions-workbench"><x-page.header :title="__('Configure intake')" /><x-m3.button variant="text" :href="route('admissions-panel.index')">{{ __('Back to admissions') }}</x-m3.button>
 <form method="post" action="{{ $intake?route('admissions-panel.configure',['intake'=>$intake->id]):route('admissions-panel.create') }}" class="admissions-card">@include('admissions.panel.hidden',['revision'=>$intake?->revision??0])
 <x-m3.text-field name="name" :label="__('Intake name')" :value="$intake?->name" maxlength="160" required />
 <x-m3.select name="session_year_id" :label="__('School year')" :options="$years->pluck('name','id')" :value="$intake?->session_year_id" required />
@@ -12,6 +12,7 @@
 <p>{{ __('Until online application payments are available, the office records the exact fee acknowledgement and receipt reference.') }}</p>
 <x-m3.text-field name="keep_for_days" :label="__('Retention days for incomplete and unsuccessful applications')" type="number" min="1" max="365" :value="$intake?->keep_for_days??90" required />
 <x-m3.text-field name="document_categories" :label="__('Required document categories, separated by commas')" :value="implode(', ',$intake?->required_documents??[])" placeholder="birth_certificate, previous_report" maxlength="800" />
+@include('people.partials.structured-list', ['sourceField' => 'document_categories', 'separator' => 'comma', 'maximum' => 12, 'rowMaxlength' => 64, 'pattern' => '[a-z][a-z0-9_]{0,63}', 'listTitle' => __('Required documents'), 'rowLabel' => __('Document category'), 'addLabel' => __('Add document category')])
 <p>{{ __('Use short category names with lowercase letters and underscores. Documents are encrypted privately and must pass scanning before submission.') }}</p>
 <fieldset><legend>{{ __('Profile fields on the application') }}</legend><p>{{ __('Include the learner first name, last name and date of birth. Only fields available to applicants and the school office can be selected. Keep the form and fee unchanged once a family has started an application.') }}</p>
 @foreach($fields as $field)<x-m3.checkbox name="field_ids[]" :value="$field->id" :checked="in_array((int)$field->id,$intake?->field_ids??[],true)" :label="__(ucfirst($field->profile_type)).' · '.$field->category->label.' · '.$field->label.($field->sensitive?' ('.__('Sensitive').')':'')" />@endforeach</fieldset>

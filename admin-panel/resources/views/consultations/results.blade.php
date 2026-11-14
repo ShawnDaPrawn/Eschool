@@ -2,7 +2,7 @@
 @section('title', __('Consultation results'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/consultations.css') }}">@endsection
 @section('content')
-<div class="content-wrapper consultations" data-consultations-root><h1>{{ __('Consultation results') }}</h1>@include('consultations.header')
+<div class="content-wrapper m3 page-content consultations" data-consultations-root><x-page.header :title="__('Consultation results')" />@include('consultations.header')
 <p>{{ $result['closed']?__('Closed results'):__('Live aggregate counts') }} · {{ __('Responses recorded') }}: {{ $result['response_count'] }}</p><p>{{ $result['anonymous']?__('Anonymous responses'):__('Named responses') }}</p>
 @foreach($result['questions'] as $question)<section class="m3-card"><div class="m3-card__content"><h2>{{ $question['label'] }}</h2><p>{{ __('Answered') }}: {{ $question['answered'] }} / {{ $result['response_count'] }}</p>
 @if($question['kind']==='text')<p>{{ __('Individual text answers are available only to consultation managers after close.') }}</p>@else

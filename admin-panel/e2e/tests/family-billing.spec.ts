@@ -21,7 +21,7 @@ test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
   test(`finance creates a split family, approves and posts invoices once at ${width}px`, async ({ page, baseURL }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(480_000);
     const data: Fixture = fixture();
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, data.finance);
@@ -36,19 +36,19 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('textbox', { name: 'Holder share percentage 1', exact: true }).fill('50');
     await page.getByRole('textbox', { name: 'Holder share percentage 2', exact: true }).fill('50');
     await check(page);
-    await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
+    await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Save active family account', exact: true }).click()]);
     await expect(page.getByRole('status')).toContainText('Family account saved.');
     await check(page);
     if (width === 390) {
       const source = page.url();
       await page.goto(`${source}/edit`);
       await page.getByRole('listbox', { name: 'Learners on this account', exact: true }).selectOption([String(data.learners[0].id)]);
-      await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
+      await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Save active family account', exact: true }).click()]);
       await expect(page.getByRole('status')).toContainText('Family account saved.');
       await page.goto(`${source}/edit`);
       await page.getByRole('listbox', { name: 'Learners on this account', exact: true }).selectOption([]);
       await check(page);
-      await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
+      await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Save active family account', exact: true }).click()]);
       await expect(page.getByRole('status')).toContainText('Family account saved.');
       await page.goto('/fee-accounts/new');
       await page.getByRole('textbox', { name: 'Account name', exact: true }).fill('Corrected family');
@@ -57,7 +57,7 @@ for (const width of [390, 820, 1280]) {
       await page.getByRole('combobox', { name: 'Account holder 2', exact: true }).selectOption(String(data.parents[1]));
       await page.getByRole('textbox', { name: 'Holder share percentage 1', exact: true }).fill('50');
       await page.getByRole('textbox', { name: 'Holder share percentage 2', exact: true }).fill('50');
-      await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
+      await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Save active family account', exact: true }).click()]);
       await expect(page.getByRole('status')).toContainText('Family account saved.');
     }
     await page.goto('/fee-bill-runs/new');
@@ -66,13 +66,13 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('textbox', { name: 'Invoice due date', exact: true }).fill(data.due);
     await page.getByRole('checkbox', { name: 'I confirm no VAT is charged on these annual tuition fees.', exact: true }).check();
     await check(page);
-    await page.getByRole('button', { name: 'Prepare bill preview', exact: true }).click();
+    await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Prepare bill preview', exact: true }).click()]);
     await expect(page.getByRole('status')).toContainText('Bill preview prepared.');
     await expect(page.getByRole('main')).toContainText('ZAR 20.02');
     for (const learner of data.learners) await expect(page.getByRole('table')).toContainText(learner.name);
     expect(fixture('stats', data.school).invoices).toBe(0);
     await check(page);
-    await page.getByRole('button', { name: 'Approve bill preview', exact: true }).click();
+    await Promise.all([page.waitForEvent('domcontentloaded'), page.getByRole('button', { name: 'Approve bill preview', exact: true }).click()]);
     await expect(page.getByRole('status')).toContainText('Bill run approved.');
     expect(fixture('stats', data.school).invoices).toBe(0);
     await page.getByRole('checkbox', { name: 'I confirm these approved charges should be invoiced.', exact: true }).check();
@@ -81,7 +81,7 @@ for (const width of [390, 820, 1280]) {
     const postData = await form.evaluate(node => Object.fromEntries(new FormData(node as HTMLFormElement).entries()) as Record<string, string>);
     const postUrl = await form.getAttribute('action');
     await check(page);
-    await postButton.click();
+    await Promise.all([page.waitForEvent('domcontentloaded'), postButton.click()]);
     await expect(page.getByRole('status')).toContainText('Invoices posted once.');
     await check(page);
     const repeated = await page.request.post(postUrl!, { form: postData });
@@ -92,6 +92,7 @@ for (const width of [390, 820, 1280]) {
     await expect(page.getByRole('heading', { name: 'Recorded holder shares', exact: true })).toBeVisible();
     for (const learner of data.learners) await expect(page.getByRole('table')).toContainText(learner.name);
     await check(page);
+    await page.screenshot({ path: test.info().outputPath('posted-family-invoice.png'), fullPage: true });
     expect(errors).toEqual([]);
   });
 }

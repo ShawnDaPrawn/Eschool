@@ -9,7 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
  * DemoSchoolSeeder. global-setup.ts signs in the demo accounts and lists the
  * panel pages. Projects:
  *
- * - pages-1280, pages-1024: every panel page loads for the Super Admin without
+ * - pages-1280, pages-1024, pages-375: every panel page loads for the Super Admin without
  *   console errors or horizontal scroll and passes axe (serious and critical);
  * - flows: navigation, search and the year switcher;
  * - teacher: a Teacher is refused admin-only pages;
@@ -41,19 +41,24 @@ export default defineConfig({
     {
       name: 'pages-1280',
       testMatch: /pages\.spec\.ts/,
-      use: { ...desktop, viewport: { width: 1280, height: 800 }, storageState: '.auth/admin-pages.json' },
+      use: { ...desktop, viewport: { width: 1280, height: 800 } },
     },
     {
       name: 'pages-1024',
       testMatch: /pages\.spec\.ts/,
-      use: { ...desktop, viewport: { width: 1024, height: 768 }, storageState: '.auth/admin-pages.json' },
+      use: { ...desktop, viewport: { width: 1024, height: 768 } },
+    },
+    {
+      name: 'pages-375',
+      testMatch: /pages\.spec\.ts/,
+      use: { ...desktop, viewport: { width: 375, height: 812 } },
     },
     {
       name: 'flows',
       // These workflows share one seeded school and mutate its catalogues,
       // module settings and preview fingerprints. Keep their writes ordered.
       workers: 1,
-      testMatch: /(wallet-payments|late-charges|payer-corrections|tickets|cash-handover|cashup|vendor-settlements|vendor-access|vendor-orders|vendor-catalogues|wallet-withdrawals|wallet-deposits|wallet-transfers|wallet-desk|wallet-funding|personal-wallets|fee-refunds|fee-leavers|fee-lifecycle|fee-discounts|fee-item-opt-ins|fee-item-eligibility|fee-vat|fee-plan-rules|fee-reminders|fee-reporting|bank-statements|fee-items|fee-credits|fee-payments|family-billing|fee-plans|navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information|school-terms|subject-standards|curriculum-plans|teaching-groups|academic-timetable|academic-registers|exam-memo-form|academic-reports|academic-transitions|academic-content|academic-sasams|academic-languages|communication-messages|relief-cover|activity-groups|activity-material-files|mastery|support-plans|public-reporting|progress-notes|wellbeing|leadership-dashboard|school-transfers|risk-interventions|school-discipline|recognition|admissions|consultations|private-gallery|weekly-digests|school-cards|card-offline|card-encoding|foundation-classroom(?:-backend)?|family-forms|family-visits|group-conversations|pathways|peer-tutoring|school-assistance|ai-flag-review|ai-controls|saas-panel)\.spec\.ts/,
+      testMatch: /(school-notifications|workspace-sections|attendance-leave-workspaces|admin-revision3|shared-form-recovery|shared-table-recovery|people-workspaces|question-author|events-programmes|school-settings-sections|finance-school-business|fixtures-competitions|wallet-payments|late-charges|payer-corrections|tickets|cash-handover|cashup|vendor-settlements|vendor-access|vendor-orders|vendor-catalogues|wallet-withdrawals|wallet-deposits|wallet-transfers|wallet-desk|wallet-funding|personal-wallets|fee-refunds|fee-leavers|fee-lifecycle|fee-discounts|fee-item-opt-ins|fee-item-eligibility|fee-vat|fee-plan-rules|fee-reminders|fee-reporting|bank-statements|fee-items|fee-credits|fee-payments|family-billing|fee-plans|navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information|school-terms|subject-standards|curriculum-plans|teaching-groups|academic-timetable|academic-registers|exam-memo-form|academic-reports|academic-transitions|academic-content|academic-sasams|academic-languages|communication-messages|relief-cover|activity-groups|activity-material-files|mastery|support-plans|public-reporting|progress-notes|wellbeing|leadership-dashboard|school-transfers|risk-interventions|school-discipline|recognition|admissions|consultations|private-gallery|weekly-digests|school-cards|card-offline|card-encoding|foundation-classroom(?:-backend)?|family-forms|family-visits|group-conversations|pathways|peer-tutoring|school-assistance|ai-flag-review|ai-controls|saas-panel)\.spec\.ts/,
       use: { ...desktop, viewport: { width: 1280, height: 800 } },
     },
     {
@@ -69,7 +74,7 @@ export default defineConfig({
     {
       name: 'wizard',
       testMatch: /new-year-wizard\.spec\.ts/,
-      dependencies: ['pages-1280', 'pages-1024', 'flows', 'teacher'],
+      dependencies: ['pages-1280', 'pages-1024', 'pages-375', 'flows', 'teacher'],
       use: { ...desktop, viewport: { width: 1280, height: 800 }, storageState: '.auth/admin-flows.json' },
     },
   ],

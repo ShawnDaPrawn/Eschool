@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('students') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('Add learner')" :subtitle="__('Complete the learner and family details. Guardian approval is still required before the learner can sign in.')"><x-slot:actions><a class="m3-button m3-button--outlined" href="{{ route('students.list') }}">{{ __('Back to learners') }}</a></x-slot:actions></x-page.header>
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
@@ -67,17 +63,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('image') }} <span class="text-danger">*</span></label>
-                                    <input type="file" name="image" class="file-upload-default" accept="image/*" />
-                                    <div class="input-group col-xs-12">
-                                        <input type="text" class="form-control file-upload-info" disabled=""
-                                            placeholder="{{ __('image') }}" required="required" />
-                                        <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-theme"
-                                                type="button">{{ __('upload') }}</button>
-                                        </span>
-                                    </div>
-                                    <small class="form-text text-muted">{{ __('image_size_hint') }}</small>
+                                    <x-m3.file-field name="image" :label="__('Learner photo')" accept="image/jpeg,image/png" :hint="__('image_size_hint')" />
                                 </div>
                                 <div class="form-group col-sm-12 col-md-4">
                                     <label>{{ __('dob') }} <span class="text-danger">*</span></label>
@@ -88,7 +74,7 @@
                             </div>
                             <div class="row">
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('class') . ' ' . __('section') }} <span
+                                    <label for="class_section">{{ __('class') . ' ' . __('section') }} <span
                                             class="text-danger">*</span></label>
                                     <select name="class_section_id" id="class_section" class="form-control select2">
                                         <option value="">{{ __('select') . ' ' . __('class') . ' ' . __('section') }}
@@ -101,8 +87,8 @@
                                     </select>
                                 </div>
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label> {{ __('category') }} <span class="text-danger">*</span></label>
-                                    <select name="category_id" class="form-control">
+                                    <label for="learner-category"> {{ __('category') }} <span class="text-danger">*</span></label>
+                                    <select name="category_id" id="learner-category" aria-label="{{ __('category') }}" class="form-control">
                                         <option value="">{{ __('select') . ' ' . __('category') }}</option>
                                         @foreach ($category as $cat)
                                             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -147,8 +133,8 @@
                             </div>
                             <div class="row">
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('blood_group') }} <span class="text-danger">*</span></label>
-                                    <select name="blood_group" class="form-control">
+                                    <label for="learner-blood-group">{{ __('blood_group') }} <span class="text-danger">*</span></label>
+                                    <select name="blood_group" id="learner-blood-group" aria-label="{{ __('blood_group') }}" class="form-control">
                                         <option value="">{{ __('select') . ' ' . __('blood_group') }}</option>
                                         <option value="A+">A+</option>
                                         <option value="A-">A-</option>
@@ -318,11 +304,11 @@
                                 <div class="form-group col-sm-12 col-md-12">
                                     <label>{{ __('father_email') }} <span class="text-danger">*</span></label>
                                     @if (config('app.demo_mode'))
-                                        <select class="father-search w-100" id="father_email" name="father_email"
+                                        <select class="father-search w-100" id="father_email" name="father_email" aria-label="{{ __('father') . ' ' . __('email') }}"
                                             disabled></select>
                                     @else
                                         <select class="father-search w-100" id="father_email"
-                                            name="father_email"></select>
+                                            name="father_email" aria-label="{{ __('father') . ' ' . __('email') }}"></select>
                                     @endif
                                 </div>
 
@@ -373,20 +359,9 @@
                                     ]) !!}
                                 </div>
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('father') . ' ' . __('image') }} <span
-                                            class="text-danger">*</span></label>
-                                    <input type="file" name="father_image" class="father_image file-upload-default"
-                                        accept="image/*" />
-                                    <div class="input-group col-xs-12">
-                                        <input type="text" class="form-control file-upload-info" disabled=""
-                                            placeholder="{{ __('father') . ' ' . __('image') }}" />
-                                        <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-theme"
-                                                type="button">{{ __('upload') }}</button>
-                                        </span>
-                                    </div>
+                                    <x-m3.file-field name="father_image" input-class="father_image" :label="__('father') . ' ' . __('image')" accept="image/jpeg,image/png" :hint="__('A photo is required when creating a new parent or guardian.')" />
                                     <div style="width: 100px;">
-                                        <img src="" id="father-image-tag" class="img-fluid w-100" />
+                                        <img src="" id="father-image-tag" alt="{{ __('father') . ' ' . __('image') }}" class="img-fluid w-100" />
                                     </div>
                                 </div>
                                 <div class="col-12">
@@ -501,11 +476,11 @@
                                 <div class="form-group col-sm-12 col-md-12">
                                     <label>{{ __('mother_email') }} <span class="text-danger">*</span></label>
                                     @if (config('app.demo_mode'))
-                                        <select class="mother-search w-100" id="mother_email" name="mother_email"
+                                        <select class="mother-search w-100" id="mother_email" name="mother_email" aria-label="{{ __('mother') . ' ' . __('email') }}"
                                             disabled></select>
                                     @else
                                         <select class="mother-search w-100" id="mother_email"
-                                            name="mother_email"></select>
+                                            name="mother_email" aria-label="{{ __('mother') . ' ' . __('email') }}"></select>
                                     @endif
 
                                 </div>
@@ -558,20 +533,9 @@
                                     ]) !!}
                                 </div>
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('mother') . ' ' . __('image') }} <span
-                                            class="text-danger">*</span></label>
-                                    <input type="file" name="mother_image" class="mother_image file-upload-default"
-                                        accept="image/*" />
-                                    <div class="input-group col-xs-12">
-                                        <input type="text" class="form-control file-upload-info" disabled=""
-                                            placeholder="{{ __('mother') . ' ' . __('image') }}" />
-                                        <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-theme"
-                                                type="button">{{ __('upload') }}</button>
-                                        </span>
-                                    </div>
+                                    <x-m3.file-field name="mother_image" input-class="mother_image" :label="__('mother') . ' ' . __('image')" accept="image/jpeg,image/png" :hint="__('A photo is required when creating a new parent or guardian.')" />
                                     <div style="width: 100px;">
-                                        <img src="" id="mother-image-tag" class="img-fluid w-100" />
+                                        <img src="" id="mother-image-tag" alt="{{ __('mother') . ' ' . __('image') }}" class="img-fluid w-100" />
                                     </div>
 
                                 </div>
@@ -693,10 +657,10 @@
                                             class="text-danger">*</span></label>
                                     @if (config('app.demo_mode'))
                                         <select class="guardian-search form-control" id="guardian_email"
-                                            name="guardian_email" disabled></select>
+                                            name="guardian_email" aria-label="{{ __('guardian') . ' ' . __('email') }}" disabled></select>
                                     @else
                                         <select class="guardian-search form-control" id="guardian_email"
-                                            name="guardian_email"></select>
+                                            name="guardian_email" aria-label="{{ __('guardian') . ' ' . __('email') }}"></select>
                                     @endif
                                 </div>
 
@@ -769,20 +733,9 @@
                                     ]) !!}
                                 </div>
                                 <div class="form-group col-sm-12 col-md-4">
-                                    <label>{{ __('guardian') . ' ' . __('image') }} <span
-                                            class="text-danger">*</span></label>
-                                    <input type="file" name="guardian_image"
-                                        class="guardian_image file-upload-default" accept="image/*" />
-                                    <div class="input-group col-xs-12">
-                                        <input type="text" class="form-control file-upload-info" disabled=""
-                                            placeholder="{{ __('guardian') . ' ' . __('image') }}" />
-                                        <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-theme"
-                                                type="button">{{ __('upload') }}</button>
-                                        </span>
-                                    </div>
+                                    <x-m3.file-field name="guardian_image" input-class="guardian_image" :label="__('guardian') . ' ' . __('image')" accept="image/jpeg,image/png" :hint="__('A photo is required when creating a new parent or guardian.')" />
                                     <div style="width: 100px;">
-                                        <img src="" name="guardian_image_tag" id="guardian-image-tag"
+                                        <img src="" name="guardian_image_tag" id="guardian-image-tag" alt="{{ __('guardian') . ' ' . __('image') }}"
                                             class="img-fluid w-100" />
                                     </div>
                                 </div>
@@ -978,4 +931,8 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('script')
+<script src="{{ asset('assets/js/custom/learner-form-accessibility.js') }}?v={{ filemtime(public_path('assets/js/custom/learner-form-accessibility.js')) }}" defer></script>
 @endsection

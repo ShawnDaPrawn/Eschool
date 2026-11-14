@@ -34,7 +34,7 @@ class FeeRefundPanelController extends Controller
     {
         app(FeeRefundPolicies::class)->save($request->user(), $request->validated());
 
-        return redirect()->route('fee-refunds.index', status: 303)->with('success', __('School refund policy saved.'));
+        return redirect()->route('fee-refunds.index', ['section' => 'settings'], 303)->with('success', __('School refund policy saved.'));
     }
 
     public function form(FeeRefundPanelRequest $request): Response

@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage_teacher') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('Teachers')" :subtitle="__('Manage teacher profiles, invitations and school access.')" :primary-label="__('Add teacher')" :primary-href="route('teachers.index')" primary-permission="teacher-create" />
 
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">

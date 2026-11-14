@@ -1,79 +1,21 @@
-@php
-    $selectedPermissions = $selectedPermissions ?? [];
-    $totalPermissions = collect($permissionGroups)->sum(fn($g) => count($g['items']));
-    $accordionId = 'permission-accordion-' . uniqid();
-@endphp
-
-{{-- Styles: public/assets/css/roles.css · Behaviour: public/assets/js/roles-permissions.js
-     (both linked via @section('css') / @section('script') on the roles pages). --}}
-
-<div class="row">
-    <div class="col-12">
-        <div class="permission-groups__toolbar">
-            <label class="permission-groups__toolbar-label">
-                <input type="checkbox" class="permission-groups__toolbar-input" data-permission-select-all>
-                <span>{{ __('select_all') }}</span>
-            </label>
-            <div class="permission-groups__toolbar-actions">
-                <button type="button" class="btn btn-outline-primary btn-sm permission-groups__action-btn" data-permission-toggle-all
-                    data-label-expand="{{ __('expand_all') }}" data-label-collapse="{{ __('collapse_all') }}"
-                    aria-expanded="false">
-                    <x-icon name="chevron-down" :size="18" class="permission-groups__action-icon" />
-                    <span data-permission-toggle-label>{{ __('expand_all') }}</span>
-                </button>
-                <span class="permission-groups__counter">
-                    <span data-permission-selected-count>0</span>
-                    <span class="text-muted">/ {{ $totalPermissions }} {{ __('permission') }}</span>
-                </span>
-            </div>
-        </div>
+@php($selectedPermissions = old('permission', $selectedPermissions ?? []))
+<div data-permission-picker>
+    <div class="panel-actions">
+        <x-m3.checkbox data-permission-select-all :label="__('select_all')" />
+        <button type="button" class="m3-button m3-button--text" data-permission-toggle-all aria-expanded="false" data-label-expand="{{ __('expand_all') }}" data-label-collapse="{{ __('collapse_all') }}"><span data-permission-toggle-label>{{ __('expand_all') }}</span></button>
+        <span><span data-permission-selected-count>0</span> / {{ collect($permissionGroups)->sum(fn($group)=>count($group['items'])) }} {{ __('permission') }}</span>
     </div>
-    <div class="col-12">
-        <div class="permission-groups">
-            <div class="accordion permission-accordion" id="{{ $accordionId }}">
-                @foreach ($permissionGroups as $key => $group)
-                    @php $itemId = $accordionId . '-item-' . $loop->index; @endphp
-                    <div class="card" data-permission-group>
-                        <div class="card-header" id="{{ $itemId }}-heading">
-                            <label class="permission-group__header-label" onclick="event.stopPropagation();">
-                                <input type="checkbox" class="permission-group__header-input"
-                                    data-permission-group-toggle>
-                                <span class="permission-group__title">{{ $group['title'] }}</span>
-                            </label>
-                            <div class="permission-group__header-meta">
-                                <span class="permission-group__count">
-                                    <span data-permission-group-count>0</span>/<span>{{ count($group['items']) }}</span>
-                                </span>
-                                <button class="card-header__toggle collapsed" type="button" data-toggle="collapse"
-                                    data-target="#{{ $itemId }}-collapse" aria-expanded="false"
-                                    aria-controls="{{ $itemId }}-collapse">
-                                    <svg class="card-header__toggle-icon" viewBox="0 0 16 16" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div id="{{ $itemId }}-collapse" class="collapse"
-                            aria-labelledby="{{ $itemId }}-heading">
-                            <div class="card-body">
-                                @foreach ($group['items'] as $item)
-                                    <div class="permission-group__item">
-                                        <label class="permission-group__item-label" title="{{ $item['name'] }}">
-                                            <input type="checkbox" name="permission[]" value="{{ $item['id'] }}"
-                                                class="permission-group__item-input" data-permission-child
-                                                {{ in_array($item['id'], $selectedPermissions) ? 'checked' : '' }}>
-                                            <span
-                                                class="permission-group__item-text">{{ $item['action_label'] }}</span>
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
+    <div class="permission-accordion panel-record-list">
+    @foreach($permissionGroups as $group)
+        <details class="m3-expansion" data-permission-group>
+            <summary class="m3-expansion__header">{{ $group['title'] }} <span data-permission-group-count>0</span> / {{ count($group['items']) }}</summary>
+            <div class="m3-expansion__body">
+                <x-m3.checkbox data-permission-group-toggle :label="__('Select all permissions in :group', ['group'=>$group['title']])" />
+                <div class="panel-form-grid">@foreach($group['items'] as $item)
+                    <x-m3.checkbox name="permission[]" :value="$item['id']" :label="$item['action_label']" :checked="in_array($item['id'], $selectedPermissions)" data-permission-child />
+                @endforeach</div>
             </div>
-        </div>
+        </details>
+    @endforeach
     </div>
 </div>

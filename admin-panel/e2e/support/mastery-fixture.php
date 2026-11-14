@@ -69,9 +69,16 @@ Model::unguarded(function () use ($names) {
             app(TeachingGroups::class)->dated($admin, 'teachers', $dated + ['teacher_id' => $teacher->id], $group->id);
         }
         $learner = Students::where('class_section_id', $room->id)->firstOrFail();
-        Enrolment::firstOrCreate(['learner_id' => $learner->id, 'session_year_id' => $year->id, 'class_section_id' => $room->id], $dated);
+        $enrolment = Enrolment::firstOrCreate(['learner_id' => $learner->id, 'session_year_id' => $year->id, 'class_section_id' => $room->id], $dated);
         if (! TeachingGroupMembership::where('teaching_group_id', $group->id)->where('learner_id', $learner->id)->exists()) {
-            app(TeachingGroups::class)->dated($admin, 'memberships', $dated + ['learner_id' => $learner->id, 'mark_rule' => 'catch_up'], $group->id);
+            // The seeded/backfilled learner can join after the school year's
+            // first day. Keep that history intact and fit this synthetic group
+            // membership inside the actual homeroom enrolment interval.
+            $membershipDates = array_replace($dated, [
+                'starts_on' => max($year->start_date, $enrolment->starts_on->toDateString()),
+                'ends_on' => min($year->end_date, $enrolment->ends_on?->toDateString() ?? $year->end_date),
+            ]);
+            app(TeachingGroups::class)->dated($admin, 'memberships', $membershipDates + ['learner_id' => $learner->id, 'mark_rule' => 'catch_up'], $group->id);
         }
         $task = $plan->assessments->sole()->tasks->sole();
         $questions = $task->questions->pluck('id')->all();

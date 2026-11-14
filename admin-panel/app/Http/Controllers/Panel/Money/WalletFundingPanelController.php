@@ -28,7 +28,7 @@ class WalletFundingPanelController extends Controller
     {
         app(WalletFundingService::class)->policy($request->user(), $request->validated());
 
-        return redirect()->route('wallet-funding.index', status: 303)->with('success', __('Manual wallet funding policy saved.'));
+        return redirect()->route('wallet-funding.index', ['section' => 'settings'], 303)->with('success', __('Manual wallet funding policy saved.'));
     }
 
     public function record(WalletFundingPanelRequest $request): Response

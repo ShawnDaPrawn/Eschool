@@ -6,7 +6,7 @@
 @endphp
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Who can see what')" :subtitle="__('Check one person’s or one role’s access, module by module, and the pages they would see. Nothing is changed here.')" />
-    <div class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
+    <div class="m3-card m3-card--outlined page-section"><div class="m3-card__content panel-form-grid">
         <form method="GET" action="{{ route('access-review.index') }}" aria-label="{{ __('Review a person') }}">
             <x-page.field name="person" id="review-person" type="select" :label="__('Person')" :value="$selected['person'] ?? null" :options="$choices['people']" :placeholder="__('Choose a person')" :restore-old-input="false" required />
             <button class="m3-button m3-button--outlined" type="submit">{{ __('Review person') }}</button>
@@ -24,13 +24,14 @@
             <div class="m3-card m3-card--outlined"><div class="m3-card__content">
                 <div class="page-table__scroll" role="region" aria-label="{{ __('Access in each module') }}" tabindex="0"><table class="page-table__table">
                     <caption>{{ __('Access in each module') }}</caption>
-                    <thead><tr><th scope="col">{{ __('Module') }}</th><th scope="col">{{ __('Level') }}</th><th scope="col">{{ __('Abilities') }}</th></tr></thead>
+                    <thead><tr><th scope="col">{{ __('Module') }}</th><th scope="col">{{ __('Availability') }}</th><th scope="col">{{ __('Level') }}</th><th scope="col">{{ __('Abilities') }}</th></tr></thead>
                     <tbody>
                     @foreach ($result['modules'] as $module)
                         <tr>
-                            <th scope="row">{{ $module['name'] }}@unless ($module['enabled']) <span>({{ __('switched off') }})</span>@endunless</th>
+                            <th scope="row">{{ $module['name'] }}</th>
+                            <td>{{ $module['enabled'] ? __('Enabled') : __('switched off') }}</td>
                             <td>{{ $levelLabels[$module['level']] }}</td>
-                            <td>@foreach ($module['abilities'] as $ability)<span @class(['page-badge', 'page-badge--warn' => $ability['sensitive']])>{{ $ability['label'] }}@if ($ability['sensitive']) ({{ __('sensitive') }})@endif</span> @endforeach</td>
+                            <td>@forelse ($module['abilities'] as $ability)<span @class(['page-badge', 'page-badge--warn' => $ability['sensitive']])>{{ $ability['label'] }}@if ($ability['sensitive']) ({{ __('sensitive') }})@endif</span> @empty{{ __('No additional ability') }}@endforelse</td>
                         </tr>
                     @endforeach
                     </tbody>
@@ -43,7 +44,8 @@
             @endif
             <h3>{{ __('Pages in their menu') }}</h3>
             @if ($result['subject']['kind'] === 'role')
-                <p>{{ __('Pages marked “depends on appointment” also need a grade, class, caseload or other appointment.') }}</p>
+                <p>{{ __('This preview uses this role’s permissions only. A person may hold other roles and assignments.') }}</p>
+                <p>{{ __('Pages marked “depends on appointment” also need an appointment, allocation, account eligibility or school setting.') }}</p>
             @endif
             <ul>
                 @forelse ($result['pages'] as $page)
@@ -52,6 +54,7 @@
                     <li>{{ __('No panel pages') }}</li>
                 @endforelse
             </ul>
+            <a class="m3-button m3-button--outlined" href="{{ $result['subject']['kind'] === 'person' ? '#review-person' : '#review-role' }}">{{ $result['subject']['kind'] === 'person' ? __('Review another person') : __('Review another role') }}</a>
         </section>
     @endif
 </div>

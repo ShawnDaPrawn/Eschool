@@ -140,6 +140,7 @@
             var answer = function (value) {
                 if (!answered) {
                     answered = true;
+                    dialog.removeEventListener("close", onClose);
                     if (pendingConfirm === answer) {
                         pendingConfirm = null;
                     }
@@ -147,16 +148,17 @@
                 }
             };
             pendingConfirm = answer;
-            dialog.addEventListener(
-                "close",
-                function () {
-                    answer(dialog.returnValue === "confirm");
-                    if (opener && typeof opener.focus === "function") {
-                        opener.focus();
-                    }
-                },
-                { once: true }
-            );
+            var onClose = function () {
+                // Native close events are queued. A cancelled dialog can be
+                // reopened before its old event arrives; that event must not
+                // answer or steal focus from the new, still-open confirmation.
+                if (dialog.open) return;
+                answer(dialog.returnValue === "confirm");
+                if (opener && typeof opener.focus === "function") {
+                    opener.focus();
+                }
+            };
+            dialog.addEventListener("close", onClose);
             dialog.returnValue = "";
             dialog.showModal();
             dialog.querySelector("[data-confirm-cancel]").focus();
@@ -168,7 +170,7 @@
         "click",
         function (event) {
             var trigger = event.target.closest("[data-confirm]");
-            if (!trigger || trigger.hasAttribute("data-confirmed") || trigger.hasAttribute("data-read-only-disabled")) {
+            if (!trigger || trigger.tagName === "FORM" || trigger.hasAttribute("data-confirmed") || trigger.hasAttribute("data-read-only-disabled")) {
                 return;
             }
             event.preventDefault();
@@ -185,7 +187,7 @@
                         return;
                     }
                     trigger.setAttribute("data-confirmed", "");
-                    if (trigger.form && (trigger.type === "submit" || trigger.tagName === "BUTTON")) {
+                    if (trigger.form && trigger.type === "submit") {
                         if (typeof trigger.form.requestSubmit === "function") {
                             trigger.form.requestSubmit(trigger);
                         } else {
@@ -199,6 +201,30 @@
         },
         true
     );
+
+    // A form confirmation must also work with Enter, without intercepting edits
+    // inside the form or bypassing validation and the normal submit handler.
+    document.addEventListener("submit", function (event) {
+        var form = event.target;
+        if (!form.matches("form[data-confirm]") || form.hasAttribute("data-confirmed")) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (form.hasAttribute("data-read-only-disabled")) return;
+        var submitter = event.submitter;
+        window.pageConfirm({
+            title: form.getAttribute("data-confirm-title"),
+            message: form.getAttribute("data-confirm"),
+            confirmLabel: form.getAttribute("data-confirm-label"),
+            danger: form.hasAttribute("data-confirm-danger")
+        }).then(function (answer) {
+            if (!answer) return;
+            form.setAttribute("data-confirmed", "");
+            try {
+                if (submitter && submitter.form === form) form.requestSubmit(submitter);
+                else form.requestSubmit();
+            } finally { form.removeAttribute("data-confirmed"); }
+        });
+    }, true);
 
     /* ---- Tables (components/page/table) --------------------------
        PageTable draws a server-side list: it asks the list endpoint
@@ -217,6 +243,7 @@
         this.url = table.getAttribute("data-url");
         this.escapeAll = table.getAttribute("data-escape") !== "false";
         this.offset = 0;
+        this.pagination = table.getAttribute("data-pagination") !== "false";
         this.limit = Number(table.getAttribute("data-page-size")) || 10;
         this.sort = table.getAttribute("data-sort-name") || "id";
         this.order = table.getAttribute("data-sort-order") || "desc";
@@ -321,6 +348,10 @@
         this.table.addEventListener("change", function (event) {
             var box = event.target.closest("[data-row-check]");
             if (!box) {
+                return;
+            }
+            if (self.table.getAttribute("aria-busy") === "true") {
+                box.checked = false;
                 return;
             }
             var which = box.getAttribute("data-row-check");
@@ -431,6 +462,7 @@
 
     PageTable.prototype.busy = function (on) {
         this.table.setAttribute("aria-busy", on ? "true" : "false");
+        this.table.querySelectorAll("[data-row-check]").forEach(function (box) { box.disabled = on; });
         var progress = this.root.querySelector("[data-table-progress]");
         if (progress) {
             progress.hidden = !on;
@@ -447,6 +479,9 @@
                 query.append(key, params[key]);
             }
         });
+        this.selected = {};
+        this.table.querySelectorAll("[data-row-check]").forEach(function (box) { box.checked = false; });
+        this.updateBulkBar();
         this.busy(true);
         return fetch(this.url + (this.url.indexOf("?") === -1 ? "?" : "&") + query.toString(), {
             credentials: "same-origin",
@@ -470,6 +505,10 @@
             })
             .catch(function () {
                 if (mine === self.request) {
+                    self.rows = [];
+                    self.total = 0;
+                    self.selected = {};
+                    self.updateBulkBar();
                     self.showState("error");
                 }
             })
@@ -602,7 +641,8 @@
         if (!footer) {
             return;
         }
-        footer.hidden = false;
+        footer.hidden = !this.pagination;
+        if (!this.pagination) return;
         var pages = Math.max(1, Math.ceil(this.total / this.limit));
         var page = Math.floor(this.offset / this.limit) + 1;
         var from = this.total ? this.offset + 1 : 0;
@@ -676,6 +716,9 @@
         }
         var bar = button.closest("[data-bulk-bar]");
         var id = bar ? bar.getAttribute("data-bulk-bar") : null;
+        var table = window.PageTable.get(id);
+        if (!table || table.bulkPending || table.table.getAttribute("aria-busy") === "true") return;
+        var version = table.request;
         var ids = window.PageTable.selections(id).map(function (row) {
             return row.id;
         });
@@ -683,6 +726,10 @@
             return;
         }
         var send = function () {
+            // A confirmation belongs to the loaded result set it described.
+            if (table.bulkPending || table.request !== version || table.table.getAttribute("aria-busy") === "true") return;
+            table.bulkPending = true;
+            button.disabled = true;
             var body = new FormData();
             ids.forEach(function (rowId) {
                 body.append("ids[]", rowId);
@@ -708,6 +755,9 @@
                 })
                 .catch(function () {
                     notify("error", label("page_form_offline", "The panel could not be reached."));
+                }).finally(function () {
+                    table.bulkPending = false;
+                    button.disabled = false;
                 });
         };
         var question = button.getAttribute("data-bulk-confirm");
@@ -807,66 +857,81 @@
 
     /* Drafts: what was typed survives a failed save, an expired session or a reload. */
     function draftKey(form) {
-        return "page-form-draft:" + window.location.pathname + ":" + form.getAttribute("data-draft");
+        var scope = form.getAttribute("data-draft-scope");
+        return scope ? "page-form-draft:v3:" + scope + ":" + form.getAttribute("data-draft") : null;
+    }
+
+    function draftField(field) {
+        return field.name && !field.disabled && !field.hasAttribute("data-no-draft") &&
+            !/^(password|file|hidden|submit|button|reset)$/.test(field.type);
     }
 
     function saveDraft(form) {
-        if (!form.hasAttribute("data-draft")) {
-            return;
-        }
-        var values = {};
+        var key = draftKey(form);
+        if (!form.hasAttribute("data-draft") || !key) return;
+        var values = Object.create(null);
         Array.prototype.forEach.call(form.elements, function (field) {
-            // Never keep passwords, files or the hidden token fields.
-            if (!field.name || field.disabled || /^(password|file|hidden|submit|button)$/.test(field.type)) {
-                return;
-            }
-            if ((field.type === "checkbox" || field.type === "radio") && !field.checked) {
-                return;
-            }
-            (values[field.name] = values[field.name] || []).push(field.value);
+            if (!draftField(field)) return;
+            if (!values[field.name]) values[field.name] = [];
+            if (field.type === "checkbox" || field.type === "radio") {
+                if (field.checked) values[field.name].push(field.value);
+            } else if (field.multiple && field.options) {
+                Array.prototype.forEach.call(field.options, function (option) {
+                    if (option.selected) values[field.name].push(option.value);
+                });
+            } else values[field.name].push(field.value);
         });
-        try {
-            sessionStorage.setItem(draftKey(form), JSON.stringify(values));
-        } catch (e) {
-            /* Storage full or off: the form still works. */
-        }
+        try { sessionStorage.setItem(key, JSON.stringify(values)); }
+        catch (e) { /* Storage unavailable: retain the live form. */ }
     }
 
     function restoreDraft(form) {
-        var raw = null;
-        try {
-            raw = sessionStorage.getItem(draftKey(form));
-        } catch (e) {
-            return;
-        }
-        if (!raw) {
-            return;
-        }
-        var values;
-        try {
-            values = JSON.parse(raw);
-        } catch (e) {
-            return;
-        }
-        Object.keys(values).forEach(function (name) {
-            var fields = form.querySelectorAll('[name="' + name.replace(/"/g, '\\"') + '"]');
-            fields.forEach(function (field, index) {
-                if (field.type === "checkbox" || field.type === "radio") {
-                    field.checked = values[name].indexOf(field.value) !== -1;
-                } else if (field.type !== "file" && values[name][index] !== undefined) {
-                    field.value = values[name][index];
-                }
-            });
+        var key = draftKey(form), values;
+        if (!key) return;
+        try { values = JSON.parse(sessionStorage.getItem(key)); }
+        catch (e) { return; }
+        if (!values || typeof values !== "object" || Array.isArray(values)) return;
+        var positions = Object.create(null);
+        Array.prototype.forEach.call(form.elements, function (field) {
+            if (!draftField(field) || !Object.prototype.hasOwnProperty.call(values, field.name) ||
+                !Array.isArray(values[field.name])) return;
+            var saved = values[field.name];
+            if (field.type === "checkbox" || field.type === "radio") field.checked = saved.indexOf(field.value) !== -1;
+            else if (field.multiple && field.options) {
+                Array.prototype.forEach.call(field.options, function (option) { option.selected = saved.indexOf(option.value) !== -1; });
+            } else {
+                var index = positions[field.name] || 0;
+                if (typeof saved[index] === "string") field.value = saved[index];
+                positions[field.name] = index + 1;
+            }
         });
+        form.dataset.unsaved = "true";
     }
 
     function clearDraft(form) {
-        try {
-            sessionStorage.removeItem(draftKey(form));
-        } catch (e) {
-            /* ignore */
+        var key = draftKey(form);
+        if (key) {
+            try { sessionStorage.removeItem(key); } catch (e) { /* Storage disabled. */ }
         }
+        delete form.dataset.unsaved;
     }
+
+    function hasChanges() { return !!document.querySelector('form[data-unsaved="true"]'); }
+    window.PanelForms = {
+        hasChanges: hasChanges,
+        markSaved: clearDraft,
+        confirmLeave: function () {
+            if (!hasChanges()) return Promise.resolve(true);
+            return window.pageConfirm({
+                title: label("Leave without saving?", "Leave without saving?"),
+                message: label("Your changes have not been saved. Return to this form to continue editing, or leave the page.", "Your changes have not been saved. Return to this form to continue editing, or leave the page."),
+                confirmLabel: label("Leave page", "Leave page")
+            });
+        }
+    };
+    window.addEventListener("beforeunload", function (event) {
+        if (hasChanges() && !window.panelNavigationConfirmed) { event.preventDefault(); event.returnValue = ""; }
+    });
 
     ready(function () {
         document.querySelectorAll("form[data-page-form][data-draft]").forEach(restoreDraft);
@@ -874,11 +939,34 @@
     ["input", "change"].forEach(function (type) {
         document.addEventListener(type, function (event) {
             var form = event.target.form;
-            if (form && form.matches("form[data-page-form][data-draft]")) {
-                saveDraft(form);
-            }
+            if (!form || form.closest(".panel-topbar") || form.querySelector(".js-school-switcher") || form.hasAttribute("data-no-dirty-guard")) return;
+            var method = (form.getAttribute("method") || "GET").toUpperCase();
+            if (method === "GET" || method === "HEAD") return;
+            // Native forms also participate in school/year and exit guards. Only
+            // the explicit draft-enabled page form can persist field values.
+            form.dataset.unsaved = "true";
+            if (form.matches("form[data-page-form]")) saveDraft(form);
         });
     });
+
+    document.addEventListener("page-form:saved", function (event) {
+        if (event.target.matches && event.target.matches("form")) clearDraft(event.target);
+    });
+    document.addEventListener("reset", function (event) {
+        if (event.target.matches && event.target.matches("form")) clearDraft(event.target);
+    });
+    document.addEventListener("submit", function (event) {
+        // Native POST navigation is itself the user's save. Read the final
+        // prevented state after page-specific/AJAX handlers have run.
+        Promise.resolve().then(function () {
+            var form = event.target;
+            if (event.defaultPrevented || !form.matches || !form.matches("form")) return;
+            var method = (form.getAttribute("method") || "GET").toUpperCase();
+            // A search or another form must not suppress warnings for an edited
+            // record. Native submission only releases this form's exit guard.
+            if (method !== "GET" && method !== "HEAD") delete form.dataset.unsaved;
+        });
+    }, true);
 
     function afterSave(form, response) {
         clearDraft(form);
@@ -896,14 +984,68 @@
         }
         var redirect = (response && response.redirect) || form.getAttribute("data-redirect");
         if (redirect && !event.defaultPrevented) {
+            // The write is confirmed; this document is now an old editor.
+            // A slow or cancelled navigation must not allow it to post again.
+            form.setAttribute("data-page-form-committed", "");
+            Array.prototype.forEach.call(form.elements, function (field) {
+                if ("disabled" in field) field.disabled = true;
+            });
+            var receipt = document.createElement("p");
+            receipt.className = "m3-banner m3-banner--info";
+            receipt.setAttribute("role", "status");
+            receipt.appendChild(document.createTextNode(label("Saved.", "Saved.") + " "));
+            var link = document.createElement("a");
+            link.href = redirect;
+            link.textContent = label("Open saved record", "Open saved record");
+            receipt.appendChild(link);
+            // Keep the result reachable if the originating form was in a
+            // dialog closed by its save handler, or Back restores this page.
+            (document.querySelector("main") || form.parentNode).prepend(receipt);
             window.location.assign(redirect);
         }
     }
 
+    function offerSessionRefresh(form) {
+        var summary = form.querySelector("[data-form-summary]");
+        var scope = form.getAttribute("data-context-scope");
+        if (!summary || !scope) return;
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "m3-button m3-button--outlined";
+        button.textContent = label("Refresh sign-in for this form", "Refresh sign-in for this form");
+        summary.appendChild(document.createTextNode(" "));
+        summary.appendChild(button);
+        button.addEventListener("click", function () {
+            button.disabled = true;
+            // Re-read the document only. Never retry a write or replace the
+            // user's fields, uploaded files, revision or idempotency key.
+            fetch(window.location.href, { credentials: "same-origin", cache: "no-store", headers: { Accept: "text/html" } })
+                .then(function (response) {
+                    if (!response.ok || !/text\/html/i.test(response.headers.get("Content-Type") || "")) throw new Error("unavailable");
+                    return response.text();
+                }).then(function (html) {
+                    var fresh = new DOMParser().parseFromString(html, "text/html").getElementById(form.id);
+                    var token = fresh && fresh.querySelector('input[name="_token"]');
+                    var currentToken = form.querySelector('input[name="_token"]');
+                    if (!fresh || fresh.tagName !== "FORM" || fresh.getAttribute("data-context-scope") !== scope ||
+                        new URL(fresh.getAttribute("action"), window.location.href).href !== form.action ||
+                        !token || !token.value || !currentToken) throw new Error("context-changed");
+                    currentToken.value = token.value;
+                    showSummary(form, label("Sign-in refreshed. Review your entries, then save when ready.", "Sign-in refreshed. Review your entries, then save when ready."));
+                }).catch(function () {
+                    showSummary(form, label("Sign-in could not be refreshed for this account, school and year. Sign in with the original account and context, or reopen the record before continuing.", "Sign-in could not be refreshed for this account, school and year. Sign in with the original account and context, or reopen the record before continuing."));
+                    offerSessionRefresh(form);
+                });
+        });
+    }
+
     function handleFailure(form, status, body) {
-        var message = (body && body.message) || label("error_occurred", "Something went wrong. Nothing was lost; try again.");
-        if (status === 419) {
-            message = label("page_form_session_expired", "Your session has ended. Sign in again in another tab, then save; what you typed is kept.");
+        var message = (body && body.message) || label("The result could not be confirmed. Your entries are kept. Check the record before submitting again.", "The result could not be confirmed. Your entries are kept. Check the record before submitting again.");
+        if (status === 401 || status === 419) {
+            message = label("Your session has ended. Sign in again in another tab, then refresh sign-in for this form. Your entries remain here.", "Your session has ended. Sign in again in another tab, then refresh sign-in for this form. Your entries remain here.");
+        }
+        if (status === 409) {
+            message = (body && body.message) || label("This record changed while you were editing. Review the latest record before saving again.", "This record changed while you were editing. Review the latest record before saving again.");
         }
         var errors = body && body.errors;
         var first = null;
@@ -919,6 +1061,7 @@
             });
         }
         showSummary(form, message);
+        if (status === 401 || status === 419) offerSessionRefresh(form);
         if (first) {
             first.focus();
         } else {
@@ -932,6 +1075,7 @@
             return;
         }
         event.preventDefault();
+        if (form.getAttribute("aria-busy") === "true" || form.hasAttribute("data-page-form-committed")) return;
         clearErrors(form);
 
         // The browser's checks first, shown inline rather than as bubbles.
@@ -947,6 +1091,9 @@
             return;
         }
 
+        // Capture the named submitter before disabling it; disabled controls are
+        // deliberately excluded by FormData, including its submitter argument.
+        var payload = event.submitter ? new FormData(form, event.submitter) : new FormData(form);
         var submit = form.querySelector("[data-submit]");
         if (submit) {
             submit.disabled = true;
@@ -958,8 +1105,8 @@
         fetch(form.action, {
             method: "POST",
             credentials: "same-origin",
-            headers: { Accept: "application/json", "X-CSRF-TOKEN": csrfToken(), "X-Requested-With": "XMLHttpRequest" },
-            body: new FormData(form),
+            headers: { Accept: "application/json", "X-CSRF-TOKEN": payload.get("_token") || csrfToken(), "X-Requested-With": "XMLHttpRequest" },
+            body: payload,
         })
             .then(function (response) {
                 return response
@@ -976,12 +1123,12 @@
                     });
             })
             .catch(function () {
-                handleFailure(form, 0, { message: label("page_form_offline", "The panel could not be reached. Nothing was lost; check the connection and save again.") });
+                handleFailure(form, 0, { message: label("The result could not be confirmed. Your entries are kept. Check the record before submitting again.", "The result could not be confirmed. Your entries are kept. Check the record before submitting again.") });
             })
             .finally(function () {
                 form.removeAttribute("aria-busy");
                 if (submit) {
-                    submit.disabled = false;
+                    submit.disabled = form.hasAttribute("data-page-form-committed");
                     submit.removeAttribute("aria-busy");
                 }
             });

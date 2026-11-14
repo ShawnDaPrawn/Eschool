@@ -67,7 +67,7 @@ class NavigationTest extends TestCase
         '/contact-us', '/about-us', '/terms-condition',
     ];
 
-    private const SECTIONS = ['home', 'people', 'academics', 'communication', 'money', 'activities', 'wellbeing', 'settings'];
+    private const SECTIONS = ['home', 'people', 'attendance', 'leave', 'academics', 'extracurriculars', 'awards', 'discipline', 'community', 'vendors', 'finance', 'settings'];
 
     protected function setUp(): void
     {
@@ -102,7 +102,7 @@ class NavigationTest extends TestCase
         }
     }
 
-    public function test_the_registry_has_the_eight_sections_and_every_item_points_to_a_page(): void
+    public function test_the_registry_has_the_twelve_sections_and_every_item_points_to_a_page(): void
     {
         $this->assertSame(self::SECTIONS, array_keys(config('navigation.sections')));
 
@@ -117,6 +117,36 @@ class NavigationTest extends TestCase
             if (isset($item['route'])) {
                 $this->assertTrue(Route::has($item['route']), "{$item['key']}: no route named {$item['route']}");
             }
+        }
+    }
+
+    public function test_selected_learner_attendance_and_leave_reports_belong_to_their_global_workspaces(): void
+    {
+        $user = $this->superAdmin();
+        $user->givePermissionTo(['student-list', 'student-report']);
+        request()->setRouteResolver(fn () => Route::getRoutes()->getByName('student.report'));
+        foreach (['attendance' => ['attendance', 'reports'], 'leave' => ['leave', 'reports'], 'personal' => ['people', 'learners']] as $tab => [$section, $group]) {
+            request()->query->set('tab', $tab);
+            $current = app(Navigation::class)->current($user);
+            $this->assertSame($section, $current['section']);
+            $this->assertSame($group, $current['group']);
+            $this->assertSame([$section], collect(app(Navigation::class)->sections($user))->where('active', true)->pluck('key')->all());
+        }
+    }
+
+    public function test_facilitator_creation_uses_the_facilitators_group_without_moving_other_staff_pages(): void
+    {
+        $user = $this->superAdmin();
+        $user->givePermissionTo(['staff-list', 'staff-create']);
+        request()->setRouteResolver(fn () => Route::getRoutes()->getByName('staff.index'));
+        foreach ([['create', 'Facilitator', 'facilitators'], ['create', 'Admin', 'admin-staff'], ['', 'Facilitator', 'admin-staff']] as [$view, $role, $group]) {
+            request()->query->set('view', $view);
+            request()->query->set('role', $role);
+            $current = app(Navigation::class)->current($user);
+            $this->assertSame('people', $current['section']);
+            $this->assertSame($group, $current['group']);
+            $people = collect(app(Navigation::class)->sections($user))->firstWhere('key', 'people');
+            $this->assertSame([$group], collect($people['groups'])->where('active', true)->pluck('key')->all());
         }
     }
 
@@ -140,11 +170,15 @@ class NavigationTest extends TestCase
         }
     }
 
-    public function test_the_super_admin_sees_all_eight_sections(): void
+    public function test_the_super_admin_sees_the_authorised_sections_in_the_requested_order(): void
     {
         $sections = array_column(app(Navigation::class)->sections($this->superAdmin()), 'key');
 
-        $this->assertSame(self::SECTIONS, $sections);
+        $this->assertSame(array_values(array_intersect(self::SECTIONS, $sections)), $sections);
+        $this->assertContains('attendance', $sections);
+        $this->assertContains('leave', $sections);
+        $this->assertContains('community', $sections);
+        $this->assertContains('finance', $sections);
     }
 
     public function test_a_teacher_sees_only_what_their_permissions_open(): void
@@ -160,8 +194,8 @@ class NavigationTest extends TestCase
             $this->assertNotContains($key, $keys, "A teacher must not see $key");
         }
         $sections = array_column($navigation->sections($teacher), 'key');
-        $this->assertContains('settings', $sections);
-        $this->assertNotContains('money', $sections);
+        $this->assertContains('people', $sections);
+        $this->assertNotContains('finance', $sections);
     }
 
     public function test_a_custom_staff_role_sees_only_its_own_sections(): void
@@ -169,9 +203,9 @@ class NavigationTest extends TestCase
         Role::create(['name' => 'Finance', 'custom_role' => 1])->syncPermissions(['fee-accounts-manage', 'fee-payments-manage']);
         $finance = $this->user('Finance');
 
-        $this->assertSame(['home', 'money', 'settings'], array_column(app(Navigation::class)->sections($finance), 'key'));
+        $this->assertSame(['home', 'people', 'finance', 'settings'], array_column(app(Navigation::class)->sections($finance), 'key'));
         $this->assertSame(
-            ['home', 'fee-accounts', 'fee-payments', 'fee-refunds', 'fee-reporting', 'bank-statements', 'fee-reminders', 'person-profile'],
+            ['home', 'person-profile', 'fee-accounts', 'fee-payments', 'fee-refunds', 'fee-reporting', 'bank-statements', 'fee-reminders', 'inbox', 'notification-preferences', 'quiet-hours', 'text-preferences'],
             array_column(app(Navigation::class)->items($finance), 'key')
         );
     }
@@ -185,14 +219,34 @@ class NavigationTest extends TestCase
         $html = $page->getContent();
         $page->assertSee('data-panel-layout', false);
         $page->assertSee('href="#main-content"', false);
-        $this->assertMatchesRegularExpression('#<a class="panel-nav__item" href="'.preg_quote(route('announcement.index'), '#').'"\s+aria-current="page"#', $html);
-        $this->assertMatchesRegularExpression('/aria-expanded="true"\s+aria-controls="nav-section-communication"/', $html);
-        $this->assertMatchesRegularExpression('/aria-expanded="false"\s+aria-controls="nav-section-settings"/', $html);
-        // The open section's links show; the closed ones wait behind their button.
-        $this->assertMatchesRegularExpression('/<div class="panel-nav__panel" id="nav-section-communication"\s*>/', $html);
-        $this->assertMatchesRegularExpression('/<div class="panel-nav__panel" id="nav-section-settings"\s+hidden\s*>/', $html);
-        $page->assertSee(route('students.create'), false);
-        $page->assertSee(__('nav_add_learner'));
+        $this->assertMatchesRegularExpression('/aria-expanded="true"\s+aria-controls="nav-section-community"/', $html);
+        $page->assertSee(route('panel.workspace', ['section' => 'community', 'group' => 'newsletter']), false);
+        $page->assertSee(route('students.index'), false);
+        $this->assertStringNotContainsString('id="nav-section-settings"', $html);
+        $this->assertSame(2, substr_count($html, ' data-panel-nav-section'));
+    }
+
+    public function test_dropdowns_have_exact_groups_and_workspaces_preserve_leaf_destinations(): void
+    {
+        $this->assertSame(['learners', 'parents', 'teachers', 'facilitators', 'admin-staff', 'alumni'], array_keys(config('navigation.sections.people.groups')));
+        $this->assertSame(['gallery', 'newsletter', 'events', 'voting'], array_keys(config('navigation.sections.community.groups')));
+        $this->actingAs($this->superAdmin())->get(route('panel.workspace', ['section' => 'people', 'group' => 'learners']))
+            ->assertOk()->assertSee(route('students.create'), false)->assertSee(route('students.index'), false);
+        $this->get(route('panel.workspace', ['section' => 'settings', 'group' => 'year']))
+            ->assertOk()->assertSee(route('new-year.index'), false)->assertSee(route('session-years.index'), false);
+    }
+
+    public function test_workspace_keeps_configuration_out_of_operations_and_refuses_unknown_or_unavailable_groups(): void
+    {
+        $this->actingAs($this->superAdmin())->get(route('panel.workspace', ['section' => 'leave']))
+            ->assertOk()->assertDontSee('data-workspace-item="leave-settings"', false);
+        $this->get(route('panel.workspace', ['section' => 'leave', 'view' => 'configuration']))
+            ->assertOk()->assertSee('data-workspace-item="leave-settings"', false);
+        $this->get(route('panel.workspace', ['section' => 'made-up']))->assertNotFound();
+        $this->get(route('panel.workspace', ['section' => 'people', 'group' => 'made-up']))->assertForbidden();
+        Role::create(['name' => 'Finance workspace reader', 'custom_role' => 1])->syncPermissions(['fee-accounts-manage']);
+        $this->actingAs($this->user('Finance workspace reader'))->get(route('panel.workspace', ['section' => 'finance']))->assertOk();
+        $this->get(route('panel.workspace', ['section' => 'people', 'group' => 'learners']))->assertForbidden();
     }
 
     public function test_old_sidebar_links_still_open_their_pages(): void

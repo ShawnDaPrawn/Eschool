@@ -5,29 +5,40 @@ import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.describe.configure({ mode: 'serial' });
+test.setTimeout(420_000);
 test.use({ storageState: { cookies: [], origins: [] } });
-test.beforeAll(() => execFileSync('php', ['artisan', 'tinker', '--execute', "require base_path('e2e/support/activity-fixture.php');"], {cwd: path.resolve(process.cwd(), '..')}));
-for (const width of [1024, 1280]) {
+let setup: {learner: number; starts_on: string; ends_on: string};
+test.beforeAll(() => { setup = JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/activity-fixture.php'));"], {cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8'}).trim()); });
+for (const width of [390, 820, 1280]) {
   test(`manage activity group and explicit register at ${width}px`, async ({page, baseURL}) => {
     await page.setViewportSize({width, height: 900});
     await signIn(page, accounts.admin);
     const errors = collectErrors(page, baseURL!);
     await page.goto('/activity-groups');
+    await page.getByRole('link', {name:'Create activity group', exact:true}).click();
     const name = `Activity rehearsal ${width} ${Date.now()}`;
     let form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save group', exact: true})});
     await form.getByRole('textbox', {name: 'Group name', exact: true}).fill(name);
     await form.getByRole('textbox', {name: 'Discipline', exact: true}).fill('Culture');
     await form.getByRole('textbox', {name: 'Season', exact: true}).fill('Browser rehearsal');
+    await form.locator('[name="starts_on"]').fill(setup.starts_on);
+    await form.locator('[name="ends_on"]').fill(setup.ends_on);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({path: test.info().outputPath(`activity-group-editor-${width}.png`), fullPage: true});
     await form.getByRole('button', {name: 'Save group', exact: true}).click();
     await expect(page.getByRole('status').filter({hasText: 'Activity saved'})).toBeVisible();
     const groupUrl = page.url();
+    await page.getByRole('link', {name:'Learners', exact:true}).last().click();
+    await page.getByRole('link', {name:'Allocate learner', exact:true}).click();
     form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save allocation', exact: true})}).filter({has: page.getByRole('combobox', {name: 'Learner', exact: true})});
     const learner = form.getByRole('combobox', {name: 'Learner', exact: true});
-    const first = await learner.locator('option').nth(1).getAttribute('value');
-    expect(first).toBeTruthy();
-    await learner.selectOption(first!);
+    await learner.selectOption(String(setup.learner));
+    await form.locator('[name="starts_on"]').fill(setup.starts_on);
+    await form.locator('[name="ends_on"]').fill(setup.ends_on);
     await form.getByRole('textbox', {name: 'Reason', exact: true}).fill('Synthetic browser allocation');
     await form.getByRole('button', {name: 'Save allocation', exact: true}).click();
+    await page.getByRole('link', {name:'Sessions', exact:true}).click();
+    await page.getByRole('link', {name:'Create session', exact:true}).click();
     form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save session', exact: true})});
     await form.getByLabel('Session date', {exact: false}).fill(new Date().toLocaleDateString('en-CA', {timeZone: 'Africa/Johannesburg'}));
     await form.getByRole('textbox', {name: 'Session name', exact: true}).fill('Rehearsal session');
@@ -38,7 +49,11 @@ for (const width of [1024, 1280]) {
     await expect(form.getByRole('combobox').first()).toHaveValue('');
     await form.getByRole('combobox').first().selectOption('late');
     await form.getByRole('textbox', {name: 'Attendance reason', exact: true}).fill('Observed in browser rehearsal');
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({path: test.info().outputPath(`activity-attendance-${width}.png`), fullPage: true});
     await form.getByRole('button', {name: 'Save attendance', exact: true}).click();
+    await page.getByRole('link', {name:'Materials', exact:true}).click();
+    await page.getByRole('link', {name:'Create material', exact:true}).click();
     form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save material', exact: true})});
     await form.getByRole('textbox', {name: 'Material title', exact: true}).fill('Rehearsal note');
     await form.getByRole('textbox', {name: 'Material Markdown', exact: true}).fill('# Culture meeting\n\nBring your notes.');

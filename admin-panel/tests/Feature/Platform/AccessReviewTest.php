@@ -79,11 +79,27 @@ class AccessReviewTest extends TestCase
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']), 'web')->get(route('access-review.index'))->assertForbidden();
     }
 
+    public function test_person_preview_matches_the_active_staff_selector_and_role_report_requirements(): void
+    {
+        $this->actingAs($this->superAdmin());
+        $this->get(route('access-review.index', ['person' => $this->schoolA->ids['farid_user']]))->assertNotFound();
+        User::findOrFail($this->schoolA->ids['tara_user'])->update(['status' => 0]);
+        $this->get(route('access-review.index', ['person' => $this->schoolA->ids['tara_user']]))->assertNotFound();
+        $role = Role::create(['name' => 'Partial report access', 'custom_role' => 1, 'guard_name' => 'web']);
+        $role->givePermissionTo('student-report');
+        $result = $this->review()->role($this->superAdmin(), $role->id);
+        foreach (app(Navigation::class)->definitions() as $definition) {
+            if ($definition['report_actor'] ?? false) {
+                $this->assertNotContains(__($definition['label']), array_column($result['pages'], 'label'));
+            }
+        }
+    }
+
     public function test_the_page_shows_a_role_and_a_person(): void
     {
         $this->actingAs($this->superAdmin(), 'web')->get(route('access-review.index'))->assertOk()->assertSee('Review a role')->assertSee('Review a person');
         $teacher = Role::query()->where('name', 'Teacher')->sole();
-        $this->get(route('access-review.index', ['role' => $teacher->id]))->assertOk()->assertSee('Access in each module')->assertSee('Pages in their menu');
+        $this->get(route('access-review.index', ['role' => $teacher->id]))->assertOk()->assertSee('Access in each module')->assertSee('Pages in their menu')->assertSee('Availability')->assertSee('This preview uses this role’s permissions only.');
         $this->get(route('access-review.index', ['person' => $this->schoolA->ids['tara_user']]))->assertOk()->assertSee('Roles at this school: Teacher');
     }
 }

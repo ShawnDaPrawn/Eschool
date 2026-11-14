@@ -398,11 +398,12 @@ class PracticeTestsTest extends TestCase
     public function test_the_panel_page_sets_lists_shows_and_withdraws_a_cycle_test_for_the_teachers_group_only(): void
     {
         $tara = $this->actor();
-        $this->actingAs($tara)->get(route('practice-tests.index'))->assertOk()->assertSee('Maths learning group')->assertSee('Set a cycle test')->assertSee('Fractions (4 questions from your question bank)');
+        $this->actingAs($tara)->get(route('practice-tests.index'))->assertOk()->assertSee('Maths learning group')->assertSee('Set a cycle test')->assertDontSee('name="question_count"', false);
+        $this->get(route('practice-tests.index', ['group' => $this->group, 'view' => 'create']))->assertOk()->assertSee('Fractions (4 questions from your question bank)')->assertDontSee('id="cycle-tests"', false);
         $zone = app(CurrentSchool::class)->school()->timezone;
         $form = ['operation_id' => (string) Str::uuid(), 'title' => 'Panel cycle test', 'topic_ids' => [$this->fractions(), $this->decimals()], 'question_count' => 5,
             'time_limit_minutes' => 30, 'opens_at' => now($zone)->subHour()->format('Y-m-d\TH:i'), 'closes_at' => now($zone)->addDay()->format('Y-m-d\TH:i'), 'weighting' => 'even'];
-        $this->actingAs($tara)->post(route('practice-tests.create', ['group' => $this->group]), array_replace($form, ['question_count' => 40]))->assertRedirect()->assertSessionHasErrors('question_count');
+        $this->actingAs($tara)->post(route('practice-tests.create', ['group' => $this->group]), array_replace($form, ['question_count' => 40]))->assertRedirect(route('practice-tests.index', ['group' => $this->group, 'view' => 'create']))->assertSessionHasErrors('question_count');
         $this->assertSame(0, PracticeTestBlueprint::count());
         $this->actingAs($tara)->post(route('practice-tests.create', ['group' => $this->group]), $form)->assertRedirect(route('practice-tests.index', ['group' => $this->group]))->assertSessionHasNoErrors();
         $this->actingAs($tara)->post(route('practice-tests.create', ['group' => $this->group]), $form)->assertRedirect()->assertSessionHasNoErrors();

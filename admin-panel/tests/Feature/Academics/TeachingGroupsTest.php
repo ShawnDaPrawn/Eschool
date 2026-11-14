@@ -131,15 +131,20 @@ class TeachingGroupsTest extends TestCase
     public function test_panel_structure_forms_and_mapping_use_the_same_scoped_services(): void
     {
         $admin = $this->superAdmin();
-        $this->actingAs($admin, 'web')->get(route('teaching-groups.index'))->assertOk()->assertSee('Class grade mappings');
+        $this->actingAs($admin, 'web')->get(route('teaching-groups.index', ['view' => 'configuration']))->assertOk()->assertSee('Class grade mappings');
         $this->get(route('teaching-groups.create'))->assertOk();
-        $this->put(route('academic-structure.map', $this->schoolA->ids['class_a']), ['grade_level_id' => $this->grade])->assertRedirect();
+        $configuration = route('teaching-groups.index', ['view' => 'configuration']);
+        $this->put(route('academic-structure.map', $this->schoolA->ids['class_a']), ['grade_level_id' => $this->grade])->assertRedirect($configuration);
+        $this->get($configuration)->assertOk()->assertSee('Class grade mappings')
+            ->assertViewHas('classes', fn ($classes) => (int) $classes->firstWhere('id', $this->schoolA->ids['class_a'])->grade_level_id === $this->grade);
+        $this->put(route('academic-structure.map', $this->schoolB->ids['class_a']), ['grade_level_id' => $this->grade])->assertNotFound();
         $group = $this->group();
         $this->get(route('teaching-groups.show', $group->id))->assertOk()->assertSee('Add learner membership');
         $this->get(route('teaching-groups.edit', $group->id))->assertOk();
         $this->get(route('academic-allocations.index'))->assertOk()->assertSee('Appoint academic leader');
         $this->put(route('academic-structure.map', $this->schoolA->ids['class_a']), ['grade_level_id' => null])->assertConflict();
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']), 'web')->get(route('academic-allocations.index'))->assertForbidden();
+        $this->put(route('academic-structure.map', $this->schoolA->ids['class_a']), ['grade_level_id' => $this->grade])->assertForbidden();
     }
 
     public function test_group_context_and_effective_membership_are_school_scoped_and_audited(): void

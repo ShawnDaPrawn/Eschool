@@ -1,4 +1,4 @@
-<details id="import" class="m3-card m3-card--outlined page-section" @if($import) open @endif><summary>{{ __('Import timetable') }}</summary><div class="m3-card__content">
+<details id="import" class="m3-card m3-card--outlined page-section" open><summary>{{ __('Import timetable') }}</summary><div class="m3-card__content">
     <h2>{{ __('Import from a spreadsheet or timetabling export') }}</h2><p>{{ __('Paste a UTF-8 CSV or tab-separated export. Match its columns and school values, then review clashes before saving. Up to 300 lessons per batch.') }}</p>
     @php $fields = ['teaching_group_id' => __('Teaching group'), 'class_section_id' => __('Homeroom'), 'teacher_id' => __('Teacher'), 'room_id' => __('Room'), 'bell_period_id' => __('Period'), 'weekday' => __('Day'), 'starts_on' => __('Starts on'), 'ends_on' => __('Ends on'), 'week_pattern' => __('Week pattern'), 'occurs_on' => __('Specific date')]; @endphp
     @if (!$import)

@@ -42,7 +42,7 @@ class ActivityPanelRequest extends ActivityRequest
 
     public function rules(): array
     {
-        return parent::rules() + ['group_id' => ['sometimes', 'integer', 'min:1'], 'edit' => ['sometimes', 'in:membership,staff,session,material'], 'record_id' => ['sometimes', 'integer', 'min:1'], 'session_id' => ['sometimes', 'integer', 'min:1']];
+        return parent::rules() + ['group_id' => ['sometimes', 'integer', 'min:1'], 'edit' => ['sometimes', 'in:membership,staff,session,material'], 'record_id' => ['sometimes', 'integer', 'min:1'], 'session_id' => ['sometimes', 'integer', 'min:1'], 'view' => ['sometimes', 'in:groups,overview,configuration,members,staff,sessions,materials,attendance,group-edit,member-edit,staff-edit,session-edit,material-edit']];
     }
 
     protected function failedValidation(Validator $validator): void

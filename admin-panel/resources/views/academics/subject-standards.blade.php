@@ -1,7 +1,7 @@
 @extends('layouts.master')
 @section('title', __('Subject standards'))
 @section('content')
-<div class="content-wrapper">
+<div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Subject standards')" :subtitle="__('Choose a sourced curriculum reference without changing existing marks.')" />
     @if ($errors->any())<p role="alert">{{ $errors->first() }}</p>@endif
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif

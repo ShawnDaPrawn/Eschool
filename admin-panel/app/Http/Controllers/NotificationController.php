@@ -104,7 +104,9 @@ class NotificationController extends Controller
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
-                'image' => $user->image,
+                'image' => trim((string) $user->getRawOriginal('image')) === ''
+                    ? asset('assets/no-image.svg')
+                    : $user->image,
             ];
         }
 

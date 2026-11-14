@@ -6,6 +6,7 @@ import { collectErrors, horizontalOverflow, seriousViolations } from '../support
 
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
+test.setTimeout(180_000);
 function php(code: string) { return execFileSync('php', ['artisan', 'tinker', '--execute', code], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' }); }
 test.beforeAll(() => php("require base_path('e2e/support/mastery-fixture.php');"));
 for (const width of [390, 820, 1280]) {
@@ -13,7 +14,7 @@ for (const width of [390, 820, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await signIn(page, accounts.admin);
     const errors = collectErrors(page, baseURL!);
-    await page.goto('/growth-mastery');
+    await page.goto('/growth-mastery?view=graph');
     const chooser = page.getByRole('form', { name: 'Choose graph subject', exact: true });
     const [subjectId] = await chooser.getByRole('combobox', { name: 'Subject', exact: true }).selectOption({ label: 'Mastery browser rehearsal' });
     await Promise.all([

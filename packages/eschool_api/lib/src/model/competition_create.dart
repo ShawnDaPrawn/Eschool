@@ -106,6 +106,12 @@ class CompetitionCreate {
 enum CompetitionCreateKindEnum {
   @JsonValue(r'sport')
   sport(r'sport'),
+  @JsonValue(r'debate')
+  debate(r'debate'),
+  @JsonValue(r'quiz')
+  quiz(r'quiz'),
+  @JsonValue(r'speech')
+  speech(r'speech'),
   @JsonValue(r'unknown_default_open_api')
   unknownDefaultOpenApi(r'unknown_default_open_api');
 

@@ -17,6 +17,7 @@ class PreserveDocumentFeedback
         $destination = $request->header('Sec-Fetch-Dest');
         $type = strtolower((string) $response->headers->get('Content-Type'));
         $background = $request->ajax() || $request->expectsJson() || ($destination !== null && ! in_array($destination, ['document', 'iframe', 'frame'], true)) || str_contains($type, '/json') || str_contains($type, '+json') || str_contains($type, 'javascript');
+        $request->attributes->set('background_document_response', $background);
         if ($background && $request->hasSession()) {
             $old = $request->session()->get('_flash.old', []);
             if (is_array($old)) {

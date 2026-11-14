@@ -19,7 +19,8 @@ class LibraryItem extends Model
 
     protected function casts(): array
     {
-        return ['library_topic_id' => 'integer', 'library_source_id' => 'integer', 'published_version_id' => 'integer', 'revision' => 'integer'];
+        return ['library_topic_id' => 'integer', 'library_source_id' => 'integer', 'published_version_id' => 'integer', 'revision' => 'integer',
+            'withdrawn_at' => 'datetime', 'unpublished_at' => 'datetime', 'unpublished_by' => 'integer'];
     }
 
     public function topic(): BelongsTo

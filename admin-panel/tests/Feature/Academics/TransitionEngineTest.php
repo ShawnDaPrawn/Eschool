@@ -98,6 +98,21 @@ class TransitionEngineTest extends TestCase
         return User::findOrFail($this->schoolA->ids['tara_user']);
     }
 
+    public function test_panel_changes_and_configuration_are_separate_and_use_the_selected_year(): void
+    {
+        $this->actingAs($this->superAdmin())->get('/academic-transitions')->assertOk()->assertSee('Learner search results')->assertDontSee('name="join_mark_rule"', false);
+        $this->get('/academic-transitions?view=configuration')->assertOk()->assertSee('name="join_mark_rule"', false)->assertDontSee('Learner search results');
+        $this->post(route('academic-transitions.policy', $this->grade), ['join_mark_rule' => 'excused', 'change_mark_rule' => 'catch_up', 'revision' => 0])
+            ->assertRedirect(route('academic-transitions.index', ['view' => 'configuration', 'grade_level_id' => $this->grade]));
+        $past = SessionYear::create(['name' => 'Historical transition review', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $this->withSession(['session_year' => $past->id])->get('/academic-transitions?learner_id='.$this->schoolA->ids['asha'])->assertOk()
+            ->assertViewHas('configuration', fn ($value) => $value['session_year_id'] === (int) $past->id)->assertDontSee('name="session_year_id" type="select"', false);
+        // Grade levels are shared platform reference data; school years are tenant records.
+        $this->withSession(['session_year' => $this->year])->get('/academic-transitions?view=configuration&session_year_id='.$this->schoolB->ids['session_year'])->assertNotFound();
+        $this->get('/academic-transitions?view=configuration&grade_level_id=999999')->assertNotFound();
+        $this->actingAs($this->teacher())->get('/academic-transitions?view=configuration')->assertForbidden();
+    }
+
     private function group(string $name, ?int $subject = null): int
     {
         return (int) app(TeachingGroups::class)->save($this->superAdmin(), ['name' => $name, 'subject_id' => $subject ?? $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade,

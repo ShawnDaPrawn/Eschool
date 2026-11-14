@@ -5,7 +5,7 @@
 | Admin panel navigation
 |--------------------------------------------------------------------------
 |
-| The panel's navigation, by job rather than by module: eight sections, each
+| The panel's navigation registry retains every authorised destination, each
 | with groups of pages. App\Services\Panel\Navigation builds the sidebar, the
 | global search's page results and the breadcrumbs from this registry.
 |
@@ -28,7 +28,7 @@
 |
 */
 
-return [
+$registry = [
 
     'sections' => [
 
@@ -134,7 +134,7 @@ return [
                             'keywords' => ['session year', 'academic year', 'year dates']],
                         ['key' => 'terms', 'label' => 'nav_terms', 'route' => 'term.index', 'permissions' => ['term-list'], 'module' => null,
                             'keywords' => ['set up terms', 'term dates', 'terms', 'quarters']],
-                        ['key' => 'new-year', 'label' => 'nav_new_year', 'route' => 'new-year.index', 'permissions' => ['session-year-create'], 'module' => null,
+                        ['key' => 'new-year', 'label' => 'nav_new_year', 'route' => 'new-year.index', 'active' => ['new-year.*'], 'permissions' => ['session-year-create', 'session-year-edit'], 'module' => null,
                             'keywords' => ['year end', 'rollover', 'next year', 'new school year', 'wizard', 'carry forward']],
                         ['key' => 'promote-learners', 'label' => 'nav_promote_learners', 'route' => 'promote-student.index', 'permissions' => ['promote-student-list'], 'module' => null,
                             'keywords' => ['promotion', 'next grade', 'year end', 'promote students']],
@@ -163,6 +163,7 @@ return [
                         ['key' => 'academic-content', 'label' => 'Learning content', 'route' => 'academic-content.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'academics', 'keywords' => ['content', 'upload', 'markdown', 'transcript', 'curriculum topics']],
                         ['key' => 'practice-motivation', 'label' => 'Practice reminders', 'route' => 'practice-motivation.index', 'permissions' => ['academic-structure-manage'], 'module' => 'daily_practice', 'active' => ['practice-motivation.*'], 'keywords' => ['nudges', 'streaks', 'practice goals', 'reminders', 'daily practice']],
                         ['key' => 'question-banks', 'label' => 'Question banks', 'route' => 'question-banks.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'daily_practice', 'active' => ['question-banks.*'], 'keywords' => ['practice questions', 'daily practice', 'share questions', 'question bank', 'reuse']],
+                        ['key' => 'shared-library', 'label' => 'Shared library', 'route' => 'shared-library.index', 'permissions' => ['curriculum-read', 'academic-structure-manage', 'setting-create'], 'module' => 'daily_practice', 'active' => ['shared-library.*'], 'keywords' => ['share between schools', 'other schools', 'shared questions', 'ratings', 'teacher to teacher']],
                         ['key' => 'practice-tests', 'label' => 'Practice tests', 'route' => 'practice-tests.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'daily_practice', 'active' => ['practice-tests.*'], 'keywords' => ['cycle test', 'quiz', 'timed test', 'class test', 'practice test']],
                         ['key' => 'starting-checks', 'label' => 'Starting checks', 'route' => 'starting-checks.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'mastery', 'active' => ['starting-checks.*'], 'keywords' => ['diagnostic', 'starting point', 'baseline', 'mastery map', 'library']],
                         ['key' => 'exam-memos', 'label' => 'Exam coach memos', 'route' => 'exam-memos.index', 'permissions' => [], 'exam_coach_staff' => true, 'module' => 'exam_coach', 'active' => ['exam-memos.*'], 'keywords' => ['mark points', 'memorandum', 'marking guideline', 'past papers']],
@@ -408,6 +409,7 @@ return [
                     ['key' => 'activity-groups', 'label' => 'nav_activity_groups', 'route' => 'activity-groups.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-groups.*'], 'keywords' => ['sport', 'coach', 'culture', 'season', 'facilitator']],
                     ['key' => 'activity-seasons', 'label' => 'nav_activity_seasons', 'route' => 'activity-seasons.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-seasons.*'], 'keywords' => ['summer', 'winter', 'new season', 'teams', 'rollover']],
                     ['key' => 'activity-fixtures', 'label' => 'nav_activity_fixtures', 'route' => 'activity-fixtures.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-fixtures.*'], 'keywords' => ['fixture', 'match', 'league', 'standings', 'score', 'other school']],
+                    ['key' => 'academic-competitions', 'label' => 'nav_academic_competitions', 'route' => 'academic-competitions.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['academic-competitions.*'], 'keywords' => ['debate', 'debating', 'quiz', 'olympiad', 'speech', 'adjudicator', 'motion']],
                 ]],
                 'events' => [
                     'label' => 'nav_group_events_gallery',
@@ -462,6 +464,10 @@ return [
                             'keywords' => ['mandatory notices', 'email', 'push', 'notification settings']],
                         ['key' => 'open-standards', 'label' => 'OneRoster export', 'route' => 'open-standards.index', 'permissions' => ['oneroster-export'], 'module' => null,
                             'active' => ['open-standards.*'], 'keywords' => ['OneRoster', 'roster', 'open standards', 'share classes', 'export learners']],
+                        ['key' => 'sign-in-providers', 'label' => 'Google and Microsoft sign-in', 'route' => 'sign-in-providers.index', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
+                            'active' => ['sign-in-providers.*'], 'keywords' => ['Google', 'Microsoft', 'single sign-on', 'SSO', 'Workspace', 'Entra', 'Office 365']],
+                        ['key' => 'sign-in-links', 'label' => 'Linked accounts', 'route' => 'sign-in-links.index', 'permissions' => [], 'sign_in_links' => true, 'module' => null,
+                            'active' => ['sign-in-links.*'], 'keywords' => ['sign in with Google', 'sign in with Microsoft', 'my account', 'link account']],
                         ['key' => 'school-exit', 'label' => 'nav_school_exit', 'route' => 'school-exit.index', 'permissions' => [], 'roles' => ['Super Admin'], 'school_exit' => true, 'module' => null,
                             'active' => ['school-exit.*'], 'keywords' => ['leaving', 'offboarding', 'data export', 'download our data']],
                         ['key' => 'navigate-ed-announcements', 'label' => 'nav_navigate_ed_announcements', 'route' => 'platform-announcements.index', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
@@ -526,3 +532,214 @@ return [
     ],
 
 ];
+
+// Revision 3 information architecture. Retain the original destination and
+// authority contract; only its navigation owner changes. Workspaces render the
+// full registry, while the drawer stays at the requested twelve destinations.
+$sectionLabels = [
+    'home' => ['Home', 'home'],
+    'people' => ['People', 'people'],
+    'attendance' => ['Attendance', 'attendance'],
+    'leave' => ['Leave', 'calendar'],
+    'academics' => ['Academics', 'academics'],
+    'extracurriculars' => ['Extracurriculars', 'activities'],
+    'awards' => ['Awards', 'activities'],
+    'discipline' => ['Discipline', 'wellbeing'],
+    'community' => ['Community', 'communication'],
+    'vendors' => ['Vendors', 'wallet'],
+    'finance' => ['Finance', 'fees'],
+    'settings' => ['Settings', 'settings'],
+];
+$sections = [];
+foreach ($sectionLabels as $key => [$label, $icon]) {
+    $sections[$key] = ['label' => $label, 'icon' => $icon, 'groups' => []];
+}
+$groupLabels = [
+    'learners' => 'Learners', 'parents' => 'Parents', 'teachers' => 'Teachers',
+    'facilitators' => 'Facilitators', 'admin-staff' => 'Admin staff', 'alumni' => 'Alumni',
+    'gallery' => 'Gallery', 'newsletter' => 'Newsletter', 'events' => 'Events', 'voting' => 'Voting',
+    'registers' => 'Learner registers', 'reports' => 'Reports', 'requests' => 'Requests and decisions',
+    'cover' => 'Relief and cover', 'configuration' => 'Configuration', 'year' => 'School year and calendar',
+    'reception' => 'Reception and family visits', 'emergency' => 'Emergency coordination',
+    'leadership' => 'School overview', 'website' => 'School website',
+    'house-points' => 'Houses and points', 'awards' => 'Awards and assembly',
+    'cases' => 'Discipline records', 'pathways' => 'Learner pathways',
+    'access' => 'Access and cards', 'ai' => 'AI configuration and review',
+    'teaching' => 'Teaching and learning',
+];
+$owners = [
+    'school-years' => ['settings', 'year'], 'terms' => ['settings', 'year'],
+    'new-year' => ['settings', 'year'], 'holidays' => ['settings', 'year'],
+    'leavers' => ['people', 'alumni'], 'learner-report' => ['people', 'learners'],
+    'teachers' => ['people', 'teachers'], 'add-teacher' => ['people', 'teachers'],
+    'teacher-id-cards' => ['people', 'teachers'],
+    'staff-attendance' => ['people', 'admin-staff'], 'staff-attendance-month' => ['attendance', 'reports'],
+    'apply-leave' => ['leave', 'requests'], 'staff-leave-requests' => ['leave', 'requests'],
+    'learner-leave' => ['leave', 'requests'], 'leave-report' => ['leave', 'reports'],
+    'leave-settings' => ['leave', 'configuration'], 'relief-cover' => ['leave', 'cover'],
+    'academic-registers' => ['attendance', 'registers'], 'take-attendance' => ['attendance', 'registers'],
+    'view-attendance' => ['attendance', 'registers'], 'import-attendance' => ['attendance', 'registers'],
+    'attendance-report' => ['attendance', 'reports'],
+    'discipline' => ['discipline', 'cases'],
+    'admissions' => ['people', 'learners'], 'school-transfers' => ['people', 'learners'],
+    'learner-notes' => ['people', 'learners'], 'risk-interventions' => ['people', 'learners'],
+    'leadership-dashboard' => ['home', 'leadership'], 'mastery-impact' => ['home', 'leadership'],
+    'weekly-digest-templates' => ['community', 'newsletter'],
+    'secure-cards' => ['people', 'learners'], 'card-readers' => ['settings', 'access'],
+    'foundation-classrooms' => ['academics', 'teaching'], 'early-years' => ['academics', 'teaching'],
+    'reading-library' => ['academics', 'teaching'], 'peer-tutoring' => ['academics', 'teaching'],
+    'pathway' => ['academics', 'pathways'], 'pathway-guidance' => ['academics', 'pathways'],
+    'school-support-office' => ['people', 'learners'], 'family-forms' => ['people', 'parents'],
+    'emergency' => ['home', 'emergency'], 'family-visits' => ['home', 'reception'],
+    'gallery' => ['community', 'gallery'], 'photos' => ['community', 'gallery'], 'videos' => ['community', 'gallery'],
+    'events' => ['community', 'events'], 'ticket-events' => ['community', 'events'], 'programmes' => ['community', 'events'],
+    'consultations' => ['community', 'voting'], 'house-points' => ['awards', 'house-points'], 'awards' => ['awards', 'awards'],
+    'group-conversations' => ['community', 'newsletter'],
+    'wellbeing' => ['people', 'learners'], 'wellbeing-check-ins' => ['people', 'learners'],
+    'support-plans' => ['people', 'learners'], 'ai-settings' => ['settings', 'ai'], 'ai-flags' => ['settings', 'ai'],
+    'website-content' => ['settings', 'website'], 'website-faqs' => ['settings', 'website'],
+    'website-messages' => ['home', 'reception'], 'person-profile' => ['people', 'admin-staff'],
+];
+$configKeys = ['leave-settings', 'activity-seasons', 'fee-plans', 'fee-lifecycle', 'fee-late-charges',
+    'fee-reminders', 'subject-standards', 'homeroom-names', 'subjects', 'grade-subjects', 'electives',
+    'teaching-languages', 'streams', 'shifts', 'grading-scale', 'online-exam-rules', 'weekly-digest-templates'];
+foreach ($registry['sections'] as $oldSection => $section) {
+    foreach ($section['groups'] as $oldGroup => $group) {
+        foreach ($group['items'] as $item) {
+            [$newSection, $newGroup] = $owners[$item['key']] ?? match ($oldSection) {
+                'people' => ['people', $oldGroup === 'staff' ? 'admin-staff' : $oldGroup],
+                'communication' => ['community', 'newsletter'],
+                'money' => [$oldGroup === 'vendors' ? 'vendors' : 'finance', $oldGroup],
+                'activities' => ['extracurriculars', $oldGroup],
+                'wellbeing' => ['people', 'learners'],
+                default => [$oldSection, $oldGroup],
+            };
+            $sections[$newSection]['groups'][$newGroup] ??= [
+                'label' => $groupLabels[$newGroup] ?? $group['label'], 'items' => [],
+            ];
+            if ($item['key'] === 'staff-attendance-month') {
+                $item['label'] = 'Monthly learner attendance';
+            }
+            $item['configuration'] = $newSection === 'settings' || in_array($item['key'], $configKeys, true);
+            $sections[$newSection]['groups'][$newGroup]['items'][] = $item;
+        }
+    }
+}
+$sections['people']['groups']['learners']['items'][] = [
+    'key' => 'reenrolment', 'label' => 'Re-enrolment', 'route' => 'reenrolment-panel.index',
+    'permissions' => ['reenrolment-manage'], 'module' => 'reenrolment', 'active' => ['reenrolment-panel.*'],
+    'keywords' => ['returning learners', 'acceptance', 'annual terms', 're-enrolment'], 'configuration' => false,
+];
+// Functional directory additions use the domain controller's existing guards.
+$sections['people']['groups']['facilitators'] = ['label' => 'Facilitators', 'items' => [
+    ['key' => 'facilitators', 'label' => 'Facilitators', 'route' => 'people.facilitators.index',
+        'permissions' => ['staff-list', 'activity-groups-manage'], 'module' => 'groups',
+        'active' => ['people.facilitators.*'], 'keywords' => ['coaches', 'facilitators', 'activity leaders'], 'configuration' => false],
+]];
+$sections['people']['groups']['facilitators']['items'][] = [
+    'key' => 'facilitator-create', 'label' => 'Add facilitator', 'route' => 'staff.index',
+    'params' => ['view' => 'create', 'role' => 'Facilitator'], 'permissions' => ['staff-create'], 'module' => null,
+    'active' => [], 'keywords' => ['new facilitator', 'create coach'], 'configuration' => false,
+];
+$sections['people']['groups']['alumni']['items'][] = [
+    'key' => 'alumni-directory', 'label' => 'Alumni and volunteers', 'route' => 'people-pool-panel.index',
+    'permissions' => ['people-pool-manage'], 'module' => 'people_pool', 'active' => ['people-pool-panel.*'],
+    'keywords' => ['alumni', 'volunteers', 'consent', 'vetting', 'bookings'], 'configuration' => false,
+];
+$sections['finance']['groups']['assistance'] = ['label' => 'Bursaries and sponsorship', 'items' => [
+    ['key' => 'bursary-panel', 'label' => 'Bursaries', 'route' => 'bursary-panel.index', 'permissions' => ['bursaries-review'],
+        'module' => 'bursaries', 'active' => ['bursary-panel.*'], 'keywords' => ['bursary', 'assistance', 'application'], 'configuration' => false],
+    ['key' => 'giving-panel', 'label' => 'Giving and donations', 'route' => 'giving-panel.index', 'permissions' => ['giving-campaigns-manage', 'giving-donors-manage'],
+        'module' => 'giving', 'active' => ['giving-panel.*'], 'keywords' => ['pledges', 'donations', 'campaigns'], 'configuration' => false],
+    ['key' => 'sponsored-places', 'label' => 'Sponsored places', 'route' => 'sponsored-places.index', 'permissions' => [], 'roles' => ['Super Admin'],
+        'module' => null, 'active' => ['sponsored-places.*'], 'keywords' => ['school subscriptions', 'sponsorship', 'places'], 'configuration' => false],
+]];
+foreach (['attendance' => ['Learner attendance history', 'attendance'], 'leave' => ['Learner leave history', 'leave']] as $owner => [$label, $tab]) {
+    $sections[$owner]['groups']['reports'] ??= ['label' => 'Reports', 'items' => []];
+    $sections[$owner]['groups']['reports']['items'][] = [
+        'key' => 'learner-'.$tab.'-history', 'label' => $label, 'route' => 'students.report',
+        'params' => ['report_tab' => $tab], 'permissions' => ['student-report'], 'report_actor' => true,
+        'module' => null, 'active' => ['student.report'], 'report_tab' => $tab,
+        'keywords' => ['learner', $tab, 'history'], 'configuration' => false,
+    ];
+}
+$sections['leave']['groups']['requests']['items'][] = [
+    'key' => 'staff-leave-history', 'label' => 'Staff leave history', 'route' => 'staff-leave.index',
+    'permissions' => ['staff-leave-list'], 'module' => null, 'active' => ['staff-leave.*'],
+    'keywords' => ['staff', 'leave history', 'calendar'], 'configuration' => false,
+];
+// Attendance is a school-wide task; these links retain the original dated
+// activity/detention context and authority rather than cloning writable stores.
+foreach (['activity-groups' => ['activity-attendance', 'Activity attendance'], 'discipline' => ['detention-attendance', 'Detention attendance']] as $original => [$key, $label]) {
+    foreach ($registry['sections'] as $oldSection) {
+        foreach ($oldSection['groups'] as $oldGroup) {
+            foreach ($oldGroup['items'] as $candidate) {
+                if ($candidate['key'] !== $original) {
+                    continue;
+                }
+                $candidate['key'] = $key;
+                $candidate['label'] = $label;
+                $candidate['params'] = ['view' => 'attendance'];
+                $candidate['attendance_destination'] = true;
+                $candidate['configuration'] = false;
+                $sections['attendance']['groups']['registers']['items'][] = $candidate;
+            }
+        }
+    }
+}
+$sections['attendance']['groups']['configuration'] = ['label' => 'Configuration', 'items' => [
+    ['key' => 'attendance-configuration', 'label' => 'Attendance and absence alerts', 'route' => 'academic-registers.configuration',
+        'permissions' => ['academic-structure-manage'], 'module' => 'academics', 'active' => ['academic-registers.configuration'],
+        'keywords' => ['teaching days', 'absence cut-off', 'attendance configuration'], 'configuration' => true],
+]];
+$emergency = collect($sections['home']['groups']['emergency']['items'] ?? [])->firstWhere('key', 'emergency');
+if ($emergency) {
+    $emergency['key'] = 'emergency-attendance';
+    $emergency['label'] = 'Emergency roll call';
+    $emergency['params'] = ['view' => 'roll-call'];
+    $emergency['configuration'] = false;
+    $sections['attendance']['groups']['registers']['items'][] = $emergency;
+}
+
+$sections['leave']['groups']['requests']['items'][] = [
+    'key' => 'facilitator-leave', 'label' => 'Facilitator leave', 'route' => 'facilitator-leave.index', 'permissions' => [],
+    'module' => 'groups', 'facilitator_leave_actor' => true, 'active' => ['facilitator-leave.*'], 'configuration' => false,
+    'keywords' => ['facilitator absence', 'session cover', 'activity substitute'],
+];
+$sections['leave']['groups']['requests']['items'][] = [
+    'key' => 'leave-calendar', 'label' => 'Leave calendar', 'route' => 'leave-calendar.index', 'permissions' => [], 'leave_calendar_actor' => true,
+    'module' => null, 'active' => ['leave-calendar.*'], 'configuration' => false, 'keywords' => ['staff leave', 'learner leave', 'week calendar'],
+];
+$sections['finance']['groups']['assistance']['items'][] = [
+    'key' => 'school-subscription-invoices', 'label' => 'School subscription invoices', 'route' => 'school-subscription-invoices.index',
+    'permissions' => [], 'roles' => ['Super Admin'], 'module' => null, 'active' => ['school-subscription-invoices.*'], 'configuration' => false,
+    'keywords' => ['school subscription', 'credit notes', 'payment allocations'],
+];
+foreach (['inbox' => ['My inbox', 'panel.inbox.index'], 'notification-preferences' => ['Notification preferences', 'panel.preferences.notifications'], 'quiet-hours' => ['Quiet hours', 'panel.preferences.quiet'], 'text-preferences' => ['Text message preferences', 'panel.preferences.texts']] as $key => [$label,$route]) {
+    $sections['settings']['groups']['personal'] ??= ['label' => 'My preferences', 'items' => []];
+    $sections['settings']['groups']['personal']['items'][] = ['key' => $key, 'label' => $label, 'route' => $route, 'permissions' => [], 'module' => null, 'school_actor' => true, 'configuration' => true, 'active' => $key === 'inbox' ? ['panel.inbox.*'] : [$route], 'keywords' => [$label]];
+}
+
+$sections['settings']['groups']['configuration']['items'][] = [
+    'key' => 'module-readiness', 'label' => 'Module setup readiness', 'route' => 'school-modules.readiness', 'permissions' => ['setting-create'],
+    'module' => null, 'configuration' => true, 'keywords' => ['module setup', 'configuration gaps', 'readiness'],
+];
+$sections['settings']['groups']['configuration']['label'] ??= 'Module setup';
+$sections['settings']['groups']['school']['items'][] = [
+    'key' => 'school-maintenance', 'label' => 'Maintenance', 'url' => 'settings?view=maintenance',
+    'permissions' => ['setting-create'], 'roles' => ['Super Admin'], 'module' => null, 'configuration' => true,
+    'active' => ['settings'], 'active_query' => ['view' => 'maintenance'], 'keywords' => ['maintenance', 'refresh caches'],
+];
+
+// Stable dropdown order; empty role-specific groups are hidden until a permitted
+// destination is registered. Never show a fake directory or broaden authority.
+foreach (['people' => ['learners', 'parents', 'teachers', 'facilitators', 'admin-staff', 'alumni'],
+    'community' => ['gallery', 'newsletter', 'events', 'voting']] as $section => $keys) {
+    $ordered = [];
+    foreach ($keys as $key) {
+        $ordered[$key] = $sections[$section]['groups'][$key] ?? ['label' => $groupLabels[$key], 'items' => []];
+    }
+    $sections[$section]['groups'] = $ordered;
+}
+
+return ['sections' => $sections];

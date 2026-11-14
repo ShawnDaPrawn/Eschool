@@ -12,15 +12,16 @@ $day = 1;
 
 <div class="table-responsive report-table-wrap">
     <table class="sr-calendar-table">
+        <caption class="m3-visually-hidden">{{ $monthName }} · {{ __('attendance') }}</caption>
         <thead>
             <tr>
-                <th>{{ __('sun') }}</th>
-                <th>{{ __('mon') }}</th>
-                <th>{{ __('tue') }}</th>
-                <th>{{ __('wed') }}</th>
-                <th>{{ __('thu') }}</th>
-                <th>{{ __('fri') }}</th>
-                <th>{{ __('sat') }}</th>
+                <th scope="col">{{ __('sun') }}</th>
+                <th scope="col">{{ __('mon') }}</th>
+                <th scope="col">{{ __('tue') }}</th>
+                <th scope="col">{{ __('wed') }}</th>
+                <th scope="col">{{ __('thu') }}</th>
+                <th scope="col">{{ __('fri') }}</th>
+                <th scope="col">{{ __('sat') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -73,7 +74,7 @@ $day = 1;
                         }
                     @endphp
 
-                    <td class="{{ $dayClass }}">
+                    <td class="{{ $dayClass }}" aria-label="{{ $currentDate }}: {{ $statusLabel ?: __('No attendance recorded') }}">
                         <div class="sr-day-number">{{ $day }}</div>
 
                         @if($status)

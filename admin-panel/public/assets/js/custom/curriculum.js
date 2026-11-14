@@ -6,6 +6,7 @@
   const options = JSON.parse(root.querySelector('[data-curriculum-state]').textContent);
   const form = root.querySelector('[data-definition-form]');
   const host = root.querySelector('[data-definition-fields]');
+  if (!form || !host) return; // Publication/copy are separate record views.
   const state = options.definition || { subject_id: options.subjects[0]?.id, grade_level_id: options.grades[0]?.id,
     session_year_id: options.years[0]?.id, title: '', annual_components: null,
     rounding: 'half_up', absent_policy: 'incomplete', topics: [], assessments: [] };

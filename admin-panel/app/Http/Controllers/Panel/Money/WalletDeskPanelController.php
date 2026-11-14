@@ -68,7 +68,7 @@ class WalletDeskPanelController extends Controller
     {
         app(WalletDeskTopups::class)->policy($request->user(), $request->validated());
 
-        return redirect()->route('wallet-desk.index', status: 303)->with('success', __('Desk approval threshold saved.'));
+        return redirect()->route('wallet-desk.index', ['section' => 'settings'], 303)->with('success', __('Desk approval threshold saved.'));
     }
 
     public function grant(WalletDeskPanelRequest $request): Response

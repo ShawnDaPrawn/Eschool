@@ -53,6 +53,7 @@ for (const width of [390, 820, 1280]) {
     await check(page); await submitOnceAndReplay(page, 'Save accounting mapping');
     await expect(page.getByRole('status')).toContainText('Accounting export mapping saved.');
     await page.getByRole('link', { name: 'Back to arrears and accounting', exact: true }).click();
+    await page.goto('/fee-reporting?section=export');
     const expected = { ageing: 'AsOf,FamilyReference', charges: 'AsOf,FamilyReference,Invoice', journal: 'Journal,PostedAtUTC', xero: 'Narration,Date,Description,AccountCode', quickbooks: 'JournalNo,JournalDate,AccountName' };
     for (const [layout, header] of Object.entries(expected)) {
       await page.getByRole('combobox', { name: 'Export layout', exact: true }).selectOption(layout);

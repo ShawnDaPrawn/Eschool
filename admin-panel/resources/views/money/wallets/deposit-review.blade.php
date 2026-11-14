@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Review parent wallet deposit'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')<div class="content-wrapper m3 fee-plan-workbench"><x-page.header :title="__('Review parent wallet deposit')" />
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 @if(!$canWrite)<p>{{ __('Wallet history is read-only while wallets are disabled.') }}</p>@endif

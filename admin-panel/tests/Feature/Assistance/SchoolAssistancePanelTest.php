@@ -51,10 +51,10 @@ class SchoolAssistancePanelTest extends TestCase
     {
         $id = $this->thread();
         $this->actingAs($this->superAdmin())->get('/ask-school')->assertOk()->assertSee('Claim request')
-            ->assertDontSee('PRIVATE-PARENT')->assertHeader('Cache-Control', 'no-store, private');
+            ->assertDontSee('PRIVATE-PARENT')->assertDontSee('id="assistance-doc-title"', false)->assertHeader('Cache-Control', 'no-store, private');
         $this->get('/ask-school/threads/'.$id)->assertNotFound()->assertDontSee('PRIVATE-PARENT');
         $this->post('/ask-school/threads/'.$id.'/claim', $this->fields(['expected_revision' => 1]))->assertRedirect();
-        $this->get('/ask-school/threads/'.$id)->assertOk()->assertSee('PRIVATE-PARENT office request');
+        $this->get('/ask-school/threads/'.$id)->assertOk()->assertSee('PRIVATE-PARENT office request')->assertDontSee('id="assistance-doc-title"', false)->assertDontSee('id="assistance-queue"', false);
         $reply = $this->fields(['text' => 'PRIVATE-OFFICE original reply', 'language' => 'en']);
         $this->post('/ask-school/threads/'.$id.'/reply', $reply)->assertRedirect();
         $this->post('/ask-school/threads/'.$id.'/reply', $reply)->assertRedirect();
@@ -70,11 +70,13 @@ class SchoolAssistancePanelTest extends TestCase
 
     public function test_approved_document_new_version_withdrawal_and_readonly_panel(): void
     {
+        $this->actingAs($this->superAdmin())->get('/ask-school?view=publish')->assertOk()->assertSee('id="assistance-doc-title"', false)->assertDontSee('id="assistance-queue"', false);
         $input = $this->fields(['expected_revision' => 0, 'title' => 'School hours', 'markdown' => 'Approved private school source',
             'source_reference' => 'School handbook', 'identifiers_reviewed' => '1']);
         $this->actingAs($this->superAdmin())->post('/ask-school/documents', $input)->assertRedirect();
         $document = KnowledgeDocument::sole();
-        $this->get('/ask-school?document='.$document->id)->assertOk()->assertSee('Approved private school source');
+        $this->get('/ask-school?document='.$document->id)->assertOk()->assertSee('Approved private school source')->assertDontSee('id="assistance-doc-title"', false);
+        $this->get('/ask-school?view=publish&document='.$document->id)->assertOk()->assertSee('Approved private school source')->assertSee('id="assistance-doc-title"', false);
         $revision = $this->fields(['document_key' => $document->document_key, 'expected_revision' => 1, 'title' => 'Updated school hours',
             'markdown' => 'PRIVATE changed approved source', 'source_reference' => '', 'identifiers_reviewed' => '1']);
         $this->post('/ask-school/documents', $revision)->assertUnprocessable()->assertSee('name="document_key" value="'.$document->document_key.'"', false)

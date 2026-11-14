@@ -21,7 +21,10 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'facilitator_absences', 'facilitator_session_covers', 'event_readiness_links',
         'library_school_settings',
+        // The shared library (Action Plan 5.4): what a school offered to the library, and its teachers' ratings of shared items.
+        'library_contributions', 'library_ratings',
         'reading_hidden_items', 'reading_settings', 'reading_progress', 'reading_days', 'reading_answers',
         'school_messaging_settings',
         // Each person's verified number and own SMS and WhatsApp choice at one school (Action Plan 2.7).
@@ -34,7 +37,8 @@ final class SchoolOwnedTables
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
         // notes, their lines, its EFT payments and what each payment or credit
         // note settles. Each row is about one school, so it carries the school
-        // (written inside it from /saas); only HQ reads them, never the school.
+        // (written inside it from /saas). SchoolSubscriptionInvoices exposes only
+        // the authorised school projection of its own issued invoice records.
         // platform_billing_reminders logs each overdue reminder sent to it.
         'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
         // Learner subscriptions (3.20, SA.8 Build 3): a child's learning plan, the
@@ -109,6 +113,8 @@ final class SchoolOwnedTables
         'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations', 'recognition_badge_settings', 'recognition_badges',
         // Open standards (5.9): the school's OneRoster exports and the Open Badges credentials issued for its awards.
         'oneroster_exports', 'open_badge_credentials',
+        // Google and Microsoft sign-in (5.9): each school's provider settings, the accounts linked at it and the one-use sign-in challenges.
+        'sign_in_provider_settings', 'sign_in_provider_links', 'sign_in_provider_challenges',
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
         'exam_periods', 'calendar_feeds',
@@ -127,6 +133,11 @@ final class SchoolOwnedTables
         // group, team label, notes and score report) and its team sheet, whose
         // learner ids never leave the school (specs/platform/shared-records.md).
         'shared_participants', 'shared_record_operations', 'shared_fixture_sides', 'shared_fixture_selections',
+        // Academic competitions (Action Plan 5.3): each school's own adjudicators,
+        // its adjudicators' result (scores and places of its own entrants), the AI
+        // feedback on reasoning its adjudicators asked for and the awards it linked
+        // (specs/activities/academic-competitions.md).
+        'academic_adjudicators', 'academic_results', 'academic_reasoning_reviews', 'academic_award_links',
         'audiences', 'communication_role_rules', 'communication_operations', 'messages', 'message_recipients', 'message_reads',
         'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
@@ -183,11 +194,11 @@ final class SchoolOwnedTables
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
         'library_frameworks' => 'the platform content library\'s curriculum frameworks (CAPS, IEB), written only from /saas/library; no school data flows into the library',
-        'library_sources' => 'where library content comes from and its licence, written only from /saas/library; names no school',
+        'library_sources' => 'where library content comes from and its licence, written from /saas/library; a teacher\'s shared question (5.4) gets its own source naming the contributing school and teacher and the credit they chose, written only through ContributionGate, so a published item can be attributed as they chose',
         'library_topics' => 'the platform library\'s topics per framework, subject and grade, written only from /saas/library; a school mirrors them in its own mastery_topics',
         'library_topic_prerequisites' => 'prerequisite edges between platform library topics, written only from /saas/library',
-        'library_items' => 'platform library items (practice and past-paper questions, lessons, diagnostics), written only from /saas/library; never a school\'s own material',
-        'library_item_versions' => 'versioned library item content; a published version is immutable; written only from /saas/library',
+        'library_items' => 'platform library items (practice and past-paper questions, lessons, diagnostics), written from /saas/library; a teacher\'s question enters only as a deliberate, scanned copy through ContributionGate (5.4), never a live link to the school\'s material',
+        'library_item_versions' => 'versioned library item content; a published version is immutable; written from /saas/library, and version 1 of a shared question through ContributionGate (5.4), waiting for HQ review',
         'library_diagrams' => 'the platform library\'s diagram pictures for labelling questions, written only from /saas/library; a school reads one only through a published library question in a learner\'s own practice set',
         'library_reviews' => 'HQ reviewers\' decisions on library item versions; names platform staff only',
         'library_reviewers' => 'which platform staff review which library framework and subject; no school role or record',
@@ -214,7 +225,7 @@ final class SchoolOwnedTables
         'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
         'platform_package_modules' => 'which product modules each version of a package includes; names no school',
         'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
-        'shared_fixtures' => 'a fixture between schools: date, venue, field, the opponent\'s name when it is not on NavigateEd and the result both schools confirmed; names no school and holds no learner or group; each school reaches it only through its own shared_participants row',
+        'shared_fixtures' => 'a fixture or academic competition between schools: date, venue, field, motion, format, rounds, the opponent\'s name when it is not on NavigateEd and the result (and winning side) both schools confirmed; names no school and holds no learner or group; each school reaches it only through its own shared_participants row',
         'shared_competitions' => 'a league or competition between schools: name, kind, season and points rules; names no school; members reach it only through their own shared_participants row',
         'platform_announcements' => 'Navigate Ed\'s own announcements to schools, written only from /saas; a school reads one only through its own platform_announcement_schools row, and the audience list is never shown to a school',
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',

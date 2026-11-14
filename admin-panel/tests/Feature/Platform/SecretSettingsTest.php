@@ -73,8 +73,12 @@ class SecretSettingsTest extends TestCase
         $admin = $this->superAdmin();
         $admin->forceFill(['password' => bcrypt('Admin-pass-2026')])->save();
 
-        foreach (['/email-settings', '/settings'] as $page) {
-            $html = $this->actingAs($admin)->get($page)->assertOk()->assertSee(trans('set_in_environment'))->getContent();
+        foreach (['/email-settings', '/settings', '/settings?view=branding', '/settings?view=localization', '/settings?view=links', '/settings?view=policies', '/settings?view=security', '/settings?view=maintenance'] as $page) {
+            $response = $this->actingAs($admin)->get($page)->assertOk();
+            if (in_array($page, ['/email-settings', '/settings?view=security'], true)) {
+                $response->assertSee(trans('set_in_environment'));
+            }
+            $html = $response->getContent();
             foreach ([...array_values(self::ROW), 'sk_env', 'whsec_env', 'env-mail-pass', 'recaptcha-env'] as $secret) {
                 $this->assertStringNotContainsString($secret, $html, "$page shows a secret");
             }

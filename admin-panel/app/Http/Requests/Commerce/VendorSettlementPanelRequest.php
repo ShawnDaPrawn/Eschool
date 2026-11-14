@@ -18,7 +18,7 @@ class VendorSettlementPanelRequest extends VendorCatalogueRequest
     public function rules(): array
     {
         if ($this->isMethodSafe()) {
-            return ['vendor_id' => ['sometimes', 'integer', 'min:1'], 'period_from' => ['sometimes', 'date_format:Y-m-d'], 'period_to' => ['sometimes', 'date_format:Y-m-d', 'after_or_equal:period_from'], 'page' => ['sometimes', 'integer', 'between:1,1000000']];
+            return ['vendor_id' => ['sometimes', 'nullable', 'integer', 'min:1'], 'period_from' => ['sometimes', 'nullable', 'date_format:Y-m-d'], 'period_to' => ['sometimes', 'nullable', 'date_format:Y-m-d', ...($this->filled('period_from') ? ['after_or_equal:period_from'] : [])], 'page' => ['sometimes', 'integer', 'between:1,1000000']];
         }
 
         return $this->bindingRules() + match (true) {

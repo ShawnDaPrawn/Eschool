@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
 /**
@@ -12,6 +14,27 @@ use Tests\TestCase;
  */
 class M3ComponentsTest extends TestCase
 {
+    public function test_malformed_old_input_keeps_scalar_fields_and_nested_selections_renderable(): void
+    {
+        view()->share('errors', (new ViewErrorBag)->put('default', new MessageBag(['name' => 'Enter a single name.'])));
+        $this->app['request']->setLaravelSession(session()->driver());
+        session()->flashInput(['name' => ['unexpected'], 'groups' => [['nested'], 'a']]);
+        foreach (['text', 'textarea'] as $type) {
+            $page = $this->render('<x-page.field name="name" label="Name" :type="$type" />', ['type' => $type]);
+            $this->assertStringContainsString('Enter a single name.', $page);
+            $this->assertStringContainsString('aria-invalid="true"', $page);
+            $this->assertStringNotContainsString('unexpected', $page);
+            $material = $this->render('<x-m3.text-field name="name" label="Name" :type="$type" />', ['type' => $type]);
+            $this->assertStringContainsString('Enter a single name.', $material);
+            $this->assertStringNotContainsString('unexpected', $material);
+        }
+        foreach (['page.field', 'm3.select'] as $component) {
+            $html = $this->render('<x-'.$component.' name="groups[]" type="select" label="Groups" :options="[\'a\' => \'Alpha\', \'b\' => \'Beta\']" multiple />');
+            $this->assertStringContainsString('<option value="a" selected>Alpha</option>', $html);
+            $this->assertStringNotContainsString('nested', $html);
+        }
+    }
+
     /** Renders a component, with runs of whitespace collapsed so the checks read as markup. */
     private function render(string $template, array $data = []): string
     {

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Activities\ActivityGroup;
 use App\Models\Activities\ActivityMembership;
 use App\Models\Students;
+use App\Services\Activities\CommunityAuthority;
 use App\Services\Activities\Fixtures\Competitions;
 use App\Services\Activities\Fixtures\Fixtures;
 use Illuminate\Http\RedirectResponse;
@@ -31,50 +32,71 @@ class FixturePanelController extends Controller
         $competitions = $this->competitions->listing($r->user())['items'];
 
         return response()->view('activities.fixtures.index', [
+            'screen' => $this->screen($r, ['fixtures', 'fixture-create', 'competitions', 'competition-create'], $r->filled('school_search') ? 'fixture-create' : 'fixtures'),
+            'formInput' => $this->formInput($r),
+            'messages' => $r->attributes->get('fixture_errors', []),
             'fixtures' => $listing,
             'competitions' => $competitions,
             'groups' => ActivityGroup::query()->where('active', true)->orderBy('name')->limit(500)->pluck('name', 'id')->all(),
             'schools' => $this->search($r),
-            'search' => trim((string) $r->query('school_search', '')),
+            'search' => is_string($r->input('school_search')) ? trim($r->input('school_search')) : '',
         ])->header('Cache-Control', 'private, no-store');
     }
 
     public function show(Request $r, int $fixture): Response
     {
         $view = $this->fixtures->view($r->user(), $fixture);
+        $canChangeGroup = app(CommunityAuthority::class)->manages($r->user());
+        $selectedGroupId = (int) ($view['side']['activity_group_id'] ?? 0);
+        if ($view['side'] !== null && $r->filled('activity_group_id')) {
+            $requested = $r->input('activity_group_id');
+            abort_unless(is_scalar($requested) && ctype_digit((string) $requested), 422);
+            $requested = (int) $requested;
+            abort_unless($requested === $selectedGroupId || $canChangeGroup, 403);
+            $selectedGroupId = (int) ActivityGroup::query()->where('active', true)->findOrFail($requested)->id;
+        }
 
         return response()->view('activities.fixtures.show', [
+            'screen' => $this->screen($r, ['overview', 'invitation', 'team', 'result', 'configuration'], 'overview'),
+            'formInput' => $this->formInput($r),
+            'messages' => $r->attributes->get('fixture_errors', []),
+            'canChangeGroup' => $canChangeGroup,
+            'selectedGroupId' => $selectedGroupId,
             'fixture' => $view,
             'groups' => ActivityGroup::query()->where('active', true)->orderBy('name')->limit(500)->pluck('name', 'id')->all(),
-            'members' => $view['side'] === null ? [] : $this->members((int) $view['side']['activity_group_id'], $view['on_date']),
+            'members' => $view['side'] === null ? [] : $this->members($selectedGroupId, $view['on_date']),
         ])->header('Cache-Control', 'private, no-store');
     }
 
     public function competition(Request $r, int $competition): Response
     {
         return response()->view('activities.fixtures.competition', [
+            'screen' => $this->screen($r, ['overview', 'invitation', 'standings', 'members', 'invite'], $r->filled('school_search') ? 'invite' : 'overview'),
+            'formInput' => $this->formInput($r),
+            'messages' => $r->attributes->get('fixture_errors', []),
             'competition' => $this->competitions->view($r->user(), $competition),
             'schools' => $this->search($r),
-            'search' => trim((string) $r->query('school_search', '')),
+            'search' => is_string($r->input('school_search')) ? trim($r->input('school_search')) : '',
         ])->header('Cache-Control', 'private, no-store');
     }
 
-    public function write(Request $r, ?int $fixture = null): RedirectResponse
+    public function write(Request $r, ?int $fixture = null): Response|RedirectResponse
     {
         return $this->handle($r, $fixture, null);
     }
 
-    public function competitionWrite(Request $r, ?int $competition = null): RedirectResponse
+    public function competitionWrite(Request $r, ?int $competition = null): Response|RedirectResponse
     {
         return $this->handle($r, null, $competition);
     }
 
-    private function handle(Request $r, ?int $fixture, ?int $competition): RedirectResponse
+    private function handle(Request $r, ?int $fixture, ?int $competition): Response|RedirectResponse
     {
         $action = substr((string) $r->route()->getName(), strlen('activity-fixtures.'));
         $input = $r->except(['_token']);
-        $back = $competition !== null ? route('activity-fixtures.competition-show', ['competition' => $competition])
-            : ($fixture !== null ? route('activity-fixtures.show', ['fixture' => $fixture]) : route('activity-fixtures.index'));
+        $destination = ['side' => 'team', 'schedule' => 'configuration', 'result' => 'result', 'competition-invite' => 'members'][$action] ?? 'overview';
+        $back = $competition !== null ? route('activity-fixtures.competition-show', ['competition' => $competition, 'screen' => $destination])
+            : ($fixture !== null ? route('activity-fixtures.show', ['fixture' => $fixture, 'screen' => $destination]) : route('activity-fixtures.index'));
         try {
             $result = match ($action) {
                 'create' => $this->fixtures->create($r->user(), $this->nullable($input, ['guest_school_id', 'external_opponent', 'shared_competition_id', 'starts_at', 'field'])),
@@ -87,13 +109,13 @@ class FixturePanelController extends Controller
                 'competition-decision' => $this->competitions->decide($r->user(), (int) $competition, $input),
             };
         } catch (ValidationException $e) {
-            return redirect()->to($back)->withErrors($e->errors());
+            return $this->failure($r, $fixture, $competition, $e->validator->errors()->all(), 422);
         } catch (HttpExceptionInterface $e) {
             if (! in_array($e->getStatusCode(), [409, 422], true)) {
                 throw $e;
             }
 
-            return redirect()->to($back)->withErrors(['fixture' => __($e->getMessage())]);
+            return $this->failure($r, $fixture, $competition, [__($e->getMessage())], $e->getStatusCode());
         }
         $to = match ($action) {
             'create' => route('activity-fixtures.show', ['fixture' => $result['id']]),
@@ -107,7 +129,7 @@ class FixturePanelController extends Controller
     /** @return list<array{id: int, name: string}> */
     private function search(Request $r): array
     {
-        $term = trim((string) $r->query('school_search', ''));
+        $term = is_string($r->input('school_search')) ? trim($r->input('school_search')) : '';
         if ($term === '') {
             return [];
         }
@@ -116,6 +138,43 @@ class FixturePanelController extends Controller
         } catch (ValidationException) {
             return [];
         }
+    }
+
+    private function screen(Request $r, array $screens, string $default): string
+    {
+        $screen = $r->input('screen');
+
+        if (! $r->isMethodSafe() && ! is_string($screen)) {
+            $action = substr((string) $r->route()->getName(), strlen('activity-fixtures.'));
+            $screen = ['create' => 'fixture-create', 'competition-create' => 'competition-create', 'schedule' => 'configuration', 'decision' => 'invitation', 'side' => 'team', 'result' => 'result', 'competition-invite' => 'invite', 'competition-decision' => 'invitation'][$action] ?? $default;
+        }
+
+        return is_string($screen) && in_array($screen, $screens, true) ? $screen : $default;
+    }
+
+    /** Private form values stay in this response; never flash team notes into session. */
+    private function formInput(Request $r): array
+    {
+        if ($r->isMethodSafe()) {
+            return [];
+        }
+
+        $safe = array_filter($r->except(['_token']), fn ($value) => is_scalar($value) || $value === null);
+        foreach (['pick', 'label', 'position'] as $key) {
+            if (is_array($r->input($key))) {
+                $safe[$key] = array_slice(array_filter($r->input($key), 'is_scalar'), 0, 61, true);
+            }
+        }
+
+        return $safe;
+    }
+
+    private function failure(Request $r, ?int $fixture, ?int $competition, array $messages, int $status): Response
+    {
+        $r->attributes->set('fixture_errors', $messages);
+        $response = $competition !== null ? $this->competition($r, $competition) : ($fixture !== null ? $this->show($r, $fixture) : $this->index($r));
+
+        return $response->setStatusCode($status)->header('Cache-Control', 'private, no-store');
     }
 
     /** The group's members on the fixture day: the learners who can be picked. */

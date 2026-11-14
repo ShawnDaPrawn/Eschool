@@ -13,6 +13,7 @@ use App\Services\People\Pools\PoolAccess;
 use App\Services\Platform\Identity\ExpectedAccount;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\StudentNumbers;
+use App\Services\Platform\SignIn\ProviderSessionScope;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Closure;
 use Illuminate\Http\Request;
@@ -39,6 +40,11 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  * LeaverAccess refuses its writes (Action Plan 1.21). Platform staff have
  * none: they reach a school only through audited impersonation, which sets
  * CurrentSchool before this runs.
+ *
+ * A Google or Microsoft sign-in (Action Plan 5.9) is bound to the school
+ * whose settings admitted it (ProviderSessionScope): that school only, and
+ * the session ends when the link, the setting or the membership stops
+ * allowing it.
  *
  * school.context:optional sets the school when there is one and lets the
  * request through otherwise (signing out, changing one's own password).
@@ -88,7 +94,21 @@ class SetSchoolContext
             return $next($request);
         }
 
-        $school = $this->chosenSchool($request, $user) ?? $this->memberships->defaultSchool($user);
+        // A Google or Microsoft sign-in (Action Plan 5.9) works in the one
+        // school whose settings admitted it, while they still do.
+        $binding = app(ProviderSessionScope::class)->binding($request, $user);
+        if ($binding !== null) {
+            $school = app(ProviderSessionScope::class)->school($user, $binding);
+            if ($school === null) {
+                return $mode === 'optional' ? $next($request) : $this->refuse($request, 'sign_in_provider_session_ended');
+            }
+            $header = $request->headers->get((string) config('tenancy.header'));
+            if ($header !== null && $header !== '' && $header !== (string) $school->getKey()) {
+                throw new AccessDeniedHttpException(trans('school_not_available'));
+            }
+        } else {
+            $school = $this->chosenSchool($request, $user) ?? $this->memberships->defaultSchool($user);
+        }
         if ($school === null) {
             if ($mode === 'optional') {
                 return $next($request);

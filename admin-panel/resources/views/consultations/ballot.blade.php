@@ -2,7 +2,7 @@
 @section('title', $ballot['title'])
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/consultations.css') }}">@endsection
 @section('content')
-<div class="content-wrapper consultations" data-consultations-root><h1>{{ $ballot['title'] }}</h1>@include('consultations.header')
+<div class="content-wrapper m3 page-content consultations" data-consultations-root><x-page.header :title="$ballot['title']" />@include('consultations.header')
 <p class="consultation-prose">{{ $ballot['instructions'] }}</p><p>{{ $ballot['anonymous']?__('Anonymous responses'):__('Named responses') }} · {{ __('One response per person') }}</p>
 @if($ballot['participated'])<p role="status">{{ __('Your response is recorded. You can participate only once.') }}</p>
 @elseif(!$ballot['open'])<p role="status">{{ __('This consultation is not open for responses.') }}</p>

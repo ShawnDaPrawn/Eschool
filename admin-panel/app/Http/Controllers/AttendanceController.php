@@ -197,13 +197,13 @@ class AttendanceController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $teacher_id = Auth::user()->teacher->id;
+        $teacher_id = Auth::user()->teacher?->id;
         $session_year_setting = getSettings('session_year');
 
         $currentSessionYear = SessionYear::find($session_year_setting['session_year']);
 
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->where('session_year_id', $currentSessionYear->id)->pluck('class_section_id');
-        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
+        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->when(Auth::user()->hasRole('Teacher'), fn ($query) => $query->whereIn('id', $class_section_ids))->get();
 
         $currentTerms = Term::where('session_year_id', $currentSessionYear->id)->get()->filter(fn ($term) => $term->current);
 
@@ -246,9 +246,9 @@ class AttendanceController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $teacher_id = Auth::user()->teacher->id;
+        $teacher_id = Auth::user()->teacher?->id;
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->pluck('class_section_id');
-        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
+        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->when(Auth::user()->hasRole('Teacher'), fn ($query) => $query->whereIn('id', $class_section_ids))->get();
         $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         $session_year_setting = getSettings('session_year');
@@ -642,10 +642,10 @@ class AttendanceController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $teacher_id = Auth::user()->teacher->id;
+        $teacher_id = Auth::user()->teacher?->id;
         $session_year_id = getSettings('session_year')['session_year'];
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->where('session_year_id', $session_year_id)->pluck('class_section_id');
-        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
+        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->when(Auth::user()->hasRole('Teacher'), fn ($query) => $query->whereIn('id', $class_section_ids))->get();
 
         return view('attendance.add_bulk_data', compact('class_sections'));
     }
@@ -703,7 +703,9 @@ class AttendanceController extends Controller
         }
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required',
-            'date' => 'required',
+            'date' => 'nullable|string|required_without:from_date',
+            'from_date' => 'nullable|date_format:Y-m-d|required_without:date',
+            'to_date' => 'nullable|date_format:Y-m-d|required_with:from_date|after_or_equal:from_date',
         ]);
 
         if ($validator->fails()) {
@@ -716,6 +718,12 @@ class AttendanceController extends Controller
         }
         $class_section_id = $request->class_section_id;
         $date = $request->date;
+        if ($request->filled('from_date')) {
+            if (Carbon::parse($request->from_date)->diffInDays(Carbon::parse($request->to_date)) > 365) {
+                return back()->withErrors(['to_date' => __('Choose a date range no longer than one school year.')])->withInput();
+            }
+            $date = $request->from_date.' - '.$request->to_date;
+        }
 
         return Excel::download(new StudentsExport($class_section_id, $date), 'student_list.csv');
     }
@@ -739,9 +747,9 @@ class AttendanceController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('Teacher')) {
-            $teacher_id = Auth::user()->teacher->id;
+            $teacher_id = Auth::user()->teacher?->id;
             $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->pluck('class_section_id');
-            $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
+            $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->when(Auth::user()->hasRole('Teacher'), fn ($query) => $query->whereIn('id', $class_section_ids))->get();
         } else {
             $class_sections = ClassSection::with('class', 'section', 'streams')->get();
         }

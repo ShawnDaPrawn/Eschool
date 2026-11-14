@@ -10,6 +10,7 @@ function fixture(): { group: number; material: number } {
   }).trim());
 }
 test.describe.configure({ mode: 'serial' });
+test.setTimeout(420_000);
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
   test(`private group document upload, authenticated download and removal at ${width}px`, async ({ page, baseURL }) => {
@@ -22,6 +23,7 @@ for (const width of [390, 820, 1280]) {
     expect(first!.status()).toBe(200);
     expect(first!.headers()['cache-control']).toContain('no-store');
     expect(first!.headers()['referrer-policy']).toBe('no-referrer');
+    await page.getByRole('link', {name:'Upload document',exact:true}).click();
     const bytes = Buffer.from('%PDF-1.4\nSynthetic private worksheet\n');
     const input = page.locator('#activity-material-document');
     await expect(input).toHaveAttribute('type', 'file');

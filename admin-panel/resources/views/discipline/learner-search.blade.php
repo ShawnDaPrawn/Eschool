@@ -1,0 +1,7 @@
+<section class="note-card"><h2>{{ __('Find a learner') }}</h2><form method="get" action="{{ route('discipline-panel.index') }}" class="note-filters">
+<input type="hidden" name="mode" value="records"><input type="hidden" name="view" value="create"><input type="hidden" name="session_year_id" value="{{ $year }}">
+@if($mode==='records' && !$record && $people['learners'])<label for="disc-learner">{{ __('Learner') }}</label><select id="disc-learner" name="learner_id"><option value="">{{ __('Choose a learner') }}</option>@foreach($people['learners'] as $person)<option value="{{ $person['learner_id'] }}" @selected($learner===$person['learner_id'])>{{ $person['name'] }}</option>@endforeach</select>@endif
+@if($mode==='records' && !$record)<label for="disc-search">{{ __('Find a learner by name') }}</label><input id="disc-search" name="search" maxlength="100" value="{{ is_string(request('search'))?request('search'):'' }}">@endif
+<button type="submit" class="m3-button m3-button--outlined">{{ __('View selection') }}</button></form>
+@if($mode==='records' && $people['last_page']>1)<nav aria-label="{{ __('Learner pages') }}">@if($people['page']>1)<a href="{{ route('discipline-panel.index',array_replace($selection,['learner_page'=>$people['page']-1])) }}">{{ __('Previous learners') }}</a>@endif @if($people['page']<$people['last_page'])<a href="{{ route('discipline-panel.index',array_replace($selection,['learner_page'=>$people['page']+1])) }}">{{ __('More learners') }}</a>@endif</nav>@endif
+</section>

@@ -2,22 +2,24 @@
 @section('title', __('Learner progress and notes'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/progress-notes.css') }}">@endsection
 @section('content')
-<div class="content-wrapper progress-notes">
-    <header class="note-heading"><div><h1>{{ __('Learner progress and notes') }}</h1><p>{{ __('Notes stay within their selected audience. Progress bands use assessed work, not risk labels.') }}</p></div></header>
+<div class="content-wrapper m3 page-content progress-notes">
+    <x-page.header :title="__('Learner progress and notes')" :subtitle="__('Notes stay within their selected audience. Progress bands use assessed work, not risk labels.')" />
     @if($messages)<div role="alert" class="m3 m3-banner m3-banner--warning"><ul>@foreach($messages as $message)<li>{{ $message }}</li>@endforeach</ul></div>@endif
     @if(session('success'))<p role="status" class="m3 m3-banner m3-banner--success">{{ session('success') }}</p>@endif
-    <nav class="note-tabs" aria-label="{{ __('Note workbench') }}">
+    <nav class="workspace-tabs" aria-label="{{ __('Note workbench') }}">
         <a href="{{ route('learner-notes.index', ['mode' => 'academic']) }}" @if($mode==='academic') aria-current="page" @endif>{{ __('Teaching notes and progress') }}</a>
         @if($configuration['can_read_caseload'])<a href="{{ route('learner-notes.index', ['mode' => 'counselling']) }}" @if($mode==='counselling') aria-current="page" @endif>{{ __('Restricted counselling notes') }}</a>@endif
         @if($configuration['can_assign_counselling'])<a href="{{ route('learner-notes.index', ['mode' => 'assignments']) }}" @if($mode==='assignments') aria-current="page" @endif>{{ __('Counselling note assignments') }}</a>@endif
+        @if($configuration['can_manage_bands'])<a href="{{ route('learner-notes.index', ['mode' => 'configuration']) }}" @if($mode === 'configuration') aria-current="page" @endif>{{ __('Configuration') }}</a>@endif
     </nav>
+    @if($mode !== 'configuration')
     <section class="note-card"><h2>{{ $mode==='assignments' ? __('Assign a note caseload') : ($mode==='counselling' ? __('Your assigned learners') : __('Choose a teaching group')) }}</h2>
         @if($mode==='counselling')<p>{{ __('Only an explicit note caseload grants access here. Support plans and other case assignments do not grant note access.') }}</p>@endif
         @if($mode==='assignments')<p>{{ __('Assignment administration shows metadata only and does not grant access to counselling text.') }}</p>@endif
         <form method="get" action="{{ route('learner-notes.index') }}" class="note-filters" aria-label="{{ __('Choose learner notes') }}">
             <input type="hidden" name="mode" value="{{ $mode }}">
             @if($mode==='academic')<label for="note-group">{{ __('Teaching group') }}<select id="note-group" name="group_id"><option value="">{{ __('Choose a group') }}</option>@foreach($configuration['groups'] as $g)<option value="{{ $g['id'] }}" @selected($groupId===$g['id'])>{{ $g['name'] }} · {{ $g['subject_name'] }}</option>@endforeach</select></label>@endif
-            <label for="note-year">{{ __('School year') }}<select id="note-year" name="session_year_id">@foreach($configuration['years'] as $y)<option value="{{ $y['id'] }}" @selected($year===$y['id'])>{{ $y['name'] }}</option>@endforeach</select></label>
+            <input type="hidden" name="session_year_id" value="{{ $year }}"><p>{{ __('School year') }}: {{ collect($configuration['years'])->firstWhere('id', $year)['name'] ?? '' }}</p>
             @if($roster['learners'])<label for="note-learner">{{ __('Learner') }}<select id="note-learner" name="learner_id"><option value="">{{ __('Choose a learner') }}</option>@foreach($roster['learners'] as $l)<option value="{{ $l['learner_id'] }}" @selected($learnerId===$l['learner_id'])>{{ $l['display_name'] }}</option>@endforeach</select></label>@endif
             @if($mode==='academic')
                 <label for="note-audience">{{ __('Note audience') }}<select id="note-audience" name="visibility"><option value="staff" @selected($visibility==='staff')>{{ __('Staff only') }}</option><option value="tutor" @selected($visibility==='tutor')>{{ __('Tutor-visible teaching notes') }}</option></select></label>
@@ -69,7 +71,8 @@
             <label for="note-start">{{ __('First access date') }}<input id="note-start" type="date" name="starts_on" required></label><label for="note-end">{{ __('Last access date') }}<input id="note-end" type="date" name="ends_on" required></label><button type="submit" class="m3-button m3-button--filled">{{ __('Save assignment') }}</button>
         </form>@endif
     </section>@endif
-    @if($configuration['can_manage_bands'])<details class="note-card"><summary>{{ __('School progress-band settings') }}</summary><p>{{ __('Choose percentage thresholds and the minimum assessed share before progress alerts are offered.') }}</p>
+    @endif
+    @if($mode === 'configuration' && $configuration['can_manage_bands'])<details open class="note-card"><summary>{{ __('School progress-band settings') }}</summary><p>{{ __('Choose percentage thresholds and the minimum assessed share before progress alerts are offered.') }}</p>
         <form method="post" action="{{ route('learner-notes.configure') }}" class="note-filters" aria-label="{{ __('Update school progress bands') }}">
             @include('growth.note-form-identity',['operation'=>'configure','target'=>'school'])
             <input type="hidden" name="expected_revision" value="{{ $configuration['settings']['revision'] }}">

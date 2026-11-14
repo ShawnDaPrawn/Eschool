@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\Activities\Fixtures\ReasoningFeedbackModeration;
+use App\Services\Activities\Fixtures\ReasoningFeedbackPolicy;
+use App\Services\Activities\Fixtures\ReasoningFeedbackQuarantine;
 use App\Services\Ai\Providers\OpenAiModerator;
 use App\Services\Ai\Providers\OpenAiProvider;
 use App\Services\Assistance\AssistanceModeration;
@@ -30,7 +33,7 @@ use App\Services\Learning\TutorVisionResolver;
 return [
     // New priced inference receipts use this server-owned quote currency.
     'billing_currency' => 'USD',
-    'quarantine' => ['retention_days' => 30, 'participants' => ['school_assistant' => AssistanceQuarantine::class, 'message_translation' => AssistanceQuarantine::class, 'teaching_assistant' => TeachingDraftQuarantineParticipant::class, 'exam_coach' => ExamAnswerQuarantine::class, 'tutor' => TutorQuarantineParticipant::class],
+    'quarantine' => ['retention_days' => 30, 'participants' => ['school_assistant' => AssistanceQuarantine::class, 'message_translation' => AssistanceQuarantine::class, 'teaching_assistant' => TeachingDraftQuarantineParticipant::class, 'exam_coach' => ExamAnswerQuarantine::class, 'tutor' => TutorQuarantineParticipant::class, 'reasoning_feedback' => ReasoningFeedbackQuarantine::class],
         'media_resolvers' => ['teaching_assistant' => TeachingDraftQuarantineMedia::class, 'exam_coach' => ExamAnswerQuarantineMedia::class, 'tutor' => TutorQuarantineMedia::class]],
     'providers' => [
         'openai' => ['qualified' => false, 'key' => env('AI_OPENAI_API_KEY'), 'moderation_model' => 'omni-moderation-2024-09-26'],
@@ -84,6 +87,15 @@ return [
                 'model' => env('AI_FAMILY_SUMMARY_MODEL', ''), 'prompt' => 'family-summary',
                 'maximum_output_tokens' => 512, 'cents_per_million_tokens' => null, 'school_daily_tokens' => 500000, 'actor_daily_tokens' => 10000, 'learner_daily_tokens' => 10000,
                 'school_daily_cents' => 300, 'actor_daily_cents' => 5, 'learner_daily_cents' => 5],
+            // Action Plan 5.3: advice to a human adjudicator on the reasoning in one
+            // speech or written argument of an academic competition. Never a result
+            // or a score, never shown to a learner or family by itself; the text is
+            // redacted of every school and learner name before it is sent.
+            'reasoning_feedback' => ['enabled' => false, 'roles' => ['Teacher', 'Super Admin', 'School Admin', 'Principal', 'Grade Head', 'Facilitator'], 'capabilities' => ['complete'],
+                'provider' => 'openai', 'provider_class' => OpenAiProvider::class, 'moderator' => ReasoningFeedbackModeration::class,
+                'model' => env('AI_REASONING_FEEDBACK_MODEL', ''), 'prompt' => 'reasoning-feedback',
+                'maximum_output_tokens' => 1024, 'cents_per_million_tokens' => null, 'school_daily_tokens' => 300000, 'actor_daily_tokens' => 60000, 'learner_daily_tokens' => 10000,
+                'school_daily_cents' => 200, 'actor_daily_cents' => 50, 'learner_daily_cents' => 5],
             // Embeddings that choose the most relevant section of the learner's selected content
             // for tutor v2. Off by default; when off, or on any failure, the tutor reads the first
             // 3,000 characters as v1 does. Its spend joins the tutor's personal pool.
@@ -96,10 +108,10 @@ return [
         ],
         // Server-owned feature => InferenceFeaturePolicy class allowlist; never a client setting.
         'staff_actor_policies' => ['message_translation' => TranslationFeaturePolicy::class],
-        'feature_policies' => ['school_assistant' => AssistantFeaturePolicy::class, 'message_translation' => TranslationFeaturePolicy::class, 'teaching_assistant' => TeachingDraftFeaturePolicy::class, 'exam_coach' => ExamAnswerFeaturePolicy::class, 'tutor' => TutorFeaturePolicy::class, 'family_summary' => FamilySummaryFeaturePolicy::class, 'tutor_retrieval' => TutorRetrievalFeaturePolicy::class],
+        'feature_policies' => ['school_assistant' => AssistantFeaturePolicy::class, 'message_translation' => TranslationFeaturePolicy::class, 'teaching_assistant' => TeachingDraftFeaturePolicy::class, 'exam_coach' => ExamAnswerFeaturePolicy::class, 'tutor' => TutorFeaturePolicy::class, 'family_summary' => FamilySummaryFeaturePolicy::class, 'tutor_retrieval' => TutorRetrievalFeaturePolicy::class, 'reasoning_feedback' => ReasoningFeedbackPolicy::class],
         // The school module (config/modules.php) each feature runs in: a school
         // switches the feature on or off by switching that module (HQ /saas/ai).
-        'school_modules' => ['school_assistant' => 'ask_school', 'message_translation' => 'ask_school', 'teaching_assistant' => 'teaching_assistant', 'exam_coach' => 'exam_coach', 'tutor' => 'tutor', 'tutor_retrieval' => 'tutor'],
+        'school_modules' => ['school_assistant' => 'ask_school', 'message_translation' => 'ask_school', 'teaching_assistant' => 'teaching_assistant', 'exam_coach' => 'exam_coach', 'tutor' => 'tutor', 'tutor_retrieval' => 'tutor', 'reasoning_feedback' => 'reasoning_feedback'],
         // Personal services (owner decision, 31 October 2026): the Mastery tutor is a
         // service to one learner, not to the school. Its spend is neither checked
         // against nor added to a school's daily total; it keeps its own per-person

@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Validator;
 /** A teacher explicitly approves each immutable definition before a learner can use it. */
 class PracticeBank
 {
-    public function approve(User $actor, int $groupId, ?int $itemId, array $input): array
+    /**
+     * $fromLibrary: a new question copied from a published shared library
+     * version (Action Plan 5.4) remembers that version; the teacher still
+     * approves it for their group through every check below.
+     */
+    public function approve(User $actor, int $groupId, ?int $itemId, array $input, ?int $fromLibrary = null): array
     {
         $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'expected_revision' => ['required', 'integer', 'min:0'],
             'topic_id' => ['required', 'integer', 'min:1'], 'content_version_id' => ['required', 'integer', 'min:1'],
@@ -27,10 +32,12 @@ class PracticeBank
             app(PracticeAccess::class)->source($actor, $group, $data['content_version_id']);
         };
 
-        return app(PracticeOperations::class)->run($actor, $data + ['group_id' => $groupId, 'item_id' => $itemId], $authorize, function () use ($actor, $groupId, $itemId, $data) {
+        $operation = $data + ['group_id' => $groupId, 'item_id' => $itemId] + ($fromLibrary === null ? [] : ['library_item_version_id' => $fromLibrary]);
+
+        return app(PracticeOperations::class)->run($actor, $operation, $authorize, function () use ($actor, $groupId, $itemId, $data, $fromLibrary) {
             $group = TeachingGroup::findOrFail($groupId);
             $item = $itemId === null ? new PracticeItem(['teaching_group_id' => $groupId, 'subject_id' => (int) $group->subject_id, 'grade_level_id' => (int) $group->grade_level_id,
-                'author_id' => (int) $actor->id, 'visibility' => 'groups', 'topic_id' => $data['topic_id'], 'revision' => 0])
+                'author_id' => (int) $actor->id, 'visibility' => 'groups', 'topic_id' => $data['topic_id'], 'revision' => 0, 'library_item_version_id' => $fromLibrary])
                 : PracticeItem::usedIn($groupId)->lockForUpdate()->findOrFail($itemId);
             // Colleagues reuse a shared question; only its author or a subject lead changes it (Action Plan 3.6).
             abort_unless($itemId === null || app(QuestionBanks::class)->canEdit($actor, $item), 403, 'Only the question\'s author or a subject lead may change it.');

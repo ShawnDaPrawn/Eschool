@@ -1,398 +1,83 @@
 @extends('layouts.master')
-
-@section('title')
-    {{ __('general_settings') }}
-@endsection
-
-@section('css')
-    <link rel="stylesheet" href="{{ asset('/assets/css/settings.css') }}?v={{ filemtime(public_path('assets/css/settings.css')) }}">
-@endsection
-
+@section('title', __('School configuration'))
 @section('content')
-    @php
-        $onlinePayment = isset($settings['online_payment']) && !$settings['online_payment'] ? '0' : '1';
-    @endphp
-    <div class="content-wrapper settings-page">
-        <div class="page-header">
-            <div>
-                <h3 class="page-title">{{ __('general_settings') }}</h3>
-                <p class="page-subtitle">{{ __('school_information') }}, {{ __('branding_appearance') }}, {{ __('school_privacy_and_terms') }} &amp; {{ __('social') }} {{ __('links') }}</p>
-            </div>
-        </div>
-
-        <form id="frmData" class="setting-general" action="{{ url('settings') }}" novalidate="novalidate" enctype="multipart/form-data">
-            @csrf
-
-            {{-- ── School information ─────────────────────────────────── --}}
-            <div class="card settings-card">
-                <div class="card-body">
-                    <div class="settings-section-head">
-                        <span class="settings-section-head__icon"><x-icon name="settings" :size="20" /></span>
-                        <div class="settings-section-head__text">
-                            <h4 class="settings-section-head__title">{{ __('school_information') }}</h4>
-                            <p class="settings-section-head__subtitle">{{ __('school_name') }}, {{ __('school_email') }} &amp; {{ __('school_address') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="form-group col-md-6 col-sm-12">
-                            <label>{{ __('school_name') }} <span class="text-danger">*</span></label>
-                            <input name="school_name" value="{{ $settings['school_name'] ?? '' }}" type="text" required placeholder="{{ __('school_name') }}" class="form-control" />
-                        </div>
-                        <div class="form-group col-md-6 col-sm-12">
-                            <label>{{ __('school_email') }} <span class="text-danger">*</span></label>
-                            <input name="school_email" value="{{ $settings['school_email'] ?? '' }}" type="email" required placeholder="{{ __('school_email') }}" class="form-control" />
-                        </div>
-                        <div class="form-group col-md-6 col-sm-12">
-                            <label>{{ __('school_phone') }} <span class="text-danger">*</span></label>
-                            <input name="school_phone" value="{{ $settings['school_phone'] ?? '' }}" type="text" required placeholder="{{ __('school_phone') }}" class="form-control" />
-                        </div>
-                        <div class="form-group col-md-6 col-sm-12">
-                            <label>{{ __('school_tagline') }} <span class="text-danger">*</span></label>
-                            <textarea name="school_tagline" required placeholder="{{ __('school_tagline') }}" rows="3" class="form-control">{{ $settings['school_tagline'] ?? '' }}</textarea>
-                        </div>
-                        <div class="form-group col-md-12 col-sm-12">
-                            <label>{{ __('school_address') }} <span class="text-danger">*</span></label>
-                            <textarea name="school_address" required placeholder="{{ __('school_address') }}" rows="3" class="form-control">{{ $settings['school_address'] ?? '' }}</textarea>
-                        </div>
-                    </div>
+@php
+    $sections = ['school'=>'School information','branding'=>'Branding','localization'=>'Regional preferences','links'=>'School links','policies'=>'Privacy and terms','security'=>'Sign-in protection'];
+    if(auth()->user()->hasRole('Super Admin')) $sections['maintenance'] = 'Maintenance';
+    $requestedSection = request('view','school');
+    $section = is_string($requestedSection) && array_key_exists($requestedSection, $sections) ? $requestedSection : 'school';
+    $sectionNav = [];
+    foreach($sections as $key=>$label) $sectionNav[$key] = ['label'=>$label,'href'=>url('settings').'?view='.$key];
+@endphp
+<div class="content-wrapper m3 page-content">
+    <x-page.header :title="__('School configuration')" :subtitle="__('Manage school details and preferences. Each section saves independently.')" />
+    <x-panel-view-nav :items="$sectionNav" :current="$section" />
+    @if($section === 'maintenance')
+        <section class="m3-card m3-card--outlined panel-record-card">
+            <h2>{{ __('Refresh application caches') }}</h2>
+            <p>{{ __('Refresh shared application caches after configuration changes. Other active users may need to reload their page.') }}</p>
+            <form method="POST" action="{{ url('clear') }}" data-year-safe data-confirm="{{ __('Refresh the shared application caches now? Other active users may need to reload their page.') }}">
+                @csrf
+                <button class="m3-button m3-button--outlined" type="submit">{{ __('Refresh caches') }}</button>
+            </form>
+        </section>
+    @elseif($section === 'policies')
+        <section class="m3-card m3-card--outlined panel-record-card"><h2>{{ __('school_privacy_and_terms') }}</h2><p>{{ __('school_privacy_and_terms_hint') }}</p>
+            @foreach(['privacy_policy'=>'privacy_policy','terms_condition'=>'terms_condition'] as $type=>$label)
+                <div class="js-school-policy" data-type="{{ $type }}" data-url="{{ url('setting-update') }}">
+                    <label for="school_{{ $type }}">{{ __($label) }}</label><textarea id="school_{{ $type }}" class="js-rich-text">{{ $settings[$type] ?? '' }}</textarea>
+                    <button type="button" class="m3-button m3-button--filled js-save-school-policy">{{ __('Save policy') }}</button>
                 </div>
-            </div>
-
-            {{-- ── Branding & appearance ──────────────────────────────── --}}
-            <div class="card settings-card">
-                <div class="card-body">
-                    <div class="settings-section-head">
-                        <span class="settings-section-head__icon"><x-icon name="sliders" :size="20" /></span>
-                        <div class="settings-section-head__text">
-                            <h4 class="settings-section-head__title">{{ __('branding_appearance') }}</h4>
-                            <p class="settings-section-head__subtitle">{{ __('favicon') }}, {{ __('vertical_logo') }}, {{ __('theme') }} {{ __('color') }}, {{ __('school_privacy_and_terms') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="form-group col-md-4 col-sm-12 settings-upload">
-                            <label>{{ __('favicon') }} <span class="text-danger">*</span></label>
-                            <input type="file" name="favicon" class="file-upload-default" accept="image/*" />
-                            <div class="input-group">
-                                <input type="text" class="form-control file-upload-info" disabled placeholder="{{ __('favicon') }}" />
-                                <span class="input-group-append">
-                                    <button class="file-upload-browse btn btn-theme" type="button">{{ __('upload') }}</button>
-                                </span>
-                            </div>
-                            @if (isset($settings['favicon']))
-                                <div class="settings-media-preview">
-                                    <img src="{{ url(Storage::url($settings['favicon'])) }}" alt="{{ __('favicon') }}">
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="form-group col-md-4 col-sm-12 settings-upload">
-                            <label>{{ __('horizontal_logo') }} <span class="text-danger">*</span></label>
-                            <input type="file" name="logo1" class="file-upload-default" accept="image/*" />
-                            <div class="input-group">
-                                <input type="text" class="form-control file-upload-info" disabled placeholder="{{ __('horizontal_logo') }}" />
-                                <span class="input-group-append">
-                                    <button class="file-upload-browse btn btn-theme" type="button">{{ __('upload') }}</button>
-                                </span>
-                            </div>
-                            @if (isset($settings['logo1']))
-                                <div class="settings-media-preview">
-                                    <img src="{{ url(Storage::url($settings['logo1'])) }}" alt="{{ __('horizontal_logo') }}">
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="form-group col-md-4 col-sm-12 settings-upload">
-                            <label>{{ __('vertical_logo') }} <span class="text-danger">*</span></label>
-                            <input type="file" name="logo2" class="file-upload-default" accept="image/*" />
-                            <div class="input-group">
-                                <input type="text" class="form-control file-upload-info" disabled placeholder="{{ __('vertical_logo') }}" />
-                                <span class="input-group-append">
-                                    <button class="file-upload-browse btn btn-theme" type="button">{{ __('upload') }}</button>
-                                </span>
-                            </div>
-                            @if (isset($settings['logo2']))
-                                <div class="settings-media-preview">
-                                    <img src="{{ url(Storage::url($settings['logo2'])) }}" alt="{{ __('vertical_logo') }}">
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="form-group col-md-4 col-sm-12 settings-upload">
-                            <label>{{ __('login_image') }}</label>
-                            <input type="file" name="login_image" class="file-upload-default" accept="image/*" />
-                            <div class="input-group">
-                                <input type="text" class="form-control file-upload-info" disabled placeholder="{{ __('login_image') }}" />
-                                <span class="input-group-append">
-                                    <button class="file-upload-browse btn btn-theme" type="button">{{ __('upload') }}</button>
-                                </span>
-                            </div>
-                            <div class="settings-media-preview">
-                                <img src="{{ isset($settings['login_image']) ? url(Storage::url($settings['login_image'])) : asset('assets/eschool.jpg') }}" alt="{{ __('login_image') }}">
-                            </div>
-                        </div>
-
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('theme') }} {{ __('color') }} <span class="text-danger">*</span></label>
-                            <input name="theme_color" value="{{ $settings['theme_color'] ?? '' }}" type="text" required placeholder="{{ __('color') }}" class="color-picker" />
-                            <small class="form-text text-muted">{{ __('certificate_colours_hint') }}</small>
-                        </div>
-
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('secondary') }} {{ __('color') }} <span class="text-danger">*</span></label>
-                            <input name="secondary_color" value="{{ $settings['secondary_color'] ?? '' }}" type="text" required placeholder="{{ __('color') }}" class="color-picker" />
-                        </div>
-
-                        <div class="form-group col-12">
-                            <h5 class="mt-2">{{ __('school_privacy_and_terms') }}</h5>
-                            <p class="text-muted">{{ __('school_privacy_and_terms_hint') }}</p>
-                        </div>
-                        <div class="form-group col-md-12 js-school-policy" data-type="privacy_policy" data-url="{{ url('setting-update') }}">
-                            <label>{{ __('privacy_policy') }}</label>
-                            <textarea id="school_privacy_policy" class="js-rich-text">{{ $settings['privacy_policy'] ?? '' }}</textarea>
-                            <button type="button" class="btn btn-theme mt-3 js-save-school-policy">{{ __('submit') }}</button>
-                        </div>
-                        <div class="form-group col-md-12 js-school-policy" data-type="terms_condition" data-url="{{ url('setting-update') }}">
-                            <label>{{ __('terms_condition') }}</label>
-                            <textarea id="school_terms_condition" class="js-rich-text">{{ $settings['terms_condition'] ?? '' }}</textarea>
-                            <button type="button" class="btn btn-theme mt-3 js-save-school-policy">{{ __('submit') }}</button>
-                        </div>
-                    </div>
+            @endforeach
+        </section>
+    @else
+        <x-page.form-card :id="'school-settings-'.$section" :action="url('settings')" :title="__($sections[$section])" :submit-label="__('Save this section')" :draft="false">
+            <input type="hidden" name="settings_section" value="{{ $section }}">
+            <input type="hidden" name="expected_account_id" value="{{ auth()->id() }}"><input type="hidden" name="expected_school_id" value="{{ app(\App\Services\Platform\Tenancy\CurrentSchool::class)->id() }}">
+            @if($section === 'school')
+                <div class="panel-form-grid">
+                    <x-page.field name="school_name" :label="__('school_name')" :value="$settings['school_name'] ?? ''" required maxlength="255" />
+                    <x-page.field name="school_email" type="email" :label="__('school_email')" :value="$settings['school_email'] ?? ''" required />
+                    <x-page.field name="school_phone" type="tel" :label="__('school_phone')" :value="$settings['school_phone'] ?? ''" required />
+                    <x-page.field name="school_tagline" type="textarea" :label="__('school_tagline')" :value="$settings['school_tagline'] ?? ''" required />
                 </div>
-            </div>
-
-            {{-- ── Localization & preferences ─────────────────────────── --}}
-            <div class="card settings-card">
-                <div class="card-body">
-                    <div class="settings-section-head">
-                        <span class="settings-section-head__icon"><x-icon name="language" :size="20" /></span>
-                        <div class="settings-section-head__text">
-                            <h4 class="settings-section-head__title">{{ __('localization_preferences') }}</h4>
-                            <p class="settings-section-head__subtitle">{{ __('time_zone') }}, {{ __('date_formate') }} &amp; {{ __('session_year') }}</p>
-                        </div>
+                <x-page.field name="school_address" type="textarea" :label="__('school_address')" :value="$settings['school_address'] ?? ''" required />
+            @elseif($section === 'branding')
+                <div class="panel-form-grid">
+                @foreach(['favicon'=>'favicon','logo1'=>'horizontal_logo','logo2'=>'vertical_logo','login_image'=>'login_image'] as $name=>$label)
+                    <div><x-page.field :name="$name" type="file" :label="__($label)" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/x-icon" :help="__('Leave empty to keep the current image.')" />
+                        @if(!empty($settings[$name]))<img src="{{ url(Storage::url($settings[$name])) }}" alt="{{ __($label) }}" width="160" loading="lazy">@endif
                     </div>
-
-                    <div class="row">
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('time_zone') }} <span class="text-danger">*</span></label>
-                            <select name="time_zone" required class="form-control">
-                                @foreach ($getTimezoneList as $timezone)
-                                    <option value="@php echo $timezone[2]; @endphp" {{ isset($settings['time_zone']) ? ($settings['time_zone'] == $timezone[2] ? 'selected' : '') : '' }}>
-                                        @php echo $timezone[2] . ' - GMT ' . $timezone[1] . ' - ' . $timezone[0] @endphp
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('date_formate') }} <span class="text-danger">*</span></label>
-                            <select name="date_formate" required class="form-control">
-                                @foreach ($getDateFormat as $key => $dateformate)
-                                    <option value="{{ $key }}" {{ isset($settings['date_formate']) ? ($settings['date_formate'] == $key ? 'selected' : '') : '' }}>{{ $dateformate }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('time_formate') }} <span class="text-danger">*</span></label>
-                            <select name="time_formate" required class="form-control">
-                                @foreach ($getTimeFormat as $key => $timeformate)
-                                    <option value="{{ $key }}" {{ isset($settings['time_formate']) ? ($settings['time_formate'] == $key ? 'selected' : '') : '' }}>{{ $timeformate }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('session_years') }} <span class="text-danger">*</span></label>
-                            <select name="session_year" id="session_year" required class="form-control" data-original-value="{{ $settings['session_year'] ?? '' }}">
-                                @foreach ($session_year as $key => $year)
-                                    <option value="{{ $year->id }}" {{ isset($settings['session_year']) ? ($settings['session_year'] == $year->id ? 'selected' : '') : '' }}>{{ $year->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('online_payment_mode') }} <span class="text-danger">*</span></label>
-                            <div class="settings-toggle-group">
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input type="radio" name="online_payment" class="online_payment_toggle" value="1" {{ $onlinePayment == '1' ? 'checked' : '' }}>
-                                        {{ __('enable') }}
-                                        <i class="input-helper"></i>
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input type="radio" name="online_payment" class="online_payment_toggle" value="0" {{ $onlinePayment == '0' ? 'checked' : '' }}>
-                                        {{ __('disable') }}
-                                        <i class="input-helper"></i>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                @endforeach
+                <x-page.field name="theme_color" type="color" :label="__('theme').' '.__('color')" :value="$settings['theme_color'] ?? '#1b4d3e'" required :help="__('certificate_colours_hint')" />
+                <x-page.field name="secondary_color" type="color" :label="__('secondary').' '.__('color')" :value="$settings['secondary_color'] ?? '#2f6653'" required />
                 </div>
-            </div>
-
-            {{-- ── Social links ───────────────────────────────────────── --}}
-            <div class="card settings-card">
-                <div class="card-body">
-                    <div class="settings-section-head">
-                        <span class="settings-section-head__icon"><x-icon name="link" :size="20" /></span>
-                        <div class="settings-section-head__text">
-                            <h4 class="settings-section-head__title">{{ __('social') }} {{ __('links') }}</h4>
-                            <p class="settings-section-head__subtitle">{{ __('facebook') }}, {{ __('instagram') }} &amp; {{ __('google_map_link') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('facebook') }}</label>
-                            <input name="facebook" value="{{ $settings['facebook'] ?? '' }}" type="text" placeholder="{{ __('facebook') }} {{ __('url') }}" class="form-control" />
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('instagram') }}</label>
-                            <input name="instagram" value="{{ $settings['instagram'] ?? '' }}" type="text" placeholder="{{ __('instagram') }} {{ __('url') }}" class="form-control" />
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('linkedin') }}</label>
-                            <input name="linkedin" value="{{ $settings['linkedin'] ?? '' }}" type="text" placeholder="{{ __('linkedin') }} {{ __('url') }}" class="form-control" />
-                        </div>
-                        <div class="form-group col-md-12 col-sm-12">
-                            <label>{{ __('google_map_link') }}</label>
-                            <input name="maplink" value="{{ $settings['maplink'] ?? '' }}" type="text" placeholder="{{ __('google_map_link') }}" class="form-control" />
-                            <div class="settings-note">
-                                <x-icon name="info" :size="16" />
-                                <span><strong>{{ __('Note') }} :- </strong>{{ __('get_the_link_from_google_map_with_embed_url_and_paste_only_src_from_it') }}</span>
-                            </div>
-                        </div>
-                    </div>
+            @elseif($section === 'localization')
+                @php($zones = collect($getTimezoneList)->mapWithKeys(fn($zone)=>[$zone[2]=>$zone[2].' — GMT '.$zone[1].' — '.$zone[0]]))
+                <div class="panel-form-grid">
+                    <x-page.field name="time_zone" type="select" :label="__('time_zone')" :options="$zones" :value="$settings['time_zone'] ?? ''" required />
+                    <x-page.field name="date_formate" type="select" :label="__('date_formate')" :options="$getDateFormat" :value="$settings['date_formate'] ?? ''" required />
+                    <x-page.field name="time_formate" type="select" :label="__('time_formate')" :options="$getTimeFormat" :value="$settings['time_formate'] ?? ''" required />
+                    <x-page.field name="online_payment" type="select" :label="__('online_payment_mode')" :options="['1'=>__('enable'),'0'=>__('disable')]" :value="isset($settings['online_payment']) && !$settings['online_payment'] ? '0' : '1'" required />
                 </div>
-            </div>
-
-            {{-- ── reCAPTCHA ──────────────────────────────────────────── --}}
-            <div class="card settings-card">
-                <div class="card-body">
-                    <div class="settings-section-head">
-                        <span class="settings-section-head__icon"><x-icon name="alert" :size="20" /></span>
-                        <div class="settings-section-head__text">
-                            <h4 class="settings-section-head__title">{{ __('recaptcha') }}</h4>
-                            <p class="settings-section-head__subtitle">{{ __('site_key') }} &amp; {{ __('secret_key') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('site_key') }}</label>
-                            <input name="recaptcha_site_key" value="{{ $settings['recaptcha_site_key'] ?? '' }}" type="text" placeholder="{{ __('site_key') }}" class="form-control" />
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('secret_key') }}</label>
-                            {{-- Set in the environment (RECAPTCHA_SECRET_KEY): never shown or saved here. --}}
-                            @if (\App\Services\Platform\Secrets\SecretSettings::fromEnvironment('recaptcha_secret_key'))
-                                <input type="text" value="" placeholder="{{ __('set_in_environment') }}" class="form-control" disabled />
-                            @else
-                                <input name="recaptcha_secret_key" value="{{ $settings['recaptcha_secret_key'] ?? '' }}" type="text" placeholder="{{ __('secret_key') }}" class="form-control" />
-                            @endif
-                        </div>
-                        <div class="form-group col-md-4 col-sm-12">
-                            <label>{{ __('status') }}</label>
-                            <div class="settings-toggle-group">
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input type="radio" name="recaptcha_status" class="online_payment_toggle" value="1" {{ isset($settings['recaptcha_status']) && $settings['recaptcha_status'] == 1 ? 'checked' : '' }}>
-                                        {{ __('enable') }}
-                                        <i class="input-helper"></i>
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input type="radio" name="recaptcha_status" class="online_payment_toggle" value="0" {{ !isset($settings['recaptcha_status']) || $settings['recaptcha_status'] == 0 ? 'checked' : '' }}>
-                                        {{ __('disable') }}
-                                        <i class="input-helper"></i>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="settings-actions">
-                <button type="submit" class="btn btn-theme">{{ __('submit') }}</button>
-            </div>
-        </form>
-    </div>
-@endsection
-
-@section('script')
-    <script type='text/javascript'>
-        if ($(".color-picker").length) {
-            $('.color-picker').asColorPicker();
-        }
-
-        function submitSettingsForm() {
-            let formElement = $('#frmData');
-            let submitButtonElement = formElement.find(':submit');
-            let url = formElement.attr('action');
-            let data = new FormData(formElement[0]);
-
-            function successCallback() {
-                setTimeout(function () {
-                    location.reload();
-                }, 3000);
-            }
-
-            formAjaxRequest('POST', url, data, formElement, submitButtonElement, successCallback);
-        }
-
-        $('#frmData').on('submit', function (e) {
-            e.preventDefault();
-
-            let sessionYearSelect = $('#session_year');
-            let originalValue = sessionYearSelect.data('original-value').toString();
-            let currentValue = sessionYearSelect.val();
-
-            if (originalValue && currentValue !== originalValue) {
-                Swal.fire({
-                    title: trans('Are you sure?'),
-                    html: `<p>${trans('changing_session_year_reset_term')}</p>`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    cancelButtonText: trans('Cancel'),
-                    confirmButtonText: trans('yes_change_it')
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        submitSettingsForm();
-                    }
-                });
-            } else {
-                submitSettingsForm();
-            }
-        });
-
-        $("#frmData").validate({
-            rules: {
-                username: "required",
-                password: "required",
-                recaptcha_site_key: {
-                    required: function () {
-                        return $('input[name="recaptcha_status"]:checked').val() === '1';
-                    }
-                },
-                recaptcha_secret_key: {
-                    required: function () {
-                        return $('input[name="recaptcha_status"]:checked').val() === '1';
-                    }
-                },
-            },
-            errorPlacement: function (label, element) {
-                label.addClass('mt-2 text-danger');
-                label.insertAfter(element);
-            },
-            highlight: function (element, errorClass) {
-                $(element).parent().addClass('has-danger')
-                $(element).addClass('form-control-danger')
-            }
-        });
-    </script>
+                <section><h3>{{ __('Active school year') }}</h3><p>{{ $session_year->firstWhere('id', (int)($settings['session_year'] ?? 0))?->name }}</p>
+                    @can('session-year-create')<a class="m3-button m3-button--outlined" href="{{ route('new-year.index') }}">{{ __('Prepare or activate the school year') }}</a>@endcan
+                    <p>{{ __('School year activation is managed globally with a preview and carry-forward review.') }}</p>
+                </section>
+            @elseif($section === 'links')
+                <div class="panel-form-grid">@foreach(['facebook'=>'facebook','instagram'=>'instagram','linkedin'=>'linkedin','maplink'=>'google_map_link'] as $name=>$label)
+                    <x-page.field :name="$name" type="url" :label="__($label)" :value="$settings[$name] ?? ''" />
+                @endforeach</div><p>{{ __('get_the_link_from_google_map_with_embed_url_and_paste_only_src_from_it') }}</p>
+            @else
+                <x-page.field name="recaptcha_status" type="select" :label="__('recaptcha').' '.__('status')" :options="['0'=>__('disable'),'1'=>__('enable')]" :value="$settings['recaptcha_status'] ?? '0'" />
+                <x-page.field name="recaptcha_site_key" :label="__('site_key')" :value="$settings['recaptcha_site_key'] ?? ''" />
+                @if(\App\Services\Platform\Secrets\SecretSettings::fromEnvironment('recaptcha_secret_key'))
+                    <p>{{ __('set_in_environment') }}</p>
+                @else
+                    <x-page.field name="recaptcha_secret_key" type="password" :label="__('secret_key')" :restore-old-input="false" autocomplete="new-password" :help="__('Leave empty to keep the existing secret.')" />
+                @endif
+            @endif
+        </x-page.form-card>
+    @endif
+</div>
 @endsection

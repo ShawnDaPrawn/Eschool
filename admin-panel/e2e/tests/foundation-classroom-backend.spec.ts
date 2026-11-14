@@ -11,36 +11,48 @@ function fixture(action = 'initial', setup?: Setup): Record<string, unknown> {
       FOUNDATION_FIXTURE_GROUP: String(setup?.group ?? ''), FOUNDATION_FIXTURE_CARD: setup?.card ?? '' },
   }).trim());
 }
-async function groupArticle(page: Page, name: string) {
-  await page.goto('/foundation-classrooms');
+async function groupArticle(page: Page, name: string, view: 'eligibility' | 'authorize') {
+  await page.goto(`/foundation-classrooms?view=${view}`);
   for (let i = 0; i < 20; i++) {
     const article = page.locator('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
-    if (await article.count()) return article;
+    if (await article.count()) {
+      await article.getByRole('link', { name: view === 'eligibility' ? 'Review classroom eligibility' : 'Authorize lesson', exact: true }).click();
+      return page.locator('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
+    }
     await page.getByRole('link', { name: 'More classroom groups', exact: true }).click();
   }
   throw new Error('Synthetic Foundation group was not in the bounded current choices.');
 }
 
+let cleanupSetup: Setup | undefined;
+test.afterEach(() => {
+  if (cleanupSetup) fixture('restore_inventory', cleanupSetup);
+  cleanupSetup = undefined;
+});
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const width of [390, 820, 1280]) {
   test(`real manager tablet registration, Teacher delegation and restricted practice at ${width}px`, async ({ page, browser, baseURL }) => {
     const setup = fixture() as unknown as Setup;
+    cleanupSetup = setup;
     const managerErrors = collectErrors(page, baseURL!);
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, accounts.admin);
-    const group = await groupArticle(page, setup.group_name);
+    const group = await groupArticle(page, setup.group_name, 'eligibility');
     await group.getByRole('combobox', { name: /^Classroom eligibility/ }).selectOption('1');
     await group.getByRole('textbox', { name: /^Reason for eligibility decision/ }).fill('Synthetic explicit Foundation eligibility');
     await group.getByRole('button', { name: 'Save classroom eligibility', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Foundation classrooms', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Classroom eligibility', exact: true })).toBeVisible();
+    expect(new URL(page.url()).searchParams.get('view')).toBe('eligibility');
+    expect(new URL(page.url()).searchParams.get('group')).toBe(String(setup.group));
+    expect(Number(new URL(page.url()).searchParams.get('page'))).toBeGreaterThan(0);
     const tabletContext = await browser.newContext({ storageState: await page.context().storageState(), viewport: { width, height: 1000 } });
     const tablet = await tabletContext.newPage(), tabletErrors = collectErrors(tablet, baseURL!);
     await tablet.goto(`${baseURL}/foundation-classroom`); await tablet.bringToFront();
     await tablet.getByRole('button', { name: 'Generate tablet setup code', exact: true }).click();
     await expect(tablet.locator('[data-foundation-setup-code]')).toHaveText(/^NESET1\.[A-Za-z0-9_-]{43}$/);
     const setupCode = (await tablet.locator('[data-foundation-setup-code]').textContent())!;
-    await page.bringToFront(); await page.goto('/foundation-classrooms');
+    await page.bringToFront(); await page.goto('/foundation-classrooms?view=register');
     const tabletName = `Synthetic Foundation tablet ${width}`;
     await page.getByRole('textbox', { name: /^Tablet name/ }).fill(tabletName);
     await page.getByRole('textbox', { name: /^Tablet setup code/ }).fill(setupCode);
@@ -50,7 +62,7 @@ for (const width of [390, 820, 1280]) {
     const teacherContext = await browser.newContext({ viewport: { width, height: 1000 } }), teacher = await teacherContext.newPage();
     const teacherErrors = collectErrors(teacher, baseURL!);
     await signIn(teacher, accounts.teacher);
-    const classroom = await groupArticle(teacher, setup.group_name);
+    const classroom = await groupArticle(teacher, setup.group_name, 'authorize');
     await classroom.getByRole('combobox', { name: /^Classroom tablet/ }).selectOption({ label: tabletName });
     await classroom.getByRole('button', { name: 'Authorize my classroom lesson', exact: true }).click();
     await expect(teacher.getByRole('heading', { name: 'Teacher classroom authorization', exact: true })).toBeVisible();

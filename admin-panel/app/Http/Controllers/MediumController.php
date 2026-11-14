@@ -183,15 +183,18 @@ class MediumController extends Controller
                 $relatedData[] = 'subjects';
             }
 
-            $operate = '<a href='.route('medium.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $editLabel = e(__('edit').' '.__('medium').': '.$row->name);
+            $deleteLabel = e(__('delete').' '.__('medium').': '.$row->name);
+            $operate = '<a href='.route('medium.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="'.$editLabel.'" aria-label="'.$editLabel.'" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit" aria-hidden="true"></i></a>&nbsp;&nbsp;';
             $operate .= '
                 <a
                     href="'.route('medium.destroy', $row->id).'"
                     class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form"
+                    aria-label="'.$deleteLabel.'" title="'.$deleteLabel.'"
                     data-id="'.$row->id.'"'
                 .(! empty($relatedData) ? " data-related='".json_encode($relatedData)."'" : '').
                 '>
-                    <i class="fa fa-trash"></i>
+                    <i class="fa fa-trash" aria-hidden="true"></i>
                 </a>';
 
             $tempRow['id'] = $row->id;

@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('students') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('Learners')" :subtitle="__('Find a learner, review their profile and manage their school record.')" :primary-label="__('Add learner')" :primary-href="route('students.create')" primary-permission="student-create" />
 
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
@@ -21,7 +17,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('class_section') }}</label>
+                                <label for="filter_class_section_id">{{ __('class_section') }}</label>
                                 <select name="filter_class_section_id" id="filter_class_section_id" class="form-control">
                                     @if (!$is_restricted_teacher && count($class_section) > 0)
                                         @foreach ($class_section as $class)

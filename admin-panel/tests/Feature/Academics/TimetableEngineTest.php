@@ -456,7 +456,12 @@ class TimetableEngineTest extends TestCase
     public function test_panel_workbench_previews_and_commits_through_the_same_services_and_denies_other_roles(): void
     {
         $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-09'];
-        $this->actingAs($this->superAdmin(), 'web')->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Preview placement')->assertSee('Bell schedules');
+        $this->actingAs($this->superAdmin(), 'web')->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Place a lesson')->assertDontSee('aria-label="Preview a lesson"', false)->assertDontSee('aria-label="Save a room"', false);
+        $this->get(route('academic-timetable.index', $context + ['view' => 'placement']))->assertOk()->assertSee('Preview placement')->assertDontSee('aria-label="Save a room"', false);
+        $this->get(route('academic-timetable.index', $context + ['view' => 'rooms']))->assertOk()->assertSee('aria-label="Save a room"', false)->assertDontSee('aria-label="Preview a lesson"', false);
+        $this->get(route('academic-timetable.index', $context + ['view' => 'bells']))->assertOk()->assertSee('aria-label="Build bell schedule"', false)->assertDontSee('aria-label="Save a room"', false);
+        $this->get(route('academic-timetable.index', $context + ['view' => 'short-days']))->assertOk()->assertSee('Short day date')->assertDontSee('aria-label="Build bell schedule"', false);
+        $this->get(route('academic-timetable.index', $context + ['view' => 'import']))->assertOk()->assertSee('Read sheet columns')->assertDontSee('aria-label="Preview a lesson"', false);
         $preview = $this->post(route('academic-timetable.preview'), $context + ['lesson' => $this->row()])->assertOk()->viewData('preview');
         $this->assertTrue($preview['can_save']);
         $this->post(route('academic-timetable.commit'), $context + ['payload' => json_encode($preview['rows']), 'fingerprint' => $preview['fingerprint']])->assertRedirect();
@@ -476,14 +481,22 @@ class TimetableEngineTest extends TestCase
     {
         $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-09'];
         $this->actingAs($this->superAdmin(), 'web');
-        $this->post(route('academic-timetable.room'), $context + ['name' => 'Panel room', 'type' => 'classroom', 'capacity' => 35, 'active' => true])->assertRedirect();
+        $this->post(route('academic-timetable.room'), $context + ['name' => 'Panel room', 'type' => 'classroom', 'capacity' => 35, 'active' => true])->assertRedirect(route('academic-timetable.index', ['view' => 'rooms'] + $context));
+        $room = Room::where('name', 'Panel room')->sole();
+        $editor = route('academic-timetable.index', ['view' => 'rooms'] + $context + ['room' => $room->id]);
+        $update = $context + ['room_id' => $room->id, 'revision' => $room->revision, 'name' => 'Panel room updated', 'type' => 'classroom', 'capacity' => 36, 'active' => true];
+        $this->post(route('academic-timetable.room'), $update)->assertRedirect($editor)->assertSessionHasNoErrors();
+        $this->get($editor)->assertOk()->assertSee('Edit room')->assertSee('Panel room updated')
+            ->assertViewHas('room', fn ($selected) => $selected->id === $room->id && $selected->revision === $room->revision + 1 && $selected->capacity === 36);
+        $this->post(route('academic-timetable.room'), $update)->assertConflict();
         $this->post(route('academic-timetable.bells'), $context + ['name' => 'Panel bells', 'section' => 'Senior', 'periods' => [
             ['name' => 'Period 1', 'starts_at' => '07:00', 'ends_at' => '07:45', 'is_break' => false],
-            ['name' => '', 'starts_at' => '', 'ends_at' => '', 'is_break' => false]]])->assertRedirect();
+            ['name' => '', 'starts_at' => '', 'ends_at' => '', 'is_break' => false]]])->assertRedirect(route('academic-timetable.index', ['view' => 'bells'] + $context));
         $this->assertSame(1, BellSchedule::where('name', 'Panel bells')->sole()->periods->count());
         $foreign = app(CurrentSchool::class)->run(2, fn () => Room::create(['name' => 'Baobab room', 'type' => 'classroom', 'revision' => 1, 'active' => true]));
         $this->get(route('academic-timetable.index', $context + ['room' => $foreign->id]))->assertNotFound();
         $this->post(route('academic-timetable.room'), $context + ['room_id' => $foreign->id, 'revision' => 1, 'name' => 'Bypass', 'type' => 'classroom', 'active' => true])->assertNotFound();
+        $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']), 'web')->post(route('academic-timetable.room'), $update)->assertForbidden();
     }
 
     public function test_panel_import_inspects_maps_and_previews_without_saving_or_rendering_sheet_markup(): void
@@ -509,6 +522,8 @@ class TimetableEngineTest extends TestCase
         $preview = $this->post(route('academic-timetable.preview'), $context + ['lesson' => $this->row()])->assertOk()->viewData('preview');
         $this->makeRoom('Changed configuration');
         $this->post(route('academic-timetable.commit'), $context + ['payload' => json_encode($preview['rows']), 'fingerprint' => $preview['fingerprint']])->assertStatus(409)->assertSee('Reload the week');
+        $this->post(route('academic-timetable.commit'), $context + ['view' => 'import', 'payload' => json_encode($preview['rows']), 'fingerprint' => $preview['fingerprint']])->assertStatus(409)
+            ->assertSee('Placement preview')->assertSee('Read sheet columns')->assertDontSee('aria-label="Preview a lesson"', false);
         $lesson = $this->save([$this->row()])['lessons'][0];
         User::whereKey($this->schoolA->ids['tara_user'])->update(['status' => 0]);
         $cancel = $this->post(route('academic-timetable.preview'), $context + ['lesson' => $this->row(['id' => $lesson['id'], 'revision' => 1, 'active' => false, 'room_id' => null])])->assertOk()->viewData('preview');

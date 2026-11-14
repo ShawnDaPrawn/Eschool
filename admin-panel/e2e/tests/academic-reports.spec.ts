@@ -6,6 +6,8 @@ import { collectErrors, horizontalOverflow, seriousViolations } from '../support
 
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
+// These flows include file conversion/export and axe under the shared test runtime.
+test.setTimeout(180_000);
 function php(code: string) {
   return execFileSync('php', ['artisan', 'tinker', '--execute', code], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' });
 }

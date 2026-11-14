@@ -1,7 +1,7 @@
 {{--
     Panel header, a Material 3 top app bar: the menu toggle, logo, global
     search, the school switcher (people at several schools), the
-    always-visible school year switcher, cache clear (Super Admin),
+    always-visible school year switcher,
     language and the account menu. Built with the Material 3 library
     (public/assets/m3); menus open with data-m3-menu (m3.js). Styles:
     public/assets/css/panel.css ("Header"); behaviour: panel.js, sidebar.js.
@@ -52,16 +52,12 @@
                 </label>
             </div>
 
-            @if (Auth::user()->hasRole('Super Admin'))
-                <form action="{{ url('clear') }}" method="POST" class="panel-topbar__clear" data-year-safe>
-                    @csrf
-                    <button type="submit" class="m3-button m3-button--outlined m3-button--icon-leading panel-topbar__clear-button"
-                        data-m3-tooltip="{{ __('cache_clear') }}">
-                        <x-icon name="refresh" :size="18" />
-                        <span class="panel-topbar__clear-label">{{ __('cache_clear') }}</span>
-                    </button>
-                </form>
-            @endif
+            @canany(['session-year-create','session-year-edit'])
+                <a class="m3-icon-button panel-topbar__year-management" href="{{ route('new-year.index') }}"
+                    aria-label="{{ __('Prepare or activate the school year') }}" data-m3-tooltip="{{ __('Prepare school year') }}">
+                    <x-icon name="calendar" :size="24" />
+                </a>
+            @endcanany
 
             <button type="button" class="m3-icon-button panel-topbar__language" data-m3-menu="panel-language-menu"
                 aria-haspopup="menu" aria-expanded="false" aria-label="{{ __('nav_change_language') }}">
@@ -79,6 +75,9 @@
                 @endforeach
             </div>
 
+            @if(app(\App\Services\Platform\Tenancy\CurrentSchool::class)->idOrNull() && Route::has('panel.inbox.index'))
+                <a class="m3-icon-button" href="{{ route('panel.inbox.index') }}" aria-label="{{ __('My inbox') }}" data-m3-tooltip="{{ __('My inbox') }}"><x-icon name="notification" :size="24" /></a>
+            @endif
             @include('layouts.partials.profile-dropdown', ['id' => 'profileDropdown'])
         </div>
     </div>

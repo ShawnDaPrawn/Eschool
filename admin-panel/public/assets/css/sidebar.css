@@ -267,23 +267,28 @@
 
 /* The select on the dark drawer: the M3 field in the drawer's colours. */
 .panel-nav .panel-nav__year .m3-text-field__input,
+.panel-nav .panel-nav__language .m3-text-field__input,
 .panel-nav .panel-nav__school .m3-text-field__input {
     border-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 38%, transparent);
     color: var(--app-nav-fg-strong);
 }
 
 .panel-nav .panel-nav__year .m3-text-field__input:hover:not(:focus),
+.panel-nav .panel-nav__language .m3-text-field__input:hover:not(:focus),
 .panel-nav .panel-nav__school .m3-text-field__input:hover:not(:focus) {
     border-color: var(--app-nav-fg-strong);
 }
 
 .panel-nav .panel-nav__year .m3-text-field__input:focus,
+.panel-nav .panel-nav__language .m3-text-field__input:focus,
 .panel-nav .panel-nav__school .m3-text-field__input:focus {
     border-color: var(--app-nav-sub-active);
     box-shadow: inset 0 0 0 1px var(--app-nav-sub-active);
 }
 
 .panel-nav .panel-nav__year .m3-text-field__label,
+.panel-nav .panel-nav__language .m3-text-field__label,
+.panel-nav .panel-nav__language .m3-text-field__input:focus + .m3-text-field__label,
 .panel-nav .panel-nav__year .m3-text-field__input:focus + .m3-text-field__label,
 .panel-nav .panel-nav__school .m3-text-field__label,
 .panel-nav .panel-nav__school .m3-text-field__input:focus + .m3-text-field__label {
@@ -291,13 +296,37 @@
 }
 
 .panel-nav .panel-nav__year.m3-text-field--select::after,
+.panel-nav .panel-nav__language.m3-text-field--select::after,
 .panel-nav .panel-nav__school .m3-text-field--select::after {
     background: var(--app-nav-fg);
 }
 
-.panel-nav .panel-nav__year option {
+.panel-nav .panel-nav__year option,
+.panel-nav .panel-nav__language option {
     background: var(--md-sys-color-surface-container);
     color: var(--md-sys-color-on-surface);
+}
+
+.panel-nav__utilities {
+    order: 4;
+    flex: 1 0 100%;
+    min-width: 0;
+    display: grid;
+    gap: var(--m3-space-2);
+}
+
+.panel-nav .panel-nav__search {
+    margin: 0;
+    color: var(--app-nav-fg-strong);
+}
+
+.panel-nav .panel-nav__year-management {
+    color: var(--app-nav-fg-strong);
+}
+
+.panel-nav__language {
+    width: 100%;
+    min-width: 0;
 }
 
 .panel-nav .panel-nav__close {

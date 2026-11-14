@@ -23,7 +23,8 @@ class PeerPanelRequest extends FormRequest
     public function rules(): array
     {
         if ($this->isMethodSafe()) {
-            return ['group' => ['nullable', 'integer', 'min:1'], 'learner' => ['nullable', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,100000']];
+            return ['group' => ['nullable', 'integer', 'min:1'], 'learner' => ['nullable', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,100000'],
+                'view' => ['sometimes', 'in:history,schedule']];
         }
 
         return PeerSessions::rules((string) $this->route('action')) + [

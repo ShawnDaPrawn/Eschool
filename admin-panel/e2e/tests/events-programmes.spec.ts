@@ -1,0 +1,179 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { expect as baseExpect, test } from '@playwright/test';
+import { accounts, signIn } from '../support/accounts';
+import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+
+// The shared local PHP runtime may finish a native POST redirect after the default 10s.
+const expect = baseExpect.configure({ timeout: 60000 });
+
+test.use({ storageState: { cookies: [], origins: [] } });
+test('school event programme creates real repeated items and edits at mobile width', async ({ page }) => {
+  await signIn(page, accounts.admin);
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/events?view=create');
+  const title = `Synthetic programme ${Date.now()}`;
+  const form = page.locator('#school-event-editor');
+  await form.getByLabel('Event title', {exact:false}).fill(title);
+  await form.getByLabel('Programme type',{exact:false}).selectOption('multiple');
+  await form.getByLabel('First event date',{exact:false}).fill('2026-11-20');
+  await form.getByLabel('Last event date',{exact:false}).fill('2026-11-21');
+  await form.getByRole('button',{name:'Add programme item',exact:true}).click();
+  const rows = form.locator('[data-programme-row]');
+  for (let i=0;i<2;i++) {
+    await rows.nth(i).getByLabel('Programme title',{exact:false}).fill(`Programme item ${i+1}`);
+    await rows.nth(i).getByLabel('Programme date',{exact:false}).fill(i===0?'2026-11-20':'2026-11-21');
+    await rows.nth(i).getByLabel('Start time',{exact:false}).fill('09:00');
+    await rows.nth(i).getByLabel('End time',{exact:false}).fill('10:00');
+  }
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+  const created = page.waitForResponse(response => response.url().endsWith('/events') && response.request().method() === 'POST');
+  await form.getByRole('button',{name:'Create event',exact:true}).click();
+  expect((await created).ok()).toBe(true);
+  await expect(page).toHaveURL(/\/events$/);
+  const row = page.locator('#school-events tbody tr').filter({hasText:title});
+  await expect(row).toBeVisible();
+  await row.getByRole('link',{name:'Programme',exact:true}).click();
+  await expect(page.locator('[data-programme-row]')).toHaveCount(2);
+  await page.locator('[data-programme-row]').first().getByLabel('Programme title',{exact:false}).fill('Updated programme title');
+  const deletions: string[] = [];
+  page.on('request', request => {
+    if (request.method() === 'DELETE' && /\/multiple-event\/\d+$/.test(request.url())) deletions.push(request.url());
+  });
+  let releaseSave!: () => void;
+  let savingStarted!: () => void;
+  const heldSave = new Promise<void>(resolve => { releaseSave = resolve; });
+  const saving = new Promise<void>(resolve => { savingStarted = resolve; });
+  await page.route('**/events-update', async route => {
+    savingStarted();
+    await heldSave;
+    await route.continue();
+  });
+  // The AJAX save returns to this same URL. Wait for the new document before
+  // using another action; the current input already contains the edited title.
+  const saved = page.waitForResponse(response => response.url().endsWith('/events-update') && response.request().method() === 'POST');
+  const saveNavigation = page.waitForNavigation({ waitUntil:'domcontentloaded' });
+  await page.getByRole('button',{name:'Save programme',exact:true}).click();
+  await saving;
+  try {
+    const add = page.getByRole('button',{name:'Add programme item',exact:true});
+    const remove = page.getByRole('button',{name:'Delete saved programme item',exact:true});
+    await expect(add).toBeDisabled();
+    await expect(remove.first()).toBeDisabled();
+    await expect(remove.last()).toBeDisabled();
+    // Even a delegated event cannot start a conflicting action during the save.
+    await add.dispatchEvent('click');
+    await remove.last().dispatchEvent('click');
+    await expect(page.locator('[data-programme-row]')).toHaveCount(2);
+    await expect(page.locator('#page-confirm')).not.toBeVisible();
+    expect(deletions).toHaveLength(0);
+  } finally {
+    releaseSave();
+  }
+  await saveNavigation;
+  expect((await saved).ok()).toBe(true);
+  await expect(page.getByLabel('Programme title',{exact:false}).first()).toHaveValue('Updated programme title');
+  await page.locator('[data-programme-row]').last().getByRole('button',{name:'Delete saved programme item',exact:true}).click();
+  await page.locator('[data-confirm-cancel]').click();
+  await expect(page.locator('#page-confirm')).not.toBeVisible();
+  await expect(page.locator('[data-programme-row]')).toHaveCount(2);
+  expect(deletions).toHaveLength(0);
+  await page.locator('[data-programme-row]').last().getByRole('button',{name:'Delete saved programme item',exact:true}).click();
+  const deleted = page.waitForResponse(response => /\/multiple-event\/\d+$/.test(response.url()) && response.request().method() === 'DELETE');
+  await page.locator('[data-confirm-ok]').click();
+  expect((await deleted).ok()).toBe(true);
+  await expect(page.locator('[data-programme-row]')).toHaveCount(1);
+  expect(deletions).toHaveLength(1);
+  await page.reload();
+  await expect(page.locator('[data-programme-row]')).toHaveCount(1);
+  await page.getByRole('link',{name:'Back to events',exact:true}).click();
+  await row.getByRole('link',{name:'Readiness',exact:true}).click();
+  await page.getByRole('link',{name:'Linked records and transport',exact:true}).click();
+  await page.setViewportSize({width:320,height:740});
+  await page.getByLabel('Office transport arrangements',{exact:false}).fill('Synthetic office coach confirmed.');
+  await page.getByRole('button',{name:'Save event links',exact:true}).click();
+  await expect(page.getByText('Synthetic office coach confirmed.',{exact:true})).toBeVisible();
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+  await page.getByRole('link',{name:'Linked records and transport',exact:true}).click();
+  await page.getByLabel('Office transport arrangements',{exact:false}).fill('');
+  await page.getByRole('button',{name:'Save event links',exact:true}).click();
+  await expect(page.getByText('No transport arrangements recorded.',{exact:true})).toBeVisible();
+  await page.getByRole('link',{name:'All school events',exact:true}).click();
+  await row.getByRole('link',{name:'Delete event',exact:true}).click();
+  await page.locator('[data-confirm-ok]').click();
+  await expect(row).toHaveCount(0);
+});
+
+test('class notice audience and attachments remain usable through create, edit and delete at 320px', async ({ page }) => {
+  await signIn(page, accounts.admin);
+  await page.setViewportSize({ width:320, height:740 });
+  await page.goto('/announcement?view=create');
+  const title = `Synthetic class notice ${Date.now()}`;
+  let form = page.locator('#school-notice-editor');
+  await form.locator('[name="title"]').fill(title);
+  await form.locator('[name="description"]').fill('Synthetic office notice.');
+  await form.locator('#notice-scope').selectOption('class');
+  const audience = form.locator('#notice-target');
+  await expect(audience).toBeEnabled();
+  await expect(audience.locator('option')).not.toHaveCount(1);
+  const selected = await audience.locator('option').nth(1).getAttribute('value');
+  await audience.selectOption(selected!);
+  await form.locator('input[type=file]').setInputFiles({ name:'office-notice.pdf', mimeType:'application/pdf', buffer:Buffer.from('%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF') });
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+  await form.getByRole('button',{ name:'Publish notice', exact:true }).click();
+  await expect(page).toHaveURL(/\/announcement$/);
+  let row = page.locator('#school-notices tbody tr').filter({ hasText:title });
+  await expect(row).toBeVisible();
+  await row.getByRole('link',{ name:'Edit notice', exact:true }).click();
+  form = page.locator('#school-notice-editor');
+  await expect(form.locator('#notice-scope')).toHaveValue('class');
+  await expect(form.locator('#notice-target')).toHaveValue(selected!);
+  await expect(form.getByRole('heading',{ name:'Current attachments', exact:true })).toBeVisible();
+  await expect(form.getByRole('link',{ name:'office-notice.pdf', exact:true })).toBeVisible();
+  await expect(form.getByLabel('Add attachments',{ exact:false })).toBeVisible();
+  await form.locator('[name="description"]').fill('Updated office notice.');
+  await form.getByRole('button',{ name:'Save notice', exact:true }).click();
+  await expect(page).toHaveURL(/\/announcement$/);
+  row = page.locator('#school-notices tbody tr').filter({ hasText:title });
+  await expect(row).toContainText('Updated office notice.');
+  await row.getByRole('link',{ name:'Delete notice', exact:true }).click();
+  await page.locator('[data-confirm-ok]').click();
+  await expect(row).toHaveCount(0);
+});
+
+test('event readiness searches, links and clears the actual admission record at 320px', async ({ page, baseURL }) => {
+  const setup = JSON.parse(execFileSync('php',['artisan','tinker','--execute',"echo json_encode(require base_path('e2e/support/event-readiness-fixture.php'));"],{cwd:path.resolve(process.cwd(),'..'),encoding:'utf8'}).trim());
+  await signIn(page,accounts.admin);
+  const errors=collectErrors(page,baseURL!);
+  await page.setViewportSize({width:320,height:740});
+  await page.goto(`/events/${setup.event}/readiness?view=links`);
+  await page.getByRole('searchbox',{name:'Admission event name',exact:true}).fill(setup.ticket_name);
+  await page.getByRole('button',{name:'Find admission events',exact:true}).click();
+  await page.getByRole('combobox',{name:'Admission event',exact:true}).selectOption(String(setup.ticket));
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+  await page.getByRole('button',{name:'Save event links',exact:true}).click();
+  await expect(page.getByText(setup.ticket_name,{exact:false})).toBeVisible();
+  await expect(page.getByText('0 tickets issued',{exact:false})).toBeVisible();
+  await page.getByRole('link',{name:'Open linked admission event',exact:true}).click();
+  expect(new URL(page.url()).searchParams.get('event_id')).toBe(String(setup.ticket));
+  await expect(page.getByRole('heading',{name:setup.ticket_name,exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Admission event details',exact:true})).toBeVisible();
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+  await page.goBack();
+  await page.getByRole('link',{name:'Linked records and transport',exact:true}).click();
+  await expect(page.getByRole('combobox',{name:'Admission event',exact:true})).toHaveValue(String(setup.ticket));
+  await page.getByRole('combobox',{name:'Admission event',exact:true}).selectOption('');
+  await page.getByRole('button',{name:'Save event links',exact:true}).click();
+  await expect(page.getByText('No admission event linked.',{exact:true})).toBeVisible();
+  await page.getByRole('link',{name:'All school events',exact:true}).click();
+  const row=page.locator('#school-events tbody tr').filter({hasText:setup.event_title});
+  await row.getByRole('link',{name:'Delete event',exact:true}).click();
+  await page.locator('[data-confirm-ok]').click();
+  await expect(row).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

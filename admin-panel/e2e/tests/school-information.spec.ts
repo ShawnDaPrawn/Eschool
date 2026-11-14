@@ -1,6 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { expect as baseExpect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+
+// The shared local PHP runtime may finish a native POST redirect after the default 10s.
+const expect = baseExpect.configure({ timeout: 60000 });
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -20,6 +23,7 @@ test('admin publishes contacts and a policy document for My school', async ({ pa
     await phone.fill('012 345 6789');
     await page.locator('#school-information').getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: /successfully/i })).toBeVisible();
+    await page.getByRole('link', { name: 'Publish a document', exact: true }).click();
     await page.getByRole('textbox', { name: 'Document title', exact: true }).fill(title);
     await page.getByRole('combobox', { name: 'Document kind', exact: true }).selectOption('code_of_conduct');
     await page.getByLabel('PDF document', { exact: false }).setInputFiles({

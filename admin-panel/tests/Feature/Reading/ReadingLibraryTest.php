@@ -363,6 +363,7 @@ class ReadingLibraryTest extends TestCase
         ['book' => $book, 'shelf' => $shelf] = $this->catalogue();
         $admin = $this->superAdmin();
         $this->web($admin)->get('/reading-library')->assertOk()->assertSee('The Synthetic Garden')->assertSee('Hide this shelf from your learners');
+        $this->get('/reading-library?view=configuration')->assertOk()->assertSee('name="revision"', false)->assertSee('name="days_required"', false)->assertDontSee('Hide this shelf from your learners');
         $this->post('/reading-library/hidden', ['kind' => 'book', 'item_id' => $book->id, 'hidden' => 1])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame([], $this->as('asha')->getJson('/api/v2/reading/shelves')->assertOk()->json('data.shelves.0.books'));
         $this->as('asha')->getJson('/api/v2/reading/books/'.$book->id.'/pages/1')->assertNotFound();

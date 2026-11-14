@@ -1,7 +1,7 @@
 {{-- Today's Timetable: the teacher's own teaching schedule for today (server-rendered) --}}
-<div class="dash-card dash-widget h-100" id="timetable-card">
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100" id="timetable-card">
     <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('todays_timetable') }}</h4>
+        <h2 class="dash-card-title">{{ __('todays_timetable') }}</h2>
     </div>
     <div class="dash-card-body">
         <div class="timetable-list">

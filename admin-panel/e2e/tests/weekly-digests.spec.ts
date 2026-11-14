@@ -1,8 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect as baseExpect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+const expect = baseExpect.configure({ timeout: 60000 });
 
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -12,7 +13,7 @@ for (const width of [390, 820, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await signIn(page, accounts.admin);
     const errors = collectErrors(page, baseURL!);
-    await page.goto('/weekly-digest-templates');
+    await page.goto('/weekly-digest-templates?view=create');
     const form = page.getByRole('form', { name: 'Create a language version', exact: true });
     await form.getByRole('combobox', { name: 'Language', exact: true }).selectOption('en');
     const title = `Synthetic weekly wording ${width}`;

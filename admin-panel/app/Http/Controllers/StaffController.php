@@ -19,6 +19,8 @@ use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Identity\StaffInvitations;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -262,7 +264,7 @@ class StaffController extends Controller
 
     public function index()
     {
-        if (! Auth::user()->can('staff-list')) {
+        if (! Auth::user()->can('staff-list') && ! (request('view') === 'create' && Auth::user()->can('staff-create'))) {
             $response = [
                 'message' => trans('no_permission_message'),
             ];
@@ -270,7 +272,7 @@ class StaffController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         // Every custom role can be given to staff, not just the newest few.
-        $roles = Role::where('custom_role', 1)->orderBy('id', 'DESC')->get();
+        $roles = Role::where('school_id', app(CurrentSchool::class)->id())->where(fn ($query) => $query->where('custom_role', 1)->orWhere('name', SchoolRoles::FACILITATOR))->where('name', '!=', SchoolRoles::SUPER_ADMIN)->orderBy('id', 'DESC')->get();
 
         return view('staff.index', compact('roles'));
     }
@@ -935,7 +937,7 @@ class StaffController extends Controller
             $teachers = $teacherQuery->get()->filter(fn ($r) => $r->user)->map(fn ($r) => [
                 'id' => $r->user_id,
                 'name' => $r->user->first_name.' '.$r->user->last_name,
-                'image' => $r->user->image,
+                'image' => $r->user->getRawOriginal('image') ? $r->user->image : asset('assets/no-image.svg'),
                 'designation' => trans('teacher'),
                 'email' => $r->user->email,
                 'mobile' => $r->user->mobile,
@@ -947,7 +949,7 @@ class StaffController extends Controller
             $staffs = $staffQuery->get()->filter(fn ($r) => $r->user)->map(fn ($r) => [
                 'id' => $r->user_id,
                 'name' => $r->user->first_name.' '.$r->user->last_name,
-                'image' => $r->user->image,
+                'image' => $r->user->getRawOriginal('image') ? $r->user->image : asset('assets/no-image.svg'),
                 'designation' => $r->user->roles->pluck('name')->implode(', '),
                 'email' => $r->user->email,
                 'mobile' => $r->user->mobile,
@@ -989,7 +991,7 @@ class StaffController extends Controller
                 'id' => $row->user_id,
                 'no' => $no++,
                 'name' => $row->user->first_name.' '.$row->user->last_name,
-                'image' => $row->user->image,
+                'image' => $row->user->getRawOriginal('image') ? $row->user->image : asset('assets/no-image.svg'),
                 'designation' => $type === 'teacher'
                     ? trans('teacher')
                     : $row->user->roles->pluck('name')->implode(', '),
@@ -1029,8 +1031,9 @@ class StaffController extends Controller
     private function assignableRoleRule(): Exists
     {
         return Rule::exists('roles', 'id')
-            ->where('custom_role', 1)
-            ->whereNot('name', 'Super Admin');
+            ->where('school_id', app(CurrentSchool::class)->id())
+            ->where(fn ($query) => $query->where('custom_role', 1)->orWhere('name', SchoolRoles::FACILITATOR))
+            ->whereNot('name', SchoolRoles::SUPER_ADMIN);
     }
 
     /**

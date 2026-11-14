@@ -751,11 +751,11 @@ class ReportEngineTest extends TestCase
             'session_year_id' => $this->year, 'operation_id' => (string) Str::uuid()];
         $this->actingAs($this->teacher())->postJson(route('academic-reports.templates'), $design)->assertForbidden();
         $this->actingAs($this->superAdmin())->post(route('academic-reports.templates'), $design)->assertRedirect();
-        $this->get(route('academic-reports.index', ['session_year_id' => $this->year]))->assertOk()->assertSee('School design');
+        $this->get(route('academic-reports.index', ['session_year_id' => $this->year, 'view' => 'configuration']))->assertOk()->assertSee('School design');
         $bank = ['scope' => 'subject', 'subject_id' => $this->schoolA->ids['maths'], 'label' => 'Steady progress', 'text' => 'Makes steady progress', 'active' => '1',
             'session_year_id' => $this->year, 'operation_id' => (string) Str::uuid()];
         $this->post(route('academic-reports.banks'), $bank)->assertRedirect();
-        $this->get(route('academic-reports.index', ['session_year_id' => $this->year]))->assertOk()->assertSee('Steady progress');
+        $this->get(route('academic-reports.index', ['session_year_id' => $this->year, 'view' => 'configuration']))->assertOk()->assertSee('Steady progress');
         $bank['operation_id'] = (string) Str::uuid();
         $bank['subject_id'] = $this->schoolB->ids['maths'];
         $this->postJson(route('academic-reports.banks'), $bank)->assertNotFound();

@@ -30,17 +30,25 @@ class EarlyYearsPanelController extends Controller
     public function index(Request $request): View
     {
         abort_unless($this->authority->available($request->user()), 403);
+        $selection = $request->validate(['view' => ['sometimes', 'in:classes,areas,configuration,area'], 'area_id' => ['sometimes', 'integer', 'min:1']]);
+        $view = $selection['view'] ?? 'classes';
+        $manage = $this->authority->canManage($request->user());
+        abort_if(in_array($view, ['configuration', 'area'], true) && ! $manage, 403);
+        $areas = app(DevelopmentAreas::class)->all();
+        $selectedArea = isset($selection['area_id']) ? $areas->firstWhere('id', (int) $selection['area_id']) : null;
+        abort_if(isset($selection['area_id']) && $selectedArea === null, 404);
 
-        return view('early-years.index', ['classes' => $this->authority->classes($request->user()), 'manage' => $this->authority->canManage($request->user()),
-            'areas' => app(DevelopmentAreas::class)->all()]);
+        return view('early-years.index', ['classes' => $this->authority->classes($request->user()), 'manage' => $manage,
+            'areas' => $areas, 'workspaceView' => $view, 'selectedArea' => $selectedArea]);
     }
 
     public function saveArea(DevelopmentAreaRequest $request): RedirectResponse
     {
         $area = $request->route('area');
+        $destination = $area === null ? ['view' => 'configuration'] : ['view' => 'area', 'area_id' => (int) $area];
 
         return $this->attempt(fn () => app(DevelopmentAreas::class)->save($request->user(), $area === null ? null : (int) $area, $request->validated()),
-            redirect()->route('early-years.index'), __('Development area saved.'));
+            redirect()->route('early-years.index', $destination), __('Development area saved.'));
     }
 
     public function classroom(Request $request, int $section): View

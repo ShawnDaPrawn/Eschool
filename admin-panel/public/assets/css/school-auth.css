@@ -1,0 +1,29 @@
+.school-auth { min-height: 100dvh; margin: 0; background: var(--md-sys-color-surface-container-low); color: var(--md-sys-color-on-surface); }
+.school-auth__layout { min-height: 100dvh; display: grid; grid-template-columns: minmax(20rem, .9fr) minmax(0, 1.1fr); }
+.school-auth__brand { padding: clamp(2rem, 6vw, 6rem); display: flex; flex-direction: column; justify-content: center; gap: 1.5rem; background: var(--md-sys-color-inverse-surface); color: var(--md-sys-color-on-inverse-surface); }
+.school-auth__logo { max-inline-size: min(14rem, 100%); max-block-size: 6rem; object-fit: contain; align-self: flex-start; }
+.school-auth__eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: var(--md-sys-typescale-label-large-size, .875rem); }
+.school-auth__intro { font-size: clamp(1.75rem, 3vw, 2.75rem); font-weight: 600; line-height: 1.3; }
+.school-auth__main { padding: clamp(1rem, 5vw, 5rem); min-inline-size: 0; display: grid; place-items: center; }
+.school-auth__card { inline-size: min(100%, 32rem); background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--app-radius); padding: clamp(1rem, 3vw, 2.5rem); }
+.school-auth h1 { margin-block: 0 1rem; font-size: var(--md-sys-typescale-headline-medium-size, 1.75rem); overflow-wrap: anywhere; }
+.school-auth__description { color: var(--md-sys-color-on-surface-variant); margin-block-end: 1.5rem; }
+.school-auth__form { display: flex; flex-direction: column; gap: 1.25rem; }
+.school-auth__form .m3-text-field, .school-auth__form input { inline-size: 100%; min-inline-size: 0; }
+.school-auth__form .m3-button { min-block-size: 48px; white-space: normal; }
+.school-auth__links { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .75rem; }
+.school-auth__links a { min-block-size: 44px; display: inline-flex; align-items: center; }
+.school-auth__password { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: .5rem; }
+.school-auth__password > button { min-inline-size: 48px; min-block-size: 48px; }
+.school-auth .m3-banner { margin-block: 1rem; overflow-wrap: anywhere; }
+@media (max-width: 839px) {
+ .school-auth__layout { grid-template-columns: minmax(0, 1fr); }
+ .school-auth__brand { padding: 1.5rem; gap: .5rem; }
+ .school-auth__brand p:not(.school-auth__eyebrow) { display: none; }
+ .school-auth__logo { max-block-size: 3.5rem; }
+ .school-auth__main { padding: 1rem; align-items: start; }
+}
+@media (prefers-reduced-motion: reduce) { .school-auth * { scroll-behavior: auto; } }
+
+.school-auth .provider-sign-in { display: grid; gap: var(--md-sys-spacing-3); margin-block-start: var(--md-sys-spacing-6); }
+.school-auth .provider-sign-in .m3-button { width: 100%; }

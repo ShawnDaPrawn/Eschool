@@ -37,25 +37,58 @@
         });
     }
 
+    function confirmContextChange() {
+        return window.PanelForms ? window.PanelForms.confirmLeave() : Promise.resolve(true);
+    }
+    function contextFailure(message) {
+        if (window.M3 && typeof window.M3.snackbar === "function") window.M3.snackbar({message: message, type: "error"});
+        else if (typeof showErrorToast === "function") showErrorToast(message);
+    }
     window.panelSwitchYear = function (id) {
-        return switchYear(id).then(function () {
-            window.location.reload();
+        if (window.panelYearSwitchPending) return Promise.resolve(false);
+        var selects = Array.from(document.querySelectorAll(".js-year-switcher"));
+        selects.forEach(function (select) { select.value = select.getAttribute("data-selected"); });
+        return confirmContextChange().then(function (confirmed) {
+            if (!confirmed) return false;
+            window.panelYearSwitchPending = true;
+            selects.forEach(function (select) { select.disabled = true; });
+            return switchYear(id).then(function (response) {
+                if (!response.ok) throw new Error("Year change refused");
+                return response.json();
+            }).then(function (body) {
+                if (body && body.error === true) throw new Error("Year change refused");
+                try {
+                    sessionStorage.setItem("session_year_id_global", id);
+                    sessionStorage.setItem("session_year_id_table", id);
+                } catch (e) { /* Server context is still authoritative. */ }
+                window.panelNavigationConfirmed = true;
+                window.location.reload();
+                return true;
+            }).catch(function () {
+                window.panelYearSwitchPending = false;
+                selects.forEach(function (select) { select.disabled = false; select.value = select.getAttribute("data-selected"); });
+                contextFailure(typeof trans === "function" ? trans("The school year could not be changed. Try again.") : "The school year could not be changed. Try again.");
+                return false;
+            });
         });
     };
 
-    /* ---- School switcher -----------------------------------------
-       People at several schools choose the school beside the year;
-       the form posts the choice and the panel reloads in that school. */
+    // Changing school is an explicit context change. Retain the selected school
+    // until the user has dealt with unsaved work; the server checks membership.
     $(document).on("change", ".js-school-switcher", function () {
-        if (String($(this).val()) !== String(this.getAttribute("data-selected"))) {
-            this.form.submit();
-        }
+        var select = this, selected = this.value, previous = this.getAttribute("data-selected");
+        if (String(selected) === String(previous)) return;
+        select.value = previous;
+        confirmContextChange().then(function (confirmed) {
+            if (!confirmed) return;
+            select.value = selected;
+            window.panelNavigationConfirmed = true;
+            select.form.submit();
+        });
     });
 
     $(document).on("change", ".js-year-switcher:not(#filter_session_year_global)", function () {
-        if (String($(this).val()) !== String(this.getAttribute("data-selected"))) {
-            window.panelSwitchYear($(this).val());
-        }
+        if (String(this.value) !== String(this.getAttribute("data-selected"))) window.panelSwitchYear(this.value);
     });
 
     /* ---- Global search box --------------------------------------

@@ -19,6 +19,7 @@ function matches(pattern: string, uri: string): boolean {
 }
 
 export function allowedAxe(uri: string, rule: string): Entry | undefined {
+  if (process.env.E2E_STRICT_ACCESSIBILITY === '1') return undefined;
   return allowlist.axe.find((e) => e.rule === rule && e.pages.some((p) => matches(p, uri)));
 }
 

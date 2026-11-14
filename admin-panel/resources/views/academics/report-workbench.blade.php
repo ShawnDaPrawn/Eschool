@@ -5,6 +5,18 @@
 <div class="content-wrapper m3 page-content report-workbench">
     <x-page.header :title="__('Academic report cards')" :subtitle="__('Review evidence, collect comments, sign reports and release private PDFs to families. Fees never restrict reports.')" />
     @include('academics.groups-status')
+    @php
+        $reportView = request('view', request()->hasAny(['template_id', 'bank_id']) ? 'configuration' : ($configuration['can_design'] ? 'reports' : 'comments'));
+        $reportView = in_array($reportView, ['reports', 'comments', 'configuration'], true) ? $reportView : 'reports';
+        if ($reportView === 'configuration' && !$configuration['can_design']) $reportView = 'reports';
+        if ($batch || $preview || $sourcePreview || $releasePreview) $reportView = 'reports';
+    @endphp
+    <nav class="workspace-tabs" aria-label="{{ __('Report workspace') }}">
+        @foreach(['reports' => __('Reports and release'), 'comments' => __('My comments')] as $view => $label)
+        <a class="m3-button m3-button--text" href="{{ route('academic-reports.index', ['session_year_id' => $configuration['session_year_id'], 'view' => $view]) }}" @if($reportView === $view) aria-current="page" @endif>{{ $label }}</a>
+        @endforeach
+        @if($configuration['can_design'])<a class="m3-button m3-button--text" href="{{ route('academic-reports.index', ['session_year_id' => $configuration['session_year_id'], 'view' => 'configuration']) }}" @if($reportView === 'configuration') aria-current="page" @endif>{{ __('Configuration') }}</a>@endif
+    </nav>
     @if($conflict)<div role="alert"><h2>{{ __('Review changes before continuing') }}</h2><p>{{ $conflict }}</p><p>{{ __('The latest saved evidence is shown. Nothing was overwritten.') }}</p></div>@endif
     @if($submittedComment)
         <section class="page-section"><h2>{{ __('Your unsaved comment') }}</h2><p class="report-comment-text">{{ $submittedComment['text'] }}</p>
@@ -15,6 +27,7 @@
         </section>
     @endif
     <form method="GET" action="{{ route('academic-reports.index') }}" class="report-fields" aria-label="{{ __('Choose report period') }}">
+        <input type="hidden" name="view" value="{{ $reportView }}">
         <x-page.field :restore-old-input="false" name="session_year_id" type="select" :label="__('School year')" :options="array_column($configuration['school_years'], 'name', 'id')" :value="$configuration['session_year_id']" required />
         @if(count($configuration['homerooms']))<x-page.field :restore-old-input="false" name="class_section_id" type="select" :label="__('Homeroom')" :options="array_column($configuration['homerooms'], 'name', 'id')" :value="$room" required />
             @php $gradeOrder = collect($configuration['homerooms'])->firstWhere('id', $room)['grade_order'] ?? null; $terms = collect($configuration['terms'])->filter(fn ($t) => $gradeOrder !== null && $t['grade_from'] <= $gradeOrder && $t['grade_to'] >= $gradeOrder); @endphp
@@ -22,43 +35,10 @@
         @endif
         <button type="submit" class="m3-button m3-button--outlined">{{ __('View reports') }}</button>
     </form>
-    @if($configuration['can_design'])
-        <details class="page-section"><summary>{{ __('Report designs and comment banks') }}</summary>
-            <form method="GET" action="{{ route('academic-reports.index') }}" class="report-fields" aria-label="{{ __('Choose report design') }}">
-                <input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}">
-                <x-page.field :restore-old-input="false" name="template_id" type="select" :label="__('Design to edit')" :options="array_column($configuration['templates'], 'name', 'id')" :placeholder="__('New design')" :value="$template['id'] ?? ''" />
-                <button type="submit" class="m3-button m3-button--outlined">{{ __('Open design') }}</button>
-            </form>
-            <form method="POST" action="{{ route('academic-reports.templates') }}" aria-label="{{ __('Save report design') }}" class="report-form">@csrf
-                <input type="hidden" name="operation_id" value="{{ (string) \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}">
-                @if($template)<input type="hidden" name="id" value="{{ $template['id'] }}"><input type="hidden" name="revision" value="{{ $template['revision'] }}">@endif
-                <x-page.field :restore-old-input="false" name="name" :id="'report-design-name'" :label="__('Design name')" :value="$template['name'] ?? ''" required maxlength="191" />
-                <x-page.field :restore-old-input="false" name="design[heading]" :label="__('Report heading')" :value="$template['design']['heading'] ?? __('School report')" required maxlength="191" />
-                <x-page.field :restore-old-input="false" name="design[introduction]" type="textarea" :label="__('Introduction')" :value="$template['design']['introduction'] ?? ''" maxlength="3000" />
-                <x-page.field :restore-old-input="false" name="design[footer]" type="textarea" :label="__('Footer')" :value="$template['design']['footer'] ?? ''" maxlength="3000" />
-                <x-page.field :restore-old-input="false" name="design[show_crest]" type="select" :label="__('Include school crest')" :options="[1 => __('Yes'), 0 => __('No')]" :value="(int) ($template['design']['show_crest'] ?? true)" required />
-                <fieldset><legend>{{ __('Printed section order') }}</legend><p>{{ __('Choose each section once. Subject results are required.') }}</p>
-                    @php $sectionNames = ['subjects' => __('Subject results'), 'attendance' => __('Attendance'), 'subject_comments' => __('Subject comments'), 'homeroom_comment' => __('Homeroom comment')]; $sections = $template['design']['sections'] ?? array_keys($sectionNames); @endphp
-                    @foreach(range(0, 3) as $index)<x-page.field :restore-old-input="false" :name="'design[sections]['.$index.']'" type="select" :label="__('Section').' '.($index + 1)" :options="$sectionNames" :placeholder="__('Omit section')" :value="$sections[$index] ?? ''" />@endforeach
-                </fieldset>
-                <button type="submit" class="m3-button m3-button--filled">{{ __('Save design') }}</button>
-            </form>
-            <form method="GET" action="{{ route('academic-reports.index') }}" class="report-fields" aria-label="{{ __('Choose comment bank') }}">
-                <input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}"><x-page.field :restore-old-input="false" name="bank_id" type="select" :label="__('Bank entry to edit')" :options="array_column($configuration['comment_banks'], 'label', 'id')" :placeholder="__('New bank entry')" :value="$bank['id'] ?? ''" /><button type="submit" class="m3-button m3-button--outlined">{{ __('Open bank entry') }}</button>
-            </form>
-            <form method="POST" action="{{ route('academic-reports.banks') }}" aria-label="{{ __('Save comment bank') }}" class="report-form">@csrf
-                <input type="hidden" name="operation_id" value="{{ (string) \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}">
-                @if($bank)<input type="hidden" name="id" value="{{ $bank['id'] }}"><input type="hidden" name="revision" value="{{ $bank['revision'] }}">@endif
-                <p>{{ __('Keep reusable comments generic. Do not put learner details in a bank.') }}</p>
-                <x-page.field :restore-old-input="false" name="scope" type="select" :label="__('Comment scope')" :options="['homeroom' => __('Homeroom'), 'subject' => __('Subject')]" :value="$bank['scope'] ?? 'homeroom'" required />
-                <x-page.field :restore-old-input="false" name="subject_id" type="select" :id="'report-bank-subject'" :label="__('Subject for subject comments')" :options="array_column($configuration['subjects'], 'name', 'id')" :placeholder="__('None for homeroom')" :value="$bank['subject_id'] ?? ''" />
-                <x-page.field :restore-old-input="false" name="label" :label="__('Bank label')" :value="$bank['label'] ?? ''" required maxlength="191" /><x-page.field :restore-old-input="false" name="text" type="textarea" :id="'report-bank-text'" :label="__('Reusable comment')" :value="$bank['text'] ?? ''" required maxlength="3000" />
-                <x-page.field :restore-old-input="false" name="active" type="select" :label="__('Available for comments')" :options="[1 => __('Yes'), 0 => __('No')]" :value="(int) ($bank['active'] ?? true)" required />
-                <button type="submit" class="m3-button m3-button--filled">{{ __('Save bank entry') }}</button>
-            </form>
-        </details>
-    @endif
-    @if($roster && !$batch)
+    @if($reportView === 'configuration')
+        @include('academics.workspaces.report-configuration')
+    @else
+    @if($reportView === 'reports' && $roster && !$batch)
         <section class="page-section"><h2>{{ __('Prepare report cards') }}</h2>
             <form method="POST" action="{{ route('academic-reports.preview') }}" aria-label="{{ __('Preview selected reports') }}" class="report-form">@csrf
                 <input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}"><input type="hidden" name="class_section_id" value="{{ $room }}"><input type="hidden" name="term_id" value="{{ $term }}">
@@ -114,13 +94,16 @@
             @endforeach
         </section>
     @endif
-    @if(!$batch)<section class="page-section"><h2>{{ __('My report comments') }}</h2><p>{{ __('Saving changed comments clears prior report signatures.') }}</p>
+    @if(!$batch && $reportView === 'comments')<section class="page-section"><h2>{{ __('My report comments') }}</h2><p>{{ __('Saving changed comments clears prior report signatures.') }}</p>
         @forelse($comments['rows'] as $commentRow)@include('academics.reports.comment-form', ['commentRow' => $commentRow, 'allowOverride' => false])@empty<p>{{ __('No report comments are currently allocated to you.') }}</p>@endforelse
-        <nav aria-label="{{ __('Comment pages') }}">@if($comments['page'] > 1)<a href="{{ route('academic-reports.index', ['session_year_id' => $configuration['session_year_id'], 'comment_page' => $comments['page'] - 1]) }}">{{ __('Previous comments') }}</a>@endif @if($comments['page'] < $comments['last_page'])<a href="{{ route('academic-reports.index', ['session_year_id' => $configuration['session_year_id'], 'comment_page' => $comments['page'] + 1]) }}">{{ __('More allocated comments') }}</a>@endif</nav>
+        <nav aria-label="{{ __('Comment pages') }}">@if($comments['page'] > 1)<a href="{{ route('academic-reports.index', ['view' => 'comments', 'session_year_id' => $configuration['session_year_id'], 'comment_page' => $comments['page'] - 1]) }}">{{ __('Previous comments') }}</a>@endif @if($comments['page'] < $comments['last_page'])<a href="{{ route('academic-reports.index', ['view' => 'comments', 'session_year_id' => $configuration['session_year_id'], 'comment_page' => $comments['page'] + 1]) }}">{{ __('More allocated comments') }}</a>@endif</nav>
     </section>@endif
+    @if($reportView === 'reports')
     <section class="page-section"><h2>{{ __('Report batches') }}</h2>
         @forelse($batches['batches'] as $row)<p><a href="{{ route('academic-reports.index', ['batch_id' => $row['id']]) }}">{{ __('Report batch') }} {{ $row['id'] }} · {{ __(ucfirst(str_replace('_', ' ', $row['state']))) }} · {{ $row['learner_count'] }} {{ __('learners') }}</a></p>@empty<p>{{ __('No report batches are available in your leadership scope.') }}</p>@endforelse
         <nav aria-label="{{ __('Batch pages') }}">@if($batches['page'] > 1)<a href="{{ route('academic-reports.index', ['session_year_id' => $configuration['session_year_id'], 'batch_page' => $batches['page'] - 1]) }}">{{ __('Newer report batches') }}</a>@endif @if($batches['page'] < $batches['last_page'])<a href="{{ route('academic-reports.index', ['session_year_id' => $configuration['session_year_id'], 'batch_page' => $batches['page'] + 1]) }}">{{ __('Earlier report batches') }}</a>@endif</nav>
     </section>
+    @endif
+    @endif
 </div>
 @endsection

@@ -4,42 +4,46 @@
     {{ __('videos') }}
 @endsection
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('videos') }}
-            </h3>
-        </div>
-        <div class="row">
-            <div class="col-md-12 grid-margin stretch-card search-container">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('videos')" />
+        @php($websiteView = request('view') === 'create' ? 'create' : 'list')
+        <x-panel-view-nav :current="$websiteView" :items="[
+            'list'=>['label'=>'Public website videos','href'=>request()->url()],
+            'create'=>['label'=>'Publish video','href'=>request()->url().'?view=create'],
+        ]" />
+        <div class="panel-form-grid">
+            @if($websiteView === 'create')
+            <div class="   search-container">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
+                        <h2 class="card-title">
                             {{ __('create') . ' ' . __('videos') }}
-                        </h4>
-                        <div class="col-12">
+                        </h2>
+                        <div class="">
                             <form class="pt-3 video-create-form" id="create-form" action="{{route('video.store')}}" method="POST" novalidate="novalidate" enctype="multipart/form-data">
-                                <div class="row">
-                                    <div class="col-md-12">
+                                <div class="panel-form-grid">
+                                    <div class="">
                                         <div class="form-group">
                                             <label>{{ __('youtube_url') }} <span class="text-danger">*</span></label>
                                             {!! Form::text('youtube_url', null, ['required', 'placeholder' => __('youtube_url'), 'class' => 'form-control', 'id' => 'youtube_url']) !!}
                                         </div>
                                     </div>
                                 </div>
-                                <input class="btn btn-theme" id="create-btn" type="submit" value={{ __('submit') }}>
+                                <input class="m3-button m3-button--filled" id="create-btn" type="submit" value={{ __('submit') }}>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
+            @endif
 
-            <div class="col-md-12 grid-margin stretch-card search-container">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">
+            @if($websiteView === 'list')
+            <div class="   search-container">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
+                        <h2 class="card-title">
                             {{ __('list') . ' ' . __('videos') }}
-                        </h4>
+                        </h2>
                         <table aria-describedby="mydesc" class='table' id='table_list'
                                data-toggle="table" data-url="{{route('video.show',1)}}" data-click-to-select="true"
                                data-side-pagination="server" data-pagination="true"
@@ -64,6 +68,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- Modal -->
             <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -86,8 +91,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{__('close')}}</button>
-                                <input class="btn btn-theme" type="submit" value={{ __('edit') }} />
+                                <button type="button" class="m3-button m3-button--outlined" data-dismiss="modal">{{__('close')}}</button>
+                                <input class="m3-button m3-button--filled" type="submit" value={{ __('edit') }} />
                             </div>
                         </form>
                     </div>

@@ -6,6 +6,7 @@ namespace App\Services\Activities\Chat;
 
 use App\Services\Panel\SessionYearContext;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 
 /** Panel conversation rights come from dated allocations, never group management. */
@@ -31,7 +32,15 @@ class GroupChatPanelScope
         // Refuse all panel writes in a selected historical year, including
         // moderation, without invoking Laravel's plain old-input flash.
         if (! $request->isMethodSafe()) {
-            abort_if(app(SessionYearContext::class)->isReadOnly(), 423);
+            $years = app(SessionYearContext::class);
+            if ($years->isReadOnly()) {
+                // A generic debug exception page includes request input. Return
+                // the private refusal document directly, without message text.
+                throw new HttpResponseException(response()->view('errors.private-year-refusal', [
+                    'message' => trans('read_only_year_refused', ['year' => $years->selected()?->name, 'current' => $years->current()?->name]),
+                    'title' => __('Group conversations'), 'draft' => [], 'returnUrl' => route('group-chat-panel.index'),
+                ], 423)->header('Cache-Control', 'no-store, private'));
+            }
         }
 
         return true;

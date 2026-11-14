@@ -36,6 +36,18 @@ class ProgressNotesPanelTest extends TestCase
             'visibility' => 'staff', 'body' => 'Private panel teaching observation'];
     }
 
+    public function test_school_band_configuration_is_separate_and_does_not_load_private_note_targets(): void
+    {
+        $note = $this->clinical();
+        $this->actingAs($this->superAdmin())->get('/learner-notes')->assertOk()->assertDontSee('name="high_pct"', false);
+        $this->get('/learner-notes?mode=configuration&note='.$note['id'])->assertOk()->assertSee('name="high_pct"', false)
+            ->assertDontSee('Private clinical panel body')->assertDontSee('Choose learner notes');
+        $this->post(route('learner-notes.configure'), ['operation_id' => (string) Str::uuid(), 'expected_account_id' => $this->superAdmin()->id, 'expected_school_id' => 1,
+            'expected_revision' => 0, 'high_pct' => '80', 'secure_pct' => '55', 'minimum_coverage_pct' => '40'])->assertRedirect(route('learner-notes.index', ['mode' => 'configuration']));
+        $this->actingAs($this->actor())->get('/learner-notes?mode=configuration')->assertForbidden();
+        $this->actingAs($this->actor('farid'))->get('/learner-notes?mode=configuration')->assertForbidden();
+    }
+
     private function url(array $extra = []): string
     {
         return '/learner-notes?'.http_build_query($extra + ['mode' => 'academic', 'group_id' => $this->group, 'learner_id' => $this->schoolA->ids['asha'],

@@ -6,6 +6,12 @@
     @if($messages)<div role="alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</div>@endif
     <p>{{ __('Unapproved languages wait for review. Other approved languages continue normally.') }}</p>
     @unless($canWrite)<p role="status">{{ __('Switch to the current school year and check module access before making changes.') }}</p>@endunless
+    @php($digestView = (request()->isMethodSafe() ? request('view') === 'create' : request()->route('operation') === 'createTemplate') && $canWrite ? 'create' : 'versions')
+    <x-panel-view-nav :current="$digestView" label="Newsletter digest workspace" :items="[
+        'versions'=>['label'=>'Language versions','href'=>route('digest-panel.index')],
+        'create'=>['label'=>'Create language version','href'=>route('digest-panel.index',['view'=>'create']),'visible'=>$canWrite],
+    ]" />
+    @if($digestView === 'versions')
     <section class="page-section" aria-labelledby="digest-versions"><h2 id="digest-versions">{{ __('Current language versions') }}</h2>
         @forelse($listing['items'] as $template)
         <article class="m3-card m3-card--outlined"><div class="m3-card__content">
@@ -22,7 +28,8 @@
         </div></article>
         @empty<p>{{ __('No language versions have been created.') }}</p>@endforelse
     </section>
-    @if($canWrite)
+    @endif
+    @if($canWrite && $digestView === 'create')
     <section class="page-section" aria-labelledby="digest-new-version"><h2 id="digest-new-version">{{ __('Create a language version') }}</h2>
         <p>{{ __('Starting text is English. Translate and review the title, summary, notification and all home instructions for the selected language before approving it.') }}</p>
         <p>{{ __('Keep the summary short enough to read in one minute. Use the supported placeholders exactly as shown.') }}</p>

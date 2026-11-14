@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Daily cash-up'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
 <x-page.header :title="__('Daily cash-up')" :subtitle="__('Compare actual posted cash receipts and payouts with the notes and coins counted at your desk.')" />

@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('students') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('students')" />
 
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
@@ -21,7 +17,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('class') }}</label>
+                                <label for="filter_class_section_id">{{ __('class') }}</label>
                                 <select name="filter_class_section_id" id="filter_class_section_id" class="form-control">
                                     @if ($classSchools->isEmpty())
                                         <option value="">{{ __('select_class') }}</option>

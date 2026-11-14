@@ -28,7 +28,7 @@ class VendorPaymentReaderPanelRequest extends VendorCatalogueRequest
     public function rules(): array
     {
         if ($this->isMethodSafe()) {
-            return ['page' => ['sometimes', 'integer', 'min:1', 'max:1000000']];
+            return ['page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'reader_id' => ['sometimes', 'string', 'uuid']];
         }
 
         return $this->bindingRules() + ($this->routeIs('vendor-payment-readers.register')

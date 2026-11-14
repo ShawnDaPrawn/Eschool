@@ -33,19 +33,17 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('notifications') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('notifications')" />
 
-        <div class="row">
-            <div class="col-12 col-lg-6 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
+        <x-panel-view-nav :current="request('view') === 'create' ? 'create' : 'list'" :items="['list'=>['label'=>'School notifications','href'=>request()->url()], 'create'=>['label'=>'Create notification','href'=>request()->url().'?view=create']]" />
+<div class="panel-form-grid">
+            @if(request('view') === 'create')
+<div class="   ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
+                        <div class="panel-form-grid">
+                            <div class="">
                                 <h4 class="card-title">
                                     {{ __('create') . ' ' . __('notifications') }}
                                 </h4>
@@ -54,55 +52,50 @@
                         <form class="pt-3 create-notification" id="create_notification" method="POST"
                             novalidate="novalidate" action="{{ route('notifications.store') }}">
                             @csrf
-                            <div class="row">
-                                <div class="form-group col-12 col-sm-6">
-                                    <label>{{ __('send_to') }} <span class="text-danger">*</span></label>
-                                    <select name="send_to[]" id="send_to" multiple
-                                        data-placeholder="{{ __('Please Select') }}"
-                                        class="form-control send_to js-example-basic-single select2-hidden-accessible">
-                                        <option value="1">{{ __('all_users') }}</option>
-                                        <option value="3">{{ __('students') }}</option>
-                                        <option value="4">{{ __('parents') }}</option>
-                                        <option value="5">{{ __('teacher') }}</option>
-                                    </select>
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
+                                    <x-page.field type="select" id="send_to" name="send_to[]" :label="__('send_to')" multiple size="4"
+                                        :options="['1'=>__('all_users'), '3'=>__('students'), '4'=>__('parents'), '5'=>__('teacher')]" />
                                 </div>
-                                <div class="form-group col-12 col-sm-6">
-                                    <label>{{ __('title') }} <span class="text-danger">*</span></label>
-                                    <input name="title" maxlength="128" type="text" placeholder="{{ __('title') }}"
+                                <div class="form-group  ">
+                                    <label for="notification-title">{{ __('title') }} <span class="text-danger">*</span></label>
+                                    <input id="notification-title" name="title" maxlength="128" type="text" placeholder="{{ __('title') }}"
                                         class="form-control" />
                                 </div>
-                                <div class="form-group col-12">
-                                    <label>{{ __('message') }} <span class="text-danger">*</span></label>
-                                    <textarea name="message" maxlength="128" cols="10" rows="3" placeholder="{{ __('message') }}" class="form-control"></textarea>
+                                <div class="form-group ">
+                                    <label for="notification-message">{{ __('message') }} <span class="text-danger">*</span></label>
+                                    <textarea id="notification-message" name="message" maxlength="128" cols="10" rows="3" placeholder="{{ __('message') }}" class="form-control"></textarea>
                                 </div>
-                                <div class="form-group col-12">
+                                <div class="form-group ">
                                     <label><input type="checkbox" name="urgent" value="1"> {{ __('Urgent notice (required for recipients)') }}</label>
                                 </div>
-                                <div class="form-group col-12">
-                                    <label>{{ __('image') }}</label>
-                                    <input type="file" name="image" class="file-upload-default" accept="image/*" />
-                                    <div class="input-group col-xs-12">
+                                <div class="form-group ">
+                                    <label for="notification-image">{{ __('image') }}</label>
+                                    <input id="notification-image" type="file" name="image" class="file-upload-default" accept="image/*" />
+                                    <div class="input-group ">
                                         <input type="text" class="form-control file-upload-info" disabled=""
                                             placeholder="{{ __('image') }}" />
                                         <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-theme"
+                                            <button class="file-upload-browse m3-button m3-button--filled"
                                                 type="button">{{ __('upload') }}</button>
                                         </span>
                                     </div>
                                 </div>
                                 <div id="selected_recipients_inputs"></div>
-                                <div class="col-12">
-                                    <input class="btn btn-theme" type="submit" value="{{ __('submit') }}">
+                                <div class="">
+                                    <input class="m3-button m3-button--filled" type="submit" value="{{ __('submit') }}">
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+@endif
 
-            <div class="col-12 col-lg-6 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
+            @if(request('view') === 'create')
+<div class="   ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">{{ __('recipients') }}</h4>
 
                         <div id="recipients_empty_state" class="text-center" style="padding: 2.5rem 1rem; color: var(--md-sys-color-on-surface-variant);">
@@ -119,8 +112,8 @@
                         </div>
 
                         <div id="recipients_tabs_wrapper" style="display: none;">
-                            <ul class="nav nav-tabs" id="recipientsTabs" role="tablist">
-                                <li class="nav-item recipients-tab-item" data-role="students" style="display: none;">
+                            <ul class="nav nav-tabs" id="recipientsTabs" role="tablist" aria-label="{{ __('recipients') }}">
+                                <li class="nav-item recipients-tab-item" role="presentation" data-role="students" style="display: none;">
                                     <a class="nav-link" id="tab-link-students" data-toggle="tab" href="#tab-students"
                                         role="tab" aria-controls="tab-students" aria-selected="false">
                                         {{ __('students') }}
@@ -128,7 +121,7 @@
                                             style="display: none;">0</span>
                                     </a>
                                 </li>
-                                <li class="nav-item recipients-tab-item" data-role="parents" style="display: none;">
+                                <li class="nav-item recipients-tab-item" role="presentation" data-role="parents" style="display: none;">
                                     <a class="nav-link" id="tab-link-parents" data-toggle="tab" href="#tab-parents"
                                         role="tab" aria-controls="tab-parents" aria-selected="false">
                                         {{ __('parents') }}
@@ -136,7 +129,7 @@
                                             style="display: none;">0</span>
                                     </a>
                                 </li>
-                                <li class="nav-item recipients-tab-item" data-role="teachers" style="display: none;">
+                                <li class="nav-item recipients-tab-item" role="presentation" data-role="teachers" style="display: none;">
                                     <a class="nav-link" id="tab-link-teachers" data-toggle="tab" href="#tab-teachers"
                                         role="tab" aria-controls="tab-teachers" aria-selected="false">
                                         {{ __('teachers') }}
@@ -215,15 +208,17 @@
                     </div>
                 </div>
             </div>
+@endif
 
-            <div class="col-md-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
+            @if(request('view') !== 'create')
+<div class="  ">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">
                             {{ __('list') . ' ' . __('notifications') }}
                         </h4>
-                        <div class="row">
-                            <div class="col-12">
+                        <div class="panel-form-grid">
+                            <div class="">
                                 <table aria-describedby="mydesc" class='table' id='table_list' data-toggle="table"
                                     data-url="{{ route('notifications.show', 1) }}" data-click-to-select="true"
                                     data-side-pagination="server" data-pagination="true"
@@ -273,6 +268,7 @@
                     </div>
                 </div>
             </div>
+@endif
 
         </div>
     </div>
@@ -288,6 +284,8 @@
         };
 
         (function() {
+            var form = document.getElementById('create_notification');
+            if (!form) return;
             var $sendTo = $('#send_to');
             var $wrapper = $('#recipients_tabs_wrapper');
             var $emptyState = $('#recipients_empty_state');
@@ -498,7 +496,7 @@
             // Guard form submit — runs in capture phase so it fires BEFORE the
             // existing jQuery bubble-phase submit handler in custom.js that
             // dispatches the AJAX request.
-            document.getElementById('create_notification').addEventListener('submit', function(e) {
+            form.addEventListener('submit', function(e) {
                 var values = ($sendTo.val() || []);
                 var msg = null;
                 if (values.length === 0) {
@@ -539,11 +537,11 @@
 
         function recipientUserFormatter(value, row) {
             var fallback = "{{ asset('assets/no-image.svg') }}";
-            var img = row.image || fallback;
+            var img = safeUrl(row.image, fallback);
             var name = (row.first_name || '') + ' ' + (row.last_name || '');
             var email = row.email || '';
             return '<div class="d-flex align-items-center">' +
-                '<img src="' + img + '" alt="" onerror="onErrorImage(event)" ' +
+                '<img src="' + escapeHtml(img) + '" alt="" onerror="onErrorImage(event)" ' +
                 'style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 1px solid var(--md-sys-color-outline-variant);">' +
                 '<div>' +
                 '<div style="font-weight: 500; color: var(--md-sys-color-on-surface);">' + $('<div>').text(name.trim()).html() + '</div>' +

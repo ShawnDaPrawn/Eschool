@@ -479,7 +479,9 @@ class EmergencyManagementTest extends TestCase
         $this->api($this->schoolA->tokens['tara'])->getJson('/api/v2/emergency/alerts/'.$alert['id'].'/roll-call')->assertOk()->assertJsonCount(1, 'data.classes');
         $this->api($this->schoolA->tokens['tara'])->postJson('/api/v2/emergency/alerts/'.$alert['id'].'/roll-call', $this->op(['learner_ids' => [$this->schoolA->ids['asha']], 'status' => 'unaccounted']))
             ->assertOk()->assertJsonPath('data.learner_ids', [$this->schoolA->ids['asha']]);
-        $this->panel($this->admin)->get('/emergency')->assertOk()->assertSee(__('Roll call'))->assertSee(__('Release a child'));
+        $this->panel($this->admin)->get('/emergency?view=roll-call')->assertOk()->assertSee(__('Roll call'))->assertDontSee('id="emergency-release"', false);
+        $this->get('/emergency?view=reunification')->assertOk()->assertSee(__('Release a child'))->assertDontSee('id="emergency-roll-call"', false);
+        $this->panel($this->teacher)->get('/emergency?view=reunification')->assertOk()->assertDontSee('name="learner_id"', false);
     }
 
     public function test_visitors_sign_in_by_card_or_by_hand_and_their_details_are_erased_after_retention(): void
@@ -540,16 +542,16 @@ class EmergencyManagementTest extends TestCase
     {
         $alert = $this->send();
         $ids = [$this->schoolA->ids['asha'], $this->schoolA->ids['ben'], $this->schoolA->ids['cara']];
-        $html = $this->panel($this->admin)->get('/emergency')->assertOk()->getContent();
+        $html = $this->panel($this->admin)->get('/emergency?view=reunification')->assertOk()->getContent();
         $this->assertEqualsCanonicalizing(array_map('strval', $ids), $this->optionValues($html, 'learner_id'), 'each option is the learner\'s own id');
         $this->assertMatchesRegularExpression('/<option value="'.$this->schoolA->ids['cara'].'"[^>]*>\\s*'.preg_quote(e(Students::with('user')->findOrFail($this->schoolA->ids['cara'])->user->full_name), '/').'/', $html, 'the option names the same learner');
 
         // Releasing the option chosen for Cara releases Cara, not a sibling in another position.
         $this->post('/emergency/release', $this->op(['expected_account_id' => (string) $this->admin->id, 'expected_school_id' => '1', 'source_id' => $alert['id'],
             'learner_id' => (string) $this->schoolA->ids['cara'], 'released_to' => 'guardian', 'guardian_user_id' => (string) $this->farid->id,
-            'verification' => 'id_document', 'identity_checked' => '1']))->assertRedirect('/emergency');
+            'verification' => 'id_document', 'identity_checked' => '1']))->assertRedirect('/emergency?view=reunification');
         $this->assertSame($this->schoolA->ids['cara'], (int) EmergencyRelease::query()->sole()->learner_id);
-        $after = $this->get('/emergency')->assertOk()->getContent();
+        $after = $this->get('/emergency?view=reunification')->assertOk()->getContent();
         $this->assertEqualsCanonicalizing([(string) $this->schoolA->ids['asha'], (string) $this->schoolA->ids['ben']], $this->optionValues($after, 'learner_id'), 'a released child is no longer offered');
     }
 
@@ -559,7 +561,8 @@ class EmergencyManagementTest extends TestCase
         $this->travel(30)->hours();
         $this->assertSame($alert['id'], app(EmergencyReunification::class)->currentAlert()?->id, 'an active alert never ages out');
         $this->assertSame($alert['id'], app(EmergencyQueries::class)->status($this->farid)['alert']['id']);
-        $this->panel($this->admin)->get('/emergency')->assertOk()->assertSee(__('Send the all-clear'))->assertSee(__('Roll call'));
+        $this->panel($this->admin)->get('/emergency')->assertOk()->assertSee(__('Send the all-clear'));
+        $this->get('/emergency?view=roll-call')->assertOk()->assertSee(__('Roll call'));
         $this->assertSame(409, $this->refused(fn () => $this->send()), 'still the one active alert');
         app(EmergencyReunification::class)->mark($this->admin, $alert['id'], $this->op(['learner_ids' => [$this->schoolA->ids['asha']], 'status' => 'accounted']));
         $cleared = app(EmergencyAlerts::class)->allClear($this->admin, $alert['id'], $this->op(['revision' => $alert['revision']]));
@@ -604,16 +607,18 @@ class EmergencyManagementTest extends TestCase
 
     public function test_the_panel_sends_an_alert_in_two_steps(): void
     {
-        $this->panel($this->admin)->get('/emergency')->assertOk()->assertSee(__('Send an emergency alert'))->assertHeader('Cache-Control', 'no-store, private');
+        $this->panel($this->admin)->get('/emergency')->assertOk()->assertSee(__('Prepare alert'))->assertDontSee('name="kind"', false);
+        $this->get('/emergency?view=prepare')->assertOk()->assertSee(__('Send an emergency alert'))->assertHeader('Cache-Control', 'no-store, private');
         $form = ['expected_account_id' => (string) $this->admin->id, 'expected_school_id' => '1', 'kind' => 'lockdown', 'audience' => 'everyone', 'drill' => '0', 'title' => '', 'message' => ''];
         $this->post('/emergency/alert-prepare', $this->op(['expected_account_id' => (string) $this->teacher->id] + $form))->assertForbidden();
-        $this->post('/emergency/alert-prepare', $this->op($form))->assertRedirect('/emergency');
+        $this->post('/emergency/alert-prepare', $this->op($form))->assertRedirect('/emergency?view=alerts');
         $alert = EmergencyAlert::query()->sole();
         $this->assertSame('pending', $alert->status);
-        $this->get('/emergency')->assertOk()->assertSee(__('Confirm and send'))->assertSee('LOCKDOWN');
+        $this->get('/emergency?view=alerts')->assertOk()->assertSee(__('Confirm and send'))->assertSee('LOCKDOWN');
         $this->post('/emergency/alert-confirm', $this->op(['expected_account_id' => (string) $this->admin->id, 'expected_school_id' => '1', 'source_id' => $alert->id, 'revision' => '1', 'confirmation' => 'nope']))->assertStatus(422);
-        $this->post('/emergency/alert-confirm', $this->op(['expected_account_id' => (string) $this->admin->id, 'expected_school_id' => '1', 'source_id' => $alert->id, 'revision' => '1', 'confirmation' => 'LOCKDOWN']))->assertRedirect('/emergency');
+        $this->post('/emergency/alert-confirm', $this->op(['expected_account_id' => (string) $this->admin->id, 'expected_school_id' => '1', 'source_id' => $alert->id, 'revision' => '1', 'confirmation' => 'LOCKDOWN']))->assertRedirect('/emergency?view=alerts');
         $this->assertSame('active', $alert->refresh()->status);
-        $this->get('/emergency')->assertOk()->assertSee(__('Send the all-clear'))->assertSee(__('Roll call'));
+        $this->get('/emergency?view=alerts')->assertOk()->assertSee(__('Send the all-clear'));
+        $this->get('/emergency?view=roll-call')->assertOk()->assertSee(__('Roll call'));
     }
 }

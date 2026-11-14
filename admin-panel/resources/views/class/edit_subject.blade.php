@@ -19,12 +19,8 @@
             $termVariant = 'light';
         }
     @endphp
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('edit') . ' ' . __('class') . ' ' . __('subject') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('edit') . ' ' . __('class') . ' ' . __('subject')" />
         <div class="note-banner note-banner-danger mb-3" role="alert">
             <x-icon name="alert" :size="16" />
             <span>

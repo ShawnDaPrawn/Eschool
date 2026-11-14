@@ -327,6 +327,7 @@ class ActivityFilesTest extends TestCase
     {
         $base = $this->panelBase();
         $this->actingAs($this->teacher)->get($base)->assertOk()->assertSee('Upload document')->assertHeader('Cache-Control', 'no-store, private');
+        $this->get($base.'?screen=upload')->assertOk()->assertSee('name="document"', false)->assertDontSee('Confirm document removal');
         $intent = ['operation_id' => (string) Str::uuid(), 'material_revision' => 1];
         $this->post($base, $intent + ['document' => UploadedFile::fake()->createWithContent('private.pdf', '%PDF-1.4 synthetic')])
             ->assertRedirect($base)->assertHeader('Referrer-Policy', 'no-referrer')->assertSessionMissing('_old_input');

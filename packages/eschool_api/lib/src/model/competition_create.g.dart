@@ -65,5 +65,8 @@ Map<String, dynamic> _$CompetitionCreateToJson(CompetitionCreate instance) =>
 
 const _$CompetitionCreateKindEnumEnumMap = {
   CompetitionCreateKindEnum.sport: 'sport',
+  CompetitionCreateKindEnum.debate: 'debate',
+  CompetitionCreateKindEnum.quiz: 'quiz',
+  CompetitionCreateKindEnum.speech: 'speech',
   CompetitionCreateKindEnum.unknownDefaultOpenApi: 'unknown_default_open_api',
 };

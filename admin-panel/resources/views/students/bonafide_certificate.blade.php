@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('bonafide') . ' ' . __('certificate') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('bonafide') . ' ' . __('certificate')" />
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">

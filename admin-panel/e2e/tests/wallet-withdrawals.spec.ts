@@ -23,12 +23,15 @@ for (const width of [390, 820, 1280]) {
     expect(fixture('stats', data.school)).toMatchObject({ withdrawals: 2, paid: 0, own_cents: 19000, healthy: true });
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, data.finance); const errors = collectErrors(page, baseURL!);
-    const response = await page.goto('/wallet-withdrawals');expect(response?.headers()['cache-control']).toContain('no-store');
+    const response = await page.goto('/wallet-withdrawals?section=settings');expect(response?.headers()['cache-control']).toContain('no-store');
     await check(page);
     await page.getByRole('combobox', { name: 'Method at exactly the boundary', exact: true }).selectOption('1');
     await page.getByRole('button', { name: 'Save withdrawal policy', exact: true }).click();
     await expect(page.getByRole('main')).toContainText('Withdrawal policy saved.');
+    await expect(page).toHaveURL(/\/wallet-withdrawals\?section=settings$/);
+    await expect(page.getByRole('combobox', { name: 'Method at exactly the boundary', exact: true })).toHaveValue('1');
     expect(fixture('stats', data.school).cash_at_boundary).toBe(true);
+    await page.getByRole('link', { name: 'Withdrawal queue', exact: true }).click();
     await page.getByRole('link', { name: `WW-${data.bank_withdrawal}`, exact: true }).click();
     await expect(page.getByRole('main')).toContainText('Private synthetic original parent bank instructions');
     await check(page);
@@ -58,8 +61,9 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('button', { name: 'Reject withdrawal', exact: true }).click();
     await expect(page.getByRole('main')).toContainText('Withdrawal reservation returned to its original wallet.');
     expect(fixture('stats', data.school)).toMatchObject({ paid: 1, own_cents: 20000, healthy: true });
-    fixture('disable', data.school);await page.goto('/wallet-withdrawals');
+    fixture('disable', data.school);await page.goto('/wallet-withdrawals?section=settings');
     await expect(page.getByRole('button', { name: 'Save withdrawal policy', exact: true })).toBeDisabled();
+    await page.getByRole('link', { name: 'Withdrawal queue', exact: true }).click();
     await expect(page.getByRole('link', { name: `WW-${data.bank_withdrawal}`, exact: true })).toBeVisible();await check(page);
     expect(errors).toEqual([]);
   });

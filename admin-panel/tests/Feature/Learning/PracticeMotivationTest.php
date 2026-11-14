@@ -526,8 +526,12 @@ class PracticeMotivationTest extends TestCase
         $this->travelTo(now()->addWeek());
         $this->assertSame(0, $badges->week($start->addWeek())['awarded']);
         $this->assertSame(1, RecognitionBadge::count());
-        // Panel form shows the switch.
-        $this->actingAs($this->superAdmin())->get('/recognition/awards')->assertOk()->assertSee('Practice run badges');
+        // The catalogue links to configuration, which opens the dedicated badge policy editor.
+        $configuration = route('recognition.index', ['module' => 'awards', 'view' => 'configuration', 'session_year_id' => $this->year]);
+        $editor = route('recognition.index', ['module' => 'awards', 'view' => 'editor', 'task' => 'badges', 'session_year_id' => $this->year]);
+        $this->actingAs($this->superAdmin())->get('/recognition/awards')->assertOk()->assertSee($configuration);
+        $this->get($configuration)->assertOk()->assertSee('Persistence badges')->assertSee($editor);
+        $this->get($editor)->assertOk()->assertSee('Practice run badges')->assertSee('name="streak_enabled"', false);
     }
 
     public function test_parent_digest_adds_a_reached_goal_and_a_run_but_never_a_missed_one(): void

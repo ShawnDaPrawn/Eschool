@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Leave;
 
 use App\Http\Controllers\Controller;
-use App\Models\ClassSection;
-use App\Models\ClassTeacher;
 use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
@@ -32,9 +30,9 @@ class StaffLeaveController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
 
-        $teacher_id = Auth::user()->teacher->id;
-        $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->pluck('class_section_id');
-        $class_sections = ClassSection::with('class.medium', 'section', 'classTeachers', 'class.streams')->whereIn('id', $class_section_ids)->get();
+        // This is an approved-leave report. It is not a teacher-class roster,
+        // and a permitted staff reader need not have a Teacher record.
+        $class_sections = collect();
 
         $sessionYears = SessionYear::all();
 

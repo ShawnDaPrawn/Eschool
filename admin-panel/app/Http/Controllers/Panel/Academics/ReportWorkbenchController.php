@@ -141,7 +141,7 @@ class ReportWorkbenchController extends Controller
             return $this->once($request, function () use ($request, $card) {
                 app(ReportBatches::class)->comment($request->user(), $card, $request->validated());
 
-                return redirect()->route('academic-reports.index', ['session_year_id' => $request->validated('session_year_id'), 'batch_id' => $request->validated('batch_id'), 'comment_page' => $request->validated('comment_page')])->with('success', __('Report comment saved'));
+                return redirect()->route('academic-reports.index', ['session_year_id' => $request->validated('session_year_id'), 'batch_id' => $request->validated('batch_id'), 'comment_page' => $request->validated('comment_page'), 'view' => 'comments'])->with('success', __('Report comment saved'));
             });
         } catch (HttpExceptionInterface $error) {
             if ($error->getStatusCode() !== 409) {

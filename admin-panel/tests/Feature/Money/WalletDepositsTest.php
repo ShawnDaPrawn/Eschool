@@ -281,6 +281,9 @@ class WalletDepositsTest extends TestCase
     {
         $claim = app(WalletDeposits::class)->claim($this->parent, $this->claim());
         $this->actingAs($this->admin, 'web')->get('/wallet-deposits')->assertOk();
+        $this->post('/wallet-deposits/policy', ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'cash_allowed' => true, 'eft_allowed' => true, 'expected_school_id' => 1, 'expected_account_id' => $this->admin->id])
+            ->assertStatus(303)->assertRedirect('/wallet-deposits?section=settings');
+        $this->get('/wallet-deposits?section=settings')->assertOk()->assertSee('Supported parent receipts, separate from school master funding');
         $this->get('/wallet-deposits/'.$claim->id)->assertOk()->assertSee('Private synthetic parent bank evidence');
         $input = $this->verify() + ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id];
         $this->post('/wallet-deposits/'.$claim->id.'/verify', $input)->assertRedirect('/wallet-deposits/'.$claim->id);

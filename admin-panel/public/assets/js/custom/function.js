@@ -174,6 +174,7 @@ function formAjaxRequest(type, url, data, formElement, submitButtonElement, succ
         }
 
         function mainSuccessCallback(response) {
+            if (window.PanelForms && formElement[0]) window.PanelForms.markSaved(formElement[0]);
             showSuccessToast(response.message);
             if (successCallback != null) {
                 successCallback(response);

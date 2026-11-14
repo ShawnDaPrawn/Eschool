@@ -1,173 +1,39 @@
 @extends('layouts.master')
-
-@section('title')
-    {{ __('leave') . ' ' . __('settings') }}
+@section('title', __('Leave configuration'))
+@section('css')
+<link rel="stylesheet" href="{{ asset('assets/css/leave-configuration.css') }}?v={{ filemtime(public_path('assets/css/leave-configuration.css')) }}">
 @endsection
-
-
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('leave') . ' ' . __('settings') }}
-            </h3>
-        </div>
-        <div class="row">
-            <div class="col-lg-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <form id="frmData" class="general-setting" action="{{ route('leave-master.store') }}"
-                            novalidate="novalidate" enctype="multipart/form-data">
-                            @csrf
-                            <div class="row">
-                                <div class="form-group col-md-4 col-sm-12">
-                                    <label>{{ __('total_leave_per_month') }}<span class="text-danger">*</span></label>
-                                    <input name="total_leave" type="number" required min="0"
-                                        placeholder="{{ __('total_leave_per_month') }}" class="form-control" />
-                                </div>
-                                <div class="form-group col-md-4 col-sm-12">
-                                    <label>{{ __('holiday') }}<span class="text-danger">*</span></label>
-                                    <select name="holiday_days[]"
-                                        class="form-control js-example-basic-single select2-hidden-accessible" multiple>
-                                        <option value="Sunday">{{ __('Sunday') }}</option>
-                                        <option value="Monday">{{ __('Monday') }}</option>
-                                        <option value="Tuesday">{{ __('Tuesday') }}</option>
-                                        <option value="Wednesday">{{ __('Wednesday') }}</option>
-                                        <option value="Thursday">{{ __('Thursday') }}</option>
-                                        <option value="Friday">{{ __('Friday') }}</option>
-                                        <option value="Saturday">{{ __('Saturday') }}</option>
-                                    </select>
-                                </div>
-                                <div class="form-group col-md-4 col-sm-12">
-                                    <label>{{ __('session_year') }}<span class="text-danger">*</span></label>
-                                    <select name="session_year_id" class="form-control" required
-                                        data-msg-required="{{ __('session_year_is_required') }}">
-                                        <option value="">{{ __('Please Select') }}</option>
-                                        @foreach ($session_year as $data)
-                                            <option value="{{ $data->id }}">{{ $data->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <input class="btn btn-theme" type="submit" value="{{ __('Submit') }}">
-                        </form>
-                    </div>
-                </div>
+<div class="content-wrapper m3 page-content" data-leave-workspace data-leave-configuration data-configuration-year="{{ $configurationYear?->id }}" data-delete-base="{{ url('leave-master') }}">
+    <x-page.header :title="__('Leave configuration')" :subtitle="__('Set the monthly allowance and non-working days for a school year.')"
+        :primary-label="request('view') !== 'create' ? __('Add year configuration') : null" :primary-href="route('leave-master.index', ['view' => 'create', 'configuration_year' => $configurationYear?->id])" />
+    @if(request('view') === 'create')
+        <x-page.form-card id="leave-configuration-create" :action="route('leave-master.store')" :title="__('Monthly allowance')" :redirect="route('leave-master.index', ['configuration_year' => $configurationYear?->id])" :cancel-href="route('leave-master.index', ['configuration_year' => $configurationYear?->id])">
+            @include('leave.partials.configuration-fields', ['prefix' => 'create'])
+        </x-page.form-card>
+    @else
+        <form method="GET" action="{{ route('leave-master.index') }}" class="page-toolbar">
+            <x-page.field id="leave-configuration-year" name="configuration_year" type="select" :label="__('Configuration year')" :options="$session_year->pluck('name', 'id')->all()" :value="$configurationYear?->id" required />
+            <button type="submit" class="m3-button m3-button--outlined">{{ __('Apply filters') }}</button>
+        </form>
+        <x-page.table id="table_list" :url="route('leave-master.show', 1)" query-params="leaveWorkspaceParams" :empty-title="__('No leave configuration for this year')"
+            :empty-action-label="__('Add year configuration')" :empty-action-href="route('leave-master.index', ['view' => 'create', 'configuration_year' => $configurationYear?->id])">
+            <x-slot:columns>
+                <th data-field="session_year">{{ __('School year') }}</th><th data-field="total_leave">{{ __('Days per month') }}</th><th data-field="holiday_days">{{ __('Non-working days') }}</th>
+                <th data-field="operate" data-formatter="leaveWorkspaceActions" data-events="leaveWorkspaceEvents">{{ __('Actions') }}</th>
+            </x-slot:columns>
+        </x-page.table>
+        <dialog class="m3-dialog leave-configuration-dialog" id="leave-configuration-dialog" aria-labelledby="leave-configuration-edit-title">
+            <h2 class="m3-dialog__headline" id="leave-configuration-edit-title">{{ __('Edit leave configuration') }}</h2>
+            <div class="m3-dialog__content">
+                <x-page.form-card id="leave-configuration-edit" :action="route('leave-master.update', 1)" method="PUT" :draft="false" refresh-table="table_list">
+                    <input type="hidden" name="edit_id">
+                    @include('leave.partials.configuration-fields', ['prefix' => 'edit'])
+                </x-page.form-card>
             </div>
-            <div class="col-md-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            {{ __('list') . ' ' . __('leave') . ' ' . __('settings') }}
-                        </h4>
-                        <table aria-describedby="mydesc" class='table' id='table_list' data-toggle="table"
-                            data-url="{{ route('leave-master.show', 1) }}" data-click-to-select="true"
-                            data-side-pagination="server" data-pagination="true" data-page-list="[5, 10, 20, 50, 100, 200]"
-                            data-search="true" data-toolbar="#toolbar" data-show-columns="true" data-show-refresh="true"
-                            data-fixed-columns="true" data-trim-on-search="false" data-mobile-responsive="true"
-                            data-sort-name="id" data-sort-order="desc" data-maintain-selected="true"
-                            data-query-params="leaveSettingsQueryParams" data-show-export="true"
-                            data-export-options='{"fileName": "stream-list-<?= date('d-m-y') ?>","ignoreColumn":
-                            ["operate"]}' data-escape="true">
-                            <thead>
-                                <tr>
-                                    <th scope="col" data-field="id" data-sortable="true" data-visible="false">
-                                        {{ __('id') }}</th>
-                                    <th scope="col" data-field="no" data-sortable="false">{{ __('no.') }}</th>
-                                    <th scope="col" data-field="total_leave" data-sortable="false">
-                                        {{ __('total_leave') }}</th>
-                                    <th scope="col" data-field="holiday_days" data-sortable="false"
-                                        data-formatter="holidayDaysFormatter">{{ __('holiday_days') }}</th>
-                                    <th scope="col" data-field="session_year_id" data-visible="false"
-                                        data-sortable="false">{{ __('session_year_id') }}</th>
-                                    <th scope="col" data-field="session_year" data-sortable="false">
-                                        {{ __('session_year') }}</th>
-                                    <th scope="col" data-field="created_at" data-sortable="true" data-visible="false">
-                                        {{ __('created_at') }}</th>
-                                    <th scope="col" data-field="updated_at" data-sortable="true" data-visible="false">
-                                        {{ __('updated_at') }}</th>
-                                    <th scope="col" data-escape="false" data-field="operate" data-sortable="false"
-                                        data-events="leavesSettingEvents">{{ __('action') }}</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <!-- Modal -->
-            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">{{ __('edit') . ' ' . __('leave') }}</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form class="pt-3 leave-setting" id="leave-setting"
-                            action="{{ route('leave-master.update', 1) }}" novalidate="novalidate">
-                            @csrf
-                            <input type="hidden" name="edit_id" id="edit_id" value="" />
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="form-group col-sm-12 col-md-12">
-                                        <label>{{ __('total_leave_per_month') }}<span class="text-danger">*</span></label>
-                                        <input name="total_leave" id="total_leave" type="number" required
-                                            placeholder="{{ __('total_leave_per_month') }}" class="form-control" />
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-12 col-md-12">
-                                        <label>{{ __('holiday') }}<span class="text-danger">*</span></label>
-                                        <select name="holiday_days[]" id="holiday_days"
-                                            class="form-control js-example-basic-single select2-hidden-accessible"
-                                            multiple>
-                                            <option value="Sunday">{{ __('Sunday') }}</option>
-                                            <option value="Monday">{{ __('Monday') }}</option>
-                                            <option value="Tuesday">{{ __('Tuesday') }}</option>
-                                            <option value="Wednesday">{{ __('Wednesday') }}</option>
-                                            <option value="Thursday">{{ __('Thursday') }}</option>
-                                            <option value="Friday">{{ __('Friday') }}</option>
-                                            <option value="Saturday">{{ __('Saturday') }}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-12 col-md-12">
-                                        <label>{{ __('session_year') }}<span class="text-danger">*</span></label>
-                                        <select name="session_year_id" id="session_year" class="form-control" required
-                                            data-msg-required="{{ __('session_year_is_required') }}">
-                                            <option value="">{{ __('Please Select') }}</option>
-                                            @foreach ($session_year as $data)
-                                                <option value="{{ $data->id }}">{{ $data->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary"
-                                    data-dismiss="modal">{{ __('close') }}</button>
-                                <input class="btn btn-theme" type="submit" value={{ __('edit') }} />
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <div class="m3-dialog__actions"><button type="button" class="m3-button m3-button--text" data-m3-dialog-close>{{ __('Cancel') }}</button></div>
+        </dialog>
+    @endif
+</div>
 @endsection
-@section('script')
-    <script type="text/javascript">
-        function queryParams(p) {
-            return {
-                limit: p.limit,
-                sort: p.sort,
-                order: p.order,
-                offset: p.offset,
-                search: p.search
-            };
-        }
-    </script>
-@endsection
+@section('script')<script src="{{ asset('assets/js/custom/leave-workspace.js') }}?v={{ filemtime(public_path('assets/js/custom/leave-workspace.js')) }}" defer></script>@endsection

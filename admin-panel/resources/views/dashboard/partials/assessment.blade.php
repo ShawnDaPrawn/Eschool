@@ -1,7 +1,7 @@
 {{-- Recent Assessment Performance: class+subject selector + top student percentages --}}
-<div class="dash-card dash-widget h-100" id="assessment-card">
+<div class="m3-card m3-card--outlined dash-card dash-widget h-100" id="assessment-card">
     <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('recent_assessment_performance') }}</h4>
+        <h2 class="dash-card-title">{{ __('recent_assessment_performance') }}</h2>
         <select class="dash-select" id="assessment-select" aria-label="{{ __('select_class') }}">
             @forelse ($assessment_options as $option)
                 <option value="{{ $option['class_section_id'] }}">{{ $option['label'] }}</option>

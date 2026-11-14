@@ -266,7 +266,8 @@ class SmartGroupsTest extends TestCase
         $this->assertSame([['kind' => 'group', 'target_id' => $this->group]], $panel->definition['rules']);
         $this->assertFalse($panel->shared);
         $this->get('/communication-centre?audience_id='.$panel->id)->assertOk()->assertSee('Save smart group')->assertSee('People this group reaches today: 2', false);
-        $this->get('/communication-centre')->assertOk()->assertSee('custom:'.$panel->id, false);
+        $this->get('/communication-centre')->assertOk()->assertDontSee('name="scope_selector"', false);
+        $this->get('/communication-centre?view=compose')->assertOk()->assertSee('custom:'.$panel->id, false);
         $this->actingAs($this->person('theo'), 'web')->get('/communication-centre?audience_id='.$panel->id)->assertNotFound();
         $this->post('/communication-centre/audiences', ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $this->year,
             'kind' => 'smart', 'name' => 'Bad', 'active' => '1', 'match' => 'any', 'parents' => '0', 'rule_selectors' => ['school:0']])->assertStatus(422);

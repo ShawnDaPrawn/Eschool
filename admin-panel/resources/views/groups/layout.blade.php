@@ -7,7 +7,7 @@
     <title>@yield('title') · {{ config('app.name') }}</title>
     <link rel="stylesheet" href="{{ asset('assets/css/m3-tokens.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/m3-base.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/m3/m3.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/m3/m3.css') }}?v={{ filemtime(public_path('assets/m3/m3.css')) }}">
     <link rel="stylesheet" href="{{ asset('assets/css/m3-components.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/school-groups.css') }}">
 </head>

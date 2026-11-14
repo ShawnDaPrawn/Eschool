@@ -8,7 +8,7 @@
     $panelYear = $panelYear ?? app(\App\Services\Panel\SessionYearContext::class);
     $currentYear = $panelYear->current();
     $currentYearEnded = $currentYear && $currentYear->end_date < date('Y-m-d');
-    $emailVerified = (string) (DB::table('settings')->where('type', 'email_configration_verification')->value('message') ?? '0') !== '0';
+    $emailVerified = (string) schoolSetting('email_configration_verification', '0') !== '0';
 @endphp
 @if ($currentYearEnded && auth()->user()->can('session-year-create'))
     <div class="m3 m3-banner m3-banner--danger panel-notice" role="status">

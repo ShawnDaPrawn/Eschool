@@ -1,11 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect as baseExpect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 // Uses an isolated, explicitly synthetic INSTREAM fixture for the scanner.
 // It verifies the upload protocol and application flow, not malware detection.
+// The shared local PHP runtime may finish a native POST redirect after the default 10s.
+const expect = baseExpect.configure({ timeout: 60000 });
+
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
 test.beforeAll(() => execFileSync('php', ['artisan', 'tinker', '--execute', "require base_path('e2e/support/gallery-fixture.php');"], { cwd: path.resolve(process.cwd(), '..') }));
@@ -14,7 +17,7 @@ for (const width of [390, 820, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await signIn(page, accounts.admin);
     const errors = collectErrors(page, baseURL!);
-    await page.goto('/school-gallery');
+    await page.goto('/school-gallery?view=upload');
     await page.getByRole('combobox', { name: 'Available group', exact: true }).selectOption({ label: 'Synthetic gallery group' });
     await page.getByRole('button', { name: 'Open group', exact: true }).click();
     const caption = `Synthetic private gallery caption ${width}`;
@@ -23,7 +26,7 @@ for (const width of [390, 820, 1280]) {
     await page.getByLabel('Caption', { exact: true }).fill(caption);
     let releaseViewer!: () => void;
     const viewerReady = new Promise<void>(resolve => { releaseViewer = resolve; });
-    await page.route('**/assets/js/private-gallery.js', async route => { await viewerReady; await route.continue(); }, { times: 1 });
+    await page.route(/\/assets\/js\/private-gallery\.js(?:\?|$)/, async route => { await viewerReady; await route.continue(); }, { times: 1 });
     await page.getByRole('button', { name: 'Save private photograph', exact: true }).click();
     const card = page.locator('article').filter({ hasText: caption });
     await expect(card).toBeVisible();
@@ -45,6 +48,7 @@ for (const width of [390, 820, 1280]) {
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     expect(await seriousViolations(page)).toEqual([]);
     await page.locator('article').filter({ hasText: caption }).getByRole('button', { name: 'Withdraw photograph', exact: true }).click();
+    await page.locator('[data-confirm-ok]').click();
     await expect(page.getByText(caption, { exact: true })).toHaveCount(0);
     expect((await page.request.get(url)).status()).toBe(404);
     expect(errors).toEqual([]);

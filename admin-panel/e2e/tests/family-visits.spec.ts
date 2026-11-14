@@ -19,6 +19,8 @@ for (const width of [390, 820, 1280]) {
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, accounts.admin);
     await page.goto('/family-visits');
+    await expect(page.getByLabel('Meeting host')).toHaveCount(0);
+    await page.getByRole('link', { name: 'Publish meeting slot', exact: true }).click();
     await page.getByLabel('Meeting host').selectOption(String(setup.host));
     await page.getByLabel('Meeting title').fill(meetingTitle);
     await page.getByLabel('Meeting venue').fill('Synthetic private room <script>neverExecute()</script>');
@@ -28,6 +30,7 @@ for (const width of [390, 820, 1280]) {
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     await page.getByRole('button', { name: 'Publish meeting slot', exact: true }).click();
+    await expect(page).toHaveURL(/\/family-visits\?view=meetings$/);
     await expect(page.getByRole('heading', { name: meetingTitle, exact: true })).toBeVisible();
     const family = await browser.newContext({ baseURL });
     const headers = { Authorization: `Bearer ${setup.token}`, 'X-School-Id': '1', 'X-Account-Id': String(setup.guardian_id), Accept: 'application/json' };
@@ -40,12 +43,19 @@ for (const width of [390, 820, 1280]) {
     await page.reload();
     const appointment = page.locator('article').filter({ has: page.getByRole('heading', { name: meetingTitle, exact: true }) });
     await expect(appointment.getByText(String(setup.name), { exact: false })).toBeVisible();
+    await page.getByRole('link', { name: 'Early collection requests', exact: true }).click();
     const pass = page.locator(`[data-gate-pass="${setup.pass}"]`);
     await pass.getByRole('button', { name: 'Approve this collection request', exact: true }).click();
     await expect(page.locator(`[data-gate-pass="${setup.pass}"]`)).toContainText('Approved');
+    await page.getByRole('navigation', { name: 'Reception workspace', exact: true }).getByRole('link', { name: 'Configuration', exact: true }).click();
     await page.getByLabel('Maximum online scan age in seconds').fill('90');
-    await page.getByRole('button', { name: 'Save collection rules', exact: true }).click();
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+      page.getByRole('button', { name: 'Save collection rules', exact: true }).click(),
+    ]);
+    await expect(page).toHaveURL(/\/family-visits\?view=configuration$/);
     await expect(page.getByLabel('Maximum online scan age in seconds')).toHaveValue('90');
+    await page.getByRole('link', { name: 'Meeting appointments', exact: true }).click();
     await appointment.getByRole('button', { name: 'Cancel meeting slot', exact: true }).click();
     await expect(page.getByRole('heading', { name: meetingTitle, exact: true }).locator('..')).toContainText('Cancelled');
     expect(await seriousViolations(page)).toEqual([]);

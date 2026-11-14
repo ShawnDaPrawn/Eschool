@@ -1,6 +1,6 @@
 {{-- Super Admin dashboard root. All config + endpoint URLs are exposed via data-* attributes
      so the external dashboard.js stays free of inline blade. --}}
-<div class="content-wrapper dashboard-page" id="dashboard"
+<div class="content-wrapper m3 page-content dashboard-page" id="dashboard"
     data-session-year-id="{{ $session_year_id }}"
     data-currency="{{ $currency_symbol }}"
     data-default-month="{{ $default_month }}"
@@ -14,34 +14,34 @@
 
     @include('dashboard.partials.stat-cards')
 
-    <div class="row">
+    <div class="panel-form-grid">
         @if($can_read_fee_receipts ?? false)
-        <div class="col-12 col-xl-5 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.fees-collection')
         </div>
         @endif
-        <div class="col-12 col-lg-7 col-xl-4 flex-grow-1 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.attendance')
         </div>
-        <div class="col-12 col-lg-5 col-xl-3 flex-grow-1 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.total-students')
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12 col-lg-7 mb-4">
+    <div class="panel-form-grid">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.assessment')
         </div>
-        <div class="col-12 col-lg-5 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.leaves')
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12 col-lg-5 mb-4">
+    <div class="panel-form-grid">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.events')
         </div>
-        <div class="col-12 col-lg-7 mb-4">
+        <div class="panel-dashboard-cell">
             @include('dashboard.partials.noticeboard')
         </div>
     </div>

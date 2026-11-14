@@ -109,13 +109,20 @@ Each part runs from `admin-panel/` with database `eschool_e2e` and
    builds the real seeded page manifest. Verification and execution reuse that
    exact manifest without rerunning global setup. Then
    `python3 ../tool/ci/playwright_partition.py --part 1` (or `2`, `3`, `4`,
-   `wizard`). Bulk jobs select all non-wizard projects with Playwright's native
-   sharding; serial groups are preserved. The isolated wizard selects only its
+   `wizard`). Parts 1–3 each run one complete page viewport (1280, 1024 and
+   375 pixels), while part 4 runs the teacher and retired-route checks. Each
+   part then runs its quarter of the workflows using Playwright's native
+   sharding; serial groups and the workflow project's single worker are
+   preserved. Commands run sequentially, and a failed command does not prevent
+   the remaining assigned checks from running or make the part pass.
+   The isolated wizard selects only its
    own project with `--no-deps`, avoiding a duplicate run of the entire suite.
 6. Part 1 also runs `--verify`: full discovery must exactly equal the disjoint
-   union of all five selections. New tests or projects cannot silently disappear.
+   union of every command in all five parts, with no overlaps within a part.
+   New tests or projects cannot silently disappear.
    On failure, each job uploads its own `playwright-report-PART` artifact,
-   including HTML, traces and server logs (kept 14 days).
+   including HTML, traces and server logs (kept 14 days). Each command writes
+   its own report/result subfolder so later checks cannot erase earlier failures.
 
 The full local `npx playwright test` command and its project dependencies remain
 available. Initial discovery without a prepared page manifest found only 255 cases; that
@@ -305,13 +312,13 @@ The seeder is idempotent (run it again and it updates the same rows), runs `Inst
 
 | Project | What it checks |
 |---|---|
-| `pages-1280`, `pages-1024` | Every panel page as the Super Admin at 1280 and 1024 px wide: no console errors and no failed requests to the panel, no horizontal scroll, and no serious or critical axe violation (WCAG 2.0/2.1 A and AA) |
-| `flows` | Navigation finds "Add a learner", "Terms" and "Notices" (and works from the keyboard); search opens a learner; the year switcher shows the banner, the lists follow the year, write buttons are disabled and the server answers 423 (as the second teacher, in a session of its own) |
-| `teacher` | A teacher sees no Money or Settings and no setup checklist, and is refused admin pages (`/settings`, `/roles`, `/staff`, `/fees-type`, `/session-years`, `/new-year`, `/students/create`, `/email-settings`, `/language`) |
+| `pages-1280`, `pages-1024`, `pages-375` | Every discovered panel page as the Super Admin at desktop and phone widths: no console errors or failed panel requests, no page overflow, and no serious or critical axe violation (WCAG 2.0/2.1 A and AA) |
+| `flows` | All registered module workflows, role/tenant/private-file boundaries, shared form/table recovery and confirmations, mobile navigation and utilities, global search, school/year context and read-only-year refusals. Writes remain serial within each isolated partition. |
+| `teacher` | A teacher sees no Finance or Settings and no setup checklist, and is refused admin pages (`/settings`, `/roles`, `/staff`, `/fees-type`, `/session-years`, `/new-year`, `/students/create`, `/email-settings`, `/language`) |
 | `removed` | `/system-update`, `/migrate`, `/seeder_install` and `/storage-link` answer 404 (they were removed by stream S1; on a branch without that removal these four fail) |
 | `wizard` | Runs last: creates next year in the new-year wizard, makes it current in under five minutes, then makes this year current again so the suite can run again on the same database |
 
-[allowlist.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/e2e/allowlist.json) lists known problems on legacy pages that the page sweep tolerates, each with the pages it applies to and a reason (for example filter selects without labels, icon-only row buttons, page-specific contrast). It must only shrink: a page rebuilt on the page pattern loses its entries, and a new page never gets one. Console errors and horizontal scroll have no entries.
+[allowlist.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/e2e/allowlist.json) has no accessibility, console or overflow exceptions. Revised and inherited pages must pass the same strict checks; a new page does not receive an exemption.
 
 ### Running it locally
 

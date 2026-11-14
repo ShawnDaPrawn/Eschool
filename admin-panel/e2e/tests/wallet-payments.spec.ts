@@ -49,14 +49,23 @@ for(const width of [390,820,1280]) {
  });
 }
 test('Finance pairs and revokes a purpose-bound reader without retaining its credential',async({page})=>{
- test.setTimeout(120_000);const data=fixture();await signIn(page,data.finance);await page.goto('/vendor-payment-readers');
+ test.setTimeout(120_000);const data=fixture();await signIn(page,data.finance);await page.goto('/vendor-payment-readers?section=register');
  await page.getByRole('combobox',{name:'Assigned Vendor counter',exact:true}).selectOption(String(data.vendor));
  await page.getByRole('textbox',{name:'Reader name',exact:true}).fill('Reviewed synthetic counter reader');
  await page.getByRole('spinbutton',{name:'Reader validity in days',exact:true}).fill('1');
  await page.getByRole('button',{name:'Register and pair payment reader',exact:true}).click();
  await expect(page.locator('#payment-reader-credential')).toHaveValue(/^NED1\./);await accessible(page);
- await page.locator('li').filter({hasText:'Reviewed synthetic counter reader'}).getByRole('button',{name:'Revoke this payment reader',exact:true}).click();
- await expect(page.locator('#payment-reader-credential')).toHaveCount(0);await expect(page.locator('li').filter({hasText:'Reviewed synthetic counter reader'})).toContainText('revoked');await accessible(page);
+ await page.getByRole('row').filter({hasText:'Reviewed synthetic counter reader'}).getByRole('link',{name:'Review reader access',exact:true}).click();
+ expect(new URL(page.url()).searchParams.get('reader_id')).toMatch(/^[0-9a-f-]{36}$/);
+ await expect(page.getByRole('heading',{name:'Reviewed synthetic counter reader',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Revoke this payment reader',exact:true}).click();
+ await expect(page.locator('#payment-reader-credential')).toHaveCount(0);await expect(page.getByRole('row').filter({hasText:'Reviewed synthetic counter reader'})).toContainText('revoked');await accessible(page);
+ await page.getByRole('link',{name:'Registered readers',exact:true}).click();
+ await expect(page).toHaveURL(/\/vendor-payment-readers\?section=readers&page=1$/);
+ await expect(page.getByRole('row').filter({hasText:'Reviewed synthetic counter reader'})).toContainText('revoked');
+ await page.getByRole('link',{name:'Register reader',exact:true}).click();
+ await expect(page).toHaveURL(/\/vendor-payment-readers\?section=register$/);
+ await expect(page.getByRole('textbox',{name:'Reader name',exact:true})).toBeVisible();await expect(page.locator('#payment-reader-credential')).toHaveCount(0);await accessible(page);
 });
 test('Teacher cannot open private reader controls or the dedicated payment counter',async({page})=>{
  test.setTimeout(120_000);const data=fixture();await signIn(page,data.teacher);

@@ -8,12 +8,14 @@ use App\Models\Settings;
 use App\Services\ChatMessageCleanupService;
 use App\Services\MailService;
 use App\Services\Platform\Secrets\SecretSettings;
-use App\Services\SessionYearService;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class SettingController extends Controller
@@ -53,6 +55,10 @@ class SettingController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
 
+        if ($request->filled('settings_section')) {
+            return $this->updateSection($request);
+        }
+
         $request->validate([
             'school_name' => 'required|max:255',
             'school_email' => 'required|email',
@@ -76,6 +82,10 @@ class SettingController extends Controller
             'favicon' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg,ico',
             'login_image' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
         ]);
+
+        if ((string) $request->input('session_year') !== (string) schoolSetting('session_year')) {
+            return response()->json(['error' => true, 'message' => __('Use the global school-year workflow to activate another year.')], 422);
+        }
 
         $settings = [
             'school_name',
@@ -103,8 +113,8 @@ class SettingController extends Controller
         try {
             foreach ($settings as $row) {
                 if (Settings::where('type', $row)->exists()) {
-                    if ($row == 'session_year') {
-                        app(SessionYearService::class)->makeCurrent(SessionYear::findOrFail($request->$row));
+                    if ($row === 'session_year') {
+                        continue; // Activation belongs to the reviewed global-year workflow.
                     }
 
                     // removing the double unnecessary double quotes in school name
@@ -233,6 +243,46 @@ class SettingController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    /** A section save changes only its allowlisted school-owned settings. */
+    private function updateSection(Request $request)
+    {
+        abort_unless((string) $request->input('expected_account_id') === (string) $request->user()->id
+            && (string) $request->input('expected_school_id') === (string) app(CurrentSchool::class)->id(), 403);
+        $sections = [
+            'school' => ['school_name' => 'required|string|max:255', 'school_email' => 'required|email', 'school_phone' => 'required|string', 'school_address' => 'required|string', 'school_tagline' => 'required|string'],
+            'branding' => ['theme_color' => 'required|regex:/^#[0-9a-fA-F]{6}$/', 'secondary_color' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
+                'logo1' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg', 'logo2' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg', 'favicon' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg,ico', 'login_image' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg'],
+            'localization' => ['time_zone' => 'required|timezone', 'date_formate' => 'required|string', 'time_formate' => 'required|string', 'online_payment' => 'required|in:0,1'],
+            'links' => ['facebook' => 'nullable|url|starts_with:https://,http://', 'instagram' => 'nullable|url|starts_with:https://,http://', 'linkedin' => 'nullable|url|starts_with:https://,http://', 'maplink' => 'nullable|url|starts_with:https://,http://'],
+            'security' => ['recaptcha_status' => 'required|in:0,1', 'recaptcha_site_key' => 'nullable|required_if:recaptcha_status,1|string', 'recaptcha_secret_key' => 'nullable|string'],
+        ];
+        $section = $request->input('settings_section');
+        abort_unless(is_string($section) && isset($sections[$section]), 422);
+        $data = $request->validate($sections[$section]);
+        if ($section === 'security') {
+            $environment = SecretSettings::fromEnvironment('recaptcha_secret_key');
+            if ($environment || ! $request->filled('recaptcha_secret_key')) {
+                unset($data['recaptcha_secret_key']);
+            }
+            if ($request->input('recaptcha_status') === '1' && ! $environment && ! $request->filled('recaptcha_secret_key') && ! schoolSetting('recaptcha_secret_key')) {
+                throw ValidationException::withMessages(['recaptcha_secret_key' => __('Enter a secret before enabling sign-in protection.')]);
+            }
+        }
+        if ($section === 'localization') {
+            abort_unless(array_key_exists($data['date_formate'], getDateFormat()) && array_key_exists($data['time_formate'], getTimeFormat()), 422);
+        }
+        DB::transaction(function () use ($data) {
+            foreach ($data as $key => $value) {
+                if ($value instanceof UploadedFile) {
+                    $value = $value->store('logo', 'public');
+                }
+                Settings::updateOrCreate(['type' => $key], ['message' => $key === 'school_name' ? str_replace('"', '', (string) $value) : ($value ?? '')]);
+            }
+        });
+
+        return response()->json(['error' => false, 'message' => __('data_update_successfully')]);
     }
 
     public function fcm_index()

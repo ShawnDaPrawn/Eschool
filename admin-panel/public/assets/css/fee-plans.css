@@ -14,3 +14,52 @@
 .ticket-workbench a,
 .payer-correction-workbench a,
 .late-charge-workbench a { text-decoration: underline; text-underline-offset: .15em; }
+
+/* Finance record pages share the panel's Material roles and mobile layout. */
+.fee-plan-workbench { min-inline-size: 0; }
+.fee-plan-workbench > * + * { margin-block-start: var(--m3-space-4); }
+.fee-plan-workbench form:not([data-page-form]) { display: grid; gap: var(--m3-space-4); min-inline-size: 0; }
+.fee-plan-workbench form:not([data-page-form]) > .m3-button { justify-self: start; }
+.fee-plan-workbench fieldset { min-inline-size: 0; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--app-radius); padding: var(--m3-space-5); display: grid; gap: var(--m3-space-4); }
+.fee-plan-workbench fieldset > legend { padding-inline: var(--m3-space-2); font-weight: 600; max-inline-size: 100%; }
+.fee-plan-workbench fieldset > .m3-button { justify-self: start; }
+.fee-plan-workbench fieldset > :is(p, ul, details, fieldset, legend, section, .page-table__scroll, .m3-checkbox, .m3-radio) { grid-column: 1 / -1; min-inline-size: 0; }
+.fee-plan-workbench fieldset > label:has(input[type="checkbox"]) { grid-column: 1 / -1; display: flex; align-items: start; gap: var(--m3-space-3); padding-block: var(--m3-space-3); }
+.fee-plan-workbench label:has(input[type="checkbox"]) input { flex: 0 0 auto; min-inline-size: 1.25rem; min-block-size: 1.25rem; }
+.fee-plan-workbench dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--m3-space-3) var(--m3-space-5); margin: 0; padding-block: var(--m3-space-4); }
+.fee-plan-workbench dt { color: var(--md-sys-color-on-surface); }
+.fee-plan-workbench dd { margin: 0; overflow-wrap: anywhere; }
+.fee-plan-workbench .page-table__scroll { max-inline-size: 100%; overscroll-behavior-inline: contain; }
+.fee-plan-workbench .page-table__table { min-inline-size: 40rem; }
+.fee-plan-workbench :is(td, th) { vertical-align: top; }
+.fee-plan-workbench details > summary { cursor: pointer; min-block-size: 2.75rem; padding-block: var(--m3-space-3); font-weight: 500; }
+.fee-plan-workbench .money-actions { display: flex; flex-wrap: wrap; gap: var(--m3-space-3); align-items: center; }
+.fee-plan-workbench .money-record-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--m3-space-3); }
+.fee-plan-workbench .money-record-list > li { padding: var(--m3-space-4); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--app-radius); overflow-wrap: anywhere; }
+.fee-plan-workbench [role="status"] { padding: var(--m3-space-4); border-radius: var(--app-radius); background: var(--md-sys-color-surface-container-low); }
+.fee-plan-workbench .workspace-context { align-self: start; }
+@media (min-width: 900px) {
+    .fee-plan-workbench fieldset { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fee-plan-workbench fieldset > :is(.page-field, div):has(textarea, select[multiple]) { grid-column: 1 / -1; }
+}
+@media (max-width: 599px) {
+    .fee-plan-workbench fieldset { padding: var(--m3-space-3); }
+    .fee-plan-workbench dl { grid-template-columns: minmax(0, 1fr); gap: var(--m3-space-2); }
+    .fee-plan-workbench dd + dt { margin-block-start: var(--m3-space-3); }
+    .fee-plan-workbench :is(.m3-button, .m3-icon-button) { min-block-size: 2.75rem; }
+    .fee-plan-workbench .money-actions > .m3-button { flex: 1 1 auto; }
+    .fee-plan-workbench .m3-text-field__input { min-inline-size: 0; max-inline-size: 100%; }
+}
+
+.fee-plan-workbench dl.money-summary { grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--m3-space-3); }
+.fee-plan-workbench .money-summary > div { min-inline-size: 0; border: 1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface-container-low); border-radius: var(--app-radius); padding: var(--m3-space-4); }
+.fee-plan-workbench .money-summary dd { margin-block-start: var(--m3-space-2); font-size: var(--m3-title-large-size, 1.375rem); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fee-plan-workbench .money-summary dt { font-size: var(--m3-body-small-size, .875rem); }
+
+@media (max-width: 599px) {
+    .fee-plan-workbench dl.money-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fee-plan-workbench .money-summary > div { padding: var(--m3-space-3); }
+    .fee-plan-workbench .money-summary > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .fee-plan-workbench .workspace-tabs { flex-wrap: wrap; overflow: visible; }
+    .fee-plan-workbench .workspace-tabs > .m3-button { white-space: normal; max-inline-size: 100%; }
+}

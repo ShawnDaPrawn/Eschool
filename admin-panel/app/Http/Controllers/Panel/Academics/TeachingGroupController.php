@@ -117,7 +117,7 @@ class TeachingGroupController extends Controller
     {
         $references->map($request->user(), $class, $request->validated());
 
-        return redirect()->route('teaching-groups.index')->with('success', __('Class grade mapping saved'));
+        return redirect()->route('teaching-groups.index', ['view' => 'configuration'])->with('success', __('Class grade mapping saved'));
     }
 
     private function choices(User $actor): array

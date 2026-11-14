@@ -7,13 +7,12 @@
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <x-m3.button variant="text" :href="route('fee-payments.index')">{{ __('Back to fee payments') }}</x-m3.button>
     <x-m3.button variant="outlined" :href="route('fee-payments.statement',['account'=>$account->id])">{{ __('Account statement and receipts') }}</x-m3.button>
+    <dl class="money-summary"><div><dt>{{ __('Amount received') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($payment->amount_cents,$payment->currency)->format() }}</dd></div><div><dt>{{ __('Held credit') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($credit,$payment->currency)->format() }}</dd></div></dl>
     <dl>
         <dt>{{ __('Family account') }}</dt><dd>{{ $account->name }}</dd>
         <dt>{{ __('Received on') }}</dt><dd>{{ $payment->received_on->toDateString() }}</dd>
         <dt>{{ __('Receipt method') }}</dt><dd>{{ $payment->method==='cash'?__('Cash'):__('EFT') }}</dd>
         <dt>{{ __('Unique receipt reference') }}</dt><dd>{{ $payment->source_reference }}</dd>
-        <dt>{{ __('Amount received') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($payment->amount_cents,$payment->currency)->format() }}</dd>
-        <dt>{{ __('Held credit') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($credit,$payment->currency)->format() }}</dd>
     </dl>
     <p>{{ $payment->pinned_learner_id===null?__('This receipt may pay eligible learners for its named holder.'):__('This receipt stays pinned to its recorded learner.') }}</p>
     @if($canWrite && $credit>0)<x-m3.button :href="route('fee-payments.preview',['payment'=>$payment->id])">{{ __('Review credit allocation') }}</x-m3.button>@endif

@@ -1,53 +1,17 @@
 @extends('layouts.master')
-
-@section('title')
-    {{ __('create_new_role') }}
-@endsection
-
-@section('css')
-    <link rel="stylesheet" href="{{ asset('/assets/css/roles.css') }}?v={{ filemtime(public_path('assets/css/roles.css')) }}">
-@endsection
-
+@section('title', __('create_new_role'))
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('create_new_role') }}
-            </h3>
-            <a class="btn btn-sm btn-secondary" href="{{ route('roles.index') }}">{{ __('back') }}</a>
-        </div>
-        <div class="row grid-margin">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        {!! Form::open(['route' => 'roles.store', 'method' => 'POST']) !!}
-                        <div class="row">
-                            <div class="col-xs-12 col-sm-12 col-md-12">
-                                <div class="form-group">
-                                    <label><strong>{{ __('name') }}:</strong></label>
-                                    {!! Form::text('name', null, ['placeholder' => __('name'), 'class' => 'form-control']) !!}
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label><strong>{{ __('permission') }}:</strong></label>
-                                    @include('roles._permissions', [
-                                        'permissionGroups' => $permissionGroups,
-                                    ])
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-theme">{{ __('submit') }}</button>
-                            </div>
-                        </div>
-                        {!! Form::close() !!}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="content-wrapper m3 page-content">
+    <x-page.header :title="__('create_new_role')">
+        <x-slot:actions><a class="m3-button m3-button--outlined" href="{{ route('roles.index') }}">{{ __('All school roles') }}</a></x-slot:actions>
+    </x-page.header>
+    @if($errors->any())<div class="m3-banner m3-banner--danger" role="alert">{{ $errors->first() }}</div>@endif
+    <section class="m3-card m3-card--outlined panel-record-card"><form method="POST" action="{{ route('roles.store') }}">@csrf
+        <x-page.field name="name" :label="__('name')"  required />
+        <h2>{{ __('Individual permissions') }}</h2>
+        @include('roles._permissions', ['permissionGroups'=>$permissionGroups])
+        <div class="panel-actions"><a class="m3-button m3-button--outlined" href="{{ route('roles.index') }}">{{ __('Cancel') }}</a><button type="submit" class="m3-button m3-button--filled">{{ __('Save role') }}</button></div>
+    </form></section>
+</div>
 @endsection
-
-@section('script')
-    <script src="{{ asset('/assets/js/roles-permissions.js') }}?v={{ filemtime(public_path('assets/js/roles-permissions.js')) }}"></script>
-@endsection
+@section('script')<script src="{{ asset('assets/js/roles-permissions.js') }}?v={{ filemtime(public_path('assets/js/roles-permissions.js')) }}" defer></script>@endsection

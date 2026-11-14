@@ -22,30 +22,44 @@
     'placeholder' => null,
     'id' => null,
     'restoreOldInput' => true,
+    'wrapperClass' => '',
 ])
 @php
+    $classes = preg_split('/\s+/', trim($attributes->get('class', ''))) ?: [];
+    $layoutClasses = array_filter($classes, fn ($class) => str_starts_with($class, 'm3-col-'));
+    $attributes = $attributes->except('class')->merge(['class' => implode(' ', array_diff($classes, $layoutClasses))]);
     $fieldId = $id ?? 'field-'.\Illuminate\Support\Str::slug(str_replace(['[', ']', '.'], '-', $name));
     $describedBy = trim(($help ? $fieldId.'-help ' : '').$fieldId.'-error');
-    $current = $restoreOldInput ? old(str_replace(['[', ']'], ['.', ''], $name), $value) : $value;
+    $oldKey = rtrim(str_replace(['[', ']'], ['.', ''], $name), '.');
+    $current = in_array($type, ['password', 'file'], true) ? null : ($restoreOldInput ? old($oldKey, $value) : $value);
+    $fieldError = isset($errors) ? $errors->first($oldKey) : null;
+    // Invalid array input must still render its validation error, not a 500.
+    if (! ($type === 'select' && $attributes->has('multiple'))) {
+        $current = is_scalar($current) || $current instanceof \Stringable ? $current : '';
+    }
+    $selectedValues = array_map('strval', array_filter(is_array($current) ? $current : [$current], fn ($item) => is_scalar($item) || $item instanceof \Stringable));
 @endphp
-<div class="m3 page-field" data-page-field>
+<div class="m3 page-field {{ implode(' ', $layoutClasses) }} {{ $wrapperClass }}" data-page-field>
     <label class="m3-text-field {{ $type === 'select' ? 'm3-text-field--select' : '' }}" for="{{ $fieldId }}">
         @if ($type === 'select')
             <select id="{{ $fieldId }}" name="{{ $name }}" aria-describedby="{{ $describedBy }}"
+                @if ($fieldError) aria-invalid="true" @endif
                 {{ $attributes->merge(['class' => 'm3-text-field__input']) }} @required($required)>
                 @if ($placeholder !== null)
                     <option value="">{{ $placeholder }}</option>
                 @endif
                 @foreach ($options as $optionValue => $optionLabel)
-                    <option value="{{ $optionValue }}" @selected((string) $optionValue === (string) $current)>{{ $optionLabel }}</option>
+                    <option value="{{ $optionValue }}" @selected(in_array((string) $optionValue, $selectedValues, true))>{{ $optionLabel }}</option>
                 @endforeach
             </select>
         @elseif ($type === 'textarea')
             <textarea id="{{ $fieldId }}" name="{{ $name }}" aria-describedby="{{ $describedBy }}"
+                @if ($fieldError) aria-invalid="true" @endif
                 {{ $attributes->merge(['class' => 'm3-text-field__input', 'rows' => 3]) }} @required($required)
                 placeholder="{{ $placeholder ?? ' ' }}">{{ $current }}</textarea>
         @else
-            <input id="{{ $fieldId }}" type="{{ $type }}" name="{{ $name }}" value="{{ $current }}"
+            <input id="{{ $fieldId }}" type="{{ $type }}" name="{{ $name }}" @if ($type !== 'file') value="{{ $current }}" @endif
+                @if ($fieldError) aria-invalid="true" @endif
                 aria-describedby="{{ $describedBy }}" {{ $attributes->merge(['class' => 'm3-text-field__input']) }}
                 @required($required) placeholder="{{ $placeholder ?? ' ' }}">
         @endif
@@ -55,5 +69,5 @@
         <p id="{{ $fieldId }}-help" class="m3-text-field__supporting page-field-help">{{ $help }}</p>
     @endif
     <p id="{{ $fieldId }}-error" class="m3-text-field__supporting m3-text-field__supporting--error page-field-error"
-        data-field-error="{{ $name }}" hidden></p>
+        data-field-error="{{ $name }}" @unless ($fieldError) hidden @endunless>{{ $fieldError }}</p>
 </div>

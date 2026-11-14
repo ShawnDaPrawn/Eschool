@@ -41,7 +41,7 @@ class MessageDraftRestoration
         $request->session()->flash($this->key($request, $message), Crypt::encryptString(json_encode($data, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE)));
         $year = SessionYear::find((int) $request->input('audience.session_year_id'));
 
-        return redirect()->route('communication-centre.index', ['message_id' => $message, 'session_year_id' => $year?->id])->withErrors($errors);
+        return redirect()->route('communication-centre.index', ['message_id' => $message, 'session_year_id' => $year?->id, 'view' => $request->query('view') === 'newsletter' ? 'newsletter' : 'compose'])->withErrors($errors);
     }
 
     public function read(Request $request, ?int $message): ?array

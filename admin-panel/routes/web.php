@@ -5,6 +5,7 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ProviderSignInController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CategoryController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
+use App\Http\Controllers\Panel\Activities\AcademicContestPanelController;
 use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
 use App\Http\Controllers\Panel\Activities\ActivitySeasonController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
@@ -76,6 +78,7 @@ use App\Http\Controllers\Panel\Learning\PracticeMarkingController;
 use App\Http\Controllers\Panel\Learning\PracticeMotivationController;
 use App\Http\Controllers\Panel\Learning\PracticeTestPanelController;
 use App\Http\Controllers\Panel\Learning\QuestionBankController;
+use App\Http\Controllers\Panel\Learning\SharedLibraryController;
 use App\Http\Controllers\Panel\Learning\StartingCheckController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
@@ -130,6 +133,8 @@ use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Reading\ReadingPanelController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
 use App\Http\Controllers\Panel\SearchController;
+use App\Http\Controllers\Panel\SignIn\SignInLinksController;
+use App\Http\Controllers\Panel\SignIn\SignInProviderSettingsController;
 use App\Http\Controllers\Panel\Transfers\TransferPanelController;
 use App\Http\Controllers\Panel\Wellbeing\CheckInPanelController;
 use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
@@ -223,6 +228,7 @@ use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Requests\Emergency\EmergencyPanelRequest;
 use App\Services\Learning\SafeguardingPhrases;
+use App\Services\Platform\SignIn\ProviderCatalogue;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -246,6 +252,12 @@ Route::middleware('school.context:public')->group(function () {
     Route::get('login', [LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
     Route::post('login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:login', 'school.context:sign-in']);
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+    // Google and Microsoft sign-in (Action Plan 5.9): a login page button starts it at the named
+    // school, and the provider returns to the callback. No account is ever created here.
+    Route::post('sign-in/{provider}', [ProviderSignInController::class, 'start'])->whereIn('provider', ProviderCatalogue::ALL)
+        ->middleware(['guest', 'throttle:sign-in-provider'])->name('sign-in-provider.start');
+    Route::get('sign-in/{provider}/callback', [ProviderSignInController::class, 'callback'])->whereIn('provider', ProviderCatalogue::ALL)
+        ->middleware(['throttle:sign-in-provider', 'cache.headers:private;no_store'])->name('sign-in-provider.callback');
 
     // There is no public sign-up. Staff create accounts, and those accounts always
     // have a role. Students apply through the public online registration form.
@@ -301,6 +313,7 @@ Route::prefix('vendor-counter')->name('vendor.')->middleware([PrivateDomainRespo
         Route::get('counters/{vendor}/tickets', [$t, 'handle'])->whereNumber('vendor')->name('tickets.index');
         Route::post('counters/{vendor}/tickets/lookup', [$t, 'handle'])->whereNumber('vendor')->name('tickets.lookup');
         Route::post('counters/{vendor}/tickets/redeem', [$t, 'handle'])->whereNumber('vendor')->name('tickets.redeem');
+        Route::post('counters/{vendor}/tickets/resolve', [$t, 'handle'])->whereNumber('vendor')->name('tickets.resolve');
         Route::get('counters/{vendor}/settlements', [$c, 'settlements'])->whereNumber('vendor')->name('settlements');
         Route::get('counters/{vendor}/settlements/{settlement}', [$c, 'settlements'])->whereNumber(['vendor', 'settlement'])->name('settlement');
         Route::post('counters/{vendor}/lookup', [$c, 'lookup'])->whereNumber('vendor')->name('lookup');
@@ -478,6 +491,9 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::middleware('platform.can:library.review')->group(function () {
             Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
             Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
+            // The shared library (5.4): teachers' ratings of shared items, unnamed, and taking an item down.
+            Route::get('/ratings', [PlatformLibraryController::class, 'ratings'])->name('ratings');
+            Route::post('/items/{item}/unpublish', [PlatformLibraryController::class, 'unpublish'])->middleware('throttle:30,1')->whereNumber('item')->name('items.unpublish');
         });
     });
     // The marking accuracy gate (3.18): de-identified evaluation scripts, runs and each subject's learner-marking switch; never a school or a learner.
@@ -633,6 +649,10 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
     // The school switcher, for people at several schools.
     Route::post('/school/switch', SchoolSwitchController::class)->name('school.switch');
     Route::group(['middleware' => 'language'], function () {
+        require __DIR__.'/panel-workspaces.php';
+        require __DIR__.'/panel-finance-ui.php';
+        require __DIR__.'/panel-personal.php';
+        require __DIR__.'/panel-community-ui.php';
         // Route::get('/home', [HomeController::class, 'index']);
         Route::get('home', [HomeController::class, 'index'])->name('home');
         // Route::get('home/data', [HomeController::class, 'dashboardData'])->name('home.data');
@@ -762,6 +782,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('competitions/{competition}/invitations', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-invite');
             Route::post('competitions/{competition}/decision', [$c, 'competitionWrite'])->whereNumber('competition')->middleware('throttle:30,1')->name('competition-decision');
         });
+        // Academic competitions and debating between schools (Action Plan 5.3).
+        Route::prefix('academic-competitions')->name('academic-competitions.')->middleware(['module:groups', 'can:activity-groups-manage', 'cache.headers:private;no_store'])->group(function () {
+            $c = AcademicContestPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'write'])->middleware('throttle:30,1')->name('create');
+            Route::get('{competition}', [$c, 'show'])->whereNumber('competition')->name('show');
+            foreach (['details', 'adjudicators', 'result', 'review', 'awards'] as $action) {
+                Route::post('{competition}/'.$action, [$c, 'write'])->whereNumber('competition')->middleware('throttle:30,1')->name($action);
+            }
+            Route::post('{competition}/reviews/{review}/share', [$c, 'write'])->whereNumber(['competition', 'review'])->middleware('throttle:30,1')->name('share');
+        });
         Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
             $c = ActivityWorkbenchController::class;
             Route::get('/', [$c, 'index'])->name('index');
@@ -814,6 +845,21 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('marking', [PracticeMarkingController::class, 'index'])->name('marking');
             Route::get('marking/{group}/{review}/audio', [PracticeMarkingController::class, 'audio'])->whereNumber(['group', 'review'])->name('marking.audio');
             Route::post('marking/{group}/{review}', [PracticeMarkingController::class, 'mark'])->whereNumber(['group', 'review'])->middleware('throttle:120,1')->name('marking.mark');
+        });
+        // The shared library, teacher to teacher (Action Plan 5.4): share, browse, copy and rate questions across schools.
+        Route::prefix('shared-library')->name('shared-library.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
+            $c = SharedLibraryController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('items/{item}', [$c, 'item'])->whereNumber('item')->name('items.show');
+            Route::post('items/{item}/rating', [$c, 'rate'])->whereNumber('item')->middleware('throttle:30,1')->name('items.rate');
+            Route::post('items/{item}/copy', [$c, 'copy'])->whereNumber('item')->middleware('throttle:30,1')->name('items.copy');
+            Route::get('share/{item}', [$c, 'share'])->whereNumber('item')->name('share');
+            Route::post('contributions', [$c, 'contribute'])->middleware('throttle:30,1')->name('contributions.store');
+            Route::get('contributions/{contribution}', [$c, 'contribution'])->whereNumber('contribution')->name('contributions.show');
+            Route::post('contributions/{contribution}/approve', [$c, 'approve'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.approve');
+            Route::post('contributions/{contribution}/decline', [$c, 'decline'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.decline');
+            Route::post('contributions/{contribution}/withdraw', [$c, 'withdraw'])->whereNumber('contribution')->middleware('throttle:60,1')->name('contributions.withdraw');
+            Route::put('settings', [$c, 'settings'])->middleware('throttle:30,1')->name('settings');
         });
         // Cycle tests teachers set for their groups (Action Plan 3.17).
         Route::prefix('practice-tests')->name('practice-tests.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
@@ -1729,6 +1775,13 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::get('/open-standards', [OneRosterController::class, 'index'])->middleware('cache.headers:private;no_store')->name('open-standards.index');
     Route::post('/open-standards/oneroster', [OneRosterController::class, 'store'])->middleware('throttle:10,1')->name('open-standards.store');
     Route::get('/open-standards/oneroster/{export}/download', [OneRosterController::class, 'download'])->whereNumber('export')->middleware(['signed', 'throttle:10,1'])->name('open-standards.download');
+    // Google and Microsoft sign-in (Action Plan 5.9): the school's settings (its Super Admin only) and each person's own links.
+    Route::get('/sign-in-providers', [SignInProviderSettingsController::class, 'index'])->middleware('cache.headers:private;no_store')->name('sign-in-providers.index');
+    Route::put('/sign-in-providers/{provider}', [SignInProviderSettingsController::class, 'update'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:20,1')->name('sign-in-providers.update');
+    Route::delete('/sign-in-providers/links/{link}', [SignInProviderSettingsController::class, 'removeLink'])->whereNumber('link')->middleware('throttle:20,1')->name('sign-in-providers.links.destroy');
+    Route::get('/sign-in-links', [SignInLinksController::class, 'index'])->middleware('cache.headers:private;no_store')->name('sign-in-links.index');
+    Route::post('/sign-in-links/{provider}', [SignInLinksController::class, 'start'])->whereIn('provider', ProviderCatalogue::ALL)->middleware('throttle:password')->name('sign-in-links.start');
+    Route::delete('/sign-in-links/{link}', [SignInLinksController::class, 'destroy'])->whereNumber('link')->middleware('throttle:20,1')->name('sign-in-links.destroy');
     // Support tickets to Navigate Ed (Action Plan SA.17); SupportTicketRequest checks the right.
     Route::get('/support-tickets', [SupportTicketController::class, 'index'])->name('support-tickets.index');
     Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:10,1')->name('support-tickets.store');
@@ -1938,3 +1991,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
 
 Route::get('school-cards/encoder-runtime', [CardEncodingPanelController::class, 'runtime'])->middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardEncodingPanel::class])->name('cards-encoding.runtime');
 Route::view('card-tap', 'cards.tap')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('cards.tap');
+
+// School people directories and consent-aware alumni/volunteer workflows.
+require __DIR__.'/people_workspaces.php';
+require __DIR__.'/panel-reenrolment.php';

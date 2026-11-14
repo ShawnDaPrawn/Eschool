@@ -6,6 +6,14 @@
     <x-page.header :title="__('Mastery map')" :subtitle="__('Levels use recent evidence. They are learning guidance, not a promotion decision.')" />
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     @if($errors->any())<div role="alert"><h2>{{ __('Review these changes') }}</h2><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+    @php
+        $masteryView = request('view', !request()->has('group_id') && (request()->has('subject_id') || old('graph_present') || old('model_version')) ? 'graph' : 'evidence') === 'graph' ? 'graph' : 'evidence';
+    @endphp
+    <nav class="workspace-tabs" aria-label="{{ __('Mastery workspace') }}">
+        <a class="m3-button m3-button--text" href="{{ route('mastery.index', ['session_year_id' => $configuration['session_year_id']]) }}" @if($masteryView === 'evidence') aria-current="page" @endif>{{ __('Learner evidence') }}</a>
+        <a class="m3-button m3-button--text" href="{{ route('mastery.index', ['session_year_id' => $configuration['session_year_id'], 'view' => 'graph']) }}" @if($masteryView === 'graph') aria-current="page" @endif>{{ $configuration['can_manage'] ? __('Configuration') : __('Topic prerequisites') }}</a>
+    </nav>
+    @if($masteryView === 'evidence')
     <div class="mastery-columns">
         <aside class="mastery-panel">
             <h2>{{ __('Choose learner evidence') }}</h2>
@@ -49,6 +57,7 @@
             @else<p>{{ __('No current learners are allocated to this group.') }}</p>@endif
         </section>
     </div>
+    @else
     @if($configuration['can_manage'] && $writable)
     <section class="mastery-panel" aria-labelledby="mastery-model-heading"><h2 id="mastery-model-heading">{{ __('Mastery model') }}</h2>
         <form method="POST" action="{{ route('mastery.model') }}" class="mastery-form" aria-label="{{ __('Choose the mastery model') }}">@csrf
@@ -94,6 +103,7 @@
             @endif
         @else<p>{{ __('No published topics are available for this subject yet.') }}</p>@endif
     </section>
+    @endif
 </div>
 @endsection
 @section('js')<script src="{{ asset('assets/js/mastery-workbench.js') }}?v={{ filemtime(public_path('assets/js/mastery-workbench.js')) }}" defer></script>@endsection

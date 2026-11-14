@@ -5,6 +5,7 @@
   const button = root.querySelector('[data-vendor-camera]'), video = root.querySelector('[data-vendor-video]');
   const stopButton = root.querySelector('[data-vendor-stop]'), field = root.querySelector('[data-vendor-qr]');
   const status = root.querySelector('[data-vendor-camera-status]');
+  const ticketRecoveryIndex = root.querySelector('[data-ticket-admission-counter]')?.dataset.index;
   let stream = null, timer = null, generation = 0;
   const stop = () => {
     generation++;
@@ -55,8 +56,8 @@
   let hidden = false;
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { hidden = true; erase(); }
-    else if (hidden) location.reload();
+    else if (hidden) { if (ticketRecoveryIndex) location.replace(ticketRecoveryIndex); else location.reload(); }
   });
   window.addEventListener('pagehide', erase);
-  window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
+  window.addEventListener('pageshow', event => { if (event.persisted) { if (ticketRecoveryIndex) location.replace(ticketRecoveryIndex); else location.reload(); } });
 })();

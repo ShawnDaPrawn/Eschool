@@ -5,6 +5,7 @@
 @section('content')
 <h1>{{ __('Library reviews') }}</h1>
 <p class="saas-lead">{{ __('Library versions waiting for a decision. Approve what is correct, fits the topic and may be used under its licence; send anything else back with a reason the author can act on.') }}</p>
+<p><a href="{{ route('saas.library.ratings') }}">{{ __('Teachers\' ratings of shared items') }}</a></p>
 <p>{{ $subjects === [] ? __('You are not assigned to any subject yet, so nothing is waiting for you.') : __('Your subjects: :subjects', ['subjects' => implode(', ', $subjects)]) }}</p>
 <nav aria-label="{{ __('Show') }}" class="saas-actions">
     @foreach ($filters as $value => $label)
@@ -16,6 +17,9 @@
 @forelse ($waiting as $version)
     <section class="saas-card" aria-label="{{ $version['title'] }}">
         <h2>{{ $version['title'] }} · {{ __('version :number', ['number' => $version['number']]) }}</h2>
+        @if ($version['contribution'])
+            <p><span class="saas-badge">{{ __('Shared by a school') }}</span> {{ __('Shared by :teacher at :school on :date. Shown to other schools as: :credit.', ['teacher' => $version['contribution']['teacher'], 'school' => $version['contribution']['school'], 'date' => $version['contribution']['date'], 'credit' => __($version['contribution']['credit'])]) }}</p>
+        @endif
         @if ($version['ai'] || $version['attention'])
             <p>@if ($version['ai'])<span class="saas-badge saas-badge--warn">{{ __('AI draft: check every fact, answer and explanation') }}</span> @endif @if ($version['attention'])<span class="saas-badge saas-badge--warn">{{ __('Needs attention: learners\' answers flagged the published version') }}</span>@endif</p>
         @endif

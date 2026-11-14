@@ -23,5 +23,5 @@
 </div>
 @endsection
 @section('css')
-<style>.peer-page{overflow-wrap:anywhere}.peer-table{overflow-x:auto;max-width:100%}</style>
+<style>.peer-page{overflow-wrap:anywhere}.peer-table{overflow-x:auto;max-width:100%}.peer-table caption{color:var(--md-sys-color-on-surface)}</style>
 @endsection

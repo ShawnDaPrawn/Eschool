@@ -36,7 +36,8 @@ class TimetableWorkbenchRequest extends FormRequest
 
     public function rules(): array
     {
-        $common = ['session_year_id' => [$this->isMethodSafe() ? 'sometimes' : 'required', 'integer', 'min:1'], 'week_on' => ['sometimes', 'date_format:Y-m-d']];
+        $common = ['session_year_id' => [$this->isMethodSafe() ? 'sometimes' : 'required', 'integer', 'min:1'], 'week_on' => ['sometimes', 'date_format:Y-m-d'],
+            'view' => ['sometimes', 'in:week,placement,rooms,bells,short-days,import']];
         if ($this->isMethodSafe()) {
             return $common + ['edit' => ['sometimes', 'integer', 'min:1'], 'room' => ['sometimes', 'integer', 'min:1'], 'schedule' => ['sometimes', 'integer', 'min:1']];
         }

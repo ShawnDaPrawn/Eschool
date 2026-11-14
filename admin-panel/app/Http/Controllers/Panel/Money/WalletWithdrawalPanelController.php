@@ -65,7 +65,7 @@ class WalletWithdrawalPanelController extends Controller
     {
         app(WalletWithdrawals::class)->policy($request->user(), $request->validated());
 
-        return redirect()->route('wallet-withdrawals.index', status: 303)->with('success', __('Withdrawal policy saved.'));
+        return redirect()->route('wallet-withdrawals.index', ['section' => 'settings'], 303)->with('success', __('Withdrawal policy saved.'));
     }
 
     public function publishSlot(WalletWithdrawalPanelRequest $request): Response

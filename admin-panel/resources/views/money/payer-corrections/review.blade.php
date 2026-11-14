@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('Review original unpaid correction'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench payer-correction-workbench">
 <x-page.header :title="__('Review original unpaid correction')" :subtitle="__('Paid receipts, allocations and held credit stay with their original payer. Only the reviewed unpaid debt receives an equal credit and replacement invoice.')" />

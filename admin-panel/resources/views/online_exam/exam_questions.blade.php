@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
+    <div class="content-wrapper m3 page-content">
         <div class="page-header">
             <h3 class="page-title">
                 {{ __('assign') . ' ' . __('questions') }}

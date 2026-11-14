@@ -1,0 +1,6 @@
+/* Configuration labels and guidance remain legible on both the nested form
+   surface and the elevated dialog surface throughout its entrance transition.
+   Focused/error labels retain their existing primary/error state tokens. */
+.leave-configuration-dialog {
+    --md-sys-color-on-surface-variant: var(--md-sys-color-on-surface);
+}

@@ -15,7 +15,7 @@
 
     @if($audience !== 'teacher' && !$canWrite)<p role="status">{{ __('Changes are unavailable. Check the current school year and module access.') }}</p>@endif
 
-    <nav aria-label="{{ __('Support workbenches') }}">@foreach($access['audiences'] as $mode)<a class="m3-button m3-button--outlined" @if($mode === $audience) aria-current="page" @endif
+    <nav class="workspace-tabs" aria-label="{{ __('Support workbenches') }}">@foreach($access['audiences'] as $mode)<a class="m3-button m3-button--outlined" @if($mode === $audience) aria-current="page" @endif
  href="{{ route('support-plans.index', ['audience' => $mode]) }}">{{ $modeLabels[$mode] }}</a>@endforeach
 </nav>
     @if($audience !== 'teacher')

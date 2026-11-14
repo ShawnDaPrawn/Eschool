@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('generate') . ' ' . __('id') . ' ' . __('card') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('generate') . ' ' . __('id') . ' ' . __('card')" />
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
                 <div class="card">
@@ -20,7 +16,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('type') }}</label>
+                                <label for="staff_id_card_type">{{ __('type') }}</label>
                                 {{-- The picker (#table_list) reads this value via data-* on change; see generate_staff_id.js --}}
                                 <select name="staff_id_card_type" id="staff_id_card_type" class="form-control">
                                     <option value="" @selected($defaultType === '')>{{ __('all') }}</option>

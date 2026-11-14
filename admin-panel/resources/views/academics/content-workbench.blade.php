@@ -5,6 +5,12 @@
 <div class="content-wrapper m3 page-content content-workbench">
     <x-page.header :title="__('Learning content')" :subtitle="__('Upload privately, review the converted draft, then publish to your teaching groups.')" />
     @include('academics.groups-status')
+    @php($contentView = request('view') === 'configuration' && $configuration['can_manage'] ? 'configuration' : 'library')
+    <nav class="workspace-tabs" aria-label="{{ __('Content workspace') }}">
+        <a class="m3-button m3-button--text" href="{{ route('academic-content.index', ['session_year_id' => $configuration['session_year_id']]) }}" @if($contentView === 'library') aria-current="page" @endif>{{ __('Learning library') }}</a>
+        @if($configuration['can_manage'])<a class="m3-button m3-button--text" href="{{ route('academic-content.index', ['session_year_id' => $configuration['session_year_id'], 'view' => 'configuration']) }}" @if($contentView === 'configuration') aria-current="page" @endif>{{ __('Configuration') }}</a>@endif
+    </nav>
+    @if($contentView === 'library')
     <form method="GET" action="{{ route('academic-content.index') }}" aria-label="{{ __('Choose content context') }}" class="content-controls">
         <x-page.field type="select" :restore-old-input="false" name="session_year_id" :label="__('School year')" :options="array_column($configuration['school_years'],'name','id')" :value="$configuration['session_year_id']" />
         @if($configuration['groups'])<x-page.field type="select" :restore-old-input="false" name="group_id" :label="__('Teaching context')" :options="collect($configuration['groups'])->mapWithKeys(fn ($g) => [$g['id']=>$g['subject_name'].' · '.$g['grade_name'].' · '.$g['name']])->all()" :value="$group['id'] ?? null" />@endif
@@ -71,10 +77,8 @@
         @endif
     </section>
     </div>
-    @if($configuration['can_manage'])<details class="content-panel"><summary>{{ __('School transcription controls') }}</summary><form method="POST" action="{{ route('academic-content.settings') }}" aria-label="{{ __('School transcription controls') }}" class="content-form">@csrf
-        <input type="hidden" name="revision" value="{{ $configuration['settings']['revision'] }}">
-        <x-page.field type="select" :restore-old-input="false" name="transcription_enabled" :label="__('Audio and video transcription')" :options="[1=>__('Enabled'),0=>__('Disabled')]" :value="(int) $configuration['settings']['transcription_enabled']" />
-        <x-page.field :restore-old-input="false" name="daily_transcription_seconds" type="number" :label="__('School daily transcription allowance in seconds')" :value="$configuration['settings']['daily_transcription_seconds']" min="600" max="28800" required />
-        <button class="m3-button m3-button--tonal" type="submit">{{ __('Save content controls') }}</button></form></details>@endif
+    @else
+        @include('academics.workspaces.content-configuration')
+    @endif
 </div>
 @endsection

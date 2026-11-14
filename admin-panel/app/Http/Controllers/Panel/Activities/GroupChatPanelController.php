@@ -62,8 +62,9 @@ class GroupChatPanelController extends Controller
         $accountId = (int) $actor->id;
         $schoolId = app(CurrentSchool::class)->id();
         $operationId = $status === 422 && Str::isUuid((string) $request->input('operation_id')) ? $request->input('operation_id') : (string) Str::uuid();
+        $screen = $conversation !== null ? 'conversation' : ($draftOperation === 'create' || $request->query('screen') === 'create' ? 'create' : 'list');
 
-        return response()->view('activities.chat', compact('groups', 'group', 'listing', 'conversation', 'canWrite', 'draft', 'draftOperation', 'messages', 'accountId', 'schoolId', 'operationId'), $status);
+        return response()->view('activities.chat', compact('screen', 'groups', 'group', 'listing', 'conversation', 'canWrite', 'draft', 'draftOperation', 'messages', 'accountId', 'schoolId', 'operationId'), $status);
     }
 
     /** Keep text only with a destination still offered by this freshly authorized page. */

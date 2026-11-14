@@ -89,10 +89,20 @@ class ActivitySuggestionsTest extends TestCase
         $boys = $this->group($this->year, 'Netball boys', ['gender' => 'male']);
         $this->assertSame([], app(ActivityGroups::class)->lastYearSuggestions($this->superAdmin(), $boys['id']));
 
-        $this->get(route('activity-groups.index', ['group_id' => $new['id']]))->assertOk()->assertSee('In this group last year')->assertSee('Add as member');
+        $roster = route('activity-groups.index', ['group_id' => $new['id'], 'view' => 'members']);
+        $editor = route('activity-groups.index', ['group_id' => $new['id'], 'view' => 'member-edit']);
+        $this->get(route('activity-groups.index', ['group_id' => $new['id']]))->assertOk()->assertSee($roster);
+        $this->get($roster)->assertOk()->assertSee('Allocate learner')->assertSee($editor);
+        $this->get($editor)->assertOk()->assertSee('In this group last year')->assertSee('Add as member');
         $this->post(route('activity-groups.membership-save', ['group' => $new['id']]), ['operation_id' => (string) Str::uuid(), 'revision' => 0,
             'learner_id' => $ids['asha'], 'role' => 'member', 'starts_on' => '2026-02-10', 'ends_on' => '2026-06-30', 'reason' => 'In this group last year'])->assertRedirect();
+        $member = ActivityMembership::where('activity_group_id', $new['id'])->sole();
+        $this->assertSame($ids['asha'], (int) $member->learner_id);
+        $this->assertSame('member', $member->role);
+        $this->assertSame('2026-02-10', $member->starts_on->toDateString());
+        $this->assertSame('2026-06-30', $member->ends_on->toDateString());
         $this->assertSame([], app(ActivityGroups::class)->lastYearSuggestions($this->superAdmin(), $new['id']));
+        $this->get($editor)->assertOk()->assertDontSee('Add as member');
     }
 
     public function test_a_teacher_gets_no_suggestions(): void

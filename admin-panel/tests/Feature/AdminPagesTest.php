@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Staff;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\Platform\Modules\ModuleGate;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Routing\Route;
@@ -33,7 +34,14 @@ class AdminPagesTest extends TestCase
     private const SKIP_PREFIXES = ['api/', 'install', '_debugbar', 'sanctum/', 'storage/'];
 
     /** Purpose-restricted pages and source downloads require their own bound context. */
-    private const PURPOSE_RESTRICTED = ['vendor-counter', 'ai-flags', 'platform/ai-costs', 'group-conversations', 'group', 'school-cards/encoder-runtime', 'saas', 'saas/schools/create', 'saas/password'];
+    private const PURPOSE_RESTRICTED = ['vendor-counter', 'ai-flags', 'platform/ai-costs', 'group-conversations', 'group', 'school-cards/encoder-runtime', 'saas', 'saas/schools/create', 'saas/password',
+        // These are the actual facilitator's own request/cover and dedicated
+        // staff-purpose inbox, never an administrator impersonating an owner.
+        'facilitator-leave/create', 'facilitator-leave/my-cover', 'my-school/inbox/private',
+    ];
+
+    /** Optional modules remain off on a fresh install, including their office lists. */
+    private const OPTIONAL_MODULE_PAGES = ['facilitator-leave' => 'groups'];
 
     protected function setUp(): void
     {
@@ -64,6 +72,11 @@ class AdminPagesTest extends TestCase
 
                 continue;
             }
+            if (isset(self::OPTIONAL_MODULE_PAGES[$uri]) && ! app(ModuleGate::class)->allows(self::OPTIONAL_MODULE_PAGES[$uri])) {
+                $this->assertSame(403, $status, 'A disabled optional module opened its office page: '.$uri);
+
+                continue;
+            }
             if ($status === 403) {
                 $forbidden[] = $uri;
             } elseif ($status >= 500) {
@@ -73,6 +86,22 @@ class AdminPagesTest extends TestCase
 
         $this->assertSame([], $forbidden, 'Pages returned 403 Forbidden');
         $this->assertSame([], $broken, 'Pages returned a server error');
+    }
+
+    public function test_facilitator_office_opens_when_enabled_without_granting_self_service_purpose(): void
+    {
+        $admin = $this->superAdmin();
+        $admin->update(['password' => Hash::make('admin-pages-test')]);
+        $client = $this->loggedInClient('superadmin@gmail.com', 'admin-pages-test');
+        $this->assertFalse(app(ModuleGate::class)->allows('groups'));
+        $this->assertSame(403, $client->get('/facilitator-leave')->status());
+
+        $admin->givePermissionTo(['activity-groups-manage', 'leave-approve']);
+        app(ModuleGate::class)->change('groups', true, $admin);
+        $this->assertSame(200, $client->get('/facilitator-leave')->status());
+        foreach (['facilitator-leave/create', 'facilitator-leave/my-cover', 'my-school/inbox/private'] as $uri) {
+            $this->assertSame(403, $client->get('/'.$uri)->status(), 'Module setup granted a separate personal purpose: '.$uri);
+        }
     }
 
     public function test_no_admin_page_crashes_for_a_teacher(): void

@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage_teacher') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('Add teacher')" :subtitle="__('Enter the teacher’s details and the permissions needed for their school role.')"><x-slot:actions><a class="m3-button m3-button--outlined" href="{{ route('teacher.details') }}">{{ __('Back to teachers') }}</a></x-slot:actions></x-page.header>
 
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">

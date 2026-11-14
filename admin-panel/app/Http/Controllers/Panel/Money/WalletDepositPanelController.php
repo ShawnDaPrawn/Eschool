@@ -60,7 +60,7 @@ class WalletDepositPanelController extends Controller
     {
         app(WalletDeposits::class)->policy($request->user(), $request->validated());
 
-        return redirect()->route('wallet-deposits.index', status: 303)->with('success', __('Parent deposit methods saved.'));
+        return redirect()->route('wallet-deposits.index', ['section' => 'settings'], 303)->with('success', __('Parent deposit methods saved.'));
     }
 
     public function verify(WalletDepositPanelRequest $request): Response

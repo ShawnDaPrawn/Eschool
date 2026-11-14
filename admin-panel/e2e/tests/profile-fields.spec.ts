@@ -1,10 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect as playwrightExpect, test } from '@playwright/test';
+const expect = playwrightExpect.configure({ timeout: 30_000 });
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.use({ storageState: { cookies: [], origins: [] } });
+// These flows include file conversion/export and axe under the shared test runtime.
+test.setTimeout(180_000);
 
 for (const width of [1024, 1280]) {
   test(`profile editor, partial save and permitted export at ${width}px`, async ({ page, baseURL }) => {
@@ -14,7 +17,7 @@ for (const width of [1024, 1280]) {
     const key = `transport_${width}_${Date.now()}`;
     const categoryLabel = `Transport ${key}`;
     const fieldLabel = `Transport route ${key}`;
-    await page.goto('/profile-configuration?profile_type=learner');
+    await page.goto('/profile-configuration?profile_type=learner&view=category');
     await expect(page.getByRole('heading', { name: 'Profile fields', exact: true })).toBeVisible();
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
@@ -22,6 +25,7 @@ for (const width of [1024, 1280]) {
     await page.getByRole('textbox', { name: 'Category key', exact: true }).fill(key);
     await page.getByRole('button', { name: 'Save category', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Profile category saved.' })).toBeVisible();
+    await page.getByRole('link', { name: 'Add field', exact: true }).click();
     await page.getByRole('combobox', { name: 'Field category', exact: true }).selectOption({ label: categoryLabel });
     await page.getByRole('textbox', { name: 'Field label', exact: true }).fill(fieldLabel);
     await page.getByRole('textbox', { name: 'Field key', exact: true }).fill(key);
@@ -73,13 +77,14 @@ for (const width of [1024, 1280]) {
     await signIn(page, accounts.adminB);
     const key = `files_${width}_${Date.now()}`;
     const categoryLabel = `Private documents ${key}`;
-    await page.goto('/profile-configuration?profile_type=learner');
+    await page.goto('/profile-configuration?profile_type=learner&view=category');
     await page.getByRole('textbox', { name: 'Category label', exact: true }).fill(categoryLabel);
     await page.getByRole('textbox', { name: 'Category key', exact: true }).fill(key);
     await page.getByRole('button', { name: 'Save category', exact: true }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Profile category saved.' })).toBeVisible();
     for (const [suffix, type] of [['route', 'text'], ['letter', 'file']]) {
-      await page.getByRole('combobox', { name: 'Field category', exact: true }).selectOption({ label: categoryLabel });
+      await page.getByRole('link', { name: 'Add field', exact: true }).click();
+    await page.getByRole('combobox', { name: 'Field category', exact: true }).selectOption({ label: categoryLabel });
       await page.getByRole('textbox', { name: 'Field label', exact: true }).fill(`${suffix} ${key}`);
       await page.getByRole('textbox', { name: 'Field key', exact: true }).fill(`${key}_${suffix}`);
       await page.getByRole('combobox', { name: 'Field type', exact: true }).selectOption(type);
@@ -152,5 +157,54 @@ for (const width of [1024, 1280]) {
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     expect(errors).toEqual([]);
+  });
+}
+
+for (const width of [320, 1280]) {
+  test(`learner attendance report preserves deep links and changes month at ${width}px`, async ({ page, baseURL }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await signIn(page, accounts.admin);
+    const errors = collectErrors(page, baseURL!);
+    await page.goto('/students-report?report_tab=attendance');
+    const report = page.locator('#table_list tbody a[href*="/student-report/"]').first();
+    await expect(report).toHaveAttribute('href', /\?tab=attendance$/);
+    await report.click();
+    await expect(page).toHaveURL(/student-report\/\d+\?tab=attendance/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    await expect(page.locator('#student-tabs [data-tab=attendance]')).toHaveAttribute('aria-current', 'page');
+    await page.locator('#month-selector').selectOption({ index: 0 });
+    const month = await page.locator('#month-selector').inputValue();
+    await page.getByRole('button', { name: 'Show month', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`month=${month}`));
+    await expect(page.locator('#attendance-calendar table')).toBeVisible();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    await page.locator('#student-tabs [data-tab=leave]').click();
+    await expect(page).toHaveURL(/tab=leave/);
+    await expect(page.locator('.page-breadcrumb a').first()).toHaveText('Leave');
+    await expect(page.locator('#student-tabs [data-tab=leave]')).toHaveAttribute('aria-current', 'page');
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const width of [320, 1280]) {
+  test(`access review separates role preview from effective person access at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await signIn(page, accounts.admin);
+    await page.goto('/access-review');
+    await page.getByRole('form', { name: 'Review a role', exact: true }).getByRole('combobox', { name: 'Role', exact: true }).selectOption({ label: 'Teacher' });
+    await page.getByRole('button', { name: 'Review role', exact: true }).click();
+    await expect(page.getByRole('columnheader', { name: 'Availability', exact: true })).toBeVisible();
+    await expect(page.getByText('This preview uses this role’s permissions only. A person may hold other roles and assignments.', { exact: true })).toBeVisible();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    const person = page.getByRole('form', { name: 'Review a person', exact: true }).getByRole('combobox', { name: 'Person', exact: true });
+    await person.selectOption({ index: 1 });
+    const name = await person.locator('option:checked').textContent();
+    await page.getByRole('button', { name: 'Review person', exact: true }).click();
+    await expect(page.getByRole('heading', { level: 2, name: name!, exact: true })).toBeVisible();
+    await expect(page.getByText('This preview uses this role’s permissions only.', { exact: false })).toHaveCount(0);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
   });
 }

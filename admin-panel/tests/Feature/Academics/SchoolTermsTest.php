@@ -10,6 +10,7 @@ use App\Models\ClassSchool;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Term;
+use App\Models\TermTemplate;
 use App\Models\User;
 use App\Services\Academics\TermBreaks;
 use App\Services\Academics\TermCalendar;
@@ -233,10 +234,35 @@ class SchoolTermsTest extends TestCase
         $this->assertSame(1, Term::query()->where('session_year_id', $this->year)->count());
     }
 
+    public function test_panel_template_saves_and_previews_return_to_the_selected_template_workspace(): void
+    {
+        $this->admin();
+        $this->create();
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->actingAs($this->superAdmin(), 'web');
+        $sourceUrl = route('term.index', ['session_year_id' => $this->year, 'view' => 'templates']);
+        $this->post(route('term.templates.store'), ['name' => 'Saved school calendar', 'session_year_id' => $this->year])
+            ->assertRedirect($sourceUrl);
+        $this->get($sourceUrl)->assertOk()->assertSee('School calendar templates')->assertDontSee('id="new-term-name"', false);
+        $template = TermTemplate::where('name', 'Saved school calendar')->sole();
+        $target = $this->nextYear();
+        $targetUrl = route('term.index', ['session_year_id' => $target->id, 'view' => 'templates']);
+        $payload = ['template_id' => $template->id, 'session_year_id' => $target->id];
+        $this->post(route('term.templates.apply'), $payload + ['apply' => false])->assertRedirect($targetUrl);
+        $this->get($targetUrl)->assertOk()->assertSee('Calendar preview')->assertSee('data-calendar-template-review="'.$template->id.'"', false);
+        $this->post(route('term.templates.apply'), $payload + ['apply' => true])->assertRedirect($targetUrl);
+        $this->get($targetUrl)->assertOk()->assertSee('Terms added')->assertDontSee('id="new-term-name"', false);
+        $this->assertSame(1, $target->terms()->count());
+    }
+
     public function test_panel_renders_calendar_forms_and_checks_foreign_years(): void
     {
         $this->actingAs($this->superAdmin(), 'web')->get('/term?session_year_id='.$this->year)->assertOk()
-            ->assertSee('School terms')->assertSee('Save calendar template')->assertSee('No terms yet.');
+            ->assertSee('School terms')->assertSee('No terms yet.')->assertDontSee('name="template_id"', false);
+        $this->get('/term?session_year_id='.$this->year.'&view=templates')->assertOk()->assertSee('Save calendar template')->assertDontSee('id="new-term-name"', false);
+        $this->get('/term?session_year_id='.$this->year.'&view=create')->assertOk()->assertSee('Add term')->assertDontSee('Save calendar template');
+        $this->get('/term?session_year_id='.$this->year.'&view=configuration')->assertOk()->assertSee('Enable terms and review subjects')->assertDontSee('Save calendar template');
+        $this->get('/term?session_year_id='.$this->year.'&view=edit&term=999999')->assertNotFound();
         $this->get('/term?session_year_id='.$this->schoolB->ids['session_year'])->assertNotFound();
     }
 

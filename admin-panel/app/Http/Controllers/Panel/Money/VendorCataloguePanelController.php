@@ -58,9 +58,9 @@ class VendorCataloguePanelController extends Controller
         };
         $query = match ($kind) {
             'category' => ['category_id' => $row->id],
-            'vendor' => ['vendor_id' => $row->id],
+            'vendor' => ['vendor_id' => $row->id, 'section' => 'vendor'],
             'product' => ['vendor_id' => $row->vendor_id, 'product_id' => $row->id],
-            'stock' => ['product_id' => $row->product_id],
+            'stock' => ['product_id' => $row->product_id, 'section' => 'stock'],
         };
 
         return redirect()->route('vendor-catalogues.index', $query)->with('success', __('Vendor catalogue change saved.'));

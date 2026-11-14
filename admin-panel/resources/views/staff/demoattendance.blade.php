@@ -10,10 +10,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">{{ __('manage') . ' ' . __('attendance') }}</h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('attendance')" />
 
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
@@ -24,14 +22,14 @@
                         {{-- Filters: view (daily/monthly) + date --}}
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label class="filter-menu">{{ __('view') }}</label>
+                                <label for="attendance_view" class="filter-menu">{{ __('view') }}</label>
                                 <select id="attendance_view" class="form-control">
                                     <option value="daily" selected>{{ __('daily') }}</option>
                                     <option value="monthly">{{ __('monthly') }}</option>
                                 </select>
                             </div>
                             <div class="form-group col-sm-12 col-md-2">
-                                <label class="filter-menu">{{ __('date') }}</label>
+                                <label for="attendanceDate" class="filter-menu">{{ __('date') }}</label>
                                 <input type="text" id="attendanceDate" class="form-control" autocomplete="off">
                             </div>
                         </div>

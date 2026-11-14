@@ -6,6 +6,7 @@ use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Growth\MasteryRecord;
 use App\Models\Growth\MasteryTopic;
+use App\Models\PeerTutoring\PeerTutoringSession;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
 use App\Models\SessionYear;
@@ -70,10 +71,17 @@ return app(CurrentSchool::class)->run(1, function (): array {
     // database is changed (see the guard above).
     $began = $clock->subDay()->toDateString();
     DB::table('school_memberships')->where('school_id', 1)->where('starts_on', '>', $began)->update(['starts_on' => $began]);
+    // A browser interruption can leave this exact rehearsal pending. Reuse it
+    // instead of creating an overlapping supervisor/learner booking on retry.
+    // Completed/cancelled/reversed records remain immutable fixture history.
+    $row = PeerTutoringSession::where('teaching_group_id', $group->id)->where('topic_id', $topic->id)
+        ->where('supervisor_user_id', $teacher->id)->where('tutor_learner_id', $tutor->id)->where('tutee_learner_id', $tutee->id)
+        ->where('venue', 'Synthetic completed-time browser supervision')->where('status', 'scheduled')
+        ->where('ends_at', '<=', $clock->utc())->orderByDesc('ends_at')->first();
     try {
         CarbonImmutable::setTestNow($clock->subHours(3));
         Carbon::setTestNow($clock->subHours(3));
-        $row = app(PeerSessions::class)->create($teacher, ['operation_id' => (string) Str::uuid(), 'teaching_group_id' => (int) $group->id,
+        $row ??= app(PeerSessions::class)->create($teacher, ['operation_id' => (string) Str::uuid(), 'teaching_group_id' => (int) $group->id,
             'tutor_learner_id' => (int) $tutor->id, 'tutee_learner_id' => (int) $tutee->id, 'topic_id' => (int) $topic->id,
             'venue' => 'Synthetic completed-time browser supervision', 'starts_at' => $clock->subHours(2)->format('Y-m-d\TH:i'), 'ends_at' => $clock->subHour()->format('Y-m-d\TH:i')]);
     } finally {

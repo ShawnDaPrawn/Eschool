@@ -59,7 +59,9 @@ for (const width of [390, 820, 1280]) {
     expect(fixture('stats', data.school)).toMatchObject({ verified: 1, rejected: 1, entries: 1, parent_cents: 9012, healthy: true });
     fixture('disable', data.school);
     await page.goto('/wallet-deposits');
+    await page.getByRole('link', { name: 'Deposit configuration', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Save parent deposit methods', exact: true })).toBeDisabled();
+    await page.getByRole('link', { name: 'Deposit requests', exact: true }).click();
     await expect(page.getByRole('link', { name: `WD-${data.claim}`, exact: true })).toBeVisible();
     await check(page);
     expect(errors).toEqual([]);

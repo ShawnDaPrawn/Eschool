@@ -65,7 +65,7 @@ class GalleryPanelController extends Controller
                 default => abort(404),
             };
 
-            return redirect()->route('gallery-panel.index', array_filter(['group_id' => $r->attributes->get('gallery_group_id')]));
+            return redirect()->route('gallery-panel.index', array_filter(['group_id' => $r->attributes->get('gallery_group_id'), 'view' => $op === 'settings' ? 'configuration' : 'photos']));
         } catch (ValidationException $error) {
             return $this->failure($r, $error->errors(), 422);
         } catch (HttpExceptionInterface $error) {

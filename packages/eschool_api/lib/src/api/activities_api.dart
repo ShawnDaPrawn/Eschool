@@ -10,6 +10,12 @@ import 'package:eschool_api/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
 import 'dart:typed_data';
+import 'package:eschool_api/src/model/academic_adjudicators_write.dart';
+import 'package:eschool_api/src/model/academic_awards_write.dart';
+import 'package:eschool_api/src/model/academic_competition_create.dart';
+import 'package:eschool_api/src/model/academic_competition_details.dart';
+import 'package:eschool_api/src/model/academic_competition_response.dart';
+import 'package:eschool_api/src/model/academic_result_write.dart';
 import 'package:eschool_api/src/model/activity_attendance_receipt_response.dart';
 import 'package:eschool_api/src/model/activity_attendance_write.dart';
 import 'package:eschool_api/src/model/activity_group_detail_response.dart';
@@ -56,6 +62,10 @@ import 'package:eschool_api/src/model/group_chat_receipt_response.dart';
 import 'package:eschool_api/src/model/group_chat_thread_create.dart';
 import 'package:eschool_api/src/model/group_chat_thread_page_response.dart';
 import 'package:eschool_api/src/model/group_chat_thread_state_change.dart';
+import 'package:eschool_api/src/model/learner_academic_competition_list_response.dart';
+import 'package:eschool_api/src/model/reasoning_review_response.dart';
+import 'package:eschool_api/src/model/reasoning_review_write.dart';
+import 'package:eschool_api/src/model/reasoning_share_write.dart';
 
 class ActivitiesApi {
   final Dio _dio;
@@ -164,6 +174,111 @@ class ActivitiesApi {
     }
 
     return Response<ActivityAttendanceReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Arrange a debate, quiz or speech contest with another school or one outside NavigateEd
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [academicCompetitionCreate]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicCompetitionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicCompetitionResponse>> createAcademicCompetition({
+    required AcademicCompetitionCreate academicCompetitionCreate,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/academic-competitions';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicCompetitionCreate);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicCompetitionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicCompetitionResponse,
+              AcademicCompetitionResponse
+            >(rawData, 'AcademicCompetitionResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicCompetitionResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1820,6 +1935,213 @@ class ActivitiesApi {
     );
   }
 
+  /// Present one of the school&#39;s awards to its own entrants for taking part or placing
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [academicAwardsWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicCompetitionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicCompetitionResponse>> linkAcademicAwards({
+    required int competition,
+    required AcademicAwardsWrite academicAwardsWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/academic-competitions/{competition}/awards'
+        .replaceAll(
+          '{'
+          r'competition'
+          '}',
+          competition.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicAwardsWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicCompetitionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicCompetitionResponse,
+              AcademicCompetitionResponse
+            >(rawData, 'AcademicCompetitionResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicCompetitionResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// List the academic competitions this school takes part in
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [FixtureListResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<FixtureListResponse>> listAcademicCompetitions({
+    int? xAccountId,
+    int? xSchoolId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/academic-competitions';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{if (page != null) r'page': page};
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    FixtureListResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<FixtureListResponse, FixtureListResponse>(
+              rawData,
+              'FixtureListResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<FixtureListResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// List currently authorized activity groups
   /// School-scoped private activity data. Fresh membership, role and group authority precede validation and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only their own groups. Learners and guardians never receive peer rosters.
   ///
@@ -2316,6 +2638,107 @@ class ActivitiesApi {
     );
   }
 
+  /// Academic competitions a learner is an entrant in, as their family sees them
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [LearnerAcademicCompetitionListResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<LearnerAcademicCompetitionListResponse>>
+  listLearnerAcademicCompetitions({
+    required int learner,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/learners/{learner}/academic-competitions'
+        .replaceAll(
+          '{'
+          r'learner'
+          '}',
+          learner.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    LearnerAcademicCompetitionListResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              LearnerAcademicCompetitionListResponse,
+              LearnerAcademicCompetitionListResponse
+            >(
+              rawData,
+              'LearnerAcademicCompetitionListResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<LearnerAcademicCompetitionListResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Fixtures a learner is on the team sheet for, as their family sees them
   /// Records shared between schools. A school sees a fixture or competition only through its own participant row; until every school taking part has accepted, each sees only the other school&#39;s name. Learner ids, groups and notes never leave their school; a team sheet is shared only as labels and positions when the school chooses. Managers (activity-groups-manage) create and answer; assigned group staff keep their own side and report scores.
   ///
@@ -2523,6 +2946,101 @@ class ActivitiesApi {
     }
 
     return Response<GroupChatReadAckResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read this school&#39;s view of an academic competition
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicCompetitionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicCompetitionResponse>> readAcademicCompetition({
+    required int competition,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/academic-competitions/{competition}'.replaceAll(
+      '{'
+      r'competition'
+      '}',
+      competition.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicCompetitionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicCompetitionResponse,
+              AcademicCompetitionResponse
+            >(rawData, 'AcademicCompetitionResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicCompetitionResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -2930,6 +3448,112 @@ class ActivitiesApi {
     );
   }
 
+  /// Read AI feedback this adjudicator asked for
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [review]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ReasoningReviewResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ReasoningReviewResponse>> readReasoningReview({
+    required int competition,
+    required int review,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/academic-competitions/{competition}/reasoning-reviews/{review}'
+            .replaceAll(
+              '{'
+              r'competition'
+              '}',
+              competition.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'review'
+              '}',
+              review.toString(),
+            );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ReasoningReviewResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<ReasoningReviewResponse, ReasoningReviewResponse>(
+              rawData,
+              'ReasoningReviewResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ReasoningReviewResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Withdraw an attachment with an exact revisioned operation
   /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
   ///
@@ -3298,6 +3922,461 @@ class ActivitiesApi {
     }
 
     return Response<FixtureResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Ask for AI feedback on the reasoning in a speech or written argument (adjudicators, advice only)
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [reasoningReviewWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ReasoningReviewResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ReasoningReviewResponse>> requestReasoningReview({
+    required int competition,
+    required ReasoningReviewWrite reasoningReviewWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/academic-competitions/{competition}/reasoning-reviews'
+            .replaceAll(
+              '{'
+              r'competition'
+              '}',
+              competition.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(reasoningReviewWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ReasoningReviewResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<ReasoningReviewResponse, ReasoningReviewResponse>(
+              rawData,
+              'ReasoningReviewResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ReasoningReviewResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Name this school&#39;s own adjudicators
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [academicAdjudicatorsWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicCompetitionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicCompetitionResponse>> saveAcademicAdjudicators({
+    required int competition,
+    required AcademicAdjudicatorsWrite academicAdjudicatorsWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/academic-competitions/{competition}/adjudicators'
+            .replaceAll(
+              '{'
+              r'competition'
+              '}',
+              competition.toString(),
+            );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicAdjudicatorsWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicCompetitionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicCompetitionResponse,
+              AcademicCompetitionResponse
+            >(rawData, 'AcademicCompetitionResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicCompetitionResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Change the motion or topic, format, rounds and stance (host school)
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [academicCompetitionDetails]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicCompetitionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicCompetitionResponse>> saveAcademicCompetitionDetails({
+    required int competition,
+    required AcademicCompetitionDetails academicCompetitionDetails,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/academic-competitions/{competition}/details'
+        .replaceAll(
+          '{'
+          r'competition'
+          '}',
+          competition.toString(),
+        );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicCompetitionDetails);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicCompetitionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicCompetitionResponse,
+              AcademicCompetitionResponse
+            >(rawData, 'AcademicCompetitionResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicCompetitionResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Keep or submit this school&#39;s adjudicators&#39; result
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [academicResultWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicCompetitionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicCompetitionResponse>> saveAcademicResult({
+    required int competition,
+    required AcademicResultWrite academicResultWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/academic-competitions/{competition}/result'
+        .replaceAll(
+          '{'
+          r'competition'
+          '}',
+          competition.toString(),
+        );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicResultWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicCompetitionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicCompetitionResponse,
+              AcademicCompetitionResponse
+            >(rawData, 'AcademicCompetitionResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicCompetitionResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -4569,6 +5648,129 @@ class ActivitiesApi {
     }
 
     return Response<GroupChatMutationResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Share the adjudicator&#39;s own written feedback with one of the school&#39;s entrants
+  /// Academic competitions and debating between schools, as a shared fixture of an academic kind (debate, quiz, speech). Each school sees only its own entrants, adjudicators, adjudicators&#39; result and AI feedback; the other side shows the school and team name only. The result counts once both schools submit the same result (or the host does against a school outside NavigateEd). AI feedback on reasoning is advice to the adjudicator only, never a result or score, never shown to learners or families, off by default. Invitations and the team sheet of entrants use the fixture endpoints.
+  ///
+  /// Parameters:
+  /// * [competition]
+  /// * [review]
+  /// * [reasoningShareWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ReasoningReviewResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ReasoningReviewResponse>> shareReasoningFeedback({
+    required int competition,
+    required int review,
+    required ReasoningShareWrite reasoningShareWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/academic-competitions/{competition}/reasoning-reviews/{review}/share'
+            .replaceAll(
+              '{'
+              r'competition'
+              '}',
+              competition.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'review'
+              '}',
+              review.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(reasoningShareWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ReasoningReviewResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<ReasoningReviewResponse, ReasoningReviewResponse>(
+              rawData,
+              'ReasoningReviewResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ReasoningReviewResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

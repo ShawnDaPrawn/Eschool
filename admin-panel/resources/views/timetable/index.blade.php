@@ -16,15 +16,11 @@
             'sunday' => 'Sunday',
         ];
     @endphp
-    <div class="content-wrapper" id="timetable-page"
+    <div class="content-wrapper m3 page-content" id="timetable-page"
         data-url-class-sections="{{ url('get-class-sections-with-terms') }}"
         data-url-subjects="{{ url('get-subject-by-class-section') }}"
         data-url-teachers="{{ url('getteacherbysubject') }}" data-url-check="{{ url('checkTimetable') }}">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('create') . ' ' . __('timetable') }}
-            </h3>
-        </div>
+        <x-page.header :title="__('create') . ' ' . __('timetable')" />
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card search-container">
                 <div class="card">
@@ -46,10 +42,9 @@
                             </div>
 
                             <div class="form-group col-sm-12 col-md-4 col-lg-3">
-                                <label class="form-label">{{ __('class') }} {{ __('section') }} <span
+                                <label for="timetable_class_section" class="form-label">{{ __('class') }} {{ __('section') }} <span
                                         class="text-danger">*</span></label>
-                                <select required name="class_section_id" id="timetable_class_section" class="form-control"
-                                    aria-hidden="true">
+                                <select required name="class_section_id" id="timetable_class_section" class="form-control">
                                     <option value="">{{ __('select') }}</option>
                                 </select>
                                 <div class="select_error text-danger d-none">{{ __('This field is required') }}.</div>

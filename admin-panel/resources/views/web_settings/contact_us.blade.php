@@ -5,16 +5,12 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('contact_us') }}
-            </h3>
-        </div>
-        <div class="row">
-            <div class="col-md-12 grid-margin stretch-card search-container">
-                <div class="card">
-                    <div class="card-body">
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('contact_us')" />
+        <div class="panel-form-grid">
+            <div class="   search-container">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <h4 class="card-title">
                             {{ __('list') . ' ' . __('contact_us') }}
                         </h4>
@@ -65,28 +61,28 @@
                                 <input type="hidden" name="first_name" id="first_name" value=""/>
                                 <input type="hidden" name="last_name" id="last_name" value=""/>
                                 <input type="hidden" name="message" id="message" value=""/>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3" >{{ __('to') }}</label>
-                                    {!! Form::text('email', null, ['required', 'class' => 'form-control col-md-10','id' => 'email']) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3" >{{ __('to') }}</label>
+                                    {!! Form::text('email', null, ['required', 'class' => 'form-control ','id' => 'email']) !!}
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3">{{ __('subject') }}</label>
-                                    {!! Form::text('subject', null, ['required','class' => 'form-control col-md-10', 'id' => 'subject']) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3">{{ __('subject') }}</label>
+                                    {!! Form::text('subject', null, ['required','class' => 'form-control ', 'id' => 'subject']) !!}
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3">{{ __('message') }} </label>
-                                    {!! Form::textarea('reply_message', null, ['required','class' => 'form-control col-md-10', 'id' => 'reply_message' ,'rows' => 10]) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3">{{ __('message') }} </label>
+                                    {!! Form::textarea('reply_message', null, ['required','class' => 'form-control ', 'id' => 'reply_message' ,'rows' => 10]) !!}
                                 </div>
-                                <div class="row mt-5">
-                                    <div class="col-md-2"></div>
+                                <div class="panel-form-grid">
+                                    <div class=""></div>
                                     <div class="d-flex">
                                         <div class="form-group mr-4">
                                             <input type="file" name="file[]" class="file-upload-default" multiple/>
-                                            <button type="button" class="file-upload-browse btn btn-secondary">
+                                            <button type="button" class="file-upload-browse m3-button m3-button--outlined">
                                                 <i class="fa fa-plus"></i>&nbsp;{{ __('attachment') }}</button>
                                         </div>
                                         <div class="form-group">
-                                            <input class="btn btn-theme" type="submit" value={{ __('send') }} />
+                                            <input class="m3-button m3-button--filled" type="submit" value={{ __('send') }} />
                                         </div>
                                     </div>
                                 </div>
@@ -112,29 +108,29 @@
                                     <label>{{ __('name') }} <span class="text-danger">*</span></label>
                                     <input name="name" id="edit_name" type="text" placeholder="{{ __('name') }}" class="form-control" readonly/>
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3" >{{ __('first_name') }}</label>
-                                    {!! Form::text('first_name', null, ['required', 'class' => 'form-control col-md-10','id' => 'edit_first_name', 'readonly']) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3" >{{ __('first_name') }}</label>
+                                    {!! Form::text('first_name', null, ['required', 'class' => 'form-control ','id' => 'edit_first_name', 'readonly']) !!}
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3" >{{ __('last_name') }}</label>
-                                    {!! Form::text('last_name', null, ['required', 'class' => 'form-control col-md-10','id' => 'edit_last_name', 'readonly']) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3" >{{ __('last_name') }}</label>
+                                    {!! Form::text('last_name', null, ['required', 'class' => 'form-control ','id' => 'edit_last_name', 'readonly']) !!}
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3" >{{ __('email') }}</label>
-                                    {!! Form::text('email', null, ['required', 'class' => 'form-control col-md-10','id' => 'edit_email', 'readonly']) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3" >{{ __('email') }}</label>
+                                    {!! Form::text('email', null, ['required', 'class' => 'form-control ','id' => 'edit_email', 'readonly']) !!}
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3" >{{ __('phone') }}</label>
-                                    {!! Form::text('phone', null, ['required', 'class' => 'form-control col-md-10','id' => 'edit_phone', 'readonly']) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3" >{{ __('phone') }}</label>
+                                    {!! Form::text('phone', null, ['required', 'class' => 'form-control ','id' => 'edit_phone', 'readonly']) !!}
                                 </div>
-                                <div class="row mb-3">
-                                    <label class="col-md-2 text-center mt-3">{{ __('message') }} </label>
-                                    {!! Form::textarea('message', null, ['required','class' => 'form-control col-md-10', 'id' => 'edit_message' ,'rows' => 10, 'readonly']) !!}
+                                <div class="panel-form-grid">
+                                    <label class=" text-center mt-3">{{ __('message') }} </label>
+                                    {!! Form::textarea('message', null, ['required','class' => 'form-control ', 'id' => 'edit_message' ,'rows' => 10, 'readonly']) !!}
                                 </div>
-                                <div class="row mt-5">
-                                    <div class="col-md-12 text-center">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('close') }}</button>
+                                <div class="panel-form-grid">
+                                    <div class=" text-center">
+                                        <button type="button" class="m3-button m3-button--outlined" data-dismiss="modal">{{ __('close') }}</button>
                                     </div>
                                 </div>
                             </div>

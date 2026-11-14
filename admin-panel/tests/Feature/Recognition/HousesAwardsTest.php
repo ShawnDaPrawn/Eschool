@@ -22,6 +22,7 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\SchoolModule;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardDefinition;
+use App\Models\Recognition\AwardNomination;
 use App\Models\Recognition\AwardNominationVersion;
 use App\Models\Recognition\AwardPresentation;
 use App\Models\Recognition\House;
@@ -197,14 +198,14 @@ class HousesAwardsTest extends TestCase
         app(HousePoints::class)->issue($this->head, $input);
         $notice = Notification::where('type', 'recognition.points_changed')->sole();
         $this->assertStringNotContainsString($input['reason'], $notice->message);
-        $this->assertSame(['link', 'recognition_source_id', 'recognition_revision'], array_keys($notice->delivery_payload));
+        $this->assertEqualsCanonicalizing(['link', 'recognition_source_id', 'recognition_revision'], array_keys($notice->delivery_payload));
         $notices = app(RecognitionNotices::class);
         $scopes = app(PrivateNoticeScopes::class);
         $query = fn () => $scopes->apply(Notification::where('type', 'recognition.points_changed'), (int) $parent->id);
         $this->assertTrue($notices->allows($parent, $notice->type, $notice->delivery_payload));
         $this->assertSame(1, $query()->count());
         $this->assertSame(1, OutboxEvent::where('type', 'recognition.changed')->count());
-        $this->assertSame(['kind', 'source_id', 'revision'], array_keys(OutboxEvent::where('type', 'recognition.changed')->sole()->payload));
+        $this->assertEqualsCanonicalizing(['kind', 'source_id', 'revision'], array_keys(OutboxEvent::where('type', 'recognition.changed')->sole()->payload));
         $bad = $notice->delivery_payload;
         $bad['recognition_source_id'] = true;
         $this->assertFalse($notices->allows($parent, $notice->type, $bad));
@@ -855,8 +856,8 @@ class HousesAwardsTest extends TestCase
         $c = app(RecognitionCatalog::class);
         $category = $c->awardCategory($this->admin, $this->op(['name' => 'Owned music awards', 'parent_id' => null, 'scope_kind' => 'group', 'activity_group_id' => $owned->id, 'active' => true]));
         $c->administrator($this->admin, $this->op(['award_category_id' => $category->id, 'user_id' => $staff->id, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true]));
-        $this->actingAs($staff)->get('/recognition/awards')->assertOk()->assertSee('Owned music group')->assertDontSee('Unowned private activity name');
-        $this->actingAs($this->admin)->get('/recognition/awards')->assertOk()->assertSee('Unowned private activity name');
+        $this->actingAs($staff)->get('/recognition/awards?view=editor&task=category')->assertOk()->assertSee('Owned music group')->assertDontSee('Unowned private activity name');
+        $this->actingAs($this->admin)->get('/recognition/awards?view=editor&task=category')->assertOk()->assertSee('Unowned private activity name');
     }
 
     public function test_activity_only_staff_permanent_awards_are_limited_to_owned_group_categories(): void
@@ -924,8 +925,8 @@ class HousesAwardsTest extends TestCase
         $n = app(AwardNominations::class)->nominate($this->head, $this->nomination());
         app(AwardNominations::class)->review($this->head, (int) $n->id, $this->op(['revision' => 1, 'decision' => 'approved', 'reason' => 'Private projected reviewer evidence']));
         $response = $this->actingAs($this->admin)->post('/recognition/awards/actions/present', $this->panel($this->presentation((int) $n->id) + ['assembly' => 1]));
-        $response->assertRedirect(route('recognition.index', ['module' => 'awards', 'assembly' => 1, 'session_year_id' => $this->year]));
-        $this->get($response->headers->get('Location'))->assertOk()->assertDontSee('Private projected reviewer evidence')->assertDontSee('Consistent synthetic service evidence')->assertSee('name="assembly"', false);
+        $response->assertRedirect(route('recognition.index', ['module' => 'awards', 'session_year_id' => $this->year, 'assembly' => 1]));
+        $this->get($response->headers->get('Location'))->assertOk()->assertDontSee('Private projected reviewer evidence')->assertDontSee('Consistent synthetic service evidence')->assertSee('recognition--assembly', false)->assertSee('Leave assembly mode');
     }
 
     public function test_assembly_refusal_preserves_projection_and_never_renders_private_drafts(): void
@@ -965,5 +966,79 @@ class HousesAwardsTest extends TestCase
         $this->assertCount(2, app(AwardPresentations::class)->profile($staff, $this->learner)['items']);
         $d['operation_id'] = (string) Str::uuid();
         $this->refuse(409, fn () => app(AwardPresentations::class)->present($this->admin, $d));
+    }
+
+    public function test_panel_golden_boot_workflow_uses_focused_editors_and_retains_correction(): void
+    {
+        $group = $this->recognitionGroup($this->head, 'U14 soccer boys');
+        $this->actingAs($this->admin)->get('/recognition/awards')->assertOk()
+            ->assertDontSee('aria-label="Award category configuration"', false)
+            ->assertDontSee('aria-label="Nominate an award"', false);
+        $this->get('/recognition/awards?view=editor&task=category')->assertOk()->assertSee('Award category configuration');
+        $this->post('/recognition/awards/catalogue/award-categories', $this->panel($this->op([
+            'view' => 'editor', 'task' => 'category', 'name' => 'U14 soccer boys awards', 'scope_kind' => 'group',
+            'activity_group_id' => $group->id, 'active' => 1,
+        ])))->assertRedirect();
+        $category = AwardCategory::where('name', 'U14 soccer boys awards')->sole();
+        $this->get('/recognition/awards?view=editor&task=definition')->assertOk()->assertSee('Award definition configuration')->assertDontSee('name="opens_on"', false);
+        $this->post('/recognition/awards/catalogue/award-definitions', $this->panel($this->op([
+            'view' => 'editor', 'task' => 'definition', 'award_category_id' => $category->id, 'name' => 'U14 soccer boys Golden Boot',
+            'criteria' => 'Leading goal scorer in this school team', 'frequency' => 'annual', 'active' => 1,
+        ])))->assertRedirect();
+        $definition = AwardDefinition::where('name', 'U14 soccer boys Golden Boot')->sole();
+        $this->get('/recognition/awards?view=editor&task=window&edit_id='.$category->id)->assertOk()->assertSee('name="opens_on"', false);
+        $this->post('/recognition/awards/catalogue/award-windows', $this->panel($this->op([
+            'view' => 'editor', 'task' => 'window', 'edit_id' => $category->id, 'revision' => 0,
+            'award_category_id' => $category->id, 'session_year_id' => $this->year, 'activity_group_id' => $group->id,
+            'opens_on' => '2026-02-01', 'closes_on' => '2026-02-28', 'status' => 'open',
+        ])))->assertRedirect();
+        $learnerUrl = '/recognition/awards?view=learners&learner_id='.$this->learner;
+        $this->get($learnerUrl.'&task=nominate')->assertOk()->assertSee('U14 soccer boys Golden Boot')->assertSee('aria-label="Nominate an award"', false);
+        $this->post('/recognition/awards/actions/nominate', $this->panel($this->op([
+            'view' => 'learners', 'task' => 'nominate', 'learner_id' => $this->learner, 'session_year_id' => $this->year, 'grade_level_id' => $this->grade,
+            'award_definition_id' => $definition->id, 'reason' => 'Verified leading scorer',
+        ])))->assertRedirect();
+        $nomination = AwardNomination::where('award_definition_id', $definition->id)->sole();
+        $this->get('/recognition/awards?view=nominations')->assertOk()->assertSee('Open nomination and permitted actions')->assertDontSee('aria-label="Review nomination', false);
+        $reviewUrl = '/recognition/awards?view=nominations&nomination_id='.$nomination->id.'&before='.($nomination->id + 1);
+        $this->get($reviewUrl)->assertOk()->assertSee('aria-label="Review nomination', false);
+        $this->post('/recognition/awards/actions/review/'.$nomination->id, $this->panel($this->op([
+            'view' => 'nominations', 'nomination_id' => $nomination->id, 'before' => $nomination->id + 1,
+            'revision' => 1, 'decision' => 'approved', 'reason' => 'Reviewed match records',
+        ])))->assertRedirect();
+        $this->get($reviewUrl)->assertOk()->assertSee('Present approved nomination');
+        $presentation = array_replace($this->presentation((int) $nomination->id), ['award_definition_id' => $definition->id]);
+        $this->post('/recognition/awards/actions/present', $this->panel($presentation))->assertRedirect();
+        $award = AwardPresentation::where('award_definition_id', $definition->id)->sole();
+        $this->get($learnerUrl)->assertOk()->assertSee('U14 soccer boys Golden Boot')->assertDontSee('aria-label="Correct permanent award', false);
+        $this->get($learnerUrl.'&task=correct&edit_id='.$award->id.'&before='.($award->id + 1))->assertOk()->assertSee('aria-label="Correct permanent award', false);
+        $this->post('/recognition/awards/actions/void/'.$award->id, $this->panel($this->op([
+            'view' => 'learners', 'task' => 'correct', 'edit_id' => $award->id, 'learner_id' => $this->learner,
+            'revision' => 1, 'reason' => 'Certificate issued against the wrong match tally',
+        ])))->assertRedirect();
+        $this->assertSame('void', $award->fresh()->state);
+        $this->assertSame(2, $award->fresh()->revision);
+        $this->assertSame('Certificate issued against the wrong match tally', $award->fresh()->void_reason);
+        $this->get($learnerUrl.'&task=history')->assertOk()->assertSee('Certificate issued against the wrong match tally')->assertSee('U14 soccer boys Golden Boot');
+        $this->actingAs($this->head)->get('/recognition/awards?task=history&learner_id='.$this->schoolB->ids['asha'])->assertNotFound();
+    }
+
+    public function test_panel_failed_definition_restores_its_editor_without_session_flash(): void
+    {
+        $this->actingAs($this->admin)->post('/recognition/awards/catalogue/award-definitions', $this->panel($this->op([
+            'award_category_id' => $this->category->id, 'name' => 'Unsaved Golden Boot', 'criteria' => '<script>Private criteria draft</script>',
+            'frequency' => 'invalid', 'active' => 1,
+        ])))->assertUnprocessable()->assertSee('Award definition configuration')->assertSee('Unsaved Golden Boot')
+            ->assertSee('&lt;script&gt;Private criteria draft&lt;/script&gt;', false)->assertSessionMissing('_old_input');
+    }
+
+    public function test_panel_malformed_navigation_and_operation_fields_still_render_private_validation(): void
+    {
+        $this->actingAs($this->admin)->get('/recognition/awards?view[]=editor&search[]=invalid')
+            ->assertUnprocessable()->assertHeader('Cache-Control', 'no-store, private')->assertSessionMissing('_old_input');
+        $this->post('/recognition/awards/catalogue/award-definitions', $this->panel([
+            'operation_id' => ['invalid'], 'award_category_id' => $this->category->id, 'name' => 'Malformed request draft',
+            'criteria' => 'Keep this private draft in the direct response', 'frequency' => 'annual', 'active' => 1,
+        ]))->assertUnprocessable()->assertSee('Malformed request draft')->assertSessionMissing('_old_input');
     }
 }

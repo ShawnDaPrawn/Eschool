@@ -1,147 +1,37 @@
 @extends('layouts.master')
-
-@section('title')
-    {{ __('events') }}
-@endsection
-
+@section('title', __('Event programme'))
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('events') }}
-            </h3>
-            <a class="btn btn-sm btn-secondary" href="{{ route('events.index') }}">{{ __('back') }}</a>
+<div class="content-wrapper m3 page-content">
+    <x-page.header :title="$event->title" :subtitle="__('Event programme')">
+        <x-slot:actions><a class="m3-button m3-button--outlined" href="{{ route('events.index') }}">{{ __('Back to events') }}</a></x-slot:actions>
+    </x-page.header>
+    <p>{{ $event->start_date }} – {{ $event->end_date }}</p>
+    @can('event-edit')
+        <x-page.form-card id="school-programme-editor" :title="__('Edit programme')" :action="route('events.update-schedules')" :submit-label="__('Save programme')" :redirect="route('view_schedule.index',$event->id)" :draft="false" data-event-editor>
+            <input type="hidden" name="event_id" value="{{ $event->id }}">
+            <input type="hidden" name="start_date" value="{{ $event->start_date }}" data-range-start>
+            <input type="hidden" name="end_date" value="{{ $event->end_date }}" data-range-end>
+            <input type="hidden" data-range-value>
+            <div data-programme-rows>
+                @forelse($multievents as $index=>$item)
+                    @include('events.programme-row',['prefix'=>'edit_events','rowKey'=>(string)$index,'item'=>$item])
+                @empty
+                    @include('events.programme-row',['prefix'=>'events','rowKey'=>'0','item'=>null])
+                @endforelse
+            </div>
+            <button type="button" class="m3-button m3-button--outlined" data-programme-add>{{ __('Add programme item') }}</button>
+            <template data-programme-template>@include('events.programme-row',['prefix'=>'events','rowKey'=>'__ROW__','item'=>null])</template>
+            <x-slot:actions><a class="m3-button m3-button--text" href="{{ route('events.index') }}">{{ __('Cancel') }}</a></x-slot:actions>
+        </x-page.form-card>
+    @else
+        <div class="panel-record-list">
+            @forelse($multievents as $item)
+                <article class="m3-card m3-card--outlined"><div class="m3-card__content">
+                    <h2>{{ $item->title }}</h2><p>{{ $item->date }} · {{ $item->start_time }} – {{ $item->end_time }}</p><p>{{ $item->description }}</p>
+                </div></article>
+            @empty<x-page.empty-state :title="__('No programme items')" :message="__('The event organiser has not added the programme yet.')" />@endforelse
         </div>
-        <div class="row">
-            @can('event-list')
-                <div class="col-md-12 grid-margin stretch-card search-container">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="card-title mb-4">
-                                {{ __('list') . ' ' . __('schedule') }}
-                            </h4>
-
-                            <div class="row add-multiple-event-div" id="add-multiple-event-div"
-                                style="border: 1px solid var(--md-sys-color-outline-variant); padding: 16px; border-radius: var(--app-radius); margin-bottom: 12px; display:none;">
-                                <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('title') }} <span class="text-danger">*</span></label>
-                                    {!! Form::text('events[0][title]', null, ['required', 'placeholder' => __('title'), 'class' => 'form-control']) !!}
-                                </div>
-                                <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('date') }} <span class="text-danger">*</span></label>
-                                    {!! Form::text('events[0][date]', null, [
-                                        'required',
-                                        'placeholder' => __('date'),
-                                        'class' => 'datepicker-popup form-control',
-                                    ]) !!}
-                                    <span class="input-group-addon input-group-append">
-                                    </span>
-                                </div>
-                                <div class="form-group col-sm-12 col-md-6">
-                                    <label>{{ __('timing') }} <span class="text-danger">*</span></label>
-                                    {!! Form::text('events[0][timerange]', null, [
-                                        'required',
-                                        'placeholder' => __('start_time') . ' - ' . __('end_time'),
-                                        'class' => 'timerange form-control',
-                                    ]) !!}
-                                    <span class="input-group-addon input-group-append">
-                                    </span>
-                                </div>
-                                <div class="form-group col-sm-12 col-md-5">
-                                    <label>{{ __('description') }}</label>
-                                    {!! Form::textarea('events[0][description]', null, [
-                                        'rows' => '3',
-                                        'placeholder' => __('description'),
-                                        'class' => 'form-control',
-                                    ]) !!}
-                                </div>
-                                <div class="col-md-1 text-center pt-4">
-                                    <button type="button" class="btn btn-icon btn-danger remove-multiple-event-div-edit">
-                                        <i class="fa fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <form id="edit-schedule" class="edit-event" action="{{ url('events-update') }}"
-                                novalidate="novalidate" method="POST">
-                                @csrf
-
-                                <input type="hidden" name="event_id" value="{{ $event->id }}" class="form-control">
-                                <input type="hidden" name="start_date" value="{{ $event->start_date }}" class="form-control">
-                                <input type="hidden" name="end_date" value="{{ $event->end_date }}" class="form-control">
-
-                                @foreach ($multievents as $key => $event)
-                                    @php
-                                        $date = date('d-m-Y', strtotime($event['date']));
-                                        $timerange = $event['start_time'] . ' - ' . $event['end_time'];
-                                    @endphp
-                                    <div class="row mt-6"
-                                        style="border: 1px solid var(--md-sys-color-outline-variant); padding: 16px; border-radius: var(--app-radius); margin-bottom: 12px;">
-                                        <input type="hidden" name="edit_events[{{ $key }}][id]"
-                                            value="{{ $event['id'] }}" class="form-control">
-
-                                        <div class="form-group col-sm-12 col-md-6">
-                                            <label>{{ __('title') }} <span class="text-danger">*</span></label>
-                                            {!! Form::text("edit_events[$key][title]", $event['title'], [
-                                                'required',
-                                                'placeholder' => __('title'),
-                                                'class' => 'form-control',
-                                            ]) !!}
-                                        </div>
-
-                                        <div class="form-group col-sm-12 col-md-6">
-                                            <label>{{ __('date') }} <span class="text-danger">*</span></label>
-                                            {!! Form::text("edit_events[$key][date]", $date, [
-                                                'required',
-                                                'placeholder' => __('date'),
-                                                'class' => 'form-control datepicker-popup',
-                                            ]) !!}
-                                            <span class="input-group-addon input-group-append"></span>
-                                        </div>
-
-                                        <div class="form-group col-sm-12 col-md-6">
-                                            <label>{{ __('timing') }}</label>
-                                            {!! Form::text("edit_events[$key][timerange]", $timerange, [
-                                                'required',
-                                                'placeholder' => __('start_time') . ' - ' . __('end_time'),
-                                                'class' => 'timerange form-control',
-                                            ]) !!}
-                                            <span class="input-group-addon input-group-append"></span>
-                                        </div>
-
-                                        <div class="form-group col-sm-12 col-md-5">
-                                            <label>{{ __('description') }}</label>
-                                            {!! Form::textarea("edit_events[$key][description]", $event['description'], [
-                                                'rows' => '3',
-                                                'placeholder' => __('description'),
-                                                'class' => 'form-control',
-                                            ]) !!}
-                                        </div>
-
-                                        <div class="col-md-1 text-center pt-4">
-                                            <button type="button" data-id="{{ $event['id'] }}"
-                                                class="btn btn-icon btn-danger edit-remove-multiple-event-group">
-                                                <i class="fa fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                @endforeach
-
-                                <div id="edit-extra-multiple-event"></div>
-
-                                <div class="row edit-add-more" id="edit-add-more">
-                                    <div class="form-group col-sm-12 col-md-12">
-                                        <button type="button" class="btn btn-success add-multiple-event-group-div"
-                                            id="add-multiple-event-group-div">
-                                            <i class="fa fa-plus"></i>&nbsp;&nbsp;{{ __('add_more') }}</button>
-                                    </div>
-                                </div>
-
-                                <input class="btn btn-theme" type="submit" value={{ __('submit') }}>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            @endcan
-        </div>
-    </div>
+    @endcan
+</div>
 @endsection
+@section('script')<script src="{{ asset('assets/js/events-workspace.js') }}?v={{ filemtime(public_path('assets/js/events-workspace.js')) }}" defer></script>@endsection

@@ -295,6 +295,9 @@ class FeeRefundsTest extends TestCase
         $p = $this->pay();
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
         $this->actingAs($this->admin)->get('/fee-refunds')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->post('/fee-refunds/policy', ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'cash_allowed' => true, 'eft_allowed' => true, 'independent_approval' => false] + $bind)
+            ->assertStatus(303)->assertRedirect('/fee-refunds?section=settings');
+        $this->get('/fee-refunds?section=settings')->assertOk()->assertSee('Permitted refund methods and approval');
         $this->get('/fee-refunds/new?payment_id='.$p->id)->assertOk()->assertSee('Available original receipt credit');
         $input = $this->refundInput($p, '2.00');
         $this->post('/fee-refunds/prepare', $input + [...$bind, 'expected_school_id' => 2])->assertForbidden();

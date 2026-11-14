@@ -280,6 +280,9 @@ class FeeLeaverCreditsTest extends TestCase
         $this->actingAs($this->admin)->get('/fee-leavers/'.$run->id)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertSee('PRIVATE-SYNTHETIC-DEPARTURE-EVIDENCE');
         $this->post('/fee-leavers/policy', ['expected_school_id' => 2, 'expected_account_id' => $this->admin->id])->assertForbidden();
         $this->post('/fee-leavers/policy', ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id, 'operation_id' => (string) Str::uuid(), 'revision' => 1, 'prior_policyless_basis' => 'PRIVATE-INVALID'])->assertStatus(422)->assertSessionMissing('_old_input');
+        $this->post('/fee-leavers/policy', ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id, 'operation_id' => (string) Str::uuid(), 'revision' => 1, 'prior_policyless_basis' => 'daily', 'prior_reductions' => 'retain_full', 'independent_approval' => true])
+            ->assertStatus(303)->assertRedirect('/fee-leavers?section=settings');
+        $this->get('/fee-leavers?section=settings')->assertOk()->assertSee('School leaver credit policy');
         try {
             DB::table('fee_leaver_runs')->where('id', $run->id)->update(['amount_cents' => 1]);
             $this->fail('Retain sealed leaver credits');

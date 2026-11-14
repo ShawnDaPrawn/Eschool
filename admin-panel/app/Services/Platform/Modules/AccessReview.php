@@ -28,7 +28,8 @@ class AccessReview
     private const ACTOR_FLAGS = ['vendor_payment_reader_actor', 'communication_author', 'cover_actor', 'discipline_actor', 'risk_actor', 'progress_actor',
         'support_actor', 'wellbeing_actor', 'principal_dashboard', 'mastery_impact_actor', 'transfer_actor', 'foundation_classroom_actor', 'card_actor', 'pathway_manager', 'pathway_guide',
         'assistance_office', 'peer_actor', 'family_visit_actor', 'emergency_actor', 'family_form_actor', 'gallery_actor', 'ai_manager', 'ai_reviewer', 'digest_manager', 'exam_coach_staff',
-        'consultation_actor', 'intake_actor', 'recognition_module'];
+        'consultation_actor', 'intake_actor', 'recognition_module', 'check_in_actor', 'passport_actor', 'early_years_actor', 'reading_leader',
+        'facilitator_leave_actor', 'leave_calendar_actor', 'school_exit', 'sign_in_links'];
 
     public function __construct(private readonly ModuleAccess $access, private readonly Navigation $navigation) {}
 
@@ -48,14 +49,15 @@ class AccessReview
         return [
             'people' => User::query()->whereIn('id', $staff)->where('status', 1)->orderBy('first_name')->orderBy('last_name')->limit(1000)->get()
                 ->mapWithKeys(fn (User $user) => [(int) $user->id => trim($user->first_name.' '.$user->last_name)])->all(),
-            'roles' => Role::query()->orderBy('name')->pluck('name', 'id')->map(fn ($name) => (string) $name)->all(),
+            'roles' => Role::query()->where('school_id', app(CurrentSchool::class)->id())->orderBy('name')->pluck('name', 'id')->map(fn ($name) => (string) $name)->all(),
         ];
     }
 
     public function person(User $actor, int $userId): array
     {
         $this->authorise($actor);
-        $person = User::query()->findOrFail($userId);
+        $staff = SchoolMembership::query()->active()->where('school_id', app(CurrentSchool::class)->id())->whereNotIn('role', ['Student', 'Parent'])->select('user_id');
+        $person = User::query()->where('status', 1)->whereIn('id', $staff)->findOrFail($userId);
         $roles = app(ProfilePolicy::class)->roles($person);
         abort_if($roles === [], 404);
         $held = $person->getAllPermissions()->pluck('name')->all();
@@ -77,7 +79,7 @@ class AccessReview
     public function role(User $actor, int $roleId): array
     {
         $this->authorise($actor);
-        $role = Role::query()->findOrFail($roleId);
+        $role = Role::query()->where('school_id', app(CurrentSchool::class)->id())->findOrFail($roleId);
         $held = $role->permissions()->pluck('name')->all();
         $pages = [];
         foreach ($this->navigation->definitions() as $item) {
@@ -85,6 +87,9 @@ class AccessReview
                 continue;
             }
             if (! empty($item['roles']) && ! in_array($role->name, $item['roles'], true)) {
+                continue;
+            }
+            if (($item['report_actor'] ?? false) && array_diff(['student-list', 'student-report'], $held) !== []) {
                 continue;
             }
             $permissions = $item['permissions'] ?? [];

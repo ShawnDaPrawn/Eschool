@@ -5,6 +5,11 @@
 <div class="content-wrapper m3 page-content transition-workbench">
     <x-page.header :title="__('Mid-year learner changes')" :subtitle="__('Record a dated join, departure or subject change. Review the effect before saving.')" />
     @include('academics.groups-status')
+    <nav class="workspace-tabs" aria-label="{{ __('Mid-year learner changes') }}">
+        <a class="m3-button m3-button--text" href="{{ route('academic-transitions.index') }}" @if($workspaceView === 'changes') aria-current="page" @endif>{{ __('Learner changes') }}</a>
+        <a class="m3-button m3-button--text" href="{{ route('academic-transitions.index', ['view' => 'configuration']) }}" @if($workspaceView === 'configuration') aria-current="page" @endif>{{ __('Configuration') }}</a>
+    </nav>
+    @if($workspaceView === 'changes')
     @if($conflict)<div role="alert"><h2>{{ __('Review the current learner state') }}</h2><p>{{ $conflict }}</p><p>{{ __('Your submitted draft is below. Preview it again before applying.') }}</p></div>@endif
     <form method="GET" action="{{ route('academic-transitions.index') }}" aria-label="{{ __('Find a learner') }}" class="transition-fields">
         <x-page.field :restore-old-input="false" name="search" :label="__('Learner name')" :value="$search" maxlength="100" />
@@ -19,7 +24,8 @@
     <section class="page-section"><h2>{{ $learner['name'] }}</h2><p>{{ $learner['student_number'] }}</p>
         <form method="GET" action="{{ route('academic-transitions.index') }}" aria-label="{{ __('Choose learner change') }}" class="transition-fields">
             <input type="hidden" name="learner_id" value="{{ $learner['id'] }}">
-            <x-page.field :restore-old-input="false" name="session_year_id" type="select" :label="__('School year')" :options="array_column($configuration['school_years'], 'name', 'id')" :value="$configuration['session_year_id']" required />
+            <input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}">
+            <p>{{ __('School year') }}: {{ collect($configuration['school_years'])->firstWhere('id', $configuration['session_year_id'])['name'] ?? '' }}</p>
             <x-page.field :restore-old-input="false" name="kind" type="select" :label="__('Change type')" :options="['join' => __('Join'), 'leave' => __('Leave'), 'subject_change' => __('Subject change')]" :value="$kind" required />
             <button class="m3-button m3-button--outlined" type="submit">{{ __('Open change form') }}</button>
         </form>
@@ -60,12 +66,15 @@
     </section>
     @if($learner['can_export'])@include('academics.transitions.exports')@endif
     @endif
-    <details class="page-section"><summary>{{ __('Grade defaults and export retention') }}</summary>
-        <form method="GET" action="{{ route('academic-transitions.index') }}" class="transition-fields"><x-page.field :restore-old-input="false" name="grade_level_id" type="select" :label="__('Grade defaults to edit')" :options="array_column($configuration['grades'], 'name', 'id')" :value="$grade['id'] ?? ''" required /><button class="m3-button m3-button--outlined" type="submit">{{ __('Open grade defaults') }}</button></form>
+    @else
+    <section class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
+        <h2>{{ __('Grade defaults and export retention') }}</h2>
+        <form method="GET" action="{{ route('academic-transitions.index') }}" class="transition-fields"><input type="hidden" name="view" value="configuration"><x-page.field :restore-old-input="false" name="grade_level_id" type="select" :label="__('Grade defaults to edit')" :options="array_column($configuration['grades'], 'name', 'id')" :value="$grade['id'] ?? ''" required /><button class="m3-button m3-button--outlined" type="submit">{{ __('Open grade defaults') }}</button></form>
         @if($grade)<form method="POST" action="{{ route('academic-transitions.policy', $grade['id']) }}" aria-label="{{ __('Save grade defaults') }}" class="transition-form">@csrf<input type="hidden" name="revision" value="{{ $grade['policy']['revision'] }}">
             <x-page.field :restore-old-input="false" name="join_mark_rule" type="select" :label="__('Default for a join')" :options="['catch_up' => __('Catch up'), 'excused' => __('Excused')]" :value="$grade['policy']['join_mark_rule']" required />
             <x-page.field :restore-old-input="false" name="change_mark_rule" type="select" :label="__('Default for a subject change')" :options="['catch_up' => __('Catch up'), 'excused' => __('Excused'), 'carried' => __('Carry same-subject marks')]" :value="$grade['policy']['change_mark_rule']" required /><button class="m3-button m3-button--filled" type="submit">{{ __('Save grade defaults') }}</button></form>@endif
         <form method="POST" action="{{ route('academic-transitions.retention') }}" aria-label="{{ __('Save export retention') }}" class="transition-form">@csrf<input type="hidden" name="revision" value="{{ $configuration['retention']['revision'] }}"><x-page.field :restore-old-input="false" name="days" type="number" :label="__('Keep export copies for this many days')" :value="$configuration['retention']['days']" min="1" max="30" required :help="__('Applies to new copies. Educational records remain until an approved retention schedule exists. Downloaded copies remain with their recipient.')" /><button class="m3-button m3-button--filled" type="submit">{{ __('Save export retention') }}</button></form>
-    </details>
+    </div></section>
+    @endif
 </div>
 @endsection

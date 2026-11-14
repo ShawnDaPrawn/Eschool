@@ -23,7 +23,7 @@ class ProgressPanelRequest extends ProgressNotesRequest
 
     public function rules(): array
     {
-        $context = ['mode' => ['sometimes', 'in:academic,counselling,assignments'], 'learner_id' => ['sometimes', 'integer', 'min:1'],
+        $context = ['mode' => ['sometimes', 'in:academic,counselling,assignments,configuration'], 'learner_id' => ['sometimes', 'integer', 'min:1'],
             'group_id' => ['sometimes', 'nullable', 'integer', 'min:1'], 'subject_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'session_year_id' => ['sometimes', 'integer', 'min:1'], 'visibility' => ['sometimes', 'in:tutor,staff,counselling'],
             'after' => ['sometimes', 'integer', 'min:0'], 'note' => ['sometimes', 'nullable', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1'], 'term_id' => ['sometimes', 'nullable', 'integer', 'min:1']];

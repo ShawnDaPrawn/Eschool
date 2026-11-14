@@ -218,7 +218,11 @@ class PersonalWalletsTest extends TestCase
         $this->actingAs($this->admin)->get('/wallet-settings')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $input = $this->settingsInput() + ['daily_spend_amount' => '50.00'];
         $this->post('/wallet-settings', $input + [...$bind, 'expected_school_id' => 2])->assertForbidden();
-        $this->post('/wallet-settings', $input + $bind)->assertStatus(303);
+        $this->post('/wallet-settings', $input + $bind)->assertStatus(303)->assertRedirect('/wallet-settings?section=settings');
+        $this->get('/wallet-settings?section=settings')->assertOk()->assertSee('Explicit wallet currency and spending controls');
+        $this->post('/wallet-settings/child-return-policy', ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'child_returns' => 'disabled', 'confirmed' => true] + $bind)
+            ->assertStatus(303)->assertRedirect('/wallet-settings?section=returns');
+        $this->get('/wallet-settings?section=returns')->assertOk()->assertSee('Choose the child return policy');
         $wallet = app(Wallets::class)->open($this->parent, $this->openInput($this->parent));
         $this->get('/wallet-settings')->assertOk()->assertSee($this->parent->first_name);
         $this->get('/wallet-settings/'.$wallet->id.'/statement')->assertOk()->assertSee('Wallet balance');

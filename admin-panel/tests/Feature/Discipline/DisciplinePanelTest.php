@@ -8,6 +8,7 @@ use App\Models\Academics\AcademicLeadership;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Discipline\DetentionEntry;
 use App\Models\Discipline\DetentionSession;
+use App\Models\Discipline\DisciplineAcknowledgement;
 use App\Models\Discipline\DisciplineRecord;
 use App\Models\Platform\SchoolModule;
 use App\Models\SessionYear;
@@ -57,12 +58,14 @@ class DisciplinePanelTest extends TestCase
     public function test_teacher_records_facts_and_private_notes_are_escaped_retained_and_not_session_flashed(): void
     {
         app(DisciplineFrameworks::class)->save($this->superAdmin(), $this->year, $this->definition());
-        $url = '/school-discipline?session_year_id='.$this->year.'&learner_id='.$this->schoolA->ids['asha'];
+        $url = '/school-discipline?view=create&session_year_id='.$this->year.'&learner_id='.$this->schoolA->ids['asha'];
         $this->actingAs($this->actor())->get($url)->assertOk()->assertSee('Record a factual occurrence')->assertHeader('Cache-Control', 'no-store, private');
         $response = $this->post('/school-discipline/learners/'.$this->schoolA->ids['asha'].'/records', $this->occurrence())->assertRedirect();
         $this->get($response->headers->get('Location'))->assertOk()->assertSee('&lt;script&gt;window.disciplinePrivate=1&lt;/script&gt;', false)->assertDontSee('<script>window.disciplinePrivate=1</script>', false)->assertSee('Private staff follow-up')->assertSee('Immutable entry history');
         $this->assertFalse(session()->has('_old_input'));
         $id = (int) DisciplineRecord::sole()->id;
+        DisciplineAcknowledgement::create(['record_id' => $id, 'guardian_id' => $this->schoolA->ids['farid_user'], 'record_revision' => 1, 'acknowledged_at' => now()]);
+        $this->get('/school-discipline?view=record&record='.$id)->assertOk()->assertSee('Family acknowledgement')->assertSee('Farid');
         $this->actingAs($this->actor('theo'))->get('/school-discipline?record='.$id)->assertNotFound()->assertDontSee('Private staff follow-up');
     }
 
@@ -70,7 +73,7 @@ class DisciplinePanelTest extends TestCase
     {
         $input = $this->identity('framework') + $this->definition();
         $input['expected_account_id'] = $this->superAdmin()->id;
-        $this->actingAs($this->superAdmin())->get('/school-discipline?mode=framework')->assertOk()->assertSee('Publish school framework')->assertSee('data-disc-template', false);
+        $this->actingAs($this->superAdmin())->get('/school-discipline?mode=framework')->assertOk()->assertSee('Publish school framework')->assertSee('data-disc-template', false)->assertSee('data-disc-stage="review"', false)->assertDontSee('id="disc-description"', false);
         $this->post('/school-discipline/framework', $input)->assertRedirect();
         $input['operation_id'] = (string) Str::uuid();
         $input['expected_revision'] = 1;
@@ -124,7 +127,7 @@ class DisciplinePanelTest extends TestCase
             ['occurred_on' => '2026-02-10', 'infraction_code' => 'late', 'description' => 'Observed detention source']);
         $identity = $this->identity('detentions');
         $identity['expected_account_id'] = $this->superAdmin()->id;
-        $this->actingAs($this->superAdmin())->get('/school-discipline?mode=detentions&grade_level_id='.$this->grade.'&on_date=2026-02-10')
+        $this->actingAs($this->superAdmin())->get('/school-discipline?mode=detentions&view=detention-create&grade_level_id='.$this->grade.'&on_date=2026-02-10')
             ->assertOk()->assertSee('Refresh eligible supervisors')->assertSee('name="on_date" type="date" value="2026-02-10" readonly', false);
         $input = $identity + ['grade_level_id' => $this->grade, 'supervisor_id' => $this->actor()->id, 'on_date' => '2026-02-10', 'starts_at' => '14:00', 'ends_at' => '15:00', 'location' => 'Supervised school room', 'capacity' => 10];
         $this->post('/school-discipline/detentions', $input)->assertRedirect();
@@ -135,9 +138,9 @@ class DisciplinePanelTest extends TestCase
         $attendance = $this->identity('detentions') + ['expected_revision' => 1, 'expected_session_revision' => 2, 'attendance' => 'present', 'reason' => 'Observed the learner in the session'];
         $this->post('/school-discipline/detentions/'.$session->id.'/entries/'.$entry->id.'/attendance', $attendance)->assertRedirect();
         $this->get('/school-discipline?mode=detentions&detention='.$session->id)->assertOk()->assertSee('Present')->assertDontSee('aria-label="Capture detention attendance"', false);
-        $this->actingAs($this->superAdmin())->get('/school-discipline?mode=detentions&detention='.$session->id)->assertOk()->assertSee('aria-label="Capture detention attendance"', false);
+        $this->actingAs($this->superAdmin())->get('/school-discipline?mode=detentions&view=attendance&detention='.$session->id)->assertOk()->assertSee('aria-label="Capture detention attendance"', false);
         $this->post('/school-discipline/detentions/'.$session->id.'/cancel', array_replace($identity, ['operation_id' => (string) Str::uuid(), 'expected_revision' => 3, 'reason' => 'Session cancelled with retained attendance']))->assertRedirect();
-        $this->get('/school-discipline?mode=detentions&detention='.$session->id)->assertOk()->assertSee('Present')->assertDontSee('aria-label="Capture detention attendance"', false);
+        $this->get('/school-discipline?mode=detentions&detention='.$session->id)->assertOk()->assertSee('Present')->assertDontSee('aria-label="Capture detention attendance"', false)->assertSee('Detention session history')->assertSee('Session cancelled with retained attendance')->assertSee('Observed the learner in the session');
         $this->assertFalse(session()->has('_old_input'));
     }
 }

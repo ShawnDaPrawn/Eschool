@@ -2,7 +2,7 @@
 @section('title', __('Configuration history'))
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/consultations.css') }}">@endsection
 @section('content')
-<div class="content-wrapper consultations" data-consultations-root><h1>{{ __('Configuration history') }}</h1>@include('consultations.header')<a href="{{ route('consultations-panel.edit',['consultation'=>$id]) }}">{{ __('Review consultation configuration') }}</a>
+<div class="content-wrapper m3 page-content consultations" data-consultations-root><x-page.header :title="__('Configuration history')" />@include('consultations.header')<a href="{{ route('consultations-panel.edit',['consultation'=>$id]) }}">{{ __('Review consultation configuration') }}</a>
 <ul>@foreach($history['items'] as $change)<li><a href="{{ route('consultations-panel.history',['consultation'=>$id,'event'=>$change['id'],'history_page'=>$history['page']]) }}">{{ __(ucfirst(str_replace('_',' ',$change['action']))) }} · {{ __('Revision') }} {{ $change['revision'] }}</a> · {{ $change['actor_name']??__('School scheduler') }} · {{ \Carbon\CarbonImmutable::parse($change['created_at'])->setTimezone($access['timezone'])->format('Y-m-d H:i') }}</li>@endforeach</ul>
 <nav aria-label="{{ __('Configuration history pages') }}">@if($history['page']>1)<a href="{{ route('consultations-panel.history',['consultation'=>$id,'history_page'=>$history['page']-1]) }}">{{ __('Previous page') }}</a>@endif
 @if($history['page']<$history['last_page'])<a href="{{ route('consultations-panel.history',['consultation'=>$id,'history_page'=>$history['page']+1]) }}">{{ __('Next page') }}</a>@endif</nav>

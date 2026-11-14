@@ -7,6 +7,7 @@ namespace App\Models\Platform;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use LogicException;
 
 /**
@@ -14,6 +15,11 @@ use LogicException;
  * written only from /saas through PlatformBilling. Once issued it never
  * changes: only the reminder columns may be written, and it is never deleted.
  * A correction is a credit note that refers to it.
+ *
+ * @property Carbon $period_start
+ * @property Carbon $period_end
+ * @property Carbon|null $issued_on
+ * @property Carbon|null $due_on
  */
 class PlatformInvoice extends Model
 {

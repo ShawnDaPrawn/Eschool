@@ -110,6 +110,17 @@ class GalleryPanelTest extends TestCase
         $this->assertFalse(app(GallerySettings::class)->current()->guardian_required);
     }
 
+    public function test_separate_forms_use_private_body_only_actions_and_recover_the_correct_view(): void
+    {
+        $this->actingAs($this->coach)->get('/school-gallery?view=upload&group_id='.$this->group->id)->assertOk()
+            ->assertSee('action="'.route('gallery-panel.upload').'"', false)->assertDontSee('aria-label="Photo tag consent"', false);
+        $admin = $this->superAdmin();
+        $this->actingAs($admin)->get('/school-gallery?view=configuration')->assertOk()
+            ->assertSee('action="'.route('gallery-panel.settings').'"', false)->assertDontSee('aria-label="Add a group photograph"', false);
+        $this->post('/school-gallery/settings', $this->pin(['revision' => 0], $admin))->assertUnprocessable()
+            ->assertSee('aria-label="Photo tag consent"', false)->assertDontSee('aria-label="Add a group photograph"', false)->assertSessionMissing('_old_input');
+    }
+
     public function test_old_year_upload_is_refused_without_flash(): void
     {
         $old = SessionYear::create(['name' => 'Gallery historical year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31']);

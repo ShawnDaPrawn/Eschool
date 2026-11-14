@@ -25,6 +25,6 @@ class TicketPortalRequest extends VendorPortalRequest
         }
         $bind = ['expected_school_id' => ['required', 'integer', 'min:1'], 'expected_account_id' => ['required', 'integer', 'min:1']];
 
-        return $bind + ($this->routeIs('vendor.tickets.redeem') ? TicketCounters::redeemRules() : TicketCounters::lookupRules());
+        return $bind + ($this->routeIs('vendor.tickets.resolve') ? ['operation_id' => ['required', 'uuid']] : ($this->routeIs('vendor.tickets.redeem') ? TicketCounters::redeemRules() : TicketCounters::lookupRules()));
     }
 }

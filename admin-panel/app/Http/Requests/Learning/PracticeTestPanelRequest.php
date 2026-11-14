@@ -26,10 +26,17 @@ class PracticeTestPanelRequest extends FormRequest
     public function rules(): array
     {
         return match ($this->route()?->getActionMethod()) {
-            'index' => ['group' => ['nullable', 'integer', 'min:1'], 'page' => ['nullable', 'integer', 'min:1', 'max:1000']],
+            'index' => ['group' => ['nullable', 'integer', 'min:1'], 'page' => ['nullable', 'integer', 'min:1', 'max:1000'], 'view' => ['sometimes', 'in:tests,create']],
             'create' => TestBlueprints::rules(),
             'withdraw' => ['operation_id' => ['required', 'uuid'], 'expected_revision' => ['required', 'integer', 'min:1']],
             default => [],
         };
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->route()?->getActionMethod() === 'create'
+            ? route('practice-tests.index', ['group' => $this->route('group'), 'view' => 'create'])
+            : parent::getRedirectUrl();
     }
 }

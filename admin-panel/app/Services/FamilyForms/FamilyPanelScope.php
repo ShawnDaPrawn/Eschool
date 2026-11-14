@@ -22,7 +22,17 @@ class FamilyPanelScope
                 return false;
             }
 
-            return app(FamilyFormQueries::class)->configuration($actor)['groups'] !== [];
+            $community = app(CommunityAuthority::class);
+            foreach ($community->visible($actor, (int) schoolSetting('session_year'), true) as $group) {
+                if ($group->active) {
+                    $community->groupStaff($actor, (int) $group->id);
+                    app(FamilyFormAccess::class)->actor($actor);
+
+                    return true;
+                }
+            }
+
+            return false;
         } catch (HttpExceptionInterface|ModelNotFoundException) {
             return false;
         }

@@ -35,6 +35,7 @@
     'sortOrder' => 'desc',
     'search' => true,
     'pageSize' => 10,
+    'pagination' => true,
     'emptyIcon' => 'inbox',
     'emptyTitle' => null,
     'emptyMessage' => null,
@@ -69,7 +70,7 @@
         <table id="{{ $id }}" class="page-table__table" data-page-table-init
             data-url="{{ $url }}"
             data-side-pagination="server"
-            data-pagination="true"
+            data-pagination="{{ $pagination ? 'true' : 'false' }}"
             data-page-size="{{ $pageSize }}"
             data-page-list="[10, 25, 50, 100]"
             data-search="{{ $search ? 'true' : 'false' }}"

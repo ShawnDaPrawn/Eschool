@@ -54,14 +54,14 @@ class WalletFinancePanelController extends Controller
     {
         app(WalletTransfers::class)->policy($request->user(), $request->validated());
 
-        return redirect()->route('wallet-finance.index', status: 303)->with('success', __('Child wallet return policy saved.'));
+        return redirect()->route('wallet-finance.index', ['section' => 'returns'], 303)->with('success', __('Child wallet return policy saved.'));
     }
 
     public function save(WalletSettingsPanelRequest $request): Response
     {
         app(WalletSettings::class)->save($request->user(), $request->validated());
 
-        return redirect()->route('wallet-finance.index', status: 303)->with('success', __('School wallet spending rules saved.'));
+        return redirect()->route('wallet-finance.index', ['section' => 'settings'], 303)->with('success', __('School wallet spending rules saved.'));
     }
 
     public function show(WalletSettingsPanelRequest $request): Response

@@ -32,16 +32,32 @@ class DisciplinePanelController extends Controller
     {
         $q = app(DisciplineQueries::class);
         $config = $q->configuration($r->user());
-        $year = $this->id($r->input('session_year_id'), $config['session_year_id']);
+        $year = $this->id($r->input('session_year_id'), app(SessionYearContext::class)->selectedId() ?? $config['session_year_id']);
         app(DisciplineAuthority::class)->year($year);
         $mode = $r->input('mode');
         $mode = is_string($mode) && in_array($mode, ['records', 'framework', 'detentions'], true) ? $mode : 'records';
+        $view = $r->input('view', '');
+        $view = is_string($view) && in_array($view, ['list', 'record', 'create', 'configuration', 'detentions', 'detention-create', 'detention', 'attendance'], true) ? $view : '';
+        if (in_array($view, ['detentions', 'detention-create', 'detention', 'attendance'], true)) {
+            $mode = 'detentions';
+        } elseif ($view === 'configuration') {
+            $mode = 'framework';
+        }
+        if (! $r->isMethodSafe()) {
+            $mode = match ($r->operation()) {
+                'configure' => 'framework',
+                'detention_create', 'attendance', 'cancel' => 'detentions',
+                'create', 'review', 'hearing' => 'records',
+                default => $mode,
+            };
+        }
         $page = $this->id($r->input('page'), 1);
         $learner = $this->id($r->route('learner') ?? $r->input('learner_id'));
         $recordId = $this->id($r->route('record') ?? $r->input('record'));
         $detentionId = $this->id($r->route('detention') ?? $r->input('detention'));
         $record = $detention = null;
         $history = [];
+        $acknowledgements = $detentionHistory = [];
         $people = ['learners' => [], 'page' => 1, 'last_page' => 1];
         $staff = ['supervisors' => [], 'page' => 1, 'last_page' => 1];
         $rows = ['records' => [], 'sessions' => [], 'page' => 1, 'last_page' => 1];
@@ -50,7 +66,8 @@ class DisciplinePanelController extends Controller
             $rows = $q->records($r->user(), $year, $page);
             if ($recordId > 0) {
                 $record = app(DisciplineRecords::class)->read($r->user(), $recordId);
-                $history = app(DisciplineRecords::class)->versions($r->user(), $recordId);
+                $history = app(DisciplineRecords::class)->versions($r->user(), $recordId, $this->id($r->input('history_before')));
+                $acknowledgements = app(DisciplineRecords::class)->acknowledgements($r->user(), $recordId);
                 $learner = $record['learner_id'];
                 $year = $record['session_year_id'];
             } elseif ($year === $config['session_year_id']) {
@@ -64,6 +81,7 @@ class DisciplinePanelController extends Controller
             $rows = $q->detentions($r->user(), $year, $page);
             if ($detentionId > 0) {
                 $detention = app(DisciplineDetentions::class)->read($r->user(), $detentionId);
+                $detentionHistory = app(DisciplineDetentions::class)->versions($r->user(), $detentionId, $this->id($r->input('history_before')));
                 $year = $detention['session_year_id'];
 
             }
@@ -113,8 +131,15 @@ class DisciplinePanelController extends Controller
         $canReview = $record !== null && ($config['can_manage'] || in_array($record['grade_level_id'], $config['grade_ids'], true)) && ($record['hearing_decision'] === null || $config['can_hear']);
         $canRoster = $detention !== null && ($config['can_manage'] || in_array($detention['grade_level_id'], $config['grade_ids'], true));
         $selection = array_filter(['mode' => $mode, 'session_year_id' => $year, 'learner_id' => $learner ?: null], fn ($v) => $v !== null);
+        if ($view === '') {
+            $view = $mode === 'framework' ? 'configuration' : ($mode === 'detentions' ? ($detentionId ? 'detention' : 'detentions') : ($recordId ? 'record' : ($learner ? 'create' : 'list')));
+        }
+        if (! $r->isMethodSafe()) {
+            $view = ['configure' => 'configuration', 'create' => 'create', 'review' => 'record', 'hearing' => 'record', 'detention_create' => 'detention-create', 'attendance' => 'attendance', 'cancel' => 'detention'][$r->operation()] ?? $view;
+        }
+        $selection['view'] = $view;
 
-        return compact('input', 'sessions', 'sessionChoices', 'config', 'year', 'mode', 'page', 'learner', 'record', 'recordId', 'history', 'detention', 'detentionId', 'rows', 'people', 'staff', 'framework', 'definition', 'draft', 'operationId', 'messages', 'conflict', 'canWrite', 'canReview', 'canRoster', 'selection') +
+        return compact('acknowledgements', 'detentionHistory', 'view', 'input', 'sessions', 'sessionChoices', 'config', 'year', 'mode', 'page', 'learner', 'record', 'recordId', 'history', 'detention', 'detentionId', 'rows', 'people', 'staff', 'framework', 'definition', 'draft', 'operationId', 'messages', 'conflict', 'canWrite', 'canReview', 'canRoster', 'selection') +
             ['hasDraft' => ! $r->isMethodSafe(), 'selectedGrade' => $grade ?? 0, 'selectedDate' => $date ?? $config['today'], 'actorId' => (int) $r->user()->id, 'schoolId' => app(CurrentSchool::class)->id()];
     }
 
@@ -155,6 +180,10 @@ class DisciplinePanelController extends Controller
             if ($r->operation() === 'enroll') {
                 $selection['mode'] = 'detentions';
                 $selection['detention'] = $detention;
+            }
+            if ($r->operation() === 'attendance') {
+                $selection['mode'] = 'detentions';
+                $selection['view'] = 'attendance';
             }
 
             return redirect()->route('discipline-panel.index', $selection)->with('success', __('Saved.'))->header('Cache-Control', 'private, no-store');

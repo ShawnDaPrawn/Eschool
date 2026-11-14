@@ -11,16 +11,12 @@
 
 @section('content')
     {{-- student App Settings --}}
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('app_settings') }}
-            </h3>
-        </div>
-        <div class="row grid-margin">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('app_settings')" />
+        <div class="panel-form-grid">
+            <div class="">
+                <div class="m3-card m3-card--outlined">
+                    <div class="m3-card__content panel-record-card">
                         <form id="formdata" class="general-setting" action="{{ url('app-settings') }}"
                             novalidate="novalidate">
                             @csrf
@@ -28,35 +24,35 @@
                                 {{ __('student_parent_app_settings') }}
                             </h4>
                             <div class="pt-3 row">
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('app_link') }}</label>
                                     <input name="app_link"
                                         value="{{ isset($settings['app_link']) ? $settings['app_link'] : '' }}"
-                                        type="url" required placeholder="{{ __('app_link') }}" class="form-control" />
+                                        type="url" required placeholder="{{ __('app_link') }}" class="m3-text-field__input" />
                                 </div>
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('ios_app_link') }}</label>
                                     <input name="ios_app_link"
                                         value="{{ isset($settings['ios_app_link']) ? $settings['ios_app_link'] : '' }}"
                                         type="url" required placeholder="{{ __('ios_app_link') }}"
-                                        class="form-control" />
+                                        class="m3-text-field__input" />
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="form-group col-md-3 col-sm-12">
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
                                     <label>{{ __('app_version') }}</label>
                                     <input name="app_version"
                                         value="{{ isset($settings['app_version']) ? $settings['app_version'] : '' }}"
                                         type="text" required placeholder="{{ __('app_version') }}"
-                                        class="form-control" />
+                                        class="m3-text-field__input" />
                                 </div>
-                                <div class="form-group col-md-3 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('ios_app_version') }}</label>
                                     <input type="text" name="ios_app_version" required
-                                        placeholder="{{ __('ios_app_version') }}" class="form-control"
+                                        placeholder="{{ __('ios_app_version') }}" class="m3-text-field__input"
                                         value="{{ isset($settings['ios_app_version']) ? $settings['ios_app_version'] : '' }}">
                                 </div>
-                                <div class="form-group col-md-3 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('force_app_update') }}</label>
                                     <div class="form-check">
                                         <label class="form-check-label">
@@ -67,7 +63,7 @@
                                     </div>
                                     <input type="hidden" name="force_app_update" id="txt_force_app_update">
                                 </div>
-                                <div class="form-group col-md-3 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('app_maintenance') }}</label>
                                     <div class="form-check">
                                         <label class="form-check-label">
@@ -84,36 +80,36 @@
                                 {{ __('teacher_app_settings') }}
                             </h4>
                             <div class="pt-3 row">
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('app_link') }}</label>
                                     <input name="teacher_app_link"
                                         value="{{ isset($settings['teacher_app_link']) ? $settings['teacher_app_link'] : '' }}"
                                         type="url" required placeholder="{{ __('app_link') }}"
-                                        class="form-control" />
+                                        class="m3-text-field__input" />
                                 </div>
-                                <div class="form-group col-md-6 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('ios_app_link') }}</label>
                                     <input name="teacher_ios_app_link"
                                         value="{{ isset($settings['teacher_ios_app_link']) ? $settings['teacher_ios_app_link'] : '' }}"
                                         type="url" required placeholder="{{ __('ios_app_link') }}"
-                                        class="form-control" />
+                                        class="m3-text-field__input" />
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="form-group col-md-3 col-sm-12">
+                            <div class="panel-form-grid">
+                                <div class="form-group  ">
                                     <label>{{ __('app_version') }}</label>
                                     <input name="teacher_app_version"
                                         value="{{ isset($settings['teacher_app_version']) ? $settings['teacher_app_version'] : '' }}"
                                         type="text" required placeholder="{{ __('app_version') }}"
-                                        class="form-control" />
+                                        class="m3-text-field__input" />
                                 </div>
-                                <div class="form-group col-md-3 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('ios_app_version') }}</label>
                                     <input type="text" name="teacher_ios_app_version" required
-                                        placeholder="{{ __('ios_app_version') }}" class="form-control"
+                                        placeholder="{{ __('ios_app_version') }}" class="m3-text-field__input"
                                         value="{{ isset($settings['teacher_ios_app_version']) ? $settings['teacher_ios_app_version'] : '' }}">
                                 </div>
-                                <div class="form-group col-md-3 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('force_app_update') }}</label>
                                     <div class="form-check">
                                         <label class="form-check-label">
@@ -124,7 +120,7 @@
                                     </div>
                                     <input type="hidden" name="teacher_force_app_update" id="teacher_txt_force_app_update">
                                 </div>
-                                <div class="form-group col-md-3 col-sm-12">
+                                <div class="form-group  ">
                                     <label>{{ __('app_maintenance') }}</label>
                                     <div class="form-check">
                                         <label class="form-check-label">
@@ -139,7 +135,7 @@
                             </div>
                             <hr>
                             <div class="settings-actions">
-                                <button type="submit" class="btn btn-theme">{{ __('submit') }}</button>
+                                <button type="submit" class="m3-button m3-button--filled">{{ __('submit') }}</button>
                             </div>
                         </form>
                     </div>

@@ -16,8 +16,12 @@ use App\Models\Shared\SharedFixture;
 | and only once every school concerned has accepted. Learner ids, groups and
 | private notes are never published; SharedRecordsBoundaryTest checks it.
 |
-| 'competition_kinds' is the seam for other kinds of competition: a fixture
-| and a competition carry a kind, and only 'sport' exists in this step.
+| 'competition_kinds' lists the kinds a fixture and a competition may be.
+| 'academic_kinds' are the academic competitions (Action Plan 5.3): each kind
+| says how its entrants take part (a team or individuals), whether a draw can
+| be the result, and whether its adjudicators may ask for AI feedback on the
+| reasoning in a speech or written argument (advice only, never a result).
+| A new kind is a new entry here and in 'competition_kinds'.
 |
 */
 
@@ -28,9 +32,15 @@ return [
     ],
 
     'published' => [
-        FixtureSide::class => ['id', 'shared_fixture_id', 'team_label', 'sheet_shared', 'reported_host_score', 'reported_guest_score'],
+        FixtureSide::class => ['id', 'shared_fixture_id', 'team_label', 'sheet_shared', 'reported_host_score', 'reported_guest_score', 'reported_winner'],
         FixtureSelection::class => ['shared_fixture_side_id', 'sheet_label', 'position'],
     ],
 
-    'competition_kinds' => ['sport'],
+    'competition_kinds' => ['sport', 'debate', 'quiz', 'speech'],
+
+    'academic_kinds' => [
+        'debate' => ['entry' => 'team', 'draw' => false, 'reasoning_feedback' => true],
+        'quiz' => ['entry' => 'team', 'draw' => true, 'reasoning_feedback' => false],
+        'speech' => ['entry' => 'individual', 'draw' => true, 'reasoning_feedback' => true],
+    ],
 ];

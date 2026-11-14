@@ -25,12 +25,14 @@ class UnseenLearnersController extends Controller
     public function index(UnseenLearnersRequest $request, UnseenLearners $unseen): Response
     {
         $access = $unseen->access($request->user());
+        $workspaceView = $request->validated('view', 'learners');
+        abort_if($workspaceView === 'configuration' && ! $access['principal'], 403);
         $leads = $access['principal'] || $access['grade_ids'] !== [];
         $grade = $request->validated('grade');
         $grade = $grade === null ? null : (int) $grade;
 
         return response()->view('growth.unseen-learners', [
-            'access' => $access, 'grade' => $grade,
+            'access' => $access, 'grade' => $grade, 'workspaceView' => $workspaceView,
             'list' => $leads ? $unseen->list($request->user(), $grade, (int) $request->validated('page', 1)) : null,
             'mine' => $unseen->mine($request->user()),
             'staff' => $leads ? $unseen->staff($request->user()) : [],
@@ -61,6 +63,6 @@ class UnseenLearnersController extends Controller
     {
         $days = $unseen->configure($request->user(), $request->validated());
 
-        return redirect()->route('risk-interventions.unseen')->with('success', __('A learner is now flagged after :days school days without a positive contact.', ['days' => $days]));
+        return redirect()->route('risk-interventions.unseen', ['view' => 'configuration'])->with('success', __('A learner is now flagged after :days school days without a positive contact.', ['days' => $days]));
     }
 }

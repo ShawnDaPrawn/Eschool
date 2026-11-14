@@ -14,7 +14,7 @@ $professionalOptions = collect($professionals['items'] ?? [])->pluck('name','id'
 <p>{{ __('Clinical records are limited to assigned counsellors and safeguarding staff. Configuration does not grant access to report or case contents.') }}</p>
 @if($messages)<section role="alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</section>@endif
 @if(!$canWrite)<p role="status">{{ __('Changes are unavailable. Check the current school year and module access.') }}</p>@endif
-<nav aria-label="{{ __('Wellbeing workbenches') }}">
+<nav class="workspace-tabs" aria-label="{{ __('Wellbeing workbenches') }}">
 @if($access['professional'])<a class="m3-button m3-button--outlined" href="{{ route('wellbeing.index',['mode'=>'clinical']) }}" @if(!$configurationMode) aria-current="page" @endif>{{ __('My incidents and cases') }}</a>@endif
 @if($access['can_configure'])<a class="m3-button m3-button--outlined" href="{{ route('wellbeing.index',['mode'=>'configuration']) }}" @if($configurationMode) aria-current="page" @endif>{{ __('Categories and assignments') }}</a>@endif
 </nav>

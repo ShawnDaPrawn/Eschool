@@ -228,4 +228,6 @@ service in `app/Services/Learning/Library` that checks it and validates again.
 - **SA.16, later parts**: retiring a published item, and a school-side switch
   (only HQ switches it). Quality signals from learner data are in the
   [content production pipeline](content-pipeline.md).
-- **Teacher-to-teacher sharing** (5.4).
+- **Teacher-to-teacher sharing** (5.4): now in the
+  [shared content library](shared-content-library.md), which also adds
+  withdrawing and unpublishing a published item.

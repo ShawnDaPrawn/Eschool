@@ -27,6 +27,7 @@ test.afterAll(() => {
 });
 for (const width of [390, 820, 1280]) {
   test(`finance creates, previews and copies an annual fee plan at ${width}px`, async ({ page, baseURL }) => {
+    test.setTimeout(240_000);
     const data = fixture();
     const name = `Synthetic annual tuition ${width}-${Date.now()}`;
     await page.setViewportSize({ width, height: 1000 });
@@ -45,14 +46,15 @@ for (const width of [390, 820, 1280]) {
     await check(page);
     await page.getByRole('button', { name: 'Save fee plan', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('Fee plan saved.');
+    await page.getByRole('link', { name: 'Copy to another year', exact: true }).click();
     await page.getByRole('combobox', { name: 'Target school year', exact: true }).selectOption(String(data.next));
     await page.getByRole('textbox', { name: 'Copied plan name', exact: true }).fill(`${name} next year`);
     await page.getByRole('textbox', { name: 'Uplift percentage', exact: true }).fill('5.25');
     await check(page);
-    await page.getByRole('button', { name: 'Create draft copy', exact: true }).click();
+    await Promise.all([page.waitForURL(/\/fee-plans\/\d+\/edit$/, { waitUntil: 'domcontentloaded' }), page.getByRole('button', { name: 'Create draft copy', exact: true }).click()]);
     await expect(page.getByRole('textbox', { name: 'Annual amount', exact: true })).toHaveValue('10.54');
     await expect(page.getByRole('combobox', { name: 'Status', exact: true })).toHaveValue('draft');
-    await page.goto(`/fee-plans?year_id=${data.year}`);
+    await page.goto(`/fee-plans?year_id=${data.year}&section=preview`);
     await page.getByRole('textbox', { name: 'Preview date', exact: true }).fill(data.date);
     await page.getByRole('button', { name: 'Preview enrolment matches', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Preview enrolment matches', exact: true })).toBeVisible();

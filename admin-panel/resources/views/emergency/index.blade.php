@@ -13,6 +13,23 @@
 @if($messages)<div role="alert" class="m3-alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</div>@endif
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 <p>{{ __('Times use the school timezone.') }} {{ $zone }}</p>
+@php
+    $operationView = match (request()->route('operation')) {
+        'alert-prepare' => $messages ? 'prepare' : 'alerts',
+        'roll-call-mark' => 'roll-call', 'release' => 'reunification',
+        'visitor-sign-in', 'visitor-sign-out' => 'visitors',
+        'drill-plan', 'drill-record', 'drill-cancel' => 'drills', 'retention' => 'configuration', default => 'alerts',
+    };
+    $emergencyView = in_array(request('view'), ['alerts','prepare','roll-call','reunification','visitors','drills','configuration','history'], true) ? request('view') : $operationView;
+    $emergencyViews = [];
+    foreach(['alerts'=>'Current alert','prepare'=>'Prepare alert','roll-call'=>'Emergency attendance','reunification'=>'Reunification','visitors'=>'Visitors','drills'=>'Drill log','configuration'=>'Configuration','history'=>'Alert history'] as $key=>$label) {
+        $visible = match($key) { 'prepare'=>$can['can_alert'] && $can['writable'], 'roll-call'=>(bool)$page['roll_call'], 'reunification','visitors'=>$can['can_respond'], 'configuration'=>$can['can_manage'], 'drills'=>$can['can_manage'] || $can['can_alert'], default=>true };
+        $emergencyViews[$key] = ['label'=>$label,'href'=>route('emergency-panel.index',['view'=>$key]),'visible'=>$visible];
+    }
+@endphp
+<x-panel-view-nav :items="$emergencyViews" :current="$emergencyView" label="Emergency workspace" />
+@if($emergencyView === 'alerts')
+
 
 <section class="page-section" aria-labelledby="emergency-current"><h2 id="emergency-current">{{ __('Current alert') }}</h2>
 @if($page['current'])
@@ -31,7 +48,9 @@
 @else<p>{{ __('There is no alert now.') }}</p>@endif
 </section>
 
+@endif
 @if($can['can_alert'] && $can['writable'])
+@if($emergencyView === 'alerts')
 @foreach($page['pending'] as $pending)
 <section class="page-section" aria-labelledby="emergency-confirm-{{ $pending['id'] }}"><h2 id="emergency-confirm-{{ $pending['id'] }}">{{ __('Confirm and send') }}</h2>
 <article class="m3-card m3-card--outlined" data-emergency-pending="{{ $pending['id'] }}"><div class="m3-card__content">
@@ -48,6 +67,8 @@
 </div></article></section>
 @endforeach
 
+@endif
+@if($emergencyView === 'prepare')
 <section class="page-section" aria-labelledby="emergency-prepare"><h2 id="emergency-prepare">{{ __('Send an emergency alert') }}</h2>
 <p>{{ __('Step one prepares the alert. Nothing is sent until you confirm it in step two. Learners are never sent alerts.') }}</p>
 <form method="POST" action="{{ route('emergency-panel.write', ['operation' => 'alert-prepare']) }}">@include('emergency.scope')
@@ -63,7 +84,9 @@
 </section>
 @endif
 
+@endif
 @if($page['roll_call'])
+@if($emergencyView === 'roll-call')
 <section class="page-section" aria-labelledby="emergency-roll-call"><h2 id="emergency-roll-call">{{ __('Roll call') }}</h2>
 <p>{{ __('Accounted for') }}: {{ $page['roll_call']['totals']['accounted'] }} · {{ __('Not yet accounted for') }}: {{ $page['roll_call']['totals']['unaccounted'] }} · {{ __('Released') }}: {{ $page['roll_call']['totals']['released'] }}@if($page['roll_call']['visitors_on_site'] !== null) · {{ __('Visitors on site') }}: {{ $page['roll_call']['visitors_on_site'] }}@endif</p>
 @foreach($page['roll_call']['classes'] as $class)
@@ -85,7 +108,8 @@
 @endforeach
 </section>
 
-@if($can['can_respond'] && $can['writable'] && ! $page['roll_call']['drill'])
+@endif
+@if($emergencyView === 'reunification' && $can['can_respond'] && $can['writable'] && ! $page['roll_call']['drill'])
 <section class="page-section" aria-labelledby="emergency-release"><h2 id="emergency-release">{{ __('Release a child') }}</h2>
 <p>{{ __('Release a child only to one of their guardians or to the named collector on an early collection request approved for today. Check who they are first. Anyone else is refused.') }}</p>
 <form method="POST" action="{{ route('emergency-panel.write', ['operation' => 'release']) }}">@include('emergency.scope')
@@ -105,7 +129,7 @@
 @endif
 @endif
 
-@if($can['can_respond'])
+@if($emergencyView === 'visitors' && $can['can_respond'])
 <section class="page-section" aria-labelledby="emergency-visitors"><h2 id="emergency-visitors">{{ __('Visitors on site') }}</h2>
 <p>{{ __('Everyone signed in today and not yet signed out. Visitor details are erased :days days after they sign in.', ['days' => $page['settings']['visitor_retention_days']]) }}</p>
 @forelse($page['visitors'] as $visitor)
@@ -132,7 +156,7 @@
 </section>
 @endif
 
-@if($can['can_manage'] || $can['can_alert'])
+@if($emergencyView === 'drills' && ($can['can_manage'] || $can['can_alert']))
 <section class="page-section" aria-labelledby="emergency-drills"><h2 id="emergency-drills">{{ __('Drill log') }}</h2>
 <div class="page-table__scroll" tabindex="0" aria-label="{{ __('Drill log') }}"><table class="page-table__table">
 <thead><tr><th scope="col">{{ __('Drill') }}</th><th scope="col">{{ __('Planned') }}</th><th scope="col">{{ __('Started') }}</th><th scope="col">{{ __('Ended') }}</th><th scope="col">{{ __('Notes') }}</th><th scope="col">{{ __('Action') }}</th></tr></thead><tbody>
@@ -161,14 +185,18 @@
 <x-page.field id="emergency-drill-planned" name="planned_at" type="datetime-local" :label="__('Planned for')" :required="true" :restore-old-input="false" />
 <x-page.field id="emergency-drill-plan-notes" name="notes" type="textarea" :label="__('Notes')" maxlength="2000" :restore-old-input="false" />
 <button class="m3-button m3-button--filled" type="submit">{{ __('Add to the drill log') }}</button></form>
-<form method="POST" action="{{ route('emergency-panel.write', ['operation' => 'retention']) }}">@include('emergency.scope')
-<h3>{{ __('How long visitor details are kept') }}</h3><input type="hidden" name="revision" value="{{ $page['settings']['revision'] }}">
-<x-page.field id="emergency-retention" name="visitor_retention_days" type="number" :label="__('Days after sign-in')" :value="$page['settings']['visitor_retention_days']" min="1" max="90" :required="true" :restore-old-input="false" />
-<button class="m3-button m3-button--outlined" type="submit">{{ __('Save') }}</button></form>
+
 @endif
 </section>
 @endif
 
+@if($emergencyView === 'configuration' && $can['can_manage'] && $can['writable'])
+<section class="page-section" aria-label="{{ __('Visitor retention configuration') }}"><form method="POST" action="{{ route('emergency-panel.write', ['operation' => 'retention']) }}">@include('emergency.scope')
+<h3>{{ __('How long visitor details are kept') }}</h3><input type="hidden" name="revision" value="{{ $page['settings']['revision'] }}">
+<x-page.field id="emergency-retention" name="visitor_retention_days" type="number" :label="__('Days after sign-in')" :value="$page['settings']['visitor_retention_days']" min="1" max="90" :required="true" :restore-old-input="false" />
+<button class="m3-button m3-button--outlined" type="submit">{{ __('Save') }}</button></form></section>
+@endif
+@if($emergencyView === 'history')
 <section class="page-section" aria-labelledby="emergency-history"><h2 id="emergency-history">{{ __('Recent alerts') }}</h2>
 <div class="page-table__scroll" tabindex="0" aria-label="{{ __('Recent alerts') }}"><table class="page-table__table">
 <thead><tr><th scope="col">{{ __('Alert') }}</th><th scope="col">{{ __('Prepared by') }}</th><th scope="col">{{ __('Sent by') }}</th><th scope="col">{{ __('All clear by') }}</th></tr></thead><tbody>
@@ -178,4 +206,5 @@
 @empty<tr><td colspan="4">{{ __('No alerts yet.') }}</td></tr>@endforelse
 </tbody></table></div>
 </section>
+@endif
 </div>@endsection

@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('add_online_exam_questions') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('add_online_exam_questions')" />
         <div class="row grid-margin">
             <div class="col-lg-12">
                 <div class="card">

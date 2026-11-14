@@ -7,6 +7,7 @@ namespace App\Services\Gallery;
 use App\Models\Gallery\GalleryPhoto;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
+use App\Services\Activities\CommunityAuthority;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -18,9 +19,24 @@ class GalleryPanelScope
     {
         try {
             $this->staff($user);
-            $configuration = app(GalleryQueries::class)->configuration($user);
+            $authority = app(GalleryAuthority::class);
+            try {
+                $authority->manage($user);
 
-            return $configuration['can_manage'] || $configuration['groups'] !== [];
+                return true;
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                // A non-manager still needs one currently readable group.
+            }
+            foreach (app(CommunityAuthority::class)->visible($user) as $group) {
+                try {
+                    $authority->group($user, (int) $group->id);
+
+                    return true;
+                } catch (HttpExceptionInterface|ModelNotFoundException) {
+                }
+            }
+
+            return false;
         } catch (HttpExceptionInterface|ModelNotFoundException) {
             return false;
         }

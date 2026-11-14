@@ -74,8 +74,11 @@ class SearchTest extends TestCase
         $this->assertSame([], $this->group($parents->json('groups'), 'parents'));
 
         $settings = $this->getJson('/search?q=school+profile')->json('groups');
-        $this->assertSame([route('people-profiles.index')], array_column($this->group($settings, 'pages'), 'url'),
-            'A teacher can find their own profile, but no school configuration pages');
+        $this->assertSame([], $this->group($settings, 'pages'), 'A teacher cannot find school configuration pages');
+        $profile = $this->group($this->getJson('/search?q=my+profile')->json('groups'), 'pages');
+        $this->assertSame([route('people-profiles.index')], array_column($profile, 'url'),
+            'A teacher can find their own profile by its personal task name');
+        $this->get($profile[0]['url'])->assertOk();
         $this->assertSame([], $this->group($this->getJson('/search?q=thandi')->json('groups'), 'teachers'));
         $this->assertSame([], $this->group($this->getJson('/search?q=grade+5')->json('groups'), 'homerooms'));
 

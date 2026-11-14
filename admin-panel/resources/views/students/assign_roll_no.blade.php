@@ -5,12 +5,8 @@
 @endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="page-header">
-            <h3 class="page-title">
-                {{ __('manage') . ' ' . __('students') }} {{ __('roll_no') }}
-            </h3>
-        </div>
+    <div class="content-wrapper m3 page-content">
+        <x-page.header :title="__('manage') . ' ' . __('students') . ' ' . __('roll_no')" />
 
         <div class="row">
             <div class="col-lg-12 grid-margin stretch-card">
@@ -21,7 +17,7 @@
                         </h4>
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('class_section') }} </label>
+                                <label for="filter_roll_number_class_section_id">{{ __('class_section') }} </label>
                                 <select name="filter_roll_number_class_section_id" id="filter_roll_number_class_section_id"
                                     class="form-control">
                                     <option value="">{{ __('select_class_section') }}</option>
@@ -35,7 +31,7 @@
                             </div>
 
                             <div class="form-group col-sm-12 col-md-2">
-                                <label>{{ __('sort_by') }} </label>
+                                <label for="sort_by">{{ __('sort_by') }} </label>
                                 <select name="sort_by" id="sort_by" class="form-control">
                                     <option value="first_name">{{ __('first_name') }}</option>
                                     <option value="last_name">{{ __('last_name') }}</option>

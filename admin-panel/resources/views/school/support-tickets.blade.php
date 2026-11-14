@@ -8,10 +8,11 @@
 @endphp
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Navigate Ed support')" :subtitle="__('Ask Navigate Ed for help with a question, a problem, a request or billing. Everyone at your school who looks after the settings sees these tickets and the replies.')"
-        :primary-label="__('Open a ticket')" primary-href="#support-new" />
+        :primary-label="__('Open a ticket')" :primary-href="route('support-tickets.index',['view'=>'create'])" />
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     @foreach ($errors->all() as $problem)<p role="alert">{{ $problem }}</p>@endforeach
 
+    @if(request('view') !== 'create')
     <section class="page-section" aria-labelledby="support-list">
         <h2 id="support-list">{{ __('Your school\'s tickets') }}</h2>
         @if ($tickets->isEmpty())
@@ -35,10 +36,12 @@
         @endif
     </section>
 
+    @else
+    <a class="m3-button m3-button--outlined" href="{{ route('support-tickets.index') }}">{{ __('All support tickets') }}</a>
     <section class="m3-card m3-card--outlined page-section" id="support-new" aria-labelledby="support-new-title"><div class="m3-card__content">
         <h2 id="support-new-title">{{ __('Open a ticket') }}</h2>
         <p>{{ __('Do not paste learners\' personal information here: no names, ID numbers, contact details, marks or health details. Describe what you were doing, the page and what went wrong; Navigate Ed will ask if they need more.') }}</p>
-        <form method="POST" action="{{ route('support-tickets.store') }}" aria-label="{{ __('Open a ticket') }}">
+        <form method="POST" action="{{ route('support-tickets.store',['view'=>'create']) }}" aria-label="{{ __('Open a ticket') }}">
             @csrf
             <x-page.field name="subject" id="support-subject" :label="__('Ticket subject')" minlength="5" maxlength="150" required />
             <x-page.field name="category" id="support-category" type="select" :label="__('What is it about?')" :options="$categories" :placeholder="__('Choose one')" required />
@@ -47,5 +50,6 @@
             <button class="m3-button m3-button--filled" type="submit">{{ __('Send to Navigate Ed') }}</button>
         </form>
     </div></section>
+@endif
 </div>
 @endsection

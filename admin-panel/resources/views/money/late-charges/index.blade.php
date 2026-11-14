@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title', __('One-off late charges'))
-@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench late-charge-workbench">
 <x-page.header :title="__('One-off late charges')" :subtitle="__('Review original overdue debt after recorded allocations. Corrections stay with the original debt; late fees never generate further late fees.')" />

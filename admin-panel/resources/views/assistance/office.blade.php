@@ -5,9 +5,15 @@
 @php($value = fn(string $operation, string $field, $default = '') => $draftOperation === $operation ? ($draft[$field] ?? $default) : $default)
 <div class="content-wrapper m3 page-content assistance-workbench" data-assistance-private data-assistance-expires="{{ $turn['expires_at'] ?? $thread['expires_at'] ?? '' }}">
     <x-page.header :title="__('School support office')" :subtitle="__('Approved school information and explicitly assigned Parent conversations.')" />
+    <x-panel-view-nav :current="in_array($officeView,['thread','review']) ? 'queue' : $officeView" :items="[
+        'queue'=>['label'=>'Support requests','href'=>route('assistance-panel.index')],
+        'documents'=>['label'=>'Approved documents','href'=>route('assistance-panel.index',['view'=>'documents'])],
+        'publish'=>['label'=>'Publish a document','href'=>route('assistance-panel.index',['view'=>'publish']),'visible'=>$canWrite],
+    ]" />
     @include('academics.groups-status')
     @if($messages)<div role="alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach</div>@endif
     @if(!$canWrite)<p role="status">{{ __('Writing is unavailable for this view. Existing documents and conversations remain available.') }}</p>@endif
+    @if($officeView === 'queue')
     <p>{{ __('Claim a request before opening its private conversation. Academic source records are never copied into a handoff.') }}</p>
     <section class="page-section" aria-labelledby="assistance-queue"><h2 id="assistance-queue">{{ __('School support queue') }}</h2>
         @forelse($queue['items'] as $item)
@@ -28,6 +34,7 @@
             @if($queue['page']+$delta >= 1 && $queue['page']+$delta <= $queue['last_page'])<a class="m3-button m3-button--outlined" href="{{ route('assistance-panel.index', ['page' => $queue['page']+$delta]) }}">{{ __($label) }}</a>@endif
         @endforeach</nav>
     </section>
+    @endif
     @if($thread)
     <section class="page-section" aria-labelledby="assistance-thread"><h2 id="assistance-thread">{{ __('Private school-support conversation') }}</h2>
         @foreach($thread['messages'] as $message)
@@ -84,14 +91,24 @@
         <a class="m3-button m3-button--outlined" href="{{ route('assistance-panel.index') }}">{{ __('Close private review') }}</a>
     </section>
     @endif
+    @if($officeView === 'documents')
     <section class="page-section" aria-labelledby="assistance-documents"><h2 id="assistance-documents">{{ __('Approved school documents') }}</h2>
-        @foreach($documents['items'] as $item)<p><a href="{{ route('assistance-panel.index', ['document' => $item['id']]) }}">{{ $item['title'] }}</a> · {{ __($item['state']) }} · {{ __('Revision') }} {{ $item['revision'] }}</p>@endforeach
+        @forelse($documents['items'] as $item)<p><a href="{{ route('assistance-panel.index', ['view'=>'documents','document' => $item['id']]) }}">{{ $item['title'] }}</a> · {{ __($item['state']) }} · {{ __('Revision') }} {{ $item['revision'] }}</p>@empty<p>{{ __('No approved school documents have been published yet.') }}</p>@endforelse
         <nav aria-label="{{ __('School document pages') }}">@foreach(['Previous documents' => -1, 'More documents' => 1] as $label => $delta)
-            @if($documents['page']+$delta >= 1 && $documents['page']+$delta <= $documents['last_page'])<a class="m3-button m3-button--outlined" href="{{ route('assistance-panel.index', ['document_page' => $documents['page']+$delta]) }}">{{ __($label) }}</a>@endif
+            @if($documents['page']+$delta >= 1 && $documents['page']+$delta <= $documents['last_page'])<a class="m3-button m3-button--outlined" href="{{ route('assistance-panel.index', ['view'=>'documents','document_page' => $documents['page']+$delta]) }}">{{ __($label) }}</a>@endif
         @endforeach</nav>
-        @if($document)<h3>{{ $document['title'] }}</h3><p class="assistance-private-text">{{ $document['markdown'] }}</p><p>{{ $document['source_reference'] }}</p>@endif
+        @if($document)<h3>{{ $document['title'] }}</h3><p class="assistance-private-text">{{ $document['markdown'] }}</p><p>{{ $document['source_reference'] }}</p>
+            @if($canWrite)
+                <a class="m3-button m3-button--outlined" href="{{ route('assistance-panel.index',['view'=>'publish','document'=>$document['id']]) }}">{{ __('Publish a new version') }}</a>
+                <form method="POST" action="{{ route('assistance-panel.withdraw', ['document' => $document['id']]) }}" aria-label="{{ __('Withdraw this document version') }}">
+                    @include('assistance.hidden', ['operation' => 'withdraw'])
+                    <button class="m3-button m3-button--outlined" type="submit">{{ __('Withdraw this document version') }}</button>
+                </form>
+            @endif
+        @endif
     </section>
-    @if($canWrite)
+    @endif
+    @if($officeView === 'publish' && ($canWrite || $draftOperation === 'publish'))
     <section class="page-section" aria-labelledby="assistance-publish"><h2 id="assistance-publish">{{ __('Publish approved school information') }}</h2>
         <form method="POST" action="{{ route('assistance-panel.publish') }}" class="assistance-fields" aria-label="{{ __('Publish approved school information') }}">
             @include('assistance.hidden', ['operation' => 'publish', 'revision' => $document['revision'] ?? 0])
@@ -101,14 +118,14 @@
             <x-page.field id="assistance-doc-source" name="source_reference" :label="__('Document source or maintenance reference')" :value="$value('publish','source_reference',$document['source_reference'] ?? '')" :restore-old-input="false" maxlength="2048" required />
             <x-page.field id="assistance-doc-expiry" name="expires_on" type="date" :label="__('Optional expiry date')" :value="$value('publish','expires_on',$document['expires_on'] ?? '')" :restore-old-input="false" />
             <label for="assistance-doc-reviewed"><input id="assistance-doc-reviewed" name="identifiers_reviewed" type="checkbox" value="1" required> {{ __('I approve this exact school document and reviewed identifying details') }}</label>
-            <button class="m3-button m3-button--filled" type="submit">{{ $document ? __('Publish new document version') : __('Publish approved document') }}</button>
+            <button class="m3-button m3-button--filled" type="submit" @disabled(!$canWrite)>{{ $document ? __('Publish new document version') : __('Publish approved document') }}</button>
         </form>
-        @if($document)
+        @if($document && $canWrite)
         <form method="POST" action="{{ route('assistance-panel.withdraw', ['document' => $document['id']]) }}" aria-label="{{ __('Withdraw this document version') }}">
             @include('assistance.hidden', ['operation' => 'withdraw'])
             <button class="m3-button m3-button--outlined" type="submit">{{ __('Withdraw this document version') }}</button>
         </form>
-        <a class="m3-button m3-button--outlined" href="{{ route('assistance-panel.index') }}">{{ __('Start a separate document') }}</a>
+        <a class="m3-button m3-button--outlined" href="{{ route('assistance-panel.index',['view'=>'publish']) }}">{{ __('Start a separate document') }}</a>
         @endif
     </section>
     @endif

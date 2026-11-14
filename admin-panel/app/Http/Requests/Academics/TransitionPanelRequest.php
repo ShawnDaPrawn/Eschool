@@ -31,7 +31,8 @@ class TransitionPanelRequest extends TransitionRequest
     public function rules(): array
     {
         $context = ['session_year_id' => ['sometimes', 'integer', 'min:1'], 'learner_id' => ['sometimes', 'integer', 'min:1'], 'kind' => ['sometimes', 'in:join,leave,subject_change'],
-            'grade_level_id' => ['sometimes', 'integer', 'min:1'], 'history_page' => ['sometimes', 'integer', 'between:1,10000']];
+            'grade_level_id' => ['sometimes', 'integer', 'min:1'], 'history_page' => ['sometimes', 'integer', 'between:1,10000'],
+            'view' => ['sometimes', 'in:changes,configuration']];
 
         return parent::rules() + $context;
     }

@@ -1,0 +1,3290 @@
+[
+  {
+    "id": "SE001",
+    "module": "Settings",
+    "flow": "Activate school year",
+    "title": "Activate the next school year",
+    "source": "admin-panel/resources/views/academics/new-year.blade.php:120",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "new-year.make-current"
+    ],
+    "design_field_names": [
+      "school",
+      "current",
+      "target",
+      "carry",
+      "advice",
+      "welcome"
+    ]
+  },
+  {
+    "id": "AT001",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Open homeroom register",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:19",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "academic-registers.open"
+    ],
+    "design_field_names": [
+      "on_date",
+      "scope"
+    ]
+  },
+  {
+    "id": "AT002",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Open lesson register",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:28",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "academic-registers.open"
+    ],
+    "design_field_names": [
+      "on_date",
+      "scope"
+    ]
+  },
+  {
+    "id": "AT003",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Review attendance correction",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:44",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "academic-registers.review"
+    ],
+    "design_field_names": [
+      "register",
+      "learner",
+      "saved",
+      "state",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT004",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Capture homeroom attendance",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:50",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "academic-registers.sync"
+    ],
+    "design_field_names": [
+      "register",
+      "qr",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT005",
+    "module": "Attendance",
+    "flow": "Learner attendance configuration",
+    "title": "Attendance configuration",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:77",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-settings.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php"
+    ],
+    "destination": "/academic-registers/configuration",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "academic-registers.settings"
+    ],
+    "design_field_names": [
+      "absence_cutoff",
+      "teaching_days",
+      "timezone"
+    ]
+  },
+  {
+    "id": "AT006",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Activity session attendance",
+    "source": "admin-panel/resources/views/activities/workbench.blade.php:94",
+    "implementation": [
+      "admin-panel/resources/views/activities/attendance.blade.php",
+      "admin-panel/app/Services/Activities/ActivityGroups.php"
+    ],
+    "destination": "/activity-groups?view=attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "activity-groups.attendance-save"
+    ],
+    "design_field_names": [
+      "session",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT007",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Download attendance template",
+    "source": "admin-panel/resources/views/attendance/add_bulk_data.blade.php:18",
+    "implementation": [
+      "admin-panel/resources/views/attendance/add_bulk_data.blade.php",
+      "admin-panel/app/Http/Controllers/AttendanceController.php"
+    ],
+    "destination": "/add-bulk-attendance?view=template|upload",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "student-export"
+    ],
+    "design_field_names": [
+      "class_section_id",
+      "date"
+    ]
+  },
+  {
+    "id": "AT008",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Import learner attendance",
+    "source": "admin-panel/resources/views/attendance/add_bulk_data.blade.php:52",
+    "implementation": [
+      "admin-panel/resources/views/attendance/add_bulk_data.blade.php",
+      "admin-panel/app/Http/Controllers/AttendanceController.php"
+    ],
+    "destination": "/add-bulk-attendance?view=template|upload",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "attendance.store-bulk-data"
+    ],
+    "design_field_names": [
+      "class_section_id",
+      "file",
+      "format",
+      "authority"
+    ]
+  },
+  {
+    "id": "AT009",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Capture a legacy homeroom register",
+    "source": "admin-panel/resources/views/attendance/index.blade.php:22",
+    "implementation": [
+      "admin-panel/resources/views/attendance/index.blade.php",
+      "admin-panel/public/assets/js/custom/attendance-workspace.js",
+      "admin-panel/app/Services/Academics/Attendance/LegacyRegisterWrites.php"
+    ],
+    "destination": "/attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "attendance.store"
+    ],
+    "design_field_names": [
+      "class_section_id",
+      "date",
+      "holiday"
+    ]
+  },
+  {
+    "id": "AT010",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Detention attendance",
+    "source": "admin-panel/resources/views/discipline/workbench.blade.php:86",
+    "implementation": [
+      "admin-panel/resources/views/discipline/workbench.blade.php",
+      "admin-panel/resources/views/discipline/detention.blade.php",
+      "admin-panel/app/Services/Discipline/DisciplineDetentions.php"
+    ],
+    "destination": "/school-discipline?view=attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "discipline-panel.attendance"
+    ],
+    "design_field_names": [
+      "session",
+      "learner",
+      "existing",
+      "state",
+      "reason"
+    ]
+  },
+  {
+    "id": "HO005",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Emergency learner roll call",
+    "source": "admin-panel/resources/views/emergency/index.blade.php:77",
+    "implementation": [
+      "admin-panel/resources/views/emergency/index.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Emergency/EmergencyPanelController.php"
+    ],
+    "destination": "/emergency?view=roll-call",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "emergency-panel.write"
+    ],
+    "design_field_names": [
+      "incident",
+      "group"
+    ]
+  },
+  {
+    "id": "LV001",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Request my leave",
+    "source": "admin-panel/resources/views/leave/index.blade.php:25",
+    "implementation": [
+      "admin-panel/resources/views/leave/index.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/LeaveController.php"
+    ],
+    "destination": "/leave?view=create or /leave; delete confirm and refreshed real queue",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "leave.store"
+    ],
+    "design_field_names": [
+      "person",
+      "from_date",
+      "to_date",
+      "reason",
+      "files"
+    ]
+  },
+  {
+    "id": "LV002",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Delete my pending leave request",
+    "source": "admin-panel/resources/views/leave/index.blade.php:169",
+    "implementation": [
+      "admin-panel/resources/views/leave/index.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/LeaveController.php"
+    ],
+    "destination": "/leave?view=create or /leave; delete confirm and refreshed real queue",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "dates",
+      "status",
+      "effect"
+    ]
+  },
+  {
+    "id": "LV003",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Review staff leave request",
+    "source": "admin-panel/resources/views/leave/leave_request.blade.php:124",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+    ],
+    "destination": "/leave-request?view=create or /leave-request; pending decision dialog and final record",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "dates",
+      "reason",
+      "status"
+    ]
+  },
+  {
+    "id": "LV004",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Record approved staff leave",
+    "source": "admin-panel/resources/views/leave/leave_request.blade.php:227",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+    ],
+    "destination": "/leave-request?view=create or /leave-request; pending decision dialog and final record",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "staff_id",
+      "from_date",
+      "to_date",
+      "reason",
+      "files"
+    ]
+  },
+  {
+    "id": "LV005",
+    "module": "Leave",
+    "flow": "Leave requests and cover configuration",
+    "title": "Configure monthly leave allowance",
+    "source": "admin-panel/resources/views/leave/leave_setting.blade.php:19",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "leave-master.store"
+    ],
+    "design_field_names": [
+      "year",
+      "total_leave",
+      "holiday_days"
+    ]
+  },
+  {
+    "id": "LV006",
+    "module": "Leave",
+    "flow": "Leave requests and cover configuration",
+    "title": "Edit monthly leave allowance",
+    "source": "admin-panel/resources/views/leave/leave_setting.blade.php:108",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "leave-master.update"
+    ],
+    "design_field_names": [
+      "year",
+      "total_leave",
+      "holiday_days"
+    ]
+  },
+  {
+    "id": "LV007",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Staff leave request detail",
+    "source": "admin-panel/resources/views/leave/staff_leave.blade.php:71",
+    "implementation": [
+      "admin-panel/resources/views/leave/staff_leave.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js"
+    ],
+    "destination": "/staff-leave; read-only original request detail",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "dates",
+      "portions",
+      "days",
+      "status",
+      "reason",
+      "attachments"
+    ]
+  },
+  {
+    "id": "LV008",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Review learner leave request",
+    "source": "admin-panel/resources/views/leave/student_leave_request.blade.php:107",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "requester",
+      "date",
+      "reason",
+      "status"
+    ]
+  },
+  {
+    "id": "LV009",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Assign substitute teacher",
+    "source": "admin-panel/resources/views/pastoral/cover.blade.php:35",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "relief-cover.assign"
+    ],
+    "design_field_names": [
+      "teacher",
+      "lesson",
+      "substitute_teacher_id"
+    ]
+  },
+  {
+    "id": "LV010",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Refresh teacher cover timetable mapping",
+    "source": "admin-panel/resources/views/pastoral/cover.blade.php:45",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "relief-cover."
+    ],
+    "design_field_names": [
+      "teacher",
+      "dates",
+      "reason"
+    ]
+  },
+  {
+    "id": "LV011",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Request absence cover",
+    "source": "admin-panel/resources/views/pastoral/cover.blade.php:56",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "relief-cover.request"
+    ],
+    "design_field_names": [
+      "teacher_id",
+      "starts_on",
+      "ends_on",
+      "reason"
+    ]
+  },
+  {
+    "id": "SE030",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Prepare a school year",
+    "source": "admin-panel/resources/views/session_years/create-modal.blade.php:12",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "name",
+      "start_date",
+      "end_date",
+      "calendar_source"
+    ]
+  },
+  {
+    "id": "SE031",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Edit prepared year dates",
+    "source": "admin-panel/resources/views/session_years/edit-modal.blade.php:14",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/app/Http/Controllers/SessionYearController.php"
+    ],
+    "destination": "/session-years?view=list|calendar|edit&year={year}; dates never activate",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "name",
+      "start_date",
+      "end_date"
+    ]
+  },
+  {
+    "id": "SE052",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Edit term",
+    "source": "admin-panel/resources/views/term/index.blade.php:27",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "term.update"
+    ],
+    "design_field_names": [
+      "name",
+      "starts_on",
+      "ends_on",
+      "grade_from",
+      "grade_to",
+      "marks_lock_on",
+      "reports_on"
+    ]
+  },
+  {
+    "id": "SE053",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Remove unused school term",
+    "source": "admin-panel/resources/views/term/index.blade.php:34",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "term.destroy"
+    ],
+    "design_field_names": [
+      "term",
+      "references",
+      "effect"
+    ]
+  },
+  {
+    "id": "SE054",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Enable terms and review subjects",
+    "source": "admin-panel/resources/views/term/index.blade.php:47",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "term.classes.enable"
+    ],
+    "design_field_names": [
+      "year",
+      "class_id",
+      "effect"
+    ]
+  },
+  {
+    "id": "SE055",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Add term",
+    "source": "admin-panel/resources/views/term/index.blade.php:58",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "term.store"
+    ],
+    "design_field_names": [
+      "name",
+      "starts_on",
+      "ends_on",
+      "grade_from",
+      "grade_to",
+      "marks_lock_on",
+      "reports_on"
+    ]
+  },
+  {
+    "id": "SE056",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Save school calendar as a template",
+    "source": "admin-panel/resources/views/term/index.blade.php:63",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "term.templates.store"
+    ],
+    "design_field_names": [
+      "year",
+      "name"
+    ]
+  },
+  {
+    "id": "SE057",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Preview a calendar template",
+    "source": "admin-panel/resources/views/term/index.blade.php:74",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [
+      "term.templates.apply"
+    ],
+    "design_field_names": [
+      "target",
+      "template_id"
+    ]
+  },
+  {
+    "id": "AT011",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Attendance overview and missing registers",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "date"
+    ]
+  },
+  {
+    "id": "AT012",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Resolve an attendance sync conflict",
+    "source": "engineering/specs/academics/attendance.md",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "register",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT013",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Register saved and outstanding rows",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:50",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "register",
+      "saved",
+      "unmarked",
+      "alerts"
+    ]
+  },
+  {
+    "id": "AT014",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Learner attendance history",
+    "source": "admin-panel/resources/views/students/report/attendance.blade.php",
+    "implementation": [
+      "admin-panel/resources/views/students/report/attendance.blade.php"
+    ],
+    "destination": "/students-report (selected learner attendance context)",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "period"
+    ]
+  },
+  {
+    "id": "AT015",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Attendance report and export",
+    "source": "admin-panel/resources/views/attendance/report.blade.php:1; admin-panel/app/Http/Controllers/AttendanceController.php:752",
+    "implementation": [
+      "admin-panel/resources/views/attendance/report.blade.php",
+      "admin-panel/public/assets/js/custom/attendance-workspace.js",
+      "admin-panel/app/Http/Controllers/AttendanceController.php"
+    ],
+    "destination": "/attendance-report (CSV export uses all authorised filtered rows)",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "class_section_id",
+      "term_id",
+      "year",
+      "search",
+      "format"
+    ]
+  },
+  {
+    "id": "LV012",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Request facilitator leave",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/create.blade.php",
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/create → /facilitator-leave/{absence}",
+    "status": "Implemented explicit requested extension: private request and dated facilitator scope; no Teacher fallback",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "facilitator",
+      "from_date",
+      "to_date",
+      "reason",
+      "files"
+    ]
+  },
+  {
+    "id": "LV013",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Review facilitator leave and session cover",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/resources/views/leave/facilitators/cover.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/{absence}?session={session} and /facilitator-leave/my-cover",
+    "status": "Implemented explicit requested extension: final approval/rejection, per-session revision/conflict checked cover, real original/replacement identities; assignment grants no permanent management or substitute attendance permission",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "facilitator",
+      "date",
+      "session",
+      "decision"
+    ]
+  },
+  {
+    "id": "LV014",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Leave calendar",
+    "source": "admin-panel/resources/views/leave/leave_request.blade.php",
+    "implementation": [
+      "admin-panel/resources/views/leave/calendar.blade.php",
+      "admin-panel/resources/views/leave/calendar-detail.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Leave/LeaveCalendarController.php"
+    ],
+    "destination": "/leave-calendar",
+    "status": "Implemented calendar/history detail with approved dates and day portions; private reasons/files require requester or the subject's authorised reviewer",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "week",
+      "person_type",
+      "status"
+    ]
+  },
+  {
+    "id": "LV015",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Monthly leave balances and history",
+    "source": "admin-panel/resources/views/leave/leave_details.blade.php:1; admin-panel/app/Http/Controllers/Leave/ReportController.php:54",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_details.blade.php",
+      "admin-panel/app/Http/Controllers/Leave/ReportController.php"
+    ],
+    "destination": "/leave-report; all twelve actual monthly allocation/use/balance rows",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "staff_id",
+      "year"
+    ]
+  },
+  {
+    "id": "LV016",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Staff leave approved",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+    ],
+    "destination": "/leave-request?view=create or /leave-request; pending decision dialog and final record",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "dates",
+      "days",
+      "status",
+      "cover"
+    ]
+  },
+  {
+    "id": "SE070",
+    "module": "Settings",
+    "flow": "Modules",
+    "title": "Module setup readiness",
+    "source": "school/; config/modules.php",
+    "implementation": [
+      "admin-panel/resources/views/platform/module-readiness.blade.php",
+      "admin-panel/app/Services/Panel/ModuleReadiness.php",
+      "admin-panel/app/Http/Controllers/Panel/ModuleReadinessController.php"
+    ],
+    "destination": "/school-modules/readiness",
+    "status": "Implemented bounded readiness: availability and authority separate, actual scoped configuration checks, unknown checks explicitly require review",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "module",
+      "availability",
+      "authority",
+      "setup"
+    ]
+  },
+  {
+    "id": "SE072",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Review year-end checklist",
+    "source": "Services/Academics/NewYearService.php; engineering/specs/academics/new-year-structures.md",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "source",
+      "target",
+      "policy"
+    ]
+  },
+  {
+    "id": "SE073",
+    "module": "Settings",
+    "flow": "Activate school year",
+    "title": "Global year activation result",
+    "source": "Services/Academics/NewYearService.php; session_years/",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year-result.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php"
+    ],
+    "destination": "/new-year/result; actor and school scoped completion receipt",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "previous",
+      "current",
+      "copied",
+      "skipped",
+      "welcomed",
+      "next"
+    ]
+  },
+  {
+    "id": "SE080",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Remove unused school term",
+    "source": "admin-panel/routes/web.php / resource term",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "term",
+      "references",
+      "effect"
+    ]
+  },
+  {
+    "id": "SE082",
+    "module": "Settings",
+    "flow": "Global year context",
+    "title": "Choose the school year to view",
+    "source": "admin-panel/resources/views/layouts/partials/read-only-banner.blade.php",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/SessionYearContext.php"
+    ],
+    "destination": "Global header viewing year and read-only banner; changing view never activates; unsaved-draft confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "session_year_id",
+      "effect"
+    ]
+  },
+  {
+    "id": "SE083",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Review year carry-forward choices",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "source",
+      "target"
+    ]
+  },
+  {
+    "id": "SE084",
+    "module": "Settings",
+    "flow": "Activate school year",
+    "title": "School year changed while editing",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/SessionYearContext.php"
+    ],
+    "destination": "Global header viewing year and read-only banner; changing view never activates; unsaved-draft confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "draft_year",
+      "current_year",
+      "page",
+      "draft",
+      "next"
+    ]
+  },
+  {
+    "id": "SE-Y03",
+    "module": "Settings",
+    "flow": "Activate school year",
+    "title": "Activate school year",
+    "source": "admin-panel/resources/views/academics/new-year.blade.php; Services/Academics/NewYearService.php; session_years/; admin-panel/app/Services/Academics/NewYearService.php",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "AT-A04",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Learner attendance",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php; admin-panel/resources/views/activities/workbench.blade.php; admin-panel/resources/views/attendance/add_bulk_data.blade.php; admin-panel/resources/views/attendance/index.blade.php; admin-panel/resources/views/discipline/workbench.blade.php; admin-panel/resources/views/emergency/index.blade.php; engineering/specs/academics/attendance.md; admin-panel/resources/views/students/report/attendance.blade.php; admin-panel/app/Http/Controllers/AttendanceController.php",
+    "implementation": [
+      "admin-panel/resources/views/panel/workspace.blade.php",
+      "admin-panel/app/Services/Panel/Navigation.php",
+      "admin-panel/config/navigation.php"
+    ],
+    "destination": "/workspace/attendance or /workspace/leave",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "AT-A04-CFG",
+    "module": "Attendance",
+    "flow": "Learner attendance configuration",
+    "title": "Attendance configuration",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-settings.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php"
+    ],
+    "destination": "/academic-registers/configuration",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "LV-LEAVE",
+    "module": "Leave",
+    "flow": "Leave requests and cover",
+    "title": "Leave requests and cover",
+    "source": "admin-panel/resources/views/leave/index.blade.php; admin-panel/resources/views/leave/leave_request.blade.php; admin-panel/resources/views/leave/staff_leave.blade.php; admin-panel/resources/views/leave/student_leave_request.blade.php; admin-panel/resources/views/pastoral/cover.blade.php; admin-panel/app/Http/Controllers/Leave/RequestController.php; admin-panel/app/Http/Controllers/Leave/ReportController.php",
+    "implementation": [
+      "admin-panel/resources/views/panel/workspace.blade.php",
+      "admin-panel/app/Services/Panel/Navigation.php",
+      "admin-panel/config/navigation.php"
+    ],
+    "destination": "/workspace/attendance or /workspace/leave",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "LV-LEAVE-CFG",
+    "module": "Leave",
+    "flow": "Leave requests and cover configuration",
+    "title": "Monthly leave configuration",
+    "source": "admin-panel/resources/views/leave/leave_setting.blade.php",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "SE-Y02",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Prepare school year",
+    "source": "admin-panel/resources/views/session_years/create-modal.blade.php; admin-panel/resources/views/session_years/edit-modal.blade.php; admin-panel/resources/views/term/index.blade.php; Services/Academics/NewYearService.php; engineering/specs/academics/new-year-structures.md; admin-panel/app/Services/Academics/NewYearService.php",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "SE-Y01",
+    "module": "Settings",
+    "flow": "Global year context",
+    "title": "Global year context",
+    "source": "admin-panel/resources/views/layouts/partials/read-only-banner.blade.php",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/SessionYearContext.php"
+    ],
+    "destination": "Global header viewing year and read-only banner; changing view never activates; unsaved-draft confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "AT301",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Capture lesson attendance",
+    "source": "admin-panel/app/Services/Academics/Attendance/Registers.php:124",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "lesson",
+      "qr",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT302",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "QR does not match this register",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:55",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "register",
+      "scan",
+      "unchanged",
+      "action"
+    ]
+  },
+  {
+    "id": "AT303",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Lesson register saved",
+    "source": "admin-panel/app/Services/Academics/Attendance/Registers.php:146",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "lesson",
+      "date",
+      "saved",
+      "unmarked",
+      "scope"
+    ]
+  },
+  {
+    "id": "AT304",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Confirm reviewed attendance correction",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:44; admin-panel/app/Services/Academics/Attendance/Registers.php:126",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "on_date",
+      "before",
+      "after",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT305",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Attendance correction saved",
+    "source": "admin-panel/app/Services/Academics/Attendance/Registers.php:131",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "on_date",
+      "state",
+      "reason",
+      "amended"
+    ]
+  },
+  {
+    "id": "AT306",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Absence alert settings saved",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:77",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-settings.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php"
+    ],
+    "destination": "/academic-registers/configuration",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "cutoff",
+      "days",
+      "rule",
+      "exclusion"
+    ]
+  },
+  {
+    "id": "AT307",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Activity attendance saved",
+    "source": "admin-panel/app/Services/Activities/ActivityGroups.php:307",
+    "implementation": [
+      "admin-panel/resources/views/activities/attendance.blade.php",
+      "admin-panel/app/Services/Activities/ActivityGroups.php"
+    ],
+    "destination": "/activity-groups?view=attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "group",
+      "session",
+      "saved",
+      "remaining",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT308",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Detention attendance saved",
+    "source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:126",
+    "implementation": [
+      "admin-panel/resources/views/discipline/workbench.blade.php",
+      "admin-panel/resources/views/discipline/detention.blade.php",
+      "admin-panel/app/Services/Discipline/DisciplineDetentions.php"
+    ],
+    "destination": "/school-discipline?view=attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "session",
+      "learner",
+      "attendance",
+      "reason",
+      "authority"
+    ]
+  },
+  {
+    "id": "AT309",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Correct captured detention attendance",
+    "source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:138",
+    "implementation": [
+      "admin-panel/resources/views/discipline/workbench.blade.php",
+      "admin-panel/resources/views/discipline/detention.blade.php",
+      "admin-panel/app/Services/Discipline/DisciplineDetentions.php"
+    ],
+    "destination": "/school-discipline?view=attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "session",
+      "learner",
+      "old",
+      "state",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT310",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Emergency roll call updated",
+    "source": "admin-panel/resources/views/emergency/index.blade.php:77",
+    "implementation": [
+      "admin-panel/resources/views/emergency/index.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Emergency/EmergencyPanelController.php"
+    ],
+    "destination": "/emergency?view=roll-call",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "incident",
+      "learner",
+      "status",
+      "release"
+    ]
+  },
+  {
+    "id": "AT311",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Attendance file imported",
+    "source": "admin-panel/app/Imports/AttendanceImport.php:47",
+    "implementation": [
+      "admin-panel/resources/views/attendance/add_bulk_data.blade.php",
+      "admin-panel/app/Http/Controllers/AttendanceController.php"
+    ],
+    "destination": "/add-bulk-attendance?view=template|upload",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "file",
+      "class",
+      "state",
+      "policy"
+    ]
+  },
+  {
+    "id": "AT312",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Attendance import row error",
+    "source": "admin-panel/app/Imports/AttendanceImport.php:50",
+    "implementation": [
+      "admin-panel/resources/views/attendance/add_bulk_data.blade.php",
+      "admin-panel/app/Http/Controllers/AttendanceController.php"
+    ],
+    "destination": "/add-bulk-attendance?view=template|upload",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "file",
+      "row",
+      "issue",
+      "effect"
+    ]
+  },
+  {
+    "id": "AT313",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Use the academic register for this date",
+    "source": "admin-panel/app/Services/Academics/Attendance/LegacyRegisterWrites.php:24",
+    "implementation": [
+      "admin-panel/resources/views/attendance/index.blade.php",
+      "admin-panel/public/assets/js/custom/attendance-workspace.js",
+      "admin-panel/app/Services/Academics/Attendance/LegacyRegisterWrites.php"
+    ],
+    "destination": "/attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "class",
+      "date",
+      "issue",
+      "next"
+    ]
+  },
+  {
+    "id": "AT314",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Legacy attendance saved",
+    "source": "admin-panel/app/Http/Controllers/AttendanceController.php:116",
+    "implementation": [
+      "admin-panel/resources/views/attendance/index.blade.php",
+      "admin-panel/public/assets/js/custom/attendance-workspace.js",
+      "admin-panel/app/Services/Academics/Attendance/LegacyRegisterWrites.php"
+    ],
+    "destination": "/attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "class",
+      "date",
+      "state",
+      "scope"
+    ]
+  },
+  {
+    "id": "AT315",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Attendance report ready",
+    "source": "admin-panel/app/Http/Controllers/AttendanceController.php:752",
+    "implementation": [
+      "admin-panel/resources/views/attendance/report.blade.php",
+      "admin-panel/public/assets/js/custom/attendance-workspace.js",
+      "admin-panel/app/Http/Controllers/AttendanceController.php"
+    ],
+    "destination": "/attendance-report (CSV export uses all authorised filtered rows)",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "scope",
+      "format",
+      "basis"
+    ]
+  },
+  {
+    "id": "AT316",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Register is read-only for this teacher",
+    "source": "admin-panel/app/Services/Academics/Attendance/Registers.php:72",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "register",
+      "state",
+      "draft"
+    ]
+  },
+  {
+    "id": "LV301",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Staff leave request submitted",
+    "source": "admin-panel/app/Http/Controllers/Leave/LeaveController.php:153",
+    "implementation": [
+      "admin-panel/resources/views/leave/index.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/LeaveController.php"
+    ],
+    "destination": "/leave?view=create or /leave; delete confirm and refreshed real queue",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "dates",
+      "days",
+      "status"
+    ]
+  },
+  {
+    "id": "LV302",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Pending leave request deleted",
+    "source": "admin-panel/app/Http/Controllers/Leave/LeaveController.php:358",
+    "implementation": [
+      "admin-panel/resources/views/leave/index.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/LeaveController.php"
+    ],
+    "destination": "/leave?view=create or /leave; delete confirm and refreshed real queue",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "dates",
+      "status"
+    ]
+  },
+  {
+    "id": "LV303",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Reject staff leave request",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:249",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+    ],
+    "destination": "/leave-request?view=create or /leave-request; pending decision dialog and final record",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "request",
+      "reason",
+      "decision"
+    ]
+  },
+  {
+    "id": "LV304",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Staff leave request rejected",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:256",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+    ],
+    "destination": "/leave-request?view=create or /leave-request; pending decision dialog and final record",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "request",
+      "status",
+      "editing"
+    ]
+  },
+  {
+    "id": "LV305",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Monthly leave settings saved",
+    "source": "admin-panel/resources/views/leave/leave_setting.blade.php:24",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "allowance",
+      "days",
+      "scope"
+    ]
+  },
+  {
+    "id": "LV306",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Learner leave approved",
+    "source": "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php:439",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "date",
+      "status",
+      "notification"
+    ]
+  },
+  {
+    "id": "LV307",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Reject learner leave request",
+    "source": "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php:455",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "request",
+      "reason"
+    ]
+  },
+  {
+    "id": "LV308",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Learner leave rejected",
+    "source": "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php:455",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "date",
+      "status",
+      "reason"
+    ]
+  },
+  {
+    "id": "LV309",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Teacher cover assignment saved",
+    "source": "admin-panel/app/Services/Pastoral/ReliefCover.php:156",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "absent",
+      "substitute",
+      "lesson",
+      "state"
+    ]
+  },
+  {
+    "id": "LV310",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "No substitute teacher is available",
+    "source": "admin-panel/resources/views/pastoral/cover.blade.php:40",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "lesson",
+      "teachers",
+      "next"
+    ]
+  },
+  {
+    "id": "LV313",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Cancel teacher cover request",
+    "source": "admin-panel/app/Services/Pastoral/ReliefCover.php:131",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "teacher",
+      "dates",
+      "reason"
+    ]
+  },
+  {
+    "id": "LV314",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Teacher cover request cancelled",
+    "source": "admin-panel/app/Services/Pastoral/ReliefCover.php:131",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "teacher",
+      "dates",
+      "state",
+      "reason"
+    ]
+  },
+  {
+    "id": "LV312",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Teacher cover request and affected lessons",
+    "source": "admin-panel/resources/views/pastoral/cover.blade.php:19",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "teacher",
+      "dates"
+    ]
+  },
+  {
+    "id": "LV311",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Review changed cover occurrence",
+    "source": "admin-panel/resources/views/pastoral/cover.blade.php:29",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "teacher",
+      "lesson",
+      "issue",
+      "next"
+    ]
+  },
+  {
+    "id": "LV315",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Facilitator leave request submitted",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:291",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/create.blade.php",
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/create → /facilitator-leave/{absence}",
+    "status": "Implemented explicit requested extension: private request and dated facilitator scope; no Teacher fallback",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "date",
+      "status",
+      "session"
+    ]
+  },
+  {
+    "id": "LV316",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Facilitator leave approved",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:291",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/resources/views/leave/facilitators/cover.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/{absence}?session={session} and /facilitator-leave/my-cover",
+    "status": "Implemented explicit requested extension: final approval/rejection, per-session revision/conflict checked cover, real original/replacement identities; assignment grants no permanent management or substitute attendance permission",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "date",
+      "session",
+      "cover"
+    ]
+  },
+  {
+    "id": "LV317",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Assign facilitator session cover",
+    "source": "admin-panel/app/Services/Activities/ActivityGroups.php:47",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/resources/views/leave/facilitators/cover.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/{absence}?session={session} and /facilitator-leave/my-cover",
+    "status": "Implemented explicit requested extension: final approval/rejection, per-session revision/conflict checked cover, real original/replacement identities; assignment grants no permanent management or substitute attendance permission",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "session",
+      "facilitator",
+      "replacement",
+      "reason"
+    ]
+  },
+  {
+    "id": "LV318",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Reject facilitator leave request",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:249",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/resources/views/leave/facilitators/cover.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/{absence}?session={session} and /facilitator-leave/my-cover",
+    "status": "Implemented explicit requested extension: final approval/rejection, per-session revision/conflict checked cover, real original/replacement identities; assignment grants no permanent management or substitute attendance permission",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "date",
+      "decision"
+    ]
+  },
+  {
+    "id": "LV319",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Facilitator session cover assigned",
+    "source": "admin-panel/app/Services/Activities/ActivityGroups.php:47",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/resources/views/leave/facilitators/cover.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/{absence}?session={session} and /facilitator-leave/my-cover",
+    "status": "Implemented explicit requested extension: final approval/rejection, per-session revision/conflict checked cover, real original/replacement identities; assignment grants no permanent management or substitute attendance permission",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "session",
+      "original",
+      "replacement",
+      "scope"
+    ]
+  },
+  {
+    "id": "LV320",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Facilitator leave rejected",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:249",
+    "implementation": [
+      "admin-panel/resources/views/leave/facilitators/show.blade.php",
+      "admin-panel/resources/views/leave/facilitators/cover.blade.php",
+      "admin-panel/resources/views/activities/session-cover.blade.php",
+      "admin-panel/app/Services/Leave/FacilitatorLeave.php"
+    ],
+    "destination": "/facilitator-leave/{absence}?session={session} and /facilitator-leave/my-cover",
+    "status": "Implemented explicit requested extension: final approval/rejection, per-session revision/conflict checked cover, real original/replacement identities; assignment grants no permanent management or substitute attendance permission",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "date",
+      "status"
+    ]
+  },
+  {
+    "id": "LV321",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Monthly leave calculation detail",
+    "source": "admin-panel/app/Http/Controllers/Leave/ReportController.php:131",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_details.blade.php",
+      "admin-panel/app/Http/Controllers/Leave/ReportController.php"
+    ],
+    "destination": "/leave-report; all twelve actual monthly allocation/use/balance rows",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "person",
+      "month",
+      "allocation"
+    ]
+  },
+  {
+    "id": "LV322",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Leave settings are required",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:310",
+    "implementation": [
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave?view=create or /leave-request?view=create; missing settings blocks submission with configuration next step",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "missing",
+      "effect"
+    ]
+  },
+  {
+    "id": "SE400",
+    "module": "Settings",
+    "flow": "Global year context",
+    "title": "Viewing a noncurrent school year",
+    "source": "admin-panel/resources/views/layouts/partials/read-only-banner.blade.php:12",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/SessionYearContext.php"
+    ],
+    "destination": "Global header viewing year and read-only banner; changing view never activates; unsaved-draft confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "selected",
+      "active",
+      "writes",
+      "preparation"
+    ]
+  },
+  {
+    "id": "SE401",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Review terms for the new year",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php:164; admin-panel/app/Services/Academics/TermCalendar.php:160",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "target",
+      "source"
+    ]
+  },
+  {
+    "id": "SE402",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "School year prepared",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php:164",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "name",
+      "dates",
+      "terms",
+      "current"
+    ]
+  },
+  {
+    "id": "SE403",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Carry forward group structures and leave settings",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php:198",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "source",
+      "target"
+    ]
+  },
+  {
+    "id": "SE404",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Carry forward recognition and practice settings",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php:73",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "source",
+      "target"
+    ]
+  },
+  {
+    "id": "SE405",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Preview the whole-school year change",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php:230",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "current",
+      "target",
+      "promoted",
+      "leavers",
+      "unplaced",
+      "carry",
+      "access"
+    ]
+  },
+  {
+    "id": "SE406",
+    "module": "Settings",
+    "flow": "Activate school year",
+    "title": "Year switch outcome is not yet confirmed",
+    "source": "admin-panel/app/Services/Academics/NewYearService.php:313",
+    "implementation": [
+      "admin-panel/resources/views/academics/new-year.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/NewYearController.php",
+      "admin-panel/app/Services/Academics/NewYearService.php",
+      "admin-panel/public/assets/js/custom/new-year.js"
+    ],
+    "destination": "/new-year; preparation/carry/checklist/preview/global activation steps, confirmed server result only",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "source",
+      "target",
+      "response",
+      "next"
+    ]
+  },
+  {
+    "id": "SE407",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "School-year calendar and term detail",
+    "source": "admin-panel/app/Services/Academics/TermCalendar.php:44",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/app/Http/Controllers/SessionYearController.php"
+    ],
+    "destination": "/session-years?view=list|calendar|edit&year={year}; dates never activate",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "policy"
+    ]
+  },
+  {
+    "id": "SE408",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Term cannot be removed or re-scoped",
+    "source": "admin-panel/app/Services/Academics/TermCalendar.php:121",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "term",
+      "issue",
+      "effect",
+      "next"
+    ]
+  },
+  {
+    "id": "SE409",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Calendar template saved",
+    "source": "admin-panel/app/Services/Academics/TermTemplates.php:19",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "name",
+      "source",
+      "terms"
+    ]
+  },
+  {
+    "id": "SE410",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Calendar template preview",
+    "source": "admin-panel/app/Services/Academics/TermTemplates.php:84",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "target",
+      "template"
+    ]
+  },
+  {
+    "id": "SE411",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Calendar template applied",
+    "source": "admin-panel/app/Services/Academics/TermTemplates.php:84",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "target",
+      "created",
+      "retained",
+      "replaced"
+    ]
+  },
+  {
+    "id": "SE412",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Calendar template needs date review",
+    "source": "admin-panel/app/Services/Academics/TermTemplates.php:61",
+    "implementation": [
+      "admin-panel/resources/views/term/index.blade.php",
+      "admin-panel/resources/views/term/fields.blade.php",
+      "admin-panel/app/Http/Controllers/TermController.php",
+      "admin-panel/app/Services/Academics/TermTemplates.php"
+    ],
+    "destination": "/term?view=list|edit|create|configuration|templates; actual source redirects and private school/year bound template preview",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "target",
+      "issue",
+      "effect",
+      "next"
+    ]
+  },
+  {
+    "id": "AT317",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Monthly learner attendance matrix",
+    "source": "admin-panel/resources/views/attendance/monthly.blade.php:29",
+    "implementation": [
+      "admin-panel/resources/views/attendance/monthly.blade.php",
+      "admin-panel/public/assets/js/custom/attendance-monthly.js"
+    ],
+    "destination": "/attendance-monthly",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "class_section_id",
+      "month",
+      "year"
+    ]
+  },
+  {
+    "id": "AT318",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "View recorded attendance by date",
+    "source": "admin-panel/resources/views/attendance/view.blade.php:24; admin-panel/app/Http/Controllers/AttendanceController.php:527",
+    "implementation": [
+      "admin-panel/resources/views/attendance/view.blade.php",
+      "admin-panel/public/assets/js/custom/attendance-workspace.js"
+    ],
+    "destination": "/view-attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "class_section_id",
+      "date",
+      "attendance_type"
+    ]
+  },
+  {
+    "id": "AT319",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Detention correction saved",
+    "source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:138",
+    "implementation": [
+      "admin-panel/resources/views/discipline/workbench.blade.php",
+      "admin-panel/resources/views/discipline/detention.blade.php",
+      "admin-panel/app/Services/Discipline/DisciplineDetentions.php"
+    ],
+    "destination": "/school-discipline?view=attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "session",
+      "learner",
+      "attendance",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT320",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Review the refreshed register draft",
+    "source": "admin-panel/resources/views/academics/register-workbench.blade.php:44",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "date",
+      "saved",
+      "draft",
+      "reason"
+    ]
+  },
+  {
+    "id": "AT321",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Reviewed register saved",
+    "source": "admin-panel/app/Services/Academics/Attendance/Registers.php:110",
+    "implementation": [
+      "admin-panel/resources/views/academics/register-workbench.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Academics/RegisterPanelController.php",
+      "admin-panel/public/assets/js/custom/register-workbench.js"
+    ],
+    "destination": "/academic-registers",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "date",
+      "state",
+      "result"
+    ]
+  },
+  {
+    "id": "LV323",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Teacher cover request after assignment",
+    "source": "admin-panel/app/Services/Pastoral/ReliefCover.php:156",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "teacher",
+      "dates"
+    ]
+  },
+  {
+    "id": "LV324",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "New teacher cover request created",
+    "source": "admin-panel/app/Services/Pastoral/ReliefCover.php:84",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "teacher",
+      "dates"
+    ]
+  },
+  {
+    "id": "SE413",
+    "module": "Settings",
+    "flow": "Global year context",
+    "title": "School-year overview after activation",
+    "source": "admin-panel/resources/views/session_years/index.blade.php:30",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/app/Http/Controllers/SessionYearController.php"
+    ],
+    "destination": "/session-years?view=list|calendar|edit&year={year}; dates never activate",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "current",
+      "selected"
+    ]
+  },
+  {
+    "id": "SE414",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Manage school-year records",
+    "source": "admin-panel/resources/views/session_years/index.blade.php:30",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/app/Http/Controllers/SessionYearController.php"
+    ],
+    "destination": "/session-years?view=list|calendar|edit&year={year}; dates never activate",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "current",
+      "search"
+    ]
+  },
+  {
+    "id": "SE415",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Review school-year cleanup options",
+    "source": "admin-panel/resources/views/session_years/delete-clear-modal.blade.php:15",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/resources/views/session_years/delete-clear-modal.blade.php",
+      "admin-panel/public/assets/js/custom/school-year-workspace.js",
+      "admin-panel/app/Http/Controllers/SessionYearController.php",
+      "admin-panel/app/Services/Money/FinancialYears.php"
+    ],
+    "destination": "/session-years?view=cleanup&year={year}; category/whole-year impact review, native final confirm, confirmed result or retained financial-history error",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "operation",
+      "warning"
+    ]
+  },
+  {
+    "id": "SE416",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Select school-year data to clear",
+    "source": "admin-panel/app/Http/Controllers/SessionYearController.php:398",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/resources/views/session_years/delete-clear-modal.blade.php",
+      "admin-panel/public/assets/js/custom/school-year-workspace.js",
+      "admin-panel/app/Http/Controllers/SessionYearController.php",
+      "admin-panel/app/Services/Money/FinancialYears.php"
+    ],
+    "destination": "/session-years?view=cleanup&year={year}; category/whole-year impact review, native final confirm, confirmed result or retained financial-history error",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "clear_data",
+      "retained"
+    ]
+  },
+  {
+    "id": "SE417",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Review deletion of a school year",
+    "source": "admin-panel/app/Models/SessionYear.php:125; admin-panel/app/Services/Money/FinancialYears.php:16",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/resources/views/session_years/delete-clear-modal.blade.php",
+      "admin-panel/public/assets/js/custom/school-year-workspace.js",
+      "admin-panel/app/Http/Controllers/SessionYearController.php",
+      "admin-panel/app/Services/Money/FinancialYears.php"
+    ],
+    "destination": "/session-years?view=cleanup&year={year}; category/whole-year impact review, native final confirm, confirmed result or retained financial-history error",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "effect",
+      "finance",
+      "confirm"
+    ]
+  },
+  {
+    "id": "SE418",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Confirm selected school-year clearing",
+    "source": "admin-panel/app/Services/SessionYearService.php:210",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/resources/views/session_years/delete-clear-modal.blade.php",
+      "admin-panel/public/assets/js/custom/school-year-workspace.js",
+      "admin-panel/app/Http/Controllers/SessionYearController.php",
+      "admin-panel/app/Services/Money/FinancialYears.php"
+    ],
+    "destination": "/session-years?view=cleanup&year={year}; category/whole-year impact review, native final confirm, confirmed result or retained financial-history error",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "categories",
+      "effect",
+      "confirm"
+    ]
+  },
+  {
+    "id": "SE419",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "School-year deletion result",
+    "source": "admin-panel/app/Http/Controllers/SessionYearController.php:364",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/resources/views/session_years/delete-clear-modal.blade.php",
+      "admin-panel/public/assets/js/custom/school-year-workspace.js",
+      "admin-panel/app/Http/Controllers/SessionYearController.php",
+      "admin-panel/app/Services/Money/FinancialYears.php"
+    ],
+    "destination": "/session-years?view=cleanup&year={year}; category/whole-year impact review, native final confirm, confirmed result or retained financial-history error",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "result",
+      "current"
+    ]
+  },
+  {
+    "id": "SE420",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "School year is retained for financial records",
+    "source": "admin-panel/app/Services/Money/FinancialYears.php:16",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/resources/views/session_years/delete-clear-modal.blade.php",
+      "admin-panel/public/assets/js/custom/school-year-workspace.js",
+      "admin-panel/app/Http/Controllers/SessionYearController.php",
+      "admin-panel/app/Services/Money/FinancialYears.php"
+    ],
+    "destination": "/session-years?view=cleanup&year={year}; category/whole-year impact review, native final confirm, confirmed result or retained financial-history error",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "blocking",
+      "effect"
+    ]
+  },
+  {
+    "id": "SE421",
+    "module": "Settings",
+    "flow": "Prepare school year",
+    "title": "Selected school-year data cleared",
+    "source": "admin-panel/app/Services/SessionYearService.php:210",
+    "implementation": [
+      "admin-panel/resources/views/session_years/index.blade.php",
+      "admin-panel/resources/views/session_years/delete-clear-modal.blade.php",
+      "admin-panel/public/assets/js/custom/school-year-workspace.js",
+      "admin-panel/app/Http/Controllers/SessionYearController.php",
+      "admin-panel/app/Services/Money/FinancialYears.php"
+    ],
+    "destination": "/session-years?view=cleanup&year={year}; category/whole-year impact review, native final confirm, confirmed result or retained financial-history error",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "categories",
+      "year_record",
+      "current"
+    ]
+  },
+  {
+    "id": "LV325",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Learner leave request detail",
+    "source": "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php:384",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "requester",
+      "status",
+      "reason",
+      "files"
+    ]
+  },
+  {
+    "id": "LV326",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "My assigned cover lessons",
+    "source": "admin-panel/resources/views/pastoral/cover.blade.php:16",
+    "implementation": [
+      "admin-panel/resources/views/pastoral/cover.blade.php",
+      "admin-panel/app/Services/Pastoral/ReliefCover.php"
+    ],
+    "destination": "/relief-cover?view=requests|request|mine or selected request; separate task modes, real revision conflict comparison and assigned lessons",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "teacher",
+      "from",
+      "to"
+    ]
+  },
+  {
+    "id": "LV327",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Staff leave review queue",
+    "source": "admin-panel/app/Http/Controllers/Leave/RequestController.php:91",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/create-form.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/RequestController.php"
+    ],
+    "destination": "/leave-request?view=create or /leave-request; pending decision dialog and final record",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "user_id",
+      "month_id",
+      "filter_upcoming",
+      "search"
+    ]
+  },
+  {
+    "id": "LV328",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Learner leave review queue",
+    "source": "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php:107",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "class_id",
+      "month_id",
+      "filter_upcoming",
+      "search"
+    ]
+  },
+  {
+    "id": "LV329",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Monthly leave configuration record",
+    "source": "admin-panel/app/Http/Controllers/LeaveMasterController.php:110",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year"
+    ]
+  },
+  {
+    "id": "LV330",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Remove monthly leave configuration",
+    "source": "admin-panel/app/Http/Controllers/LeaveMasterController.php:264; admin-panel/app/Models/LeaveMaster.php:16",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "allocation",
+      "effect",
+      "confirm"
+    ]
+  },
+  {
+    "id": "LV331",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Monthly leave configuration removed",
+    "source": "admin-panel/app/Http/Controllers/LeaveMasterController.php:264",
+    "implementation": [
+      "admin-panel/resources/views/leave/leave_setting.blade.php",
+      "admin-panel/resources/views/leave/partials/configuration-fields.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/LeaveMasterController.php",
+      "admin-panel/public/assets/css/leave-configuration.css"
+    ],
+    "destination": "/leave-master?view=create or /leave-master; edit and delete confirmation",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "year",
+      "result",
+      "next"
+    ]
+  },
+  {
+    "id": "LV332",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Delete learner leave request",
+    "source": "admin-panel/app/Http/Controllers/Leave/LeaveController.php:358; admin-panel/app/Models/Leave.php:80",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "request",
+      "effect",
+      "confirm"
+    ]
+  },
+  {
+    "id": "LV333",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Learner leave request deleted",
+    "source": "admin-panel/app/Http/Controllers/Leave/LeaveController.php:358",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "date",
+      "result"
+    ]
+  },
+  {
+    "id": "LV334",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Keep learner request pending",
+    "source": "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php:410",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "date",
+      "decision"
+    ]
+  },
+  {
+    "id": "LV335",
+    "module": "Leave",
+    "flow": "Leave and cover",
+    "title": "Learner request remains pending",
+    "source": "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php:410",
+    "implementation": [
+      "admin-panel/resources/views/leave/student_leave_request.blade.php",
+      "admin-panel/resources/views/leave/partials/record-dialog.blade.php",
+      "admin-panel/public/assets/js/custom/leave-workspace.js",
+      "admin-panel/app/Http/Controllers/Leave/StudentLeaveController.php"
+    ],
+    "destination": "/student-leave-request; original detail, pending/approved/rejected decision and source-authorised deletion",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "learner",
+      "date",
+      "status",
+      "notification"
+    ]
+  },
+  {
+    "id": "AT322",
+    "module": "Attendance",
+    "flow": "Learner attendance",
+    "title": "Detention record after attendance correction",
+    "source": "admin-panel/app/Services/Discipline/DisciplineDetentions.php:126; admin-panel/resources/views/discipline/workbench.blade.php:84",
+    "implementation": [
+      "admin-panel/resources/views/discipline/workbench.blade.php",
+      "admin-panel/resources/views/discipline/detention.blade.php",
+      "admin-panel/app/Services/Discipline/DisciplineDetentions.php"
+    ],
+    "destination": "/school-discipline?view=attendance",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "session",
+      "supervisor",
+      "learner",
+      "correction"
+    ]
+  },
+  {
+    "id": "SE307",
+    "module": "Settings",
+    "flow": "Global navigation",
+    "title": "Choose an authorised school",
+    "source": "admin-panel/resources/views/layouts/partials/school-switcher.blade.php:13; admin-panel/app/Http/Controllers/Panel/Platform/SchoolSwitchController.php:20",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/Navigation.php"
+    ],
+    "destination": "Global school/language/navigation shell; school availability and unsaved draft guards maintained",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "current",
+      "school_id",
+      "effect"
+    ]
+  },
+  {
+    "id": "SE308",
+    "module": "Settings",
+    "flow": "Global navigation",
+    "title": "School context changed",
+    "source": "admin-panel/app/Http/Controllers/Panel/Platform/SchoolSwitchController.php:25",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/Navigation.php"
+    ],
+    "destination": "Global school/language/navigation shell; school availability and unsaved draft guards maintained",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "school",
+      "year",
+      "scope"
+    ]
+  },
+  {
+    "id": "SE309",
+    "module": "Settings",
+    "flow": "Global navigation",
+    "title": "Selected school is no longer available",
+    "source": "admin-panel/app/Http/Requests/Platform/SwitchSchoolRequest.php:25",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/Navigation.php"
+    ],
+    "destination": "Global school/language/navigation shell; school availability and unsaved draft guards maintained",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "school",
+      "reason",
+      "context"
+    ]
+  },
+  {
+    "id": "SE310",
+    "module": "Settings",
+    "flow": "Global navigation",
+    "title": "Review an unsaved draft before changing school",
+    "source": "admin-panel/resources/views/layouts/partials/school-switcher.blade.php:13",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/Navigation.php"
+    ],
+    "destination": "Global school/language/navigation shell; school availability and unsaved draft guards maintained",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "draft",
+      "choice"
+    ]
+  },
+  {
+    "id": "SE312",
+    "module": "Settings",
+    "flow": "Global navigation",
+    "title": "Choose my interface language",
+    "source": "admin-panel/resources/views/layouts/header.blade.php:72",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/Navigation.php"
+    ],
+    "destination": "Global school/language/navigation shell; school availability and unsaved draft guards maintained",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "language",
+      "scope"
+    ]
+  },
+  {
+    "id": "SE313",
+    "module": "Settings",
+    "flow": "Global navigation",
+    "title": "Global search results",
+    "source": "admin-panel/resources/views/layouts/partials/search-box.blade.php:1; admin-panel/resources/views/search/index.blade.php:1",
+    "implementation": [
+      "admin-panel/resources/views/search/index.blade.php"
+    ],
+    "destination": "Global authorised search results",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": [
+      "q"
+    ]
+  },
+  {
+    "id": "SE-S00",
+    "module": "Settings",
+    "flow": "Global navigation",
+    "title": "Global navigation",
+    "source": "admin-panel/resources/views/layouts/partials/school-switcher.blade.php:13; admin-panel/app/Http/Controllers/Panel/Platform/SchoolSwitchController.php:20; admin-panel/app/Http/Controllers/Panel/Platform/SchoolSwitchController.php:25; admin-panel/app/Http/Requests/Platform/SwitchSchoolRequest.php:25; admin-panel/resources/views/layouts/partials/school-switcher.blade.php:13; admin-panel/resources/views/layouts/header.blade.php:72; admin-panel/resources/views/layouts/partials/search-box.blade.php:1; admin-panel/resources/views/search/index.blade.php:1",
+    "implementation": [
+      "admin-panel/resources/views/layouts/header.blade.php",
+      "admin-panel/resources/views/layouts/sidebar.blade.php",
+      "admin-panel/public/assets/js/custom/panel.js",
+      "admin-panel/app/Services/Panel/Navigation.php"
+    ],
+    "destination": "Global school/language/navigation shell; school availability and unsaved draft guards maintained",
+    "status": "Implemented with the existing authority and source-backed result/error states",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  },
+  {
+    "id": "SE-S02",
+    "module": "Settings",
+    "flow": "Modules",
+    "title": "Modules",
+    "source": "school/; config/modules.php",
+    "implementation": [
+      "admin-panel/resources/views/platform/modules.blade.php",
+      "admin-panel/resources/views/platform/module-readiness.blade.php",
+      "admin-panel/app/Services/Panel/ModuleReadiness.php",
+      "admin-panel/app/Http/Controllers/Platform/ModuleController.php",
+      "admin-panel/config/modules.php"
+    ],
+    "destination": "/school-modules availability and package controls → /school-modules/readiness actual setup checks → authorised source module configuration links",
+    "status": "Implemented: availability, package entitlement, manager authority and actual setup are distinct; unknown configuration checks require review; retained read-only modules keep their source rules",
+    "source_files_present": true,
+    "design_routes": [
+      "school-modules.index",
+      "school-modules.update",
+      "school-modules.readiness"
+    ],
+    "design_field_names": []
+  },
+  {
+    "id": "AC052",
+    "module": "Academics",
+    "flow": "Early years and classroom devices",
+    "title": "Edit classroom eligibility",
+    "source": "admin-panel/resources/views/classroom/management.blade.php:14",
+    "implementation": [
+      "admin-panel/resources/views/classroom/management.blade.php",
+      "admin-panel/resources/views/classroom/authorization.blade.php",
+      "admin-panel/resources/views/classroom/invalid.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Classroom/FoundationPanelController.php",
+      "admin-panel/app/Http/Requests/Classroom/FoundationRequest.php",
+      "admin-panel/app/Http/Middleware/FoundationStaffContext.php",
+      "admin-panel/app/Services/Classroom/ClassroomAuthority.php",
+      "admin-panel/public/assets/js/foundation-management.js"
+    ],
+    "destination": "/foundation-classrooms?view=eligibility&group={authorised current group}&page={bounded page}",
+    "status": "Implemented: separate real task destinations with source current-year, manager/allocated-Teacher, revision, private-result and revocation boundaries retained; security-sensitive fields are never flashed or persisted as browser drafts",
+    "source_files_present": true,
+    "design_routes": [
+      "foundation-panel.eligibility"
+    ],
+    "design_field_names": [
+      "eligible",
+      "reason"
+    ]
+  },
+  {
+    "id": "AC053",
+    "module": "Academics",
+    "flow": "Early years and classroom devices",
+    "title": "Authorize my classroom lesson",
+    "source": "admin-panel/resources/views/classroom/management.blade.php:21",
+    "implementation": [
+      "admin-panel/resources/views/classroom/management.blade.php",
+      "admin-panel/resources/views/classroom/authorization.blade.php",
+      "admin-panel/resources/views/classroom/invalid.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Classroom/FoundationPanelController.php",
+      "admin-panel/app/Http/Requests/Classroom/FoundationRequest.php",
+      "admin-panel/app/Http/Middleware/FoundationStaffContext.php",
+      "admin-panel/app/Services/Classroom/ClassroomAuthority.php",
+      "admin-panel/public/assets/js/foundation-management.js"
+    ],
+    "destination": "/foundation-classrooms?view=authorize&group={own eligible current group}&page={bounded page} → private authorization result",
+    "status": "Implemented: separate real task destinations with source current-year, manager/allocated-Teacher, revision, private-result and revocation boundaries retained; security-sensitive fields are never flashed or persisted as browser drafts",
+    "source_files_present": true,
+    "design_routes": [
+      "foundation-panel.grant"
+    ],
+    "design_field_names": [
+      "device_id",
+      "minutes"
+    ]
+  },
+  {
+    "id": "AC054",
+    "module": "Academics",
+    "flow": "Early years and classroom devices",
+    "title": "Register classroom tablet",
+    "source": "admin-panel/resources/views/classroom/management.blade.php:34",
+    "implementation": [
+      "admin-panel/resources/views/classroom/management.blade.php",
+      "admin-panel/resources/views/classroom/authorization.blade.php",
+      "admin-panel/resources/views/classroom/invalid.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Classroom/FoundationPanelController.php",
+      "admin-panel/app/Http/Requests/Classroom/FoundationRequest.php",
+      "admin-panel/app/Http/Middleware/FoundationStaffContext.php",
+      "admin-panel/app/Services/Classroom/ClassroomAuthority.php",
+      "admin-panel/public/assets/js/foundation-management.js"
+    ],
+    "destination": "/foundation-classrooms?view=register → private tablet-access-code result",
+    "status": "Implemented: separate real task destinations with source current-year, manager/allocated-Teacher, revision, private-result and revocation boundaries retained; security-sensitive fields are never flashed or persisted as browser drafts",
+    "source_files_present": true,
+    "design_routes": [
+      "foundation-panel.register"
+    ],
+    "design_field_names": [
+      "name",
+      "setup_code",
+      "days"
+    ]
+  },
+  {
+    "id": "AC055",
+    "module": "Academics",
+    "flow": "Early years and classroom devices",
+    "title": "Revoke classroom tablet",
+    "source": "admin-panel/resources/views/classroom/management.blade.php:43",
+    "implementation": [
+      "admin-panel/resources/views/classroom/management.blade.php",
+      "admin-panel/resources/views/classroom/authorization.blade.php",
+      "admin-panel/resources/views/classroom/invalid.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Classroom/FoundationPanelController.php",
+      "admin-panel/app/Http/Requests/Classroom/FoundationRequest.php",
+      "admin-panel/app/Http/Middleware/FoundationStaffContext.php",
+      "admin-panel/app/Services/Classroom/ClassroomAuthority.php",
+      "admin-panel/public/assets/js/foundation-management.js"
+    ],
+    "destination": "/foundation-classrooms?view=devices → selected tablet confirmation and source revoke",
+    "status": "Implemented: separate real task destinations with source current-year, manager/allocated-Teacher, revision, private-result and revocation boundaries retained; security-sensitive fields are never flashed or persisted as browser drafts",
+    "source_files_present": true,
+    "design_routes": [
+      "foundation-panel.device-revoke"
+    ],
+    "design_field_names": []
+  },
+  {
+    "id": "AC056",
+    "module": "Academics",
+    "flow": "Early years and classroom devices",
+    "title": "Revoke lesson authorization",
+    "source": "admin-panel/resources/views/classroom/management.blade.php:48",
+    "implementation": [
+      "admin-panel/resources/views/classroom/management.blade.php",
+      "admin-panel/resources/views/classroom/authorization.blade.php",
+      "admin-panel/resources/views/classroom/invalid.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Classroom/FoundationPanelController.php",
+      "admin-panel/app/Http/Requests/Classroom/FoundationRequest.php",
+      "admin-panel/app/Http/Middleware/FoundationStaffContext.php",
+      "admin-panel/app/Services/Classroom/ClassroomAuthority.php",
+      "admin-panel/public/assets/js/foundation-management.js"
+    ],
+    "destination": "/foundation-classrooms?view=lessons → selected lesson confirmation and source revoke",
+    "status": "Implemented: separate real task destinations with source current-year, manager/allocated-Teacher, revision, private-result and revocation boundaries retained; security-sensitive fields are never flashed or persisted as browser drafts",
+    "source_files_present": true,
+    "design_routes": [
+      "foundation-panel.revoke"
+    ],
+    "design_field_names": []
+  },
+  {
+    "id": "AC-A10",
+    "module": "Academics",
+    "flow": "Early years and classroom devices",
+    "title": "Early years and classroom devices",
+    "source": "admin-panel/resources/views/classroom/management.blade.php; admin-panel/resources/views/early-years/diary.blade.php; admin-panel/resources/views/early-years/index.blade.php; admin-panel/resources/views/early-years/portfolio.blade.php; early-years/",
+    "implementation": [
+      "admin-panel/resources/views/classroom/management.blade.php",
+      "admin-panel/resources/views/classroom/authorization.blade.php",
+      "admin-panel/resources/views/classroom/invalid.blade.php",
+      "admin-panel/app/Http/Controllers/Panel/Classroom/FoundationPanelController.php",
+      "admin-panel/app/Http/Requests/Classroom/FoundationRequest.php",
+      "admin-panel/app/Http/Middleware/FoundationStaffContext.php",
+      "admin-panel/app/Services/Classroom/ClassroomAuthority.php",
+      "admin-panel/public/assets/js/foundation-management.js",
+      "admin-panel/resources/views/early-years/index.blade.php",
+      "admin-panel/resources/views/early-years/diary.blade.php",
+      "admin-panel/resources/views/early-years/portfolio.blade.php"
+    ],
+    "destination": "/foundation-classrooms?view=lessons|authorize|eligibility|devices|register; early-years workspaces retained by People/Academics",
+    "status": "Implemented: separate real task destinations with source current-year, manager/allocated-Teacher, revision, private-result and revocation boundaries retained; security-sensitive fields are never flashed or persisted as browser drafts",
+    "source_files_present": true,
+    "design_routes": [],
+    "design_field_names": []
+  }
+]

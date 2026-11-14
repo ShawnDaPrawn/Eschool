@@ -31,7 +31,10 @@
     if ($current instanceof \Illuminate\Support\Collection) {
         $current = $current->all();
     }
-    $selected = array_map('strval', array_filter(is_array($current) ? $current : [$current], fn ($v) => $v !== null));
+    if (! $multiple && is_array($current)) {
+        $current = null;
+    }
+    $selected = array_map('strval', array_filter(is_array($current) ? $current : [$current], fn ($v) => is_scalar($v) || $v instanceof \Stringable));
     $message = $error ?? (isset($errors) ? $errors->first($key) : null);
     $supporting = is_string($message) && $message !== '' ? $message : $hint;
     $supportingId = $supporting ? ($id ?? 'm3-field-' . \Illuminate\Support\Str::random(8)) . '-supporting' : null;
