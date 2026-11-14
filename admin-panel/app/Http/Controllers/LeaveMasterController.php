@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LeaveMaster;
 use App\Models\SessionYear;
+use App\Services\Panel\SessionYearContext;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,7 @@ class LeaveMasterController extends Controller
      *
      * @return Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (! Auth::user()->can('leave-setting-create')) {
             $response = [
@@ -27,11 +28,14 @@ class LeaveMasterController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
+        $request->validate(['configuration_year' => ['nullable', 'integer', 'min:1']]);
+        $configurationYear = $request->filled('configuration_year')
+            ? SessionYear::findOrFail($request->integer('configuration_year'))
+            : app(SessionYearContext::class)->selected();
         $settings = getSettings();
-
         $session_year = SessionYear::all();
 
-        return view('leave.leave_setting', compact('settings', 'session_year'));
+        return view('leave.leave_setting', compact('settings', 'session_year', 'configurationYear'));
     }
 
     /**

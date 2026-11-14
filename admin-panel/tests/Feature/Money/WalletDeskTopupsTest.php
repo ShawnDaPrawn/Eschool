@@ -233,7 +233,10 @@ class WalletDeskTopupsTest extends TestCase
     {
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
         $input = $this->grant(['amount' => '30.00']);
-        $this->actingAs($this->admin)->get('/wallet-topups')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->actingAs($this->admin)->get('/wallet-topups')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertSee('href="'.route('wallet-finance.index', ['section' => 'settings']).'"', false);
+        $this->post('/wallet-topups/policy', $this->policy(['revision' => 1]) + $bind)->assertStatus(303)->assertRedirect('/wallet-topups?section=settings');
+        $this->get('/wallet-topups?section=settings')->assertOk()->assertSee('Choose the independent approval threshold');
         $this->post('/wallet-topups/grants', $input + [...$bind, 'expected_school_id' => 2])->assertForbidden();
         $this->post('/wallet-topups/grants', $input + $bind)->assertStatus(303);
         $row = WalletDeskTopup::sole();

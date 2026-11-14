@@ -24,6 +24,9 @@ test('admin maps a class, creates a group and records dated teacher and learner 
   await mapping.selectOption({ label: 'Grade 5' });
   await mapping.locator('xpath=ancestor::form').getByRole('button', { name: 'Save grade mapping' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Class grade mapping saved' })).toBeVisible();
+  await expect(page).toHaveURL(/\/teaching-groups\?view=configuration$/);
+  await expect(mapping.locator('option:checked')).toHaveText('Grade 5');
+  await page.getByRole('navigation', { name: 'Teaching group workspace' }).getByRole('link', { name: 'Teaching groups', exact: true }).click();
   await page.getByRole('link', { name: 'New teaching group', exact: true }).click();
   groupName = `Browser teaching group ${Date.now()}`;
   await page.getByRole('textbox', { name: 'Group name', exact: true }).fill(groupName);

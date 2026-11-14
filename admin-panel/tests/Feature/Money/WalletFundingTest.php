@@ -184,6 +184,9 @@ class WalletFundingTest extends TestCase
         $this->configure();
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
         $input = $this->funding(['source_reference' => 'panel-school-1']);
+        $this->actingAs($this->admin)->get('/wallet-funding')->assertOk()->assertSee('href="'.route('wallet-finance.index', ['section' => 'settings']).'"', false);
+        $this->post('/wallet-funding/policy', $this->policy(['revision' => 1]) + $bind)->assertStatus(303)->assertRedirect('/wallet-funding?section=settings');
+        $this->get('/wallet-funding?section=settings')->assertOk()->assertSee('Choose supported school funding methods');
         $this->actingAs($this->admin)->post('/wallet-funding/receipts', $input + [...$bind, 'expected_school_id' => 2])->assertForbidden();
         $this->post('/wallet-funding/receipts', $input + $bind)->assertStatus(303);
         $funding = WalletFunding::sole();

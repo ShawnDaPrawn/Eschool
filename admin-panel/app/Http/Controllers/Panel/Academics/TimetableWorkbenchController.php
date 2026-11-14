@@ -71,7 +71,7 @@ class TimetableWorkbenchController extends Controller
     {
         app(TimetableConfiguration::class)->room($request->user(), $request->validated(), $request->validated('room_id') === null ? null : (int) $request->validated('room_id'));
 
-        return redirect()->route('academic-timetable.index', ['view' => 'rooms', 'session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on')])->with('success', __('Room saved'));
+        return redirect()->route('academic-timetable.index', ['view' => 'rooms', 'session_year_id' => $request->validated('session_year_id'), 'week_on' => $request->validated('week_on'), 'room' => $request->validated('room_id')])->with('success', __('Room saved'));
     }
 
     public function bells(TimetableWorkbenchRequest $request): RedirectResponse

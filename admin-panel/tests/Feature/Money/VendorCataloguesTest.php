@@ -194,8 +194,10 @@ class VendorCataloguesTest extends TestCase
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
         $this->actingAs($this->admin, 'web')->get('/vendor-catalogues')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $input = $this->vendor(['kind' => 'independent', 'settlement_method' => 'eft', 'private_bank_instructions' => 'Private synthetic vendor original bank account']);
-        $this->post('/vendor-catalogues/vendor', $input + $bind)->assertRedirect();
+        $saved = $this->post('/vendor-catalogues/vendor', $input + $bind);
         $v = Vendor::sole();
+        $saved->assertRedirect(route('vendor-catalogues.index', ['vendor_id' => $v->id, 'section' => 'vendor']));
+        $this->get(route('vendor-catalogues.index', ['vendor_id' => $v->id, 'section' => 'vendor']))->assertOk()->assertSee('name="settlement_method"', false)->assertDontSee($input['private_bank_instructions']);
         $this->get('/vendor-catalogues?vendor_id='.$v->id)->assertOk()->assertSee('School tuckshop')->assertDontSee($input['private_bank_instructions']);
         $this->post('/vendor-catalogues/product', $this->product($v->id) + $bind)->assertRedirect();
         $p = VendorProduct::sole();

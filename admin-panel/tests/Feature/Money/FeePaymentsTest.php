@@ -474,6 +474,8 @@ class FeePaymentsTest extends TestCase
         $this->bill();
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
         $this->actingAs($this->admin)->get('/fee-payments')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertSee('Recorded receipts')->assertDontSee('Tuition first pays annual tuition before other charges');
+        $this->get('/fee-payments?section=settings')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Tuition first pays annual tuition before other charges')
             ->assertDontSee('All currently supported charges are annual tuition');
         $this->get('/fee-payments/new?account_id='.$this->account->id)->assertOk()->assertSee('Holder whose share this pays');
@@ -484,8 +486,10 @@ class FeePaymentsTest extends TestCase
         $this->post('/fee-payments/new', $input + $bind)->assertStatus(303);
         $payment = FeePayment::sole();
         $this->get('/fee-payments/'.$payment->id)->assertOk()->assertSee('ZAR 20.00')->assertSee('Review credit allocation');
-        $this->get('/fee-payments/'.$payment->id.'/allocation')->assertOk()->assertSee('Choose the school allocation rule before allocating this credit.');
-        $this->post('/fee-payments/policy', ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'allocation_order' => 'oldest_first'] + $bind)->assertStatus(303);
+        $this->get('/fee-payments/'.$payment->id.'/allocation')->assertOk()->assertSee('Choose the school allocation rule before allocating this credit.')
+            ->assertSee('href="'.route('fee-payments.index', ['section' => 'settings']).'"', false);
+        $this->post('/fee-payments/policy', ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'allocation_order' => 'oldest_first'] + $bind)
+            ->assertStatus(303)->assertRedirect(route('fee-payments.index', ['section' => 'settings']));
         $this->get('/fee-payments/'.$payment->id.'/allocation')->assertOk()->assertSee('ZAR 10.02')->assertSee('ZAR 9.98');
         $preview = app(FeeAllocations::class)->preview($this->admin, $payment->id);
         $allocation = $this->allocate($preview) + $bind;

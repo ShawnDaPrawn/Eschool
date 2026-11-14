@@ -9136,5 +9136,9 @@
     "Delete :role": "Delete :role",
     "Edit :role": "Edit :role",
     "Remove default value": "Remove default value",
-    "View :role": "View :role"
+    "View :role": "View :role",
+    "Class grade mapping saved": "Class grade mapping saved",
+    "Dated assignment saved": "Dated assignment saved",
+    "Prepare alert": "Prepare alert",
+    "Teaching group saved": "Teaching group saved"
 }

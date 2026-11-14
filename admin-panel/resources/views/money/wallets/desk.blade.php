@@ -15,7 +15,7 @@ $tabs['history']=['label'=>__('Grant history'),'url'=>request()->fullUrlWithQuer
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 @if(!$canWrite)<p>{{ __('Wallet history is read-only while wallets are disabled.') }}</p>@endif
 <p>{{ __('Desk grants use verified school-owned master funds. Parent-funded top-ups use the separate parent funding flow.') }}</p>
-@if($canFinance)<p><a href="{{ route('wallet-funding.index') }}">{{ __('School wallet funding') }}</a> · <a href="{{ route('wallet-finance.index') }}">{{ __('School wallet spending rules') }}</a></p>@endif
+@if($canFinance)<p><a href="{{ route('wallet-funding.index') }}">{{ __('School wallet funding') }}</a> · <a href="{{ route('wallet-finance.index',['section'=>'settings']) }}">{{ __('School wallet spending rules') }}</a></p>@endif
 @if($balance['currency'])<p>{{ __('Available master wallet balance') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($balance['balance_cents'],$balance['currency'])->format() }}</p>@endif
 @if($section==='settings')
 <h2>{{ __('Desk approval policy') }}</h2>

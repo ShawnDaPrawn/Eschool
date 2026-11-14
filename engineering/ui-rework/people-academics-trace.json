@@ -62,7 +62,7 @@
     "source_files_present": true,
     "design_routes": [],
     "design_field_names": [],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px. Selected TimetableEngine import cases and the actual mapped-import browser flow at 1024px passed; import-state Axe/overflow checks passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px. Selected TimetableEngine import cases and the actual mapped-import browser flow at 1024px passed; import-state Axe/overflow checks passed at 320/1280px."
   },
   {
     "id": "AC-A05",
@@ -732,7 +732,8 @@
     ],
     "design_field_names": [
       "grade_level_id"
-    ]
+    ],
+    "save_context_qualification": "Saving a class-grade mapping returns to Configuration. Exact redirect, saved mapping and role/tenant checks passed; browser configuration-to-group/allocation journey passed."
   },
   {
     "id": "AC022",
@@ -1072,7 +1073,7 @@
       "proposed_lessons",
       "clashes"
     ],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
   },
   {
     "id": "AC039",
@@ -1100,7 +1101,7 @@
       "week_pattern",
       "active_placement"
     ],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
   },
   {
     "id": "AC040",
@@ -1123,7 +1124,8 @@
       "type",
       "active"
     ],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px.",
+    "save_context_qualification": "Saving an existing room retains its editor, selected year and week. Exact redirect/reload, revision-conflict and role/tenant checks passed."
   },
   {
     "id": "AC041",
@@ -1143,7 +1145,7 @@
       "bell_schedule_name",
       "school_section"
     ],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
   },
   {
     "id": "AC042",
@@ -1163,7 +1165,7 @@
       "short_day_date",
       "reason"
     ],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
   },
   {
     "id": "AC043",
@@ -1180,7 +1182,7 @@
       "academic-timetable.short-day-remove"
     ],
     "design_field_names": [],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
   },
   {
     "id": "AC044",
@@ -1485,7 +1487,8 @@
       "position",
       "active"
     ],
-    "qualification": "EarlyYearsTools selected configuration/editor create and role/tenant case passed; development-area creation and separated workspaces passed at 320/1280px."
+    "qualification": "EarlyYearsTools selected configuration/editor create and role/tenant case passed; development-area creation and separated workspaces passed at 320/1280px.",
+    "save_context_qualification": "Saving an existing area returns to its selected editor with the new revision. Exact redirect/reload, stale-write and role/tenant checks passed."
   },
   {
     "id": "AC059",
@@ -2865,7 +2868,7 @@
       "proposed_lesson",
       "save_status"
     ],
-    "qualification": "Selected TimetableEngine panel cases passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
+    "qualification": "Selected TimetableEngine panel cases and the full 11-case ShortDays suite passed; actual room/bell/placement/clash/import browser flow passed at 1024px and separated configuration states passed at 320/1280px."
   },
   {
     "id": "AC128",
@@ -5619,7 +5622,8 @@
       "suggested_weeks",
       "progress_measure"
     ],
-    "qualification": "Selected InterventionLibrary manager/role/tenant cases passed; create-state structured controls and browser Axe/overflow checks passed at 320/1280px."
+    "qualification": "Selected InterventionLibrary manager/role/tenant cases passed; create-state structured controls and browser Axe/overflow checks passed at 320/1280px.",
+    "save_context_qualification": "Saving a library action retains its selected editor with the new revision. Exact redirect/reload and stale-revision recovery passed; principal-only and foreign-school checks passed."
   },
   {
     "id": "PE039",

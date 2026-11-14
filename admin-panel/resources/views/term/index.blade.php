@@ -7,6 +7,7 @@
     @if (session('success'))<p role="status">{{ session('success') }}</p>@endif
     <section class="m3 m3-card m3-card--outlined page-form-card"><div class="m3-card__content page-card__content">
         <form method="GET" action="{{ route('term.index') }}">
+            <input type="hidden" name="view" value="{{ $view === 'edit' ? 'list' : $view }}">
             <x-page.field id="calendar-year" name="session_year_id" type="select" :label="__('School year')" :value="$year?->id" :options="$years->pluck('name', 'id')->all()" required />
             <button class="m3-button m3-button--outlined" type="submit">{{ __('Show calendar') }}</button>
         </form>

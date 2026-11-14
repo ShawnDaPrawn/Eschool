@@ -30,6 +30,6 @@ class FeeReminderPanelController extends Controller
     {
         app(FeeReminderSettings::class)->save($request->user(), $request->validated());
 
-        return redirect()->route('fee-reminders.index', [], 303)->with('success', __('Fee reminder schedule saved.'));
+        return redirect()->route('fee-reminders.index', ['section' => 'settings'], 303)->with('success', __('Fee reminder schedule saved.'));
     }
 }

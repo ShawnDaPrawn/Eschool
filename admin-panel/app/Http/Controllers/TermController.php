@@ -85,7 +85,7 @@ class TermController extends Controller
     {
         $templates->save($request->user(), (int) $request->input('session_year_id'), $request->string('name')->toString());
 
-        return redirect()->route('term.index', ['session_year_id' => $request->input('session_year_id')])->with('success', __('Calendar template saved'));
+        return redirect()->route('term.index', ['session_year_id' => $request->input('session_year_id'), 'view' => 'templates'])->with('success', __('Calendar template saved'));
     }
 
     public function applyTemplate(TermTemplateRequest $request, TermTemplates $templates): RedirectResponse
@@ -93,7 +93,7 @@ class TermController extends Controller
         $request->validate(['template_id' => ['required', 'integer', 'min:1']]);
         $result = $templates->apply($request->user(), (int) $request->input('template_id'), (int) $request->input('session_year_id'), $request->boolean('apply'));
 
-        return redirect()->route('term.index', ['session_year_id' => $request->input('session_year_id')])
+        return redirect()->route('term.index', ['session_year_id' => $request->input('session_year_id'), 'view' => 'templates'])
             ->with('term_preview', ['school_id' => app(CurrentSchool::class)->id()] + $result)->with('success', $request->boolean('apply') ? __('Calendar template applied') : __('Calendar preview ready'));
     }
 }

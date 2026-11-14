@@ -482,13 +482,21 @@ class TimetableEngineTest extends TestCase
         $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-09'];
         $this->actingAs($this->superAdmin(), 'web');
         $this->post(route('academic-timetable.room'), $context + ['name' => 'Panel room', 'type' => 'classroom', 'capacity' => 35, 'active' => true])->assertRedirect(route('academic-timetable.index', ['view' => 'rooms'] + $context));
+        $room = Room::where('name', 'Panel room')->sole();
+        $editor = route('academic-timetable.index', ['view' => 'rooms'] + $context + ['room' => $room->id]);
+        $update = $context + ['room_id' => $room->id, 'revision' => $room->revision, 'name' => 'Panel room updated', 'type' => 'classroom', 'capacity' => 36, 'active' => true];
+        $this->post(route('academic-timetable.room'), $update)->assertRedirect($editor)->assertSessionHasNoErrors();
+        $this->get($editor)->assertOk()->assertSee('Edit room')->assertSee('Panel room updated')
+            ->assertViewHas('room', fn ($selected) => $selected->id === $room->id && $selected->revision === $room->revision + 1 && $selected->capacity === 36);
+        $this->post(route('academic-timetable.room'), $update)->assertConflict();
         $this->post(route('academic-timetable.bells'), $context + ['name' => 'Panel bells', 'section' => 'Senior', 'periods' => [
             ['name' => 'Period 1', 'starts_at' => '07:00', 'ends_at' => '07:45', 'is_break' => false],
-            ['name' => '', 'starts_at' => '', 'ends_at' => '', 'is_break' => false]]])->assertRedirect();
+            ['name' => '', 'starts_at' => '', 'ends_at' => '', 'is_break' => false]]])->assertRedirect(route('academic-timetable.index', ['view' => 'bells'] + $context));
         $this->assertSame(1, BellSchedule::where('name', 'Panel bells')->sole()->periods->count());
         $foreign = app(CurrentSchool::class)->run(2, fn () => Room::create(['name' => 'Baobab room', 'type' => 'classroom', 'revision' => 1, 'active' => true]));
         $this->get(route('academic-timetable.index', $context + ['room' => $foreign->id]))->assertNotFound();
         $this->post(route('academic-timetable.room'), $context + ['room_id' => $foreign->id, 'revision' => 1, 'name' => 'Bypass', 'type' => 'classroom', 'active' => true])->assertNotFound();
+        $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']), 'web')->post(route('academic-timetable.room'), $update)->assertForbidden();
     }
 
     public function test_panel_import_inspects_maps_and_previews_without_saving_or_rendering_sheet_markup(): void

@@ -86,7 +86,7 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Check | Result |
 |---|---|
 | Final integrated Unit suite | 331 tests, 15,714 assertions; one existing skip |
-| Full Pint | 3,365 files passed on the final source |
+| Full Pint | 3,366 files passed after the final configuration-return follow-up |
 | Shared HTTP and workspace boundaries | 15 tests, 38,582 assertions passed; covers 48 new route boundaries |
 | Personal notification endpoints | 6 tests, 39 assertions passed |
 | Blade compile and PHP token parsing | 698 templates compile; PHP token parsing and uncompiled-directive assertions pass |
@@ -106,7 +106,7 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Classroom and global year activation/restoration | Classroom 3/3 at 390/820/1280 px; wizard 1/1; original year and module state independently verified |
 | Recognition: house points and Golden Boot creation/nomination/award history | 4 browser workflows passed at 390/1280 px |
 | Mobile global Search and language utilities | 2 passed at 320/375 px: actual language change/restore, all module links, drawer Axe/overflow, learner search to report |
-| Final Blade, translations and navigation rendering batch | 8 tests, 72,059 assertions passed on final source |
+| Final Blade, translations and navigation rendering batch | 8 tests, 72,072 assertions passed after the final configuration-return follow-up |
 | Global search and shrinking Bootstrap baseline | 9 tests, 45 assertions passed |
 | Persistence badge dedicated configuration and protected writes | 1 test, 14 assertions passed |
 | Notification list/chooser and default-value form controls | 2 notification workflows; 2 strict field pages and both mobile/desktop option add/remove proofs passed |
@@ -211,3 +211,23 @@ These responses are not claimed as administrator page coverage. Separate
 domain fixtures exercise their authorized school-role workflows.
 No live payment provider, private Build Bible acceptance, production rollout,
 or native mobile device qualification is implied by this local verification.
+
+
+## Configuration save destinations
+
+The final whole-suite CI pass exposed older assertions for controls that now
+live in dedicated task states. Those assertions now follow the real links and
+retain their original writes, role/school restrictions, privacy and persistence
+checks. This follow-up also audited successful-save destinations across every
+owner, correcting actual stale handoffs while keeping domain services and API
+responses unchanged.
+
+- Fresh-install route/purpose coverage: AdminPagesTest **3 tests / 62 assertions passed**, including an optional office list denied while Groups is off, opening when explicitly enabled, and continued refusal of owner-only facilitator and private-staff purposes to the administrator.
+- Short-day planning/restoration: **11 tests / 95 assertions passed**; persistence motivation: **14 / 472**; emergency/support tasks: **25 / 600**.
+- Finance configuration returns: **180 tests / 1,465 assertions passed**, six spending/funding/child-return browser journeys and four withdrawal/authority cases passed. Twelve save destinations and three links retain their actual settings, account/year or vendor context. Money services, revisions, idempotency and permissions are unchanged.
+- People configuration returns: six focused PHP cases and two browser workflows passed, including selected area/room/library editors and class-grade configuration. Intended creation-to-catalogue and scheduling-to-history handoffs remain.
+- Leave, templates and classroom returns: **4 tests / 53 assertions** and two actual browser workflows passed. A local Leave configuration-year filter does not change the global viewed or current year. Classroom's optional panel-only return page is stripped before service execution and remains rejected by the strict API. Private one-time credential result pages are preserved.
+
+Exact source changes and logs are recorded in each owner ledger. The successful
+page sweep remains the complete layout/accessibility evidence; these additional
+checks qualify the affected write-to-destination interactions.

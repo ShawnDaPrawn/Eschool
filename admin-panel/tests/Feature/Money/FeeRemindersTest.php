@@ -281,8 +281,9 @@ class FeeRemindersTest extends TestCase
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
         $input = $this->input();
         $this->actingAs($this->admin)->get('/fee-reminders')->assertOk()->assertSee('Fee reminder schedule')->assertHeader('Cache-Control', 'no-store, private');
-        $this->post('/fee-reminders', $input + $bind)->assertStatus(303);
-        $this->post('/fee-reminders', $input + $bind)->assertStatus(303);
+        $this->post('/fee-reminders', $input + $bind)->assertStatus(303)->assertRedirect('/fee-reminders?section=settings');
+        $this->post('/fee-reminders', $input + $bind)->assertStatus(303)->assertRedirect('/fee-reminders?section=settings');
+        $this->get('/fee-reminders?section=settings')->assertOk()->assertSee('name="revision" value="1"', false);
         $this->assertSame(1, FeeReminderPolicy::firstOrFail()->revision);
         $this->post('/fee-reminders', $this->input() + $bind)->assertStatus(409);
         $this->post('/fee-reminders', $this->input(['revision' => 1]) + ['expected_account_id' => $this->admin->id, 'expected_school_id' => 2])->assertForbidden();

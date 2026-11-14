@@ -41,8 +41,12 @@ class FoundationPanelController extends Controller
             return response()->view('classroom.authorization', ['result' => $result, 'registration' => $action === 'register']);
         }
 
+        if ($action === 'eligibility') {
+            return redirect()->route('foundation-panel.index', ['view' => 'eligibility', 'group' => (int) $request->route('group'), 'page' => (int) $request->validated('return_page', 1)]);
+        }
+
         return redirect()->route('foundation-panel.index', ['view' => match ($action) {
-            'eligibility' => 'eligibility', 'device-revoke' => 'devices', default => 'lessons',
+            'device-revoke' => 'devices', default => 'lessons',
         }]);
     }
 }

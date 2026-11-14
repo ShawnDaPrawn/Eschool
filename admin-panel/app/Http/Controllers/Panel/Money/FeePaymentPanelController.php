@@ -102,7 +102,7 @@ class FeePaymentPanelController extends Controller
     {
         app(FeePaymentSettings::class)->save($request->user(), $request->validated());
 
-        return redirect()->route('fee-payments.index', [], 303)->with('success', __('Fee allocation rule saved.'));
+        return redirect()->route('fee-payments.index', ['section' => 'settings'], 303)->with('success', __('Fee allocation rule saved.'));
     }
 
     public function statement(FeePaymentPanelRequest $request): Response

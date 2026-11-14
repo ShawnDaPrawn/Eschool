@@ -111,6 +111,15 @@ class InterventionLibraryTest extends TestCase
             'steps_text' => "Invite the learner\n\nWelcome them on the first day\n", 'suggested_weeks' => 3, 'progress_measure' => 'Days attended'])
             ->assertRedirect(route('risk-interventions.library'))->assertSessionHas('success');
         $this->assertSame(['Invite the learner', 'Welcome them on the first day'], InterventionLibraryAction::where('name', 'Lunchtime club')->sole()->steps);
+        $action = InterventionLibraryAction::where('name', 'Lunchtime club')->sole();
+        $editor = route('risk-interventions.library', ['view' => 'edit', 'action_id' => $action->id]);
+        $update = $this->identity('principal') + ['expected_revision' => $action->revision, 'name' => 'Lunchtime club revised', 'concern_area' => 'relationships',
+            'steps_text' => "Invite the learner\nWelcome and check in weekly", 'suggested_weeks' => 4, 'progress_measure' => 'Weekly attendance'];
+        $this->post(route('risk-interventions.library.update', ['action' => $action->id]), $update)->assertRedirect($editor)->assertSessionHasNoErrors();
+        $this->get($editor)->assertOk()->assertSee('Lunchtime club revised')->assertSee('Welcome and check in weekly')
+            ->assertSee('name="expected_revision" value="2"', false)->assertSee('Save library action');
+        $this->post(route('risk-interventions.library.update', ['action' => $action->id]), $update)->assertRedirect($editor)->assertSessionHasErrors('revision');
+        $this->get($editor)->assertOk()->assertSee('Current saved action')->assertSee('name="expected_revision" value="2"', false);
     }
 
     public function test_a_teacher_starts_an_intervention_from_the_library_and_records_progress_against_its_steps(): void

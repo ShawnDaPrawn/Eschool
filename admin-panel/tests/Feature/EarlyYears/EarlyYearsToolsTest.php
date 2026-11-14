@@ -117,11 +117,20 @@ class EarlyYearsToolsTest extends TestCase
         $this->post(route('early-years.areas.store'), ['name' => 'Synthetic independence', 'description' => 'Independent tasks', 'position' => 10, 'active' => 1])
             ->assertRedirect(route('early-years.index', ['view' => 'configuration']));
         $this->assertSame(1, DevelopmentArea::where('name', 'Synthetic independence')->count());
+        $editor = route('early-years.index', ['view' => 'area', 'area_id' => $area]);
+        $update = ['name' => 'Communication', 'description' => 'School communication guidance', 'position' => 2, 'active' => 1,
+            'revision' => DevelopmentArea::findOrFail($area)->revision];
+        $this->post(route('early-years.areas.update', $area), $update)->assertRedirect($editor)->assertSessionHasNoErrors();
+        $this->get($editor)->assertOk()->assertSee('School communication guidance')
+            ->assertViewHas('selectedArea', fn ($selected) => $selected->id === $area && $selected->revision === $update['revision'] + 1);
+        $this->from($editor)->post(route('early-years.areas.update', $area), $update)->assertRedirect($editor)->assertSessionHasErrors();
         $foreign = app(CurrentSchool::class)->run(2, fn () => DevelopmentArea::create(['name' => 'Foreign private area', 'active' => true, 'position' => 1, 'revision' => 1]));
         $this->get('/early-years?view=area&area_id='.$foreign->id)->assertNotFound();
+        $this->post(route('early-years.areas.update', $foreign->id), ['name' => 'Foreign update attempt'] + $update)->assertNotFound();
         $this->actingAs($this->tara)->get('/early-years?view=areas')->assertOk()->assertSee('Communication')->assertDontSee('name="description"', false);
         $this->get('/early-years?view=configuration')->assertForbidden();
         $this->get('/early-years?view=area&area_id='.$area)->assertForbidden();
+        $this->post(route('early-years.areas.update', $area), $update)->assertForbidden();
         $this->actingAs($this->parent)->get('/early-years?view=configuration')->assertRedirect(route('login'))->assertSessionHasErrors()->assertDontSee('name="description"', false);
         $this->assertGuest('web');
     }

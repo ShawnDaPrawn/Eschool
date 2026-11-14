@@ -90,7 +90,7 @@ class FeeAccountPanelController extends Controller
         $account = (int) $request->route('account');
         app(FeePaymentChoices::class)->save($request->user(), $account, $request->validated());
 
-        return redirect()->route('fee-accounts.edit', ['account' => $account, 'year_id' => $request->validated('session_year_id')], 303)->with('success', __('Payment option saved.'));
+        return redirect()->route('fee-accounts.edit', ['account' => $account, 'year_id' => $request->validated('session_year_id'), 'section' => 'options'], 303)->with('success', __('Payment option saved.'));
     }
 
     public function archive(FeeAccountPanelRequest $request): Response

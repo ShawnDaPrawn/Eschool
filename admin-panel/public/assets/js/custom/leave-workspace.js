@@ -9,7 +9,7 @@
     function setText(selector, value) { var e = root.querySelector(selector); if (e) e.textContent = value == null || value === '' ? '—' : String(value); }
     function openDialog(dialog) { if (dialog && !dialog.open) { if (window.M3) M3.dialog.open(dialog); else dialog.showModal(); } }
     window.leaveWorkspaceParams = function (p) {
-        return Object.assign({}, p, {session_year_id: document.querySelector('.js-year-switcher')?.value});
+        return Object.assign({}, p, {session_year_id: root.dataset.configurationYear || document.querySelector('.js-year-switcher')?.value});
     };
     window.leaveWorkspaceStatus = function (_value, row) {
         var states = {'0': ['warning', label('pending', 'Pending')], '1': ['success', label('accepted', 'Approved')], '2': ['danger', label('rejected', 'Rejected')]};
@@ -82,6 +82,14 @@
         }
     };
     document.addEventListener('page-form:saved', function (event) {
+        if (root.hasAttribute('data-leave-configuration') && ['leave-configuration-create', 'leave-configuration-edit'].includes(event.target.id)) {
+            var savedYear = event.target.elements.namedItem('session_year_id')?.value;
+            if (/^\d+$/.test(savedYear) && (event.target.id === 'leave-configuration-create' || savedYear !== root.dataset.configurationYear)) {
+                var destination = new URL(root.dataset.deleteBase, window.location.origin);
+                destination.searchParams.set('configuration_year', savedYear);
+                event.target.dataset.redirect = destination.href;
+            }
+        }
         if (['leave-decision-form', 'leave-configuration-edit'].includes(event.target.id)) {
             var dialog = event.target.closest('dialog'); if (dialog) M3.dialog.close(dialog);
         }

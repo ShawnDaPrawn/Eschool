@@ -42,7 +42,9 @@ class InterventionLibraryController extends Controller
 
     public function update(InterventionLibraryRequest $request, InterventionLibrary $library, int $action): RedirectResponse
     {
-        return $this->saved(fn () => $library->save($request->user(), $action, $request->validated()), __('Library action saved'), ['view' => 'edit', 'action_id' => $action]);
+        $editor = ['view' => 'edit', 'action_id' => $action];
+
+        return $this->saved(fn () => $library->save($request->user(), $action, $request->validated()), __('Library action saved'), $editor, $editor);
     }
 
     public function adopt(InterventionLibraryRequest $request, InterventionLibrary $library): RedirectResponse
@@ -60,7 +62,7 @@ class InterventionLibraryController extends Controller
             $archived ? __('Library action archived') : __('Library action restored'));
     }
 
-    private function saved(callable $write, string $message, array $recovery = []): RedirectResponse
+    private function saved(callable $write, string $message, array $recovery = [], array $destination = []): RedirectResponse
     {
         try {
             $write();
@@ -72,6 +74,6 @@ class InterventionLibraryController extends Controller
             return redirect()->route('risk-interventions.library', $recovery)->withErrors(['revision' => $e->getMessage()])->withInput();
         }
 
-        return redirect()->route('risk-interventions.library')->with('success', $message);
+        return redirect()->route('risk-interventions.library', $destination)->with('success', $message);
     }
 }

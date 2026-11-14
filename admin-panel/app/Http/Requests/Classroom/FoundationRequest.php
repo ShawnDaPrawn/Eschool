@@ -46,6 +46,9 @@ class FoundationRequest extends FormRequest
             default => abort(404),
         };
         if ($this->panel() && ! $this->isMethodSafe()) {
+            if ($this->route('foundation_action') === 'eligibility') {
+                $rules['return_page'] = ['sometimes', 'integer', 'between:1,100000'];
+            }
             $rules += ['expected_account_id' => ['required', 'integer', 'min:1'], 'expected_school_id' => ['required', 'integer', 'min:1']];
         }
 
@@ -54,7 +57,7 @@ class FoundationRequest extends FormRequest
 
     public function inputForService(): array
     {
-        return array_diff_key($this->validated(), array_flip(['expected_account_id', 'expected_school_id']));
+        return array_diff_key($this->validated(), array_flip(['expected_account_id', 'expected_school_id', 'return_page']));
     }
 
     private function panel(): bool

@@ -23,6 +23,7 @@
         @if($view==='eligibility')
             <form method="POST" action="{{ route('foundation-panel.eligibility',['group'=>$selectedGroup['id']]) }}">@include('classroom.hidden')
                 <input type="hidden" name="revision" value="{{ $selectedGroup['revision'] }}">
+                <input type="hidden" name="return_page" value="{{ $data['page'] }}">
                 <x-page.field name="eligible" type="select" :label="__('Classroom eligibility')" :options="[0=>__('Not approved'),1=>__('Approved')]" :value="(int)$selectedGroup['eligible']" :restore-old-input="false" required />
                 <x-page.field name="reason" :label="__('Reason for eligibility decision')" maxlength="1000" :restore-old-input="false" required />
                 <button class="m3-button m3-button--outlined" type="submit" @disabled(!$data['writable'])>{{ __('Save classroom eligibility') }}</button>

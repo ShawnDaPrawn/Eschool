@@ -10,6 +10,7 @@ use App\Models\ClassSchool;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Term;
+use App\Models\TermTemplate;
 use App\Models\User;
 use App\Services\Academics\TermBreaks;
 use App\Services\Academics\TermCalendar;
@@ -231,6 +232,27 @@ class SchoolTermsTest extends TestCase
         SchoolMembership::query()->where('school_id', 1)->where('user_id', $admin->id)->where('role', 'Super Admin')->update(['ends_on' => now()->subDay()->toDateString()]);
         $this->postJson('/api/v2/academics/terms', $this->row())->assertForbidden();
         $this->assertSame(1, Term::query()->where('session_year_id', $this->year)->count());
+    }
+
+    public function test_panel_template_saves_and_previews_return_to_the_selected_template_workspace(): void
+    {
+        $this->admin();
+        $this->create();
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->actingAs($this->superAdmin(), 'web');
+        $sourceUrl = route('term.index', ['session_year_id' => $this->year, 'view' => 'templates']);
+        $this->post(route('term.templates.store'), ['name' => 'Saved school calendar', 'session_year_id' => $this->year])
+            ->assertRedirect($sourceUrl);
+        $this->get($sourceUrl)->assertOk()->assertSee('School calendar templates')->assertDontSee('id="new-term-name"', false);
+        $template = TermTemplate::where('name', 'Saved school calendar')->sole();
+        $target = $this->nextYear();
+        $targetUrl = route('term.index', ['session_year_id' => $target->id, 'view' => 'templates']);
+        $payload = ['template_id' => $template->id, 'session_year_id' => $target->id];
+        $this->post(route('term.templates.apply'), $payload + ['apply' => false])->assertRedirect($targetUrl);
+        $this->get($targetUrl)->assertOk()->assertSee('Calendar preview')->assertSee('data-calendar-template-review="'.$template->id.'"', false);
+        $this->post(route('term.templates.apply'), $payload + ['apply' => true])->assertRedirect($targetUrl);
+        $this->get($targetUrl)->assertOk()->assertSee('Terms added')->assertDontSee('id="new-term-name"', false);
+        $this->assertSame(1, $target->terms()->count());
     }
 
     public function test_panel_renders_calendar_forms_and_checks_foreign_years(): void

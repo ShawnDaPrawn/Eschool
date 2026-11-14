@@ -32,7 +32,7 @@ class FeeLeaverPanelController extends Controller
     {
         app(FeeLeaverPolicies::class)->save($request->user(), $request->validated());
 
-        return redirect()->route('fee-leavers.index', status: 303)->with('success', __('School leaver credit policy saved. Review affected departures again.'));
+        return redirect()->route('fee-leavers.index', ['section' => 'settings'], 303)->with('success', __('School leaver credit policy saved. Review affected departures again.'));
     }
 
     public function form(FeeLeaverPanelRequest $request): Response

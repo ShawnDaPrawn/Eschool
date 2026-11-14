@@ -9947,5 +9947,6 @@
     "Delete :role": "Delete :role",
     "Edit :role": "Edit :role",
     "Remove default value": "Remove default value",
-    "View :role": "View :role"
+    "View :role": "View :role",
+    "Prepare alert": "Prepare alert"
 }

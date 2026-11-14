@@ -123,6 +123,20 @@ class FoundationClassroomTest extends TestCase
         $this->assertSame(1, ClassroomEligibility::count());
     }
 
+    public function test_panel_eligibility_save_returns_to_its_selected_group_without_changing_the_private_api(): void
+    {
+        $actor = $this->superAdmin();
+        $data = ['operation_id' => (string) Str::uuid(), 'revision' => ClassroomEligibility::sole()->revision,
+            'eligible' => true, 'reason' => 'Confirmed classroom configuration', 'return_page' => 1,
+            'expected_account_id' => $actor->id, 'expected_school_id' => 1];
+        $destination = route('foundation-panel.index', ['view' => 'eligibility', 'group' => $this->group, 'page' => 1]);
+        $this->actingAs($actor)->post(route('foundation-panel.eligibility', ['group' => $this->group]), $data)->assertRedirect($destination);
+        $this->get($destination)->assertOk()->assertSee('Approved for Foundation practice')->assertSee('name="eligible"', false)->assertDontSee('name="setup_code"', false);
+        $this->assertSame(1, ClassroomLease::count());
+        $this->withToken($actor->createToken('strict-classroom-test')->plainTextToken)
+            ->postJson(route('api.v2.foundation.eligibility', ['group' => $this->group]), array_diff_key($data, array_flip(['expected_account_id', 'expected_school_id'])))->assertUnprocessable();
+    }
+
     public function test_exact_selection_stores_only_hashes_and_cannot_mint_normal_login_or_gate_authority(): void
     {
         $input = $this->selection();

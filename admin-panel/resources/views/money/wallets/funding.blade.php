@@ -16,7 +16,7 @@ $tabs['history']=['label'=>__('Funding history'),'url'=>request()->fullUrlWithQu
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 @if(!$canWrite)<p>{{ __('Wallet history is read-only while wallets are disabled.') }}</p>@endif
 <p>{{ __('Record only verified school-owned funds. Parent money belongs to the original payer and must use the parent funding flow.') }}</p>
-<p><a href="{{ route('wallet-finance.index') }}">{{ __('School wallet spending rules') }}</a></p>
+<p><a href="{{ route('wallet-finance.index',['section'=>'settings']) }}">{{ __('School wallet spending rules') }}</a></p>
 <h2>{{ __('Master school wallet') }}</h2>
 @if($balance['currency'])<p>{{ \App\Services\Platform\Ledger\Money::ofCents($balance['balance_cents'],$balance['currency'])->format() }}</p>@else<p>{{ __('Configure wallet currency and spending rules first.') }}</p>@endif
 @if($section==='settings')

@@ -8,7 +8,7 @@
     <p>{{ __('Available held credit') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($preview['available_cents'],$payment->currency)->format() }}</p>
     <p>{{ __('Amount to allocate') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($preview['amount_cents'],$payment->currency)->format() }}</p>
     <p>{{ __('Credit remaining after allocation') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($preview['credit_left_cents'],$payment->currency)->format() }}</p>
-    @if($preview['policy_revision']===0)<p>{{ __('Choose the school allocation rule before allocating this credit.') }}</p><x-m3.button variant="outlined" :href="route('fee-payments.index')">{{ __('School allocation rule') }}</x-m3.button>
+    @if($preview['policy_revision']===0)<p>{{ __('Choose the school allocation rule before allocating this credit.') }}</p><x-m3.button variant="outlined" :href="route('fee-payments.index',['section'=>'settings'])">{{ __('School allocation rule') }}</x-m3.button>
     @elseif($preview['rows']===[])<p>{{ __('There are no eligible unpaid charges for this held credit.') }}</p>
     @else
     <div class="m3-card m3-card--outlined"><div class="page-table__scroll" role="region" aria-label="{{ __('Proposed allocation') }}" tabindex="0"><table class="page-table__table">

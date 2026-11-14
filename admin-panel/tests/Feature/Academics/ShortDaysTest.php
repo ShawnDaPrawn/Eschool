@@ -338,19 +338,27 @@ class ShortDaysTest extends TestCase
     public function test_the_workbench_plans_shows_and_removes_a_short_day(): void
     {
         $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-16'];
-        $this->actingAs($this->superAdmin(), 'web')->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Plan a short day')->assertSee('Bells instead of Normal Senior');
-        $this->post(route('academic-timetable.short-day'), $context + ['on_date' => '2026-02-17', 'reason' => 'Sports day',
-            'replacements' => [['bell_schedule_id' => $this->normal, 'replacement_bell_schedule_id' => $this->short], ['bell_schedule_id' => $this->short, 'replacement_bell_schedule_id' => null]]])->assertRedirect();
+        $configurationUrl = route('academic-timetable.index', ['view' => 'rooms'] + $context);
+        $shortDayContext = ['view' => 'short-days'] + $context;
+        $shortDaysUrl = route('academic-timetable.index', $shortDayContext);
+        $this->actingAs($this->superAdmin(), 'web')->get(route('academic-timetable.index', $context))
+            ->assertOk()->assertSee($configurationUrl)->assertDontSee('Plan a short day');
+        $this->get($configurationUrl)->assertOk()->assertSee($shortDaysUrl)->assertDontSee('Plan a short day');
+        $this->get($shortDaysUrl)->assertOk()->assertSee('Plan a short day')->assertSee('Bells instead of Normal Senior');
+        $this->post(route('academic-timetable.short-day'), $shortDayContext + ['on_date' => '2026-02-17', 'reason' => 'Sports day',
+            'replacements' => [['bell_schedule_id' => $this->normal, 'replacement_bell_schedule_id' => $this->short], ['bell_schedule_id' => $this->short, 'replacement_bell_schedule_id' => null]]])->assertRedirect($shortDaysUrl);
         $override = BellScheduleOverride::sole();
+        $this->get($shortDaysUrl)->assertOk()->assertSee('Sports day')->assertSee('Remove short day');
         $this->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Short day: Short Senior instead of Normal Senior')->assertSee('07:35–08:00');
         foreach (['tara_user', 'farid_user'] as $person) {
-            $write = $this->actingAs(User::findOrFail($this->schoolA->ids[$person]), 'web')->post(route('academic-timetable.short-day-remove'), $context + ['override_id' => $override->id, 'revision' => $override->revision]);
+            $write = $this->actingAs(User::findOrFail($this->schoolA->ids[$person]), 'web')->post(route('academic-timetable.short-day-remove'), $shortDayContext + ['override_id' => $override->id, 'revision' => $override->revision]);
             $this->assertContains($write->getStatusCode(), [302, 403]);
             $this->assertSame(1, BellScheduleOverride::count());
         }
-        $this->actingAs($this->superAdmin(), 'web')->post(route('academic-timetable.short-day-remove'), $context + ['override_id' => $override->id, 'revision' => 99])->assertRedirect()->assertSessionHasErrors('short_day');
-        $this->post(route('academic-timetable.short-day-remove'), $context + ['override_id' => $override->id, 'revision' => $override->revision])->assertRedirect();
+        $this->actingAs($this->superAdmin(), 'web')->post(route('academic-timetable.short-day-remove'), $shortDayContext + ['override_id' => $override->id, 'revision' => 99])->assertRedirect($shortDaysUrl)->assertSessionHasErrors('short_day');
+        $this->post(route('academic-timetable.short-day-remove'), $shortDayContext + ['override_id' => $override->id, 'revision' => $override->revision])->assertRedirect($shortDaysUrl);
         $this->assertSame(0, BellScheduleOverride::count());
+        $this->get(route('academic-timetable.index', $context))->assertOk()->assertSee('07:50–08:20')->assertDontSee('Short day: Short Senior instead of Normal Senior');
     }
 
     public function test_the_family_week_api_reports_short_day_times_within_the_contract(): void

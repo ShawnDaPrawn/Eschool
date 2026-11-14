@@ -43,6 +43,9 @@ for (const width of [390, 820, 1280]) {
     await group.getByRole('textbox', { name: /^Reason for eligibility decision/ }).fill('Synthetic explicit Foundation eligibility');
     await group.getByRole('button', { name: 'Save classroom eligibility', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Classroom eligibility', exact: true })).toBeVisible();
+    expect(new URL(page.url()).searchParams.get('view')).toBe('eligibility');
+    expect(new URL(page.url()).searchParams.get('group')).toBe(String(setup.group));
+    expect(Number(new URL(page.url()).searchParams.get('page'))).toBeGreaterThan(0);
     const tabletContext = await browser.newContext({ storageState: await page.context().storageState(), viewport: { width, height: 1000 } });
     const tablet = await tabletContext.newPage(), tabletErrors = collectErrors(tablet, baseURL!);
     await tablet.goto(`${baseURL}/foundation-classroom`); await tablet.bringToFront();

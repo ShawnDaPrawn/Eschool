@@ -532,6 +532,9 @@ class RegisterEngineTest extends TestCase
 
     public function test_panel_checks_school_role_owner_and_fresh_correction_rights(): void
     {
+        $this->actingAs($this->superAdmin())->post(route('academic-registers.settings'), ['absence_cutoff' => '09:30', 'teaching_days' => [1, 2, 3, 4, 5]])
+            ->assertRedirect(route('academic-registers.configuration'));
+        $this->get(route('academic-registers.configuration'))->assertOk()->assertSee('Attendance configuration')->assertSee('value="09:30"', false);
         $matrix = $this->open();
         $this->actingAs($this->tara)->postJson(route('academic-registers.settings'), ['absence_cutoff' => '11:00', 'teaching_days' => [1]])->assertForbidden();
         $foreign = User::withoutGlobalScopes()->findOrFail($this->schoolB->ids['tara_user']);

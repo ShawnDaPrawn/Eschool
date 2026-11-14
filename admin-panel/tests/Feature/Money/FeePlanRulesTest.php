@@ -215,6 +215,10 @@ class FeePlanRulesTest extends TestCase
         $this->refuses(fn () => app(FeePaymentChoices::class)->save($teacher, $families[0]->id, $input), 403);
         $this->refuses(fn () => app(CurrentSchool::class)->run(2, fn () => app(FeePaymentChoices::class)->save($this->admin, $families[0]->id, $input)), 403);
         $this->actingAs($this->admin)->post('/fee-accounts/'.$families[0]->id.'/payment-choice', $this->choiceInput($plan, 'terms', ['revision' => 1]) + ['expected_school_id' => 2, 'expected_account_id' => $this->admin->id])->assertForbidden();
+        $this->post('/fee-accounts/'.$families[0]->id.'/payment-choice', $this->choiceInput($plan, 'terms', ['revision' => 1]) + ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id])
+            ->assertStatus(303)->assertRedirect(route('fee-accounts.edit', ['account' => $families[0]->id, 'year_id' => $this->year, 'section' => 'options']));
+        $this->get(route('fee-accounts.edit', ['account' => $families[0]->id, 'year_id' => $this->year, 'section' => 'options']))
+            ->assertOk()->assertSee('name="option_key"', false);
         $this->assertSame(0, DB::table('ledger_entries')->count());
     }
 

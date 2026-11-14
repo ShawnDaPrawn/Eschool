@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { accounts, signIn } from '../support/accounts';
+import { accounts, csrfToken, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -84,3 +84,43 @@ for (const width of [375, 1280]) {
     expect(errors).toEqual([]);
   });
 }
+
+
+test('leave configuration saves retain their selected year without switching the global year', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 375, height: 850 });
+  await signIn(page, accounts.admin);
+  const originalYear = await page.locator('#filter_session_year_global').inputValue();
+  const stamp = String(Date.now());
+  const prepareYear = async (offset: number) => {
+    const year = new Date().getFullYear() + offset;
+    const response = await page.request.post('/new-year/year', {
+      headers: { 'X-CSRF-TOKEN': await csrfToken(page), Accept: 'application/json' },
+      data: { name: `Leave configuration ${year} ${stamp}`, start_date: `${year}-01-01`, end_date: `${year}-12-31`,
+        fee_due_date: `${year}-02-01`, fee_due_charges: 0, terms: [] },
+    });
+    expect(response.ok()).toBe(true);
+    const saved = await response.json();
+    expect(saved.error).toBe(false);
+    return String(saved.data.id);
+  };
+  const firstYear = await prepareYear(10), secondYear = await prepareYear(11);
+  await page.goto('/leave-master?view=create');
+  await page.locator('#create-monthly-leave').fill('2');
+  await page.locator('#create-leave-year').selectOption(firstYear);
+  await page.locator('#leave-configuration-create [name="holiday_days[]"][value="Sunday"]').check();
+  await page.locator('#leave-configuration-create [data-submit]').click();
+  await expect(page).toHaveURL(new RegExp(`/leave-master\\?configuration_year=${firstYear}$`));
+  await expect(page.locator('#leave-configuration-year')).toHaveValue(firstYear);
+  await expect(page.locator('[data-leave-record]')).toHaveCount(1);
+  await expect(page.locator('#filter_session_year_global')).toHaveValue(originalYear);
+  await page.locator('[data-leave-record]').click();
+  await page.locator('#edit-leave-year').selectOption(secondYear);
+  await page.locator('#leave-configuration-edit [data-submit]').click();
+  await expect(page).toHaveURL(new RegExp(`/leave-master\\?configuration_year=${secondYear}$`));
+  await expect(page.locator('#leave-configuration-year')).toHaveValue(secondYear);
+  await expect(page.locator('[data-leave-record]')).toHaveCount(1);
+  await expect(page.locator('#filter_session_year_global')).toHaveValue(originalYear);
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  expect(await seriousViolations(page)).toEqual([]);
+});

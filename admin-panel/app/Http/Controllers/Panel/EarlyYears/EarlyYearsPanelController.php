@@ -45,9 +45,10 @@ class EarlyYearsPanelController extends Controller
     public function saveArea(DevelopmentAreaRequest $request): RedirectResponse
     {
         $area = $request->route('area');
+        $destination = $area === null ? ['view' => 'configuration'] : ['view' => 'area', 'area_id' => (int) $area];
 
         return $this->attempt(fn () => app(DevelopmentAreas::class)->save($request->user(), $area === null ? null : (int) $area, $request->validated()),
-            redirect()->route('early-years.index', ['view' => 'configuration']), __('Development area saved.'));
+            redirect()->route('early-years.index', $destination), __('Development area saved.'));
     }
 
     public function classroom(Request $request, int $section): View

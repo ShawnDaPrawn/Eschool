@@ -110,7 +110,8 @@ class SupportDeskTest extends TestCase
     {
         $admin = $this->superAdmin();
         $this->as($admin);
-        $this->get('/support-tickets')->assertOk()->assertSee('Open a ticket')->assertSee('No tickets yet')
+        $this->get('/support-tickets')->assertOk()->assertSee('Open a ticket')->assertSee('No tickets yet')->assertDontSee('name="body"', false);
+        $this->get('/support-tickets?view=create')->assertOk()->assertSee('name="body"', false)
             ->assertSee('Do not paste learners\' personal information here');
         $id = $this->open(['priority' => 'urgent']);
         $reference = SupportTicket::referenceFor($id);

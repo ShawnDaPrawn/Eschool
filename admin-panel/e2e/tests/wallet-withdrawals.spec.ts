@@ -28,7 +28,10 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('combobox', { name: 'Method at exactly the boundary', exact: true }).selectOption('1');
     await page.getByRole('button', { name: 'Save withdrawal policy', exact: true }).click();
     await expect(page.getByRole('main')).toContainText('Withdrawal policy saved.');
+    await expect(page).toHaveURL(/\/wallet-withdrawals\?section=settings$/);
+    await expect(page.getByRole('combobox', { name: 'Method at exactly the boundary', exact: true })).toHaveValue('1');
     expect(fixture('stats', data.school).cash_at_boundary).toBe(true);
+    await page.getByRole('link', { name: 'Withdrawal queue', exact: true }).click();
     await page.getByRole('link', { name: `WW-${data.bank_withdrawal}`, exact: true }).click();
     await expect(page.getByRole('main')).toContainText('Private synthetic original parent bank instructions');
     await check(page);

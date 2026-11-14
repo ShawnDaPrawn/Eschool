@@ -272,6 +272,9 @@ class WalletWithdrawalsTest extends TestCase
         $row = app(WalletWithdrawals::class)->request($this->parent, $this->input());
         $bind = ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id];
         $this->actingAs($this->admin, 'web')->get('/wallet-withdrawals')->assertOk();
+        $this->post('/wallet-withdrawals/policy', ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'cash_threshold_amount' => '250.00', 'cash_at_boundary' => false, 'accepting_requests' => true] + $bind)
+            ->assertStatus(303)->assertRedirect('/wallet-withdrawals?section=settings');
+        $this->get('/wallet-withdrawals?section=settings')->assertOk()->assertSee('Explicit school withdrawal policy');
         $this->get('/wallet-withdrawals/'.$row->id)->assertOk()->assertSee('Private synthetic bank details for original Farid holder');
         $this->post('/wallet-withdrawals/'.$row->id.'/approve', ['operation_id' => (string) Str::uuid(), 'verified_original_holder' => true] + $bind)->assertRedirect('/wallet-withdrawals/'.$row->id);
         $this->post('/wallet-withdrawals/'.$row->id.'/paid', $this->payout() + $bind)->assertRedirect('/wallet-withdrawals/'.$row->id);
