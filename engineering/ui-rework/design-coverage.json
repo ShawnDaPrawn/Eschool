@@ -18850,7 +18850,7 @@
         "admin-panel/app/Http/Controllers/Panel/Leave/LeaveCalendarController.php"
       ],
       "destination": "/leave-calendar",
-      "status": "Implemented authorised staff/learner/facilitator calendar; no private reasons/files in calendar cells; detail reauthorises",
+      "status": "Implemented calendar/history detail with approved dates and day portions; private reasons/files require requester or the subject's authorised reviewer",
       "source_files_present": true,
       "design_routes": [],
       "design_field_names": [

@@ -87,7 +87,8 @@ class LeaveCalendarController extends Controller
             if ($type === 'staff') {
                 $query->whereNotIn('user_id', Students::select('user_id'));
             }
-            $legacy = $query->with(['user', 'leave_detail'])->orderBy('from_date')->limit(501)->get();
+            $legacy = $query->select(['id', 'school_id', 'user_id', 'session_year_id', 'from_date', 'to_date', 'status'])
+                ->with(['user:id,first_name,last_name', 'leave_detail:id,leave_id,date,type'])->orderBy('from_date')->limit(501)->get();
             abort_if($legacy->count() > 500, 422, 'Choose a narrower person type for this week.');
             $studentIds = Students::whereIn('user_id', $legacy->pluck('user_id'))->pluck('user_id')->all();
             foreach ($legacy as $row) {
@@ -109,9 +110,21 @@ class LeaveCalendarController extends Controller
 
     public function show(Request $request, int $leave)
     {
+        $policy = app(ProfilePolicy::class);
+        $actor = $policy->actor($request->user());
         $year = (int) app(SessionYearContext::class)->selectedId();
-        $record = $this->legacyQuery($request->user(), $year)->with(['user', 'leave_detail', 'file'])->findOrFail($leave);
+        // Calendar history authorises approved dates, not the original private
+        // request. Resolve its subject without loading reasons or documents.
+        $record = $this->legacyQuery($actor, $year)
+            ->select(['id', 'school_id', 'user_id', 'session_year_id', 'from_date', 'to_date', 'status'])
+            ->with(['user:id,first_name,last_name', 'leave_detail:id,leave_id,date,type'])->findOrFail($leave);
+        $learnerRequest = Students::where('user_id', $record->user_id)->exists();
+        $privateDetails = (int) $record->user_id === (int) $actor->id
+            || $policy->permission($actor, $learnerRequest ? 'student-leave-approve' : 'leave-approve');
+        if ($privateDetails) {
+            $record = $this->legacyQuery($actor, $year)->with(['user', 'leave_detail', 'file'])->findOrFail($leave);
+        }
 
-        return response()->view('leave.calendar-detail', compact('record'))->header('Cache-Control', 'no-store, private');
+        return response()->view('leave.calendar-detail', compact('record', 'privateDetails', 'learnerRequest'))->header('Cache-Control', 'no-store, private');
     }
 }

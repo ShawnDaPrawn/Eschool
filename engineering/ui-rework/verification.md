@@ -86,7 +86,7 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Check | Result |
 |---|---|
 | Final integrated Unit suite | 331 tests, 15,714 assertions; one existing skip |
-| Full Pint | 3,366 files passed after the final configuration-return follow-up |
+| Full Pint | 3,367 files passed after the final leave-history privacy correction |
 | Shared HTTP and workspace boundaries | 15 tests, 38,582 assertions passed; covers 48 new route boundaries |
 | Personal notification endpoints | 6 tests, 39 assertions passed |
 | Blade compile and PHP token parsing | 698 templates compile; PHP token parsing and uncompiled-directive assertions pass |
@@ -106,13 +106,13 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Classroom and global year activation/restoration | Classroom 3/3 at 390/820/1280 px; wizard 1/1; original year and module state independently verified |
 | Recognition: house points and Golden Boot creation/nomination/award history | 4 browser workflows passed at 390/1280 px |
 | Mobile global Search and language utilities | 2 passed at 320/375 px: actual language change/restore, all module links, drawer Axe/overflow, learner search to report |
-| Final Blade, translations and navigation rendering batch | 8 tests, 72,076 assertions passed after the final interaction/fixture corrections |
+| Final privacy, Blade, translations and navigation batch | 22 tests, 72,198 assertions passed, including all view compilation and navigation freshness checks |
 | Global search and shrinking Bootstrap baseline | 9 tests, 45 assertions passed |
 | Persistence badge dedicated configuration and protected writes | 1 test, 14 assertions passed |
 | Notification list/chooser and default-value form controls | 2 notification workflows; 2 strict field pages and both mobile/desktop option add/remove proofs passed |
 | Role and staff-attendance page corrections | 4 strict phone/desktop page checks passed; source record actions and filters retained |
 | TypeScript compilation | Passed after final mobile utility tests |
-| CI Playwright partition inventory | 1,246 tests complete/disjoint after the final regressions: flows 114/114/114/114, one full viewport in parts 1–3, role/retired checks in part 4, isolated wizard |
+| CI Playwright partition inventory | 1,248 tests complete/disjoint after the final regressions: flows 120/110/114/114, one full viewport in parts 1–3, role/retired checks in part 4, isolated wizard |
 | Generated Dart API contracts | 193 tests passed; analyzer zero errors/warnings (parent verification logs) |
 | Expanded source/authorized-task discovery | 434 URLs, 255 panel screens; zero server/network failures after explicit retries |
 | Complete 375/1280 px page sweeps, first pass | 232/258 and 233/258 passed; 26/25 source defects retained in the initial reports, zero skipped/flaky |
@@ -187,9 +187,9 @@ its remaining checks to run. Separate report/result subdirectories keep earlier
 failure evidence intact. The wizard retains its separate schema and no-dependency
 command.
 
-Real prepared Playwright discovery verified 1,246 tests with no missing or
+Real prepared Playwright discovery verified 1,248 tests with no missing or
 repeated identities, both within each part and across all five parts. The four
-workflow shards each contain 114 tests. Tool orchestration tests cover
+workflow shards contain 120, 110, 114 and 114 tests, preserving native groups. Tool orchestration tests cover
 failure aggregation, continued execution, artifact separation, overlap rejection
 and complete coverage; all five CI-tool unit tests pass. Python syntax,
 TypeScript and diff checks pass. This change qualifies distribution and coverage;
@@ -283,7 +283,7 @@ assertions intact:
 The original full CI logs are retained separately from these passing corrective
 runs. CI allocation now pairs a complete viewport sweep with a serial workflow
 shard, preserves independent schemas and per-command failure artifacts, and
-verifies all 1,246 tests exactly once. The obsolete separate leadership preflight
+verifies all 1,248 tests exactly once. The obsolete separate leadership preflight
 was removed because that test remains in its verified workflow partition; this
 also prevents a second global setup from changing discovery midway through CI.
 
@@ -320,6 +320,27 @@ issues below; their aggregate failed accordingly.
 The complete shared form/table/event batch passed **29 cases with retries
 disabled** in 1.7 minutes, including the new stopped-navigation and cancelled
 private-form handoffs. The latter also passes strict Axe and overflow checks
-at 375 pixels. Source JavaScript syntax, TypeScript, the new 1,246-test disjoint
+at 375 pixels. Source JavaScript syntax, TypeScript, the new 1,248-test disjoint
 inventory, Blade compilation, navigation freshness and all four language maps
 pass. Hosted final-head acceptance remains a separate PR check.
+
+## Leave calendar history privacy
+
+The final PR review identified an authority mismatch between approved staff
+history and private request details. The new regression reproduces exposure of
+original reasons and attachment URLs to a history-only reader before correction.
+Calendar queries now select only names, dates, decisions and day portions;
+history details never load private reasons, rejection notes or the file relation.
+Private request details require the requester or the appropriate staff/learner
+review permission, within the existing school, year and teacher allocation scope.
+Learner-review authority cannot unlock private staff requests.
+
+All **five privacy regressions pass**: restricted history, owner/reviewer
+positive access, pending/rejected/foreign-year/foreign-school refusals, mixed
+learner-review/history authority and wrong-owner refusal. The full combined
+Leave/Blade/navigation/translation batch passes **22 tests / 72,198 assertions**.
+Both real history-reader browser journeys pass at 375/1280 with retries disabled,
+strict Axe, overflow and console checks; response HTML contains no private
+reason or document URL and retains no-store caching. Full Pint passes 3,367 files,
+standard PHPStan reports zero errors, TypeScript passes, and the complete
+1,248-test partition inventory remains disjoint and exhaustive.

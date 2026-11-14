@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { accounts, csrfToken, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+import { artisanFixture } from '../support/artisan-fixture';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -79,6 +80,36 @@ for (const width of [375, 1280]) {
     await page.locator('#leave-to').dispatchEvent('change');
     await expect(portions.first()).toHaveValue('First Half');
     await expect(page.getByRole('button', { name: 'Submit leave request', exact: true })).toBeVisible();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const width of [375, 1280]) {
+  test(`leave history shows approved dates without private request data at ${width}px`, async ({ page, baseURL }) => {
+    test.setTimeout(90_000);
+    const fixture = JSON.parse(artisanFixture("echo json_encode(require base_path('e2e/support/leave-calendar-history-fixture.php'));"));
+    await page.setViewportSize({ width, height: 850 });
+    await signIn(page, fixture.email);
+    const errors = collectErrors(page, baseURL!);
+    await page.goto(`/leave-calendar?person_type=staff&week=${fixture.date}`);
+    const card = page.locator('article').filter({ has: page.getByRole('heading', { name: fixture.name, exact: true }) });
+    await expect(card).toContainText(fixture.date);
+    await expect(page.locator('main')).not.toContainText(fixture.reason);
+    const [response] = await Promise.all([
+      page.waitForResponse(result => new URL(result.url()).pathname === `/leave-calendar/${fixture.record}`),
+      card.getByRole('link', { name: 'Open request', exact: true }).click(),
+    ]);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['cache-control']).toContain('no-store');
+    await expect(page.getByRole('heading', { name: 'Leave request', exact: true })).toBeVisible();
+    await expect(page.locator('main')).toContainText('This history view shows approved dates and day portions.');
+    await expect(page.locator('main')).toContainText(fixture.date);
+    await expect(page.locator('main')).toContainText('Full');
+    await expect(page.locator('main')).not.toContainText(fixture.reason);
+    await expect(page.getByRole('heading', { name: 'Original reason', exact: true })).toHaveCount(0);
+    expect(await page.content()).not.toContain(fixture.file);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     expect(await seriousViolations(page)).toEqual([]);
     expect(errors).toEqual([]);
