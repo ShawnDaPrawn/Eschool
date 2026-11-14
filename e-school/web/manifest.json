@@ -9,6 +9,7 @@
     "description": "NavigateEd for learners and parents: timetable, homework, results, fees and messages from your school.",
     "orientation": "any",
     "prefer_related_applications": false,
+    "handle_links": "not-preferred",
     "icons": [
         {
             "src": "icons/Icon-192.png",
