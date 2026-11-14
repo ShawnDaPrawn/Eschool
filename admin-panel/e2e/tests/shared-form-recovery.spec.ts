@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Dialog, type Page } from '@playwright/test';
+import { horizontalOverflow, seriousViolations } from '../support/checks';
 
 // Isolated component fixture: real shipped CSS/JS, intercepted write responses.
 // No application endpoint or school record is created for these checks.
@@ -175,6 +176,131 @@ for (const trigger of ['click', 'enter', 'requestSubmit'] as const) {
     expect(requests).toBe(1);
   });
 }
+
+for (const width of [375, 1280]) {
+  test(`rapid cancel and reopen keeps the next form confirmation active at ${width}px`, async ({ page }) => {
+    let requests = 0;
+    let body = '';
+    await page.route(`**${submitPath}`, async route => {
+      requests += 1;
+      body = route.request().postData() || '';
+      await route.fulfill({ json: { error: false, message: 'Contact saved.' } });
+    });
+    await page.setViewportSize({ width, height: 900 });
+    await loadFixture(page);
+    await page.getByLabel('Contact name').fill('Approved after reopening');
+    const reopened = await page.locator('#contact').evaluate(async element => {
+      const form = element as HTMLFormElement;
+      const submitter = form.querySelector('[data-submit]') as HTMLButtonElement;
+      const dialog = document.querySelector('#page-confirm') as HTMLDialogElement;
+      form.setAttribute('data-confirm', 'Publish this contact for the selected school?');
+      form.setAttribute('data-confirm-label', 'Publish contact');
+      form.requestSubmit(submitter);
+      // A native close queues its event. Reopen in the same task, then let
+      // that real earlier event arrive while the next confirmation is open.
+      const earlierClose = new Promise<void>(resolve => dialog.addEventListener('close', () => resolve(), { once: true }));
+      dialog.close('cancel');
+      form.requestSubmit(submitter);
+      await earlierClose;
+      return dialog.open;
+    });
+    expect(reopened).toBe(true);
+    expect(requests).toBe(0);
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await page.getByRole('button', { name: 'Publish contact', exact: true }).click();
+    await expect.poll(() => requests).toBe(1);
+    await expect(page.getByRole('alertdialog')).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Save contact' })).toBeEnabled();
+    await expect(page.getByLabel('Contact name')).toBeFocused();
+    expect(body).toContain('name="decision"');
+    expect(body).toContain('approve');
+    expect(body).toContain('Approved after reopening');
+    expect(requests).toBe(1);
+  });
+}
+
+test('a saved form cannot write again after its replacement navigation is stopped', async ({ page }) => {
+  const destination = '/__ui-rework-saved-contact';
+  let requests = 0;
+  let arriving!: () => void;
+  let release!: () => void;
+  const arrived = new Promise<void>(resolve => { arriving = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route(`**${submitPath}`, route => {
+    requests += 1;
+    return route.fulfill({ json: { error: false, message: 'Contact saved.', redirect: destination } });
+  });
+  await page.route(`**${destination}`, async route => {
+    arriving();
+    await gate;
+    await route.abort('aborted');
+  });
+  await loadFixture(page);
+  await page.getByLabel('Contact name').fill('A completed save');
+  await page.getByRole('button', { name: 'Save contact' }).click({ noWaitAfter: true });
+  await arrived;
+  const browserSession = await page.context().newCDPSession(page);
+  try {
+    // Stopping a slow GET must retain the confirmed result, rather than make
+    // this old editor available to submit the already-completed write again.
+    await browserSession.send('Page.stopLoading');
+  } finally {
+    release();
+    await browserSession.detach();
+  }
+  await expect(page.getByRole('link', { name: 'Open saved record', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save contact' })).toBeDisabled();
+  await expect(page.getByLabel('Contact name')).toBeDisabled();
+  await page.locator('#contact').evaluate(form => (form as HTMLFormElement).requestSubmit());
+  expect(requests).toBe(1);
+  await page.unroute(`**${destination}`);
+  await page.route(`**${destination}`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><h1>Saved school contact</h1>' }));
+  await page.getByRole('link', { name: 'Open saved record', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Saved school contact', exact: true })).toBeVisible();
+  expect(requests).toBe(1);
+});
+
+test('cancelling navigation after a completed save retains another private form and a record link', async ({ page }) => {
+  const destination = '/__ui-rework-saved-contact';
+  let requests = 0;
+  let reads = 0;
+  let cancellations = 0;
+  await page.route(`**${submitPath}`, route => {
+    requests += 1;
+    return route.fulfill({ json: { error: false, message: 'Contact saved.', redirect: destination } });
+  });
+  await page.route(`**${destination}`, route => {
+    reads += 1;
+    return route.fulfill({ contentType: 'text/html', body: '<!doctype html><h1>Saved school contact</h1>' });
+  });
+  const cancelNavigation = async (dialog: Dialog) => {
+    expect(dialog.type()).toBe('beforeunload');
+    cancellations += 1;
+    await dialog.dismiss();
+  };
+  page.on('dialog', cancelNavigation);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await loadFixture(page);
+  await page.getByLabel('Native private note').fill('Keep the other private form in memory');
+  await page.getByLabel('Contact name').fill('A known completed save');
+  await page.getByRole('button', { name: 'Save contact' }).click();
+  await expect.poll(() => cancellations).toBe(1);
+  await expect(page.getByRole('link', { name: 'Open saved record', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save contact' })).toBeDisabled();
+  await expect(page.getByLabel('Native private note')).toHaveValue('Keep the other private form in memory');
+  await expect(page.getByLabel('Native private note')).toBeEnabled();
+  expect(await storedDrafts(page)).not.toContain('Keep the other private form in memory');
+  expect(requests).toBe(1);
+  expect(reads).toBe(0);
+  expect(await seriousViolations(page)).toEqual([]);
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  page.off('dialog', cancelNavigation);
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('link', { name: 'Open saved record', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Saved school contact', exact: true })).toBeVisible();
+  expect(requests).toBe(1);
+  expect(reads).toBe(1);
+});
 
 test('native form context cancellation keeps private values only in memory', async ({ page }) => {
   await loadFixture(page);

@@ -30,7 +30,7 @@ document.querySelectorAll('[data-event-editor]').forEach((container) => {
     const rows = form.querySelector('[data-programme-rows]');
     let sequence = rows?.children.length || 0;
     const pendingControls = new Map();
-    const programmeSaving = () => form.getAttribute('aria-busy') === 'true';
+    const programmeSaving = () => form.getAttribute('aria-busy') === 'true' || form.hasAttribute('data-page-form-committed');
     const syncProgrammeControls = () => {
         if (programmeSaving()) {
             form.querySelectorAll('[data-programme-add], [data-programme-remove]').forEach((button) => {

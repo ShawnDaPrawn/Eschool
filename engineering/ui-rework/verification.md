@@ -106,13 +106,13 @@ project, so the CI partition's exhaustive-discovery check still includes them.
 | Classroom and global year activation/restoration | Classroom 3/3 at 390/820/1280 px; wizard 1/1; original year and module state independently verified |
 | Recognition: house points and Golden Boot creation/nomination/award history | 4 browser workflows passed at 390/1280 px |
 | Mobile global Search and language utilities | 2 passed at 320/375 px: actual language change/restore, all module links, drawer Axe/overflow, learner search to report |
-| Final Blade, translations and navigation rendering batch | 8 tests, 72,072 assertions passed after the final configuration-return follow-up |
+| Final Blade, translations and navigation rendering batch | 8 tests, 72,076 assertions passed after the final interaction/fixture corrections |
 | Global search and shrinking Bootstrap baseline | 9 tests, 45 assertions passed |
 | Persistence badge dedicated configuration and protected writes | 1 test, 14 assertions passed |
 | Notification list/chooser and default-value form controls | 2 notification workflows; 2 strict field pages and both mobile/desktop option add/remove proofs passed |
 | Role and staff-attendance page corrections | 4 strict phone/desktop page checks passed; source record actions and filters retained |
 | TypeScript compilation | Passed after final mobile utility tests |
-| CI Playwright partition inventory | 1,242 tests complete/disjoint after balancing: flows 114/114/112/112, one full viewport in parts 1–3, role/retired checks in part 4, isolated wizard |
+| CI Playwright partition inventory | 1,246 tests complete/disjoint after the final regressions: flows 114/114/114/114, one full viewport in parts 1–3, role/retired checks in part 4, isolated wizard |
 | Generated Dart API contracts | 193 tests passed; analyzer zero errors/warnings (parent verification logs) |
 | Expanded source/authorized-task discovery | 434 URLs, 255 panel screens; zero server/network failures after explicit retries |
 | Complete 375/1280 px page sweeps, first pass | 232/258 and 233/258 passed; 26/25 source defects retained in the initial reports, zero skipped/flaky |
@@ -187,9 +187,9 @@ its remaining checks to run. Separate report/result subdirectories keep earlier
 failure evidence intact. The wizard retains its separate schema and no-dependency
 command.
 
-Real prepared Playwright discovery verified 1,242 tests with no missing or
+Real prepared Playwright discovery verified 1,246 tests with no missing or
 repeated identities, both within each part and across all five parts. The four
-workflow shards contain 114, 114, 112 and 112 tests. Tool orchestration tests cover
+workflow shards each contain 114 tests. Tool orchestration tests cover
 failure aggregation, continued execution, artifact separation, overlap rejection
 and complete coverage; all five CI-tool unit tests pass. Python syntax,
 TypeScript and diff checks pass. This change qualifies distribution and coverage;
@@ -283,6 +283,43 @@ assertions intact:
 The original full CI logs are retained separately from these passing corrective
 runs. CI allocation now pairs a complete viewport sweep with a serial workflow
 shard, preserves independent schemas and per-command failure artifacts, and
-verifies all 1,242 tests exactly once. The obsolete separate leadership preflight
+verifies all 1,246 tests exactly once. The obsolete separate leadership preflight
 was removed because that test remains in its verified workflow partition; this
 also prevents a second global setup from changing discovery midway through CI.
+
+## Final confirmation and completed-save corrections
+
+The completed hosted run for `631aa0b7` passed all four PHP partitions:
+6,103 tests and 283,871 assertions, with two integration skips. The separate
+quality steps passed actual ClamAV clean/EICAR and private Reverb socket/relay
+checks, covering those two opt-in integration gates. Every Flutter, generated
+API, runtime, converter, security and documentation job passed. Browser parts
+1/2 and the isolated year wizard passed. Parts 3/4 identified the two specific
+issues below; their aggregate failed accordingly.
+
+- A native dialog's queued close event could arrive after rapid Cancel →
+  reopen and settle the next confirmation as cancelled. Both deterministic
+  phone/desktop reproductions failed before the correction. Superseded
+  listeners are now removed, and an old close event cannot answer or take
+  focus from a replacement dialog that is still open. Click, Enter and
+  `requestSubmit` retain the exact named submitter and single-write contract.
+- A completed save's editor could accept another action if its replacement
+  navigation was stopped or cancelled. Confirmed redirecting saves now retire
+  that old form and expose an accessible Open saved record link outside any
+  closing dialog. This retains a usable result after navigation cancellation
+  or browser-history restoration, while leaving other forms' private entries
+  and exit guards intact. Event programme mutations also honour the completed
+  state. Failure, conflict and unknown-outcome forms remain recoverable.
+- Captured question-author diagnostics showed that whole-year synthetic group
+  membership exceeded an existing learner's dated enrolment. Fixture dates now
+  intersect the original enrolment without rewriting its history or bypassing
+  production validation. A separately seeded database reproduces the original
+  refusal and atomic rollback, then passes fresh/repeated/second-namespace
+  setup and both actual authoring journeys with retries disabled.
+
+The complete shared form/table/event batch passed **29 cases with retries
+disabled** in 1.7 minutes, including the new stopped-navigation and cancelled
+private-form handoffs. The latter also passes strict Axe and overflow checks
+at 375 pixels. Source JavaScript syntax, TypeScript, the new 1,246-test disjoint
+inventory, Blade compilation, navigation freshness and all four language maps
+pass. Hosted final-head acceptance remains a separate PR check.

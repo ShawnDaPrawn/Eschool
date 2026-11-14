@@ -18,7 +18,9 @@
     success; 422 with {message, errors: {field: [messages]}} or
     {error: true, message} otherwise. After a save the form can go to
     `redirect` (the prop or the response's), reset itself, refresh a table, or
-    fire a `page-form:saved` event for page code.
+    fire a `page-form:saved` event for page code. A confirmed redirect retires
+    this old editor and exposes an Open saved record link, including when
+    navigation is stopped or cancelled. Other forms retain their exit guards.
 --}}
 @props([
     'id',

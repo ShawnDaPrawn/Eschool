@@ -312,13 +312,13 @@ The seeder is idempotent (run it again and it updates the same rows), runs `Inst
 
 | Project | What it checks |
 |---|---|
-| `pages-1280`, `pages-1024` | Every panel page as the Super Admin at 1280 and 1024 px wide: no console errors and no failed requests to the panel, no horizontal scroll, and no serious or critical axe violation (WCAG 2.0/2.1 A and AA) |
-| `flows` | Navigation finds "Add a learner", "Terms" and "Notices" (and works from the keyboard); search opens a learner; the year switcher shows the banner, the lists follow the year, write buttons are disabled and the server answers 423 (as the second teacher, in a session of its own) |
-| `teacher` | A teacher sees no Money or Settings and no setup checklist, and is refused admin pages (`/settings`, `/roles`, `/staff`, `/fees-type`, `/session-years`, `/new-year`, `/students/create`, `/email-settings`, `/language`) |
+| `pages-1280`, `pages-1024`, `pages-375` | Every discovered panel page as the Super Admin at desktop and phone widths: no console errors or failed panel requests, no page overflow, and no serious or critical axe violation (WCAG 2.0/2.1 A and AA) |
+| `flows` | All registered module workflows, role/tenant/private-file boundaries, shared form/table recovery and confirmations, mobile navigation and utilities, global search, school/year context and read-only-year refusals. Writes remain serial within each isolated partition. |
+| `teacher` | A teacher sees no Finance or Settings and no setup checklist, and is refused admin pages (`/settings`, `/roles`, `/staff`, `/fees-type`, `/session-years`, `/new-year`, `/students/create`, `/email-settings`, `/language`) |
 | `removed` | `/system-update`, `/migrate`, `/seeder_install` and `/storage-link` answer 404 (they were removed by stream S1; on a branch without that removal these four fail) |
 | `wizard` | Runs last: creates next year in the new-year wizard, makes it current in under five minutes, then makes this year current again so the suite can run again on the same database |
 
-[allowlist.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/e2e/allowlist.json) lists known problems on legacy pages that the page sweep tolerates, each with the pages it applies to and a reason (for example filter selects without labels, icon-only row buttons, page-specific contrast). It must only shrink: a page rebuilt on the page pattern loses its entries, and a new page never gets one. Console errors and horizontal scroll have no entries.
+[allowlist.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/e2e/allowlist.json) has no accessibility, console or overflow exceptions. Revised and inherited pages must pass the same strict checks; a new page does not receive an exemption.
 
 ### Running it locally
 

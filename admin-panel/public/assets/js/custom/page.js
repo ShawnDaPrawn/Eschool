@@ -140,6 +140,7 @@
             var answer = function (value) {
                 if (!answered) {
                     answered = true;
+                    dialog.removeEventListener("close", onClose);
                     if (pendingConfirm === answer) {
                         pendingConfirm = null;
                     }
@@ -147,16 +148,17 @@
                 }
             };
             pendingConfirm = answer;
-            dialog.addEventListener(
-                "close",
-                function () {
-                    answer(dialog.returnValue === "confirm");
-                    if (opener && typeof opener.focus === "function") {
-                        opener.focus();
-                    }
-                },
-                { once: true }
-            );
+            var onClose = function () {
+                // Native close events are queued. A cancelled dialog can be
+                // reopened before its old event arrives; that event must not
+                // answer or steal focus from the new, still-open confirmation.
+                if (dialog.open) return;
+                answer(dialog.returnValue === "confirm");
+                if (opener && typeof opener.focus === "function") {
+                    opener.focus();
+                }
+            };
+            dialog.addEventListener("close", onClose);
             dialog.returnValue = "";
             dialog.showModal();
             dialog.querySelector("[data-confirm-cancel]").focus();
@@ -982,6 +984,23 @@
         }
         var redirect = (response && response.redirect) || form.getAttribute("data-redirect");
         if (redirect && !event.defaultPrevented) {
+            // The write is confirmed; this document is now an old editor.
+            // A slow or cancelled navigation must not allow it to post again.
+            form.setAttribute("data-page-form-committed", "");
+            Array.prototype.forEach.call(form.elements, function (field) {
+                if ("disabled" in field) field.disabled = true;
+            });
+            var receipt = document.createElement("p");
+            receipt.className = "m3-banner m3-banner--info";
+            receipt.setAttribute("role", "status");
+            receipt.appendChild(document.createTextNode(label("Saved.", "Saved.") + " "));
+            var link = document.createElement("a");
+            link.href = redirect;
+            link.textContent = label("Open saved record", "Open saved record");
+            receipt.appendChild(link);
+            // Keep the result reachable if the originating form was in a
+            // dialog closed by its save handler, or Back restores this page.
+            (document.querySelector("main") || form.parentNode).prepend(receipt);
             window.location.assign(redirect);
         }
     }
@@ -1056,7 +1075,7 @@
             return;
         }
         event.preventDefault();
-        if (form.getAttribute("aria-busy") === "true") return;
+        if (form.getAttribute("aria-busy") === "true" || form.hasAttribute("data-page-form-committed")) return;
         clearErrors(form);
 
         // The browser's checks first, shown inline rather than as bubbles.
@@ -1109,7 +1128,7 @@
             .finally(function () {
                 form.removeAttribute("aria-busy");
                 if (submit) {
-                    submit.disabled = false;
+                    submit.disabled = form.hasAttribute("data-page-form-committed");
                     submit.removeAttribute("aria-busy");
                 }
             });
