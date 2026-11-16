@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   bloc: ^9.0.0
-  cached_network_image: ^4.0.6
+  cached_network_image: ^4.0.7
   dio: ^5.9.2
   dotted_border: ^3.1.0
   equatable: ^3.0.0
@@ -18,7 +18,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   flutter_html: ^3.0.0
   flutter_pdfview: ^1.4.4
-  flutter_svg: ^2.3.2
+  flutter_svg: ^2.4.0
   # Not used directly: flutter_html 3.0.0 calls matches() from html's
   # src/query_selector.dart, which html 0.15.7 removed, so neither app
   # compiled with 0.15.7. Lift this when flutter_html no longer needs it.
