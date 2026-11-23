@@ -36,7 +36,7 @@ dependencies:
 
   cupertino_icons: ^2.0.0
   flutter_bloc: ^9.1.1
-  flutter_svg: ^2.3.2
+  flutter_svg: ^2.5.0
   google_fonts: ^9.0.0
   dotted_border: ^3.1.0
   table_calendar: ^3.3.0
@@ -45,7 +45,7 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   equatable: ^3.0.0
-  cached_network_image: ^4.0.6
+  cached_network_image: ^4.0.7
   shimmer: ^4.0.0
   path_provider: ^2.1.5
   url_launcher: ^6.3.2
@@ -53,8 +53,8 @@ dependencies:
   file_picker: 13.3.2
   permission_handler: ^13.0.2
   timeago: ^3.7.1
-  firebase_messaging: ^17.0.1
-  firebase_core: ^5.1.0
+  firebase_messaging: ^17.1.0
+  firebase_core: ^5.2.0
   awesome_notifications: ^0.12.1
   carousel_slider: ^5.1.2
   flutter_html: ^3.0.0
@@ -70,11 +70,11 @@ dependencies:
   flutter_keyboard_visibility_temp_fork: ^0.1.5
   bloc: any
   intl: any
-  firebase_crashlytics: ^6.0.1
-  firebase_analytics: ^13.0.1
+  firebase_crashlytics: ^6.1.0
+  firebase_analytics: ^13.1.0
   youtube_player_iframe: ^6.0.2
   webview_flutter: ^4.13.1
-  fl_chart: ^1.3.0
+  fl_chart: ^1.3.1
 
 dependency_overrides:
   webview_flutter_plus: 0.4.20
