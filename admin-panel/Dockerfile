@@ -1,5 +1,5 @@
 # PHP2Shell (CVE-2026-109618 / CVE-2026-109619): first fixed PHP 8.3 release.
-FROM php:8.3.36-apache-bookworm
+FROM php:8.3.37-apache-bookworm
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
